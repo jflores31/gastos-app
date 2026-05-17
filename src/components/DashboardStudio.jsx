@@ -1,0 +1,111 @@
+import { useState, useCallback, useRef } from "react";
+import {
+  AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Snackbar, Alert,
+  useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
+} from "@mui/material";
+import {
+  Dashboard as DashboardIcon,
+  Receipt as ReceiptIcon,
+  AttachMoney as IncomeIcon,
+  AccountBalanceWallet as BudgetIcon,
+  Flag as GoalsIcon,
+  Add as AddIcon,
+  Settings as SettingsIcon,
+} from "@mui/icons-material";
+import { useSettings } from "../context/SettingsContext.jsx";
+import OverviewTab from "./OverviewTab.jsx";
+import ExpensesTab from "./ExpensesTab.jsx";
+import IncomeTab from "./IncomeTab.jsx";
+import BudgetTab from "./BudgetTab.jsx";
+import GoalsTab from "./GoalsTab.jsx";
+import AddTransactionModal from "./AddTransactionModal.jsx";
+import SettingsPanel from "./SettingsPanel.jsx";
+
+export default function DashboardStudio() {
+  const { t, lang } = useSettings();
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+
+  const [activeTab, setActiveTab] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [modalCat, setModalCat] = useState("");
+  const [modalMode, setModalMode] = useState("all");
+  const [showSettings, setShowSettings] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+  const [period, setPeriod] = useState("month");
+
+  const openModal = useCallback((cat = "", mode = "all") => { setModalCat(cat); setModalMode(mode); setShowModal(true); }, []);
+  const showToast = useCallback((msg, severity = "success") => {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, severity });
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const handleAddTx = useCallback(() => {
+    showToast(lang === "es" ? "Transacción guardada" : "Transaction saved", "success");
+  }, [showToast, lang]);
+
+  const TAB_LABELS = [
+    { id: "overview", label: t.overview, icon: <DashboardIcon /> },
+    { id: "expenses", label: t.expenses, icon: <ReceiptIcon /> },
+    { id: "income", label: t.incomes, icon: <IncomeIcon /> },
+    { id: "budget", label: t.budget, icon: <BudgetIcon /> },
+    { id: "goals", label: t.goals, icon: <GoalsIcon /> },
+  ];
+
+  return (
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <AppBar position="sticky" elevation={1} sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}>
+            <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>◈</Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>{lang === "es" ? "Finanzas" : "Finances"}</Typography>
+          </Box>
+          {!isMobile && (
+            <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ flex: 1 }}>
+              {TAB_LABELS.map(({ id, label, icon }) => (
+                <Tab key={id} icon={icon} iconPosition="start" label={label} sx={{ minHeight: 48 }} />
+              ))}
+            </Tabs>
+          )}
+          <Box sx={{ flex: 1, display: { xs: "block", sm: "none" } }} />
+          <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2 }}>
+            <AddIcon />
+          </Fab>
+          <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1 }}>
+            <SettingsIcon fontSize="small" />
+          </Fab>
+        </Toolbar>
+      </AppBar>
+
+      {isMobile && (
+        <BottomNavigation
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          showLabels
+          sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 1100, borderTop: 1, borderColor: "divider" }}
+        >
+          {TAB_LABELS.map(({ id, label, icon }) => (
+            <BottomNavigationAction key={id} label={label} icon={icon} />
+          ))}
+        </BottomNavigation>
+      )}
+
+      <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
+        {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
+        {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} />}
+        {activeTab === 2 && <IncomeTab period={period} openModal={openModal} />}
+        {activeTab === 3 && <BudgetTab period={period} />}
+        {activeTab === 4 && <GoalsTab />}
+      </Box>
+
+      <Snackbar open={!!toast} autoHideDuration={3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        {toast && <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.msg}</Alert>}
+      </Snackbar>
+
+      {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} />}
+      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
+    </Box>
+  );
+}
