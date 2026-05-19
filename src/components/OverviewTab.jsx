@@ -70,7 +70,7 @@ export default function OverviewTab({ period, setPeriod }) {
         </Stack>
       </Box>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr 1fr 1fr 1fr" }, gap: 2, alignItems: "stretch" }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr" }, gap: 2, alignItems: "stretch" }}>
         <Card sx={{ bgcolor: "#fff", border: "1px solid", borderColor: "divider", borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", transition: "all 0.3s", "&:hover": { boxShadow: "0 12px 40px rgba(0,0,0,0.15)", transform: "translateY(-2px)" }, borderTop: "4px solid", borderColor: net >= 0 ? "success.main" : "error.main" }}>
           <CardContent sx={{ p: 2.5, color: "text.primary", "&:last-child": { pb: 2.5 } }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>

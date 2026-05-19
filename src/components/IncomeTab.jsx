@@ -9,6 +9,7 @@ import { filterByPeriod, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
+import { NoTransactions } from "./shared.jsx";
 
 const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", ALQUILER: "#a87cc4", MUSICA: "#c97a9b", ADELANTO: "#8a8a8a" };
 
@@ -138,8 +139,11 @@ export default function IncomeTab({ period, openModal }) {
               <Typography variant="body2" color="text.secondary">{incomeTxs.length} {lang === "es" ? "registros" : "records"}</Typography>
             </Box>
           </Box>
-          <List disablePadding>
-            {incomeTxs.slice(0, 30).map((x) => {
+          {incomeTxs.length === 0 ? (
+            <NoTransactions lang={lang} type="income" />
+          ) : (
+            <List disablePadding>
+              {incomeTxs.slice(0, 30).map((x) => {
               const color = INCOME_COLORS[x.categoria] || "#888";
               const catName = CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
               return (
@@ -156,7 +160,8 @@ export default function IncomeTab({ period, openModal }) {
                 </ListItem>
               );
             })}
-          </List>
+            </List>
+          )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "primary.contrastText", borderRadius: 2, px: 3, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL INGRESOS" : "TOTAL INCOME"}</Typography>
             <Typography variant="h5" fontWeight={700}>+{fmtMoney(totalIn, currency, true)}</Typography>

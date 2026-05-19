@@ -11,6 +11,7 @@ import { CATEGORIES, fmtMoney, txByCategory, txByCategoryToday, getTodayExpenses
 import { filterByPeriod, periodLabel, monthCount } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
+import { NoTransactions } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal }) {
   const { t, lang, currency } = useSettings();
@@ -248,25 +249,29 @@ export default function ExpensesTab({ period, openModal }) {
             </Box>
             {activeCat && <Chip size="medium" label={CATEGORIES.expense[activeCat]?.[lang] || activeCat} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
           </Box>
-          <List disablePadding>
-            {expenseTxs.slice(0, 30).map((x) => {
-              const expColor = CATEGORIES.expense[x.categoria]?.color;
-              const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
-              return (
-                <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
-                  <ListItemAvatar sx={{ minWidth: 52 }}>
-                    <Avatar sx={{ width: 44, height: 44, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>} 
-                    secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>} 
-                    sx={{ mr: 2 }}
-                  />
-                  <Typography variant="h6" fontWeight={700} color="error.main">−{fmtMoney(x.valor, currency, true)}</Typography>
-                </ListItem>
-              );
-            })}
-          </List>
+          {expenseTxs.length === 0 ? (
+            <NoTransactions lang={lang} type="expense" />
+          ) : (
+            <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
+              {expenseTxs.slice(0, 30).map((x) => {
+                const expColor = CATEGORIES.expense[x.categoria]?.color;
+                const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
+                return (
+                  <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
+                    <ListItemAvatar sx={{ minWidth: 52 }}>
+                      <Avatar sx={{ width: 44, height: 44, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
+                    </ListItemAvatar>
+                    <ListItemText 
+                      primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>} 
+                      secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>} 
+                      sx={{ mr: 2 }}
+                    />
+                    <Typography variant="h6" fontWeight={700} color="error.main">−{fmtMoney(x.valor, currency, true)}</Typography>
+                  </ListItem>
+                );
+              })}
+            </List>
+          )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: 3, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL GASTOS" : "TOTAL EXPENSES"}</Typography>
             <Typography variant="h5" fontWeight={700}>−{fmtMoney(totalOut, currency, true)}</Typography>

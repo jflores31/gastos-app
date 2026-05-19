@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction } from "@mui/material";
+import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { CATEGORIES, fmtMoney, txByCategory } from "../data/index.js";
 import { filterByPeriod, monthCount, healthScore, recurringList, periodLabel } from "../data/helpers.js";
@@ -126,6 +126,13 @@ export default function BudgetTab({ period }) {
         </CardContent>
       </Card>
 
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Presupuestos" : "Budgets"}</Typography>
+        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setAddDialog(true)} size="small">
+          {lang === "es" ? "Gestionar" : "Manage"}
+        </Button>
+      </Box>
+
       <Grid container spacing={2.5}>
         {Object.keys(editBudgets).map((cat) => {
           const spent = cats.find((c) => c.categoria === cat)?.total || 0;
@@ -148,7 +155,20 @@ export default function BudgetTab({ period }) {
                     {isWarning && !isOver && <Chip size="small" label="80%" color="warning" sx={{ height: 20, fontSize: 10 }} />}
                     {isOver && <Chip size="small" label="!" color="error" sx={{ height: 20, fontWeight: 700 }} />}
                   </Box>
-                  <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : isWarning ? "warning" : "primary"} sx={{ height: 10, borderRadius: 5, mb: 1.5, bgcolor: "grey.100" }} />
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={Math.min(100, pct * 100)} 
+                    color={isOver ? "error" : isWarning ? "warning" : "primary"} 
+                    sx={{ 
+                      height: 10, 
+                      borderRadius: 5, 
+                      mb: 1.5, 
+                      bgcolor: "grey.100",
+                      "& .MuiLinearProgress-bar": {
+                        transition: "transform 0.8s ease-in-out",
+                      }
+                    }} 
+                  />
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                     <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "text.primary"}>{fmtMoney(spent, currency, true)}</Typography>
                     {isEd ? (
@@ -196,13 +216,15 @@ export default function BudgetTab({ period }) {
                     <Typography variant="caption" color="text.secondary">{t.spent}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ flex: 1 }}>
+                <Box sx={{ flex: 1, maxHeight: 200, overflowY: "auto" }}>
                   {donutData.slice(0, 5).map((s) => (
-                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "grey.50" }}>
-                      <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
-                      <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
-                      <Typography variant="body2" fontWeight={700}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
-                    </Box>
+                    <Tooltip key={s.label} title={s.label} arrow placement="top">
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "grey.50", cursor: "default" }}>
+                        <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
+                        <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</Typography>
+                        <Typography variant="body2" fontWeight={700}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
+                      </Box>
+                    </Tooltip>
                   ))}
                 </Box>
               </Box>
