@@ -13,8 +13,19 @@ function ResetPasswordForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [ready, setReady] = useState(false)
+  const [expired, setExpired] = useState(false)
 
   useEffect(() => {
+    // Detect error params from Supabase redirect (expired/invalid token)
+    const params = new URLSearchParams(window.location.search)
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    const errorCode = params.get("error_code") || hashParams.get("error_code")
+
+    if (errorCode === "otp_expired" || params.get("error") === "access_denied") {
+      setExpired(true)
+      return
+    }
+
     const supabase = createClient()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -57,16 +68,37 @@ function ResetPasswordForm() {
     }
   }
 
+  if (expired) {
+    return (
+      <Card sx={{ maxWidth: 420, width: "100%", borderRadius: 3, textAlign: "center", p: 4, borderTop: "4px solid", borderTopColor: "error.main" }}>
+        <Avatar sx={{ width: 64, height: 64, bgcolor: "error.light", color: "error.dark", mx: "auto", mb: 2 }}>
+          <LockReset sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Typography variant="h5" sx={{ fontWeight: 700 }} gutterBottom>Enlace expirado</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          El enlace de recuperación ya no es válido. Los enlaces expiran después de 1 hora o si ya fueron usados.
+        </Typography>
+        <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+          <Button variant="contained" color="error" fullWidth sx={{ borderRadius: 2, mb: 2 }}>
+            Solicitar nuevo enlace
+          </Button>
+        </Link>
+        <Link href="/login" style={{ textDecoration: "none" }}>
+          <Typography variant="body2" color="primary" sx={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+            <ArrowBack fontSize="small" /> Volver al login
+          </Typography>
+        </Link>
+      </Card>
+    )
+  }
+
   if (!ready) {
     return (
       <Card sx={{ maxWidth: 420, width: "100%", borderRadius: 3, textAlign: "center", p: 4 }}>
         <Typography variant="h6" color="text.secondary" gutterBottom>Verificando enlace...</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Si llegaste aquí por error, el enlace puede haber expirado.
+          Esto solo tarda un momento.
         </Typography>
-        <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-          <Button variant="outlined">Solicitar nuevo enlace</Button>
-        </Link>
       </Card>
     )
   }

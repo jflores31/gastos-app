@@ -10,7 +10,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState(() => {
+    if (typeof window === "undefined") return ""
+    const params = new URLSearchParams(window.location.search)
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    const code = params.get("error_code") || hashParams.get("error_code")
+    if (code === "otp_expired") return "El enlace de recuperación expiró. Solicita uno nuevo."
+    return ""
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +53,16 @@ export default function LoginPage() {
           </Box>
 
           {error && (
-            <Chip label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
+            <Box sx={{ mb: 2 }}>
+              <Chip label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 1, justifyContent: "center" }} />
+              {error.includes("expiró") && (
+                <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+                  <Typography variant="body2" color="error" sx={{ textAlign: "center", fontWeight: 600, cursor: "pointer" }}>
+                    → Solicitar nuevo enlace
+                  </Typography>
+                </Link>
+              )}
+            </Box>
           )}
 
           <form onSubmit={handleSubmit}>
