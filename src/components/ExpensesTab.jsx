@@ -146,7 +146,7 @@ export default function ExpensesTab({ period, openModal }) {
                     return (
                       <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "all 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                          <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
+                          <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
                             <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} tx · ${pct.toFixed(1)}%`}</Typography>
@@ -181,7 +181,7 @@ export default function ExpensesTab({ period, openModal }) {
                     return (
                       <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                          <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
+                          <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
                             <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (lang === "es" ? "· Sobre límite" : "· Over limit") : `· ${lang === "es" ? "de" : "of"} ${fmtMoney(limit, currency, true)}`}</Typography>
@@ -215,7 +215,7 @@ export default function ExpensesTab({ period, openModal }) {
                   ].map((item, idx) => (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                        <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
+                        <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
                         </Box>
