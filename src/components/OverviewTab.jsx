@@ -64,7 +64,13 @@ export default function OverviewTab({ period, setPeriod }) {
     <Stack spacing={3}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
         <Box>
-          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2, fontWeight: 600 }}>{lang === "es" ? "Buenas tardes," : "Good afternoon,"}</Typography>
+          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2, fontWeight: 600 }}>
+            {(() => {
+              const h = new Date().getHours();
+              if (lang === "es") return h < 12 ? "Buenos días," : h < 19 ? "Buenas tardes," : "Buenas noches,";
+              return h < 12 ? "Good morning," : h < 19 ? "Good afternoon," : "Good evening,";
+            })()}
+          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
             <Typography variant="h3" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "3rem" } }}>
               {net >= 0
