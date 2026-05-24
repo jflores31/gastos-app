@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Divider, Chip } from "@mui/material"
-import { Google, GitHub } from "@mui/icons-material"
+import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip } from "@mui/material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
@@ -31,14 +30,6 @@ export default function LoginPage() {
     } else {
       window.location.href = "/"
     }
-  }
-
-  const handleSocialLogin = (provider: "google" | "github") => {
-    const supabase = createClient()
-    supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/` },
-    })
   }
 
   return (
@@ -71,19 +62,6 @@ export default function LoginPage() {
               {loading ? "Ingresando..." : "Ingresar"}
             </Button>
           </form>
-
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">o continuar con</Typography>
-          </Divider>
-
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
-            <Button variant="outlined" startIcon={<Google />} onClick={() => handleSocialLogin("google")} sx={{ flex: 1, borderRadius: 2 }}>
-              Google
-            </Button>
-            <Button variant="outlined" startIcon={<GitHub />} onClick={() => handleSocialLogin("github")} sx={{ flex: 1, borderRadius: 2 }}>
-              GitHub
-            </Button>
-          </Box>
 
           <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2" color="text.secondary">
