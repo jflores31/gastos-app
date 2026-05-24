@@ -208,7 +208,7 @@ export function DataProvider({ children }) {
       icon: goal.icon,
     }
 
-    if (goal.id && !String(goal.id).startsWith("g")) {
+    if (goal.id) {
       const { data, error } = await supabase.from("goals").update(row).eq("id", goal.id).select().single()
       if (!error && data) setGoals((prev) => prev.map((x) => x.id === goal.id ? mapGoal(data) : x))
     } else {
@@ -238,7 +238,7 @@ export function DataProvider({ children }) {
       account_limit: account.limit ?? null,
     }
 
-    if (account.id && !String(account.id).startsWith("a")) {
+    if (account.id) {
       const { data, error } = await supabase.from("accounts").update(row).eq("id", account.id).select().single()
       if (!error && data) setAccounts((prev) => prev.map((x) => x.id === account.id ? mapAccount(data) : x))
     } else {
@@ -268,7 +268,7 @@ export function DataProvider({ children }) {
       type: inv.type,
     }
 
-    if (inv.id && !String(inv.id).startsWith("i")) {
+    if (inv.id) {
       const { data, error } = await supabase.from("investments").update(row).eq("id", inv.id).select().single()
       if (!error && data) setInvestments((prev) => prev.map((x) => x.id === inv.id ? mapInvestment(data) : x))
     } else {
@@ -300,7 +300,7 @@ export function DataProvider({ children }) {
       original_months: debt.original_months,
     }
 
-    if (debt.id && !String(debt.id).startsWith("d")) {
+    if (debt.id) {
       const { data, error } = await supabase.from("debts").update(row).eq("id", debt.id).select().single()
       if (!error && data) setDebts((prev) => prev.map((x) => x.id === debt.id ? mapDebt(data) : x))
     } else {
@@ -329,7 +329,7 @@ export function DataProvider({ children }) {
       category: sub.category,
     }
 
-    if (sub.id && !String(sub.id).startsWith("s")) {
+    if (sub.id) {
       const { data, error } = await supabase.from("subscriptions").update(row).eq("id", sub.id).select().single()
       if (!error && data) setSubscriptions((prev) => prev.map((x) => x.id === sub.id ? mapSubscription(data) : x))
     } else {
