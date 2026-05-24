@@ -1,137 +1,148 @@
-# Finanzas - Gestión Personal
+# Finanzas — Gestión Personal
 
-Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos y metas de ahorro. Construida con Next.js 14, Material UI v9, y NextAuth v5.
+Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
+
+## Stack
+
+| Categoría | Tecnología |
+|---|---|
+| Framework | Next.js 16.2.6 (App Router) |
+| UI | Material UI (MUI) v9 |
+| Auth + DB | Supabase (email/password + Google + GitHub OAuth) |
+| Date Picker | MUI X Date Pickers + dayjs |
+| State | React Context + localStorage |
+| Lenguaje | TypeScript (rutas/config) + JSX (componentes) |
+| Deploy | Vercel → `https://www.jeshu.cfd` |
 
 ## Características
 
 ### Autenticación
-- Login con email/contraseña (cuenta demo: `demo@finanzas.app` / `demo1234`)
-- Login con Google y GitHub (OAuth)
-- Registro de nuevos usuarios
-- Recuperación de contraseña (flujo completo con token)
-- Middleware que redirige a `/login` si no hay sesión activa
+- Login con email/contraseña, Google OAuth y GitHub OAuth
+- Registro con nombre, apellidos y email — confirmación por email
+- Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
+- Protección de rutas doble capa: `src/proxy.ts` (server) + redirect en `DashboardStudio` (client)
+- Auto-logout por inactividad a los 2 minutos con aviso a los 30 s
 
 ### Dashboard (OverviewTab)
-- Resumen mensual con ingresos, gastos y balance neto
-- Health score gauge (0-100) con arco SVG
-- Gráfico de flujo de caja (StudioCashflow) — ingresos vs gastos por mes
+- Saludo dinámico por hora del día + nombre del usuario logueado
+- Resumen mensual: ingresos, gastos y balance neto
+- Health score gauge (0–100) con arco SVG
+- Gráfico de flujo de caja (ingresos vs gastos por mes)
 - Desglose de gastos por categoría con gráfico donut
-- Insights automáticos (IA-style) basados en tus datos
 - Heat calendar de gastos diarios
 - Comparación vs mes anterior con barras de progreso
-- Selector de período (semana, mes, trimestre, año)
+- Selector de período: semana, mes, trimestre, año
 
 ### Gastos (ExpensesTab)
 - Gastos de hoy con detalle por transacción
-- Top categorías con filtros y barras de progreso
-- Presupuesto vs real por categoría
+- Top categorías con barras de progreso
+- Presupuesto vs real por categoría con alertas visuales
 - Resumen del período (total, transacciones, promedio diario, mayor gasto)
-- Lista completa de transacciones con filtrado por categoría
-- Total general con barra destacada
+- Lista completa con edición y eliminación (confirmación de borrado)
+- Filtrado por categoría
 
 ### Ingresos (IncomeTab)
 - Tarjeta de ingresos totales con sparkline
-- Grid de categorías de ingreso con porcentajes
-- Gráfico donut de distribución de ingresos
-- Tendencia de ingresos con StudioCashflow
-- Lista de transacciones de ingreso
-- Total general
+- Grid de categorías con porcentajes y donut
+- Tendencia mensual
+- Lista de transacciones con edición y eliminación
 
 ### Presupuestos (BudgetTab)
 - Health score gauge visual
-- Tarjetas de presupuesto por categoría con progreso
+- Tarjetas por categoría con progreso y alertas al 80% y 100%
 - Donut de distribución de gastos
 - Comparación con mes anterior
-- Gastos recurrentes
-- CRUD de presupuestos (crear, editar, eliminar)
-- Alertas en 80% y 100% del presupuesto
+- CRUD de presupuestos
 
-### Metas (GoalsTab)
-- CRUD de metas de ahorro con fecha límite (DatePicker)
-- Gestión de cuentas bancarias y tarjetas
-- Patrimonio neto (activos - deudas) en tiempo real
-- División de gastos por miembro de familia
-- Pronóstico de 3 meses
-- Seguimiento de inversiones (AFP, DPF, crypto)
-- Control de deudas y préstamos
+### Metas y Finanzas (GoalsTab)
+- CRUD de metas de ahorro con fecha límite
+- Gestión de cuentas bancarias/tarjetas/efectivo
+- Patrimonio neto (activos − deudas) en tiempo real
+- Seguimiento de inversiones (AFP, DPF, cripto, etc.)
+- Control de deudas y préstamos con cuotas
 - Suscripciones recurrentes
-- Evolución del patrimonio (6 meses)
+- Pronóstico de 3 meses
 
 ### Configuración (SettingsPanel)
-- Tema claro/oscuro con transición instantánea
+- Tema claro/oscuro
 - 4 paletas de acento (Amber, Indigo, Green, Mono)
 - Densidad Comfy/Compact
 - Idioma Español/Inglés
 - 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- **Categorías Favoritas:** marca categorías existentes para verlas primero en el selector
+- **Mis Categorías:** CRUD de categorías propias (nombre, tipo Gasto/Ingreso, color) guardadas en Supabase
 
 ### Diseño Responsivo
-- Navegación por tabs en desktop, BottomNavigation en móvil
-- Grid adaptivo con breakpoints (xs, sm, md, lg)
-- Diálogos y modales responsivos
-- Modales de agregar transacción y login
-
-## Tecnologías
-
-| Categoría | Tecnología |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| UI | Material UI (MUI) v9 |
-| Auth | NextAuth v5 (Credentials + Google + GitHub) |
-| Database ORM | Prisma v6 (MySQL/PlanetScale) |
-| Date Picker | MUI X Date Pickers + dayjs |
-| Animations | Framer Motion |
-| State | React Context + localStorage |
-| Email | Resend (pendiente integración) |
-| Lenguaje | TypeScript (rutas) + JSX/JavaScript (componentes) |
+- Navegación por tabs en desktop, BottomNavigation fija en móvil
+- Drawer de ajustes ocupa 100% en móvil, 360px en desktop
+- Formularios de registro apilados verticalmente en pantallas pequeñas
+- Touch targets mínimo 40×44 px en todos los botones de acción
 
 ## Estructura del Proyecto
 
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── layout.tsx                 # Root layout con Providers
-│   ├── page.tsx                   # Home → DashboardStudio
-│   ├── globals.css                # Estilos globales
-│   ├── login/page.tsx             # Página de login
-│   ├── register/page.tsx          # Página de registro
-│   ├── forgot-password/page.tsx    # Recuperar contraseña
-│   ├── reset-password/page.tsx     # Resetear contraseña
-│   ├── api/auth/                  # API routes
-│   │   ├── [...nextauth]/route.ts  # NextAuth handler
-│   │   ├── register/route.ts      # Registro de usuarios
-│   │   ├── forgot-password/route.ts # Generar token de reset
-│   │   └── reset-password/route.ts  # Validar token y resetear
+├── app/
+│   ├── layout.tsx                  # Root layout con Providers + IBM Plex Sans
+│   ├── page.tsx                    # Home → DashboardStudio
+│   ├── globals.css                 # Estilos globales (overflow-x: hidden, etc.)
+│   ├── login/page.tsx
+│   ├── register/page.tsx
+│   ├── forgot-password/page.tsx
+│   ├── reset-password/page.tsx
 │   └── components/
-│       ├── Providers.tsx           # SessionProvider → Settings → Data → Theme
-│       └── DynamicThemeProvider.tsx # Tema MUI dinámico + CSS vars
-├── components/                    # Componentes UI
-│   ├── DashboardStudio.jsx        # Shell principal con tabs y AppBar
-│   ├── OverviewTab.jsx            # Dashboard overview
-│   ├── ExpensesTab.jsx            # Pestaña de gastos
-│   ├── IncomeTab.jsx              # Pestaña de ingresos
-│   ├── BudgetTab.jsx              # Pestaña de presupuestos
-│   ├── GoalsTab.jsx               # Pestaña de metas y cuentas
-│   ├── Charts.jsx                 # SVG charts (Donut, SparkArea, Cashflow, HeatMap)
-│   ├── shared.jsx                 # StatsCard, EmptyState, NoTransactions, TxTable
-│   ├── AddTransactionModal.jsx    # Modal de nueva transacción
-│   ├── SettingsPanel.jsx          # Drawer de configuración
-│   ├── LoginModal.jsx             # Modal de login (in-app)
-│   └── ErrorBoundary.jsx          # Error boundary
+│       ├── Providers.tsx           # UserContext → Settings → Data → Theme
+│       └── DynamicThemeProvider.tsx
+├── components/
+│   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, inactividad
+│   ├── OverviewTab.jsx             # Vista general con gráficos y saludo
+│   ├── ExpensesTab.jsx             # Gastos con CRUD
+│   ├── IncomeTab.jsx               # Ingresos con CRUD
+│   ├── BudgetTab.jsx               # Presupuestos
+│   ├── GoalsTab.jsx                # Metas, cuentas, inversiones, deudas, subs
+│   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
+│   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions
+│   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
+│   ├── SettingsPanel.jsx           # Drawer de ajustes + categorías personalizadas
+│   ├── LoginModal.jsx              # Modal de login in-app
+│   └── ErrorBoundary.jsx
 ├── context/
-│   ├── DataContext.jsx             # Estado de transacciones y presupuestos
-│   └── SettingsContext.jsx         # Tema, idioma, moneda, paleta, densidad
+│   ├── DataContext.jsx             # CRUD: txs, budgets, goals, accounts,
+│   │                               #   investments, debts, subscriptions, customCats
+│   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES export
+│   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # Categorías, monedas, i18n, seed data
-│   └── helpers.js                  # Filtros de período, health score, insights
+│   ├── index.js                    # CATEGORIES, BUDGETS, CURRENCIES, I18N
+│   └── helpers.js                  # filterByPeriod, periodLabel, monthCount
 ├── theme/
-│   └── materialTheme.js            # Temas light/dark + paletas de acento
+│   └── materialTheme.js            # Temas light/dark + 4 paletas de acento
 ├── hooks/
-│   └── useLocalStorage.js          # Hook para persistir estado en localStorage
+│   └── useLocalStorage.js
 ├── lib/
-│   ├── auth.ts                     # NextAuth config (demo user + OAuth)
-│   └── db.ts                       # Prisma client singleton
-└── middleware.ts                    # Protección de rutas (redirect a /login)
+│   ├── supabase.ts                 # Cliente browser (createBrowserClient)
+│   └── supabase-server.ts          # Cliente server
+└── proxy.ts                        # Protección de rutas (Next.js 16)
+supabase/
+└── migrations/
+    └── schema.sql                  # Esquema completo de DB (todas las tablas aplicadas ✓)
 ```
+
+## Base de Datos (Supabase)
+
+Todas las tablas usan RLS con `auth.uid() = user_id`.
+
+| Tabla | Descripción |
+|---|---|
+| `transactions` | Transacciones (tipo, categoria, concepto, valor, fecha) |
+| `budgets` | Presupuestos mensuales por categoría |
+| `goals` | Metas de ahorro con target, progreso y deadline |
+| `accounts` | Cuentas bancarias/tarjetas/efectivo |
+| `investments` | Inversiones con tasa de retorno |
+| `debts` | Préstamos con cuotas y meses restantes |
+| `subscriptions` | Suscripciones recurrentes |
+| `custom_categories` | Categorías propias del usuario (nombre, tipo, color) |
+
+El esquema completo se encuentra en `supabase/migrations/schema.sql`.
 
 ## Inicio Rápido
 
@@ -139,93 +150,41 @@ src/
 # Instalar dependencias
 npm install
 
+# Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales de Supabase
+
 # Iniciar servidor de desarrollo
 npm run dev
-
-# Construir para producción
-npm run build
-
-# Iniciar en producción
-npm start
 ```
 
 La app estará disponible en `http://localhost:3000`.
 
-### Cuenta Demo
-
-Para probar sin crear una cuenta:
-
-- **Email:** `demo@finanzas.app`
-- **Contraseña:** `demo1234`
-
-O haz clic en **"Usar cuenta demo"** en la página de login.
-
 ### Variables de Entorno
 
-Crear un archivo `.env.local` con:
-
 ```env
-NEXTAUTH_SECRET=tu-secret-aqui
-NEXTAUTH_URL=http://localhost:3000
-
-# OAuth (opcional)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-
-# Base de datos (para producción)
-DATABASE_URL=mysql://user:password@host:3306/db
-
-# Email (para recuperación de contraseña)
-RESEND_API_KEY=
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-## Tema Oscuro
+## Notas Técnicas
 
-El modo oscuro es completamente funcional:
+**`proxy.ts` vs `middleware.ts`:** Next.js 16 usa la convención `proxy.ts`. El nombre `middleware.ts` está deprecado y produce warning en build.
 
-- Todos los componentes usan tokens de tema MUI (`background.paper`, `text.primary`, `action.hover`, etc.)
-- Variables CSS dinámicas (`--accent`, `--income`, `--expense`, `--bg`) se actualizan con el tema activo
-- Los SVG charts (SparkArea, StudioCashflow, HeatCalendar) se adaptan al tema
-- 4 paletas de acento: Amber, Indigo, Green, Mono
-- Cambio instantáneo entre claro/oscuro sin recarga
+**Supabase redirectTo:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www) pero Supabase solo permite `https://jeshu.cfd/**`. Siempre aplicar `.replace(/^https:\/\/www\./, "https://")` antes de pasarlo como `redirectTo`.
 
-## Autenticación
+**PALETTES:** Definidas como objeto en `SettingsContext.jsx` y exportadas. Nunca redefinir en otro archivo.
 
-El middleware protege todas las rutas excepto las páginas de auth y APIs:
-
-- `/login` — Formulario de login con demo, Google y GitHub
-- `/register` — Registro de nuevos usuarios
-- `/forgot-password` — Solicitud de reset de contraseña
-- `/reset-password` — Reset de contraseña con token válido
-
-Los usuarios autenticados son redirigidos al dashboard al intentar acceder a páginas de auth.
-
-## Base de Datos
-
-El schema de Prisma incluye modelos para:
-
-- **User** — Usuarios con email, password (bcrypt), name, image
-- **Account** — Cuentas OAuth vinculadas
-- **Session** — Sesiones de NextAuth
-- **Transaction** — Transacciones (INGRESO/EGRESO) con categoría, concepto, valor, fecha
-- **Budget** — Presupuestos mensuales por categoría
-- **Goal** — Metas de ahorro con target, progreso y deadline
-- **AccountFinancial** — Cuentas bancarias/tarjetas con balance
-
-> Actualmente la app funciona con datos seed en localStorage. La integración con Prisma/PlanetScale está preparada pero pendiente de conectar al DataContext.
+**Categorías personalizadas en modal:** Se almacenan como `value: "custom_${id}"` para distinguirlas de las categorías estáticas.
 
 ## Despliegue
 
-La app está configurada para despliegue en Vercel:
-
 ```bash
-# Build de producción
-npm run build
-
-# Las variables de entorno se configuran en Vercel Dashboard
+# Deploy a producción en Vercel
+vercel --prod
 ```
+
+Las variables de entorno se configuran en el Dashboard de Vercel.
 
 ## Licencia
 
