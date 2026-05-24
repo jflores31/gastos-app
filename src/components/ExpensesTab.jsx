@@ -143,26 +143,43 @@ export default function ExpensesTab({ period, openModal }) {
                 ))}
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
-                <Stack spacing={1}>
-                  {cats.map((c, idx) => {
-                    const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
-                    const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
-                    const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
-                    return (
-                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover", transform: "translateX(4px)" } }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
-                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
+                {cats.length === 0 ? (
+                  <Stack spacing={1}>
+                    {Object.entries(CATEGORIES.expense).slice(0, 6).map(([key, val]) => (
+                      <Box key={key} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", opacity: 0.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: val.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>-</Box>
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                            <Typography variant="caption" color="text.secondary">{c.count} {lang === "es" ? "tx" : "tx"} · {pct.toFixed(1)}%</Typography>
+                            <Typography variant="body2" fontWeight={600}>{val[lang]}</Typography>
+                            <Typography variant="caption" color="text.secondary">{lang === "es" ? "Sin gastos aún" : "No expenses yet"}</Typography>
                           </Box>
-                          <Typography variant="body2" fontWeight={700} color="error.main">{fmtMoney(c.total, currency, true)}</Typography>
+                          <Typography variant="body2" fontWeight={700} color="text.disabled">{fmtMoney(0, currency, true)}</Typography>
                         </Box>
-                        <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: color, borderRadius: 3 } }} />
                       </Box>
-                    );
-                  })}
-                </Stack>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Stack spacing={1}>
+                    {cats.map((c, idx) => {
+                      const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
+                      const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
+                      const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
+                      return (
+                        <Box key={c.categoria} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover", transform: "translateX(4px)" } }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
+                            <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" fontWeight={600}>{catName}</Typography>
+                              <Typography variant="caption" color="text.secondary">{c.count} {lang === "es" ? "tx" : "tx"} · {pct.toFixed(1)}%</Typography>
+                            </Box>
+                            <Typography variant="body2" fontWeight={700} color="error.main">{fmtMoney(c.total, currency, true)}</Typography>
+                          </Box>
+                          <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: color, borderRadius: 3 } }} />
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                )}
               </Box>
             </CardContent>
           </Card>

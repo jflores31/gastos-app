@@ -223,6 +223,12 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           onChange={(_, v) => { setCategoria(v); if (errors.categoria) setErrors((e) => ({ ...e, categoria: null })); }}
           getOptionLabel={(opt) => opt?.label || ""}
           isOptionEqualToValue={(a, b) => a?.value === b?.value}
+          renderOption={(props, opt) => (
+            <Box component="li" {...props} key={opt.value} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              {opt.icon}
+              <Typography variant="body2">{opt.label}</Typography>
+            </Box>
+          )}
           renderGroup={(params) => (
             <Box key={params.key}>
               <Typography variant="caption" sx={{ px: 1.5, py: 0.5, display: "block", bgcolor: "action.hover", fontWeight: 600 }}>
@@ -233,11 +239,14 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           )}
           renderInput={(params) => (
             <TextField {...params} label={t.category} error={!!errors.categoria} helperText={errors.categoria}
-              slotProps={{ input: { ...params.InputProps, startAdornment: (
-                <InputAdornment position="start">
-                  {categoria?.icon}
-                </InputAdornment>
-              )}}}
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {categoria?.icon}
+                  </InputAdornment>
+                ),
+              }}
             />
           )}
         />
