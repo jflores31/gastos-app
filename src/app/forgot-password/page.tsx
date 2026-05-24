@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 3 }} />
+            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" sx={{ mb: 3 }} />
             <Button fullWidth variant="contained" type="submit" disabled={loading} color="info" sx={{ py: 1.5, borderRadius: 2, fontWeight: 600, fontSize: 16 }}>
               {loading ? "Enviando..." : "Enviar enlace"}
             </Button>

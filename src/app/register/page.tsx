@@ -83,13 +83,13 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <TextField fullWidth label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
-              <TextField fullWidth label="Apellidos" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, mb: 2 }}>
+              <TextField fullWidth label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="given-name" />
+              <TextField fullWidth label="Apellidos" value={lastName} onChange={(e) => setLastName(e.target.value)} required autoComplete="family-name" />
             </Box>
-            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }} />
-            <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 2 }} />
-            <TextField fullWidth label="Confirmar Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required sx={{ mb: 3 }} />
+            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" sx={{ mb: 2 }} />
+            <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" helperText="Mínimo 8 caracteres" sx={{ mb: 2 }} />
+            <TextField fullWidth label="Confirmar Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password" sx={{ mb: 3 }} />
             <Button fullWidth variant="contained" type="submit" disabled={loading} color="success" sx={{ py: 1.5, borderRadius: 2, fontWeight: 600, fontSize: 16 }}>
               {loading ? "Creando cuenta..." : "Registrarse"}
             </Button>

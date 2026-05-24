@@ -66,8 +66,8 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }} />
-            <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 1 }} />
+            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" sx={{ mb: 2 }} />
+            <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" sx={{ mb: 1 }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
               <Link href="/forgot-password" style={{ textDecoration: "none" }}>
                 <Typography variant="body2" color="primary" sx={{ cursor: "pointer" }}>

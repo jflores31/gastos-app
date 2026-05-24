@@ -149,7 +149,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
             <NoTransactions lang={lang} type="income" />
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
-              {incomeTxs.slice(0, 30).map((x) => {
+              {incomeTxs.map((x) => {
               const color = INCOME_COLORS[x.categoria] || "#9e9e9e";
               const catName = CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
               return (

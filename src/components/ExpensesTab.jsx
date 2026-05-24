@@ -253,7 +253,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <NoTransactions lang={lang} type="expense" />
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
-              {expenseTxs.slice(0, 30).map((x) => {
+              {expenseTxs.map((x) => {
                 const expColor = CATEGORIES.expense[x.categoria]?.color;
                 const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
                 return (

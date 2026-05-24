@@ -132,8 +132,8 @@ function ResetPasswordForm() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <TextField fullWidth label="Nueva Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 2 }} />
-          <TextField fullWidth label="Confirmar Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required sx={{ mb: 3 }} />
+          <TextField fullWidth label="Nueva Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" helperText="Mínimo 8 caracteres" sx={{ mb: 2 }} />
+          <TextField fullWidth label="Confirmar Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password" sx={{ mb: 3 }} />
           <Button fullWidth variant="contained" type="submit" disabled={loading} color="warning" sx={{ py: 1.5, borderRadius: 2, fontWeight: 600, fontSize: 16 }}>
             {loading ? "Restableciendo..." : "Restablecer Contraseña"}
           </Button>

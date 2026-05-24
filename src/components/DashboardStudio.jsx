@@ -48,7 +48,7 @@ export default function DashboardStudio() {
   const openModal = useCallback((cat = "", mode = "all") => { setModalCat(cat); setModalMode(mode); setShowModal(true); }, []);
   const showToast = useCallback((msg, severity = "success", duration = 3000) => {
     clearTimeout(toastTimer.current);
-    setToast({ msg, severity });
+    setToast({ msg, severity, duration });
     toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
 
@@ -206,7 +206,7 @@ export default function DashboardStudio() {
         {activeTab === 4 && <GoalsTab />}
       </Box>
 
-      <Snackbar open={!!toast} autoHideDuration={3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      <Snackbar open={!!toast} autoHideDuration={toast?.duration ?? 3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         {toast && <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.msg}</Alert>}
       </Snackbar>
 
