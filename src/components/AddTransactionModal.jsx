@@ -77,6 +77,7 @@ const AccountBalanceIcon = AccountBalance;
 import { CATEGORIES } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
+import { useSupabaseUser } from "../context/UserContext";
 
 const Transition = Slide;
 
@@ -152,6 +153,7 @@ const INCOME_ICONS = {
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null }) {
   const { t, lang, currency } = useSettings();
   const { addTx, updateTx } = useData();
+  const user = useSupabaseUser();
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
   const [concepto, setConcepto] = useState(editTx?.concepto || "");
@@ -159,7 +161,22 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
 
+  const favCats = user?.user_metadata?.fav_categories || [];
+  const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
+
+  const myOptions = favCats
+    .map((f) => {
+      if (f.tipo === "EGRESO") {
+        const v = CATEGORIES.expense[f.categoria];
+        return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "EGRESO", icon: EXPENSE_ICONS[f.categoria] } : null;
+      }
+      const v = CATEGORIES.income[f.categoria];
+      return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "INGRESO", icon: INCOME_ICONS[f.categoria] } : null;
+    })
+    .filter(Boolean);
+
   const categoryOptions = [
+    ...myOptions,
     ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
     ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
   ];

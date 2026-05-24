@@ -1,13 +1,16 @@
 "use client"
 
+import { useState, useMemo } from "react";
 import {
   Drawer, Box, Typography, Divider, Avatar,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
+  Autocomplete, TextField,
 } from "@mui/material";
 import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon } from "@mui/icons-material";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
-import { CURRENCIES } from "../data/index.js";
+import { CURRENCIES, CATEGORIES } from "../data/index.js";
+import { createClient } from "../lib/supabase";
 
 const PALETTES = [
   { key: "amber", label: "Amber", color: "#c9874a" },
@@ -19,6 +22,7 @@ const PALETTES = [
 export default function SettingsPanel({ open, onClose }) {
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
   const user = useSupabaseUser();
+  const [favInput, setFavInput] = useState(null);
 
   const fullName = user?.user_metadata?.full_name || "";
   const email = user?.email || "";
@@ -28,8 +32,38 @@ export default function SettingsPanel({ open, onClose }) {
     ? fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
     : (email[0] || "U").toUpperCase();
 
+  const favCats = useMemo(() => user?.user_metadata?.fav_categories || [], [user]);
+
+  const allCatOptions = useMemo(() => [
+    ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({
+      value: k, tipo: "EGRESO",
+      label: lang === "es" ? v.es : v.en,
+      group: lang === "es" ? "Gastos" : "Expenses",
+    })),
+    ...Object.entries(CATEGORIES.income).map(([k, v]) => ({
+      value: k, tipo: "INGRESO",
+      label: lang === "es" ? v.es : v.en,
+      group: lang === "es" ? "Ingresos" : "Income",
+    })),
+  ].filter((o) => !favCats.find((f) => f.categoria === o.value)), [lang, favCats]);
+
+  const saveFavCats = async (newList) => {
+    const supabase = createClient();
+    await supabase.auth.updateUser({ data: { fav_categories: newList } });
+  };
+
+  const handleAddFav = async (option) => {
+    if (!option) return;
+    await saveFavCats([...favCats, { categoria: option.value, tipo: option.tipo }]);
+    setFavInput(null);
+  };
+
+  const handleRemoveFav = async (categoria) => {
+    await saveFavCats(favCats.filter((f) => f.categoria !== categoria));
+  };
+
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 360 }, p: 0 } }}>
+    <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 360 }, p: 0, overflowY: "auto" } }}>
       <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Perfil y Ajustes" : "Profile & Settings"}</Typography>
         <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
@@ -54,29 +88,14 @@ export default function SettingsPanel({ open, onClose }) {
         </>
       )}
 
-
       <List disablePadding>
         <ListItem>
           <ListItemText primary={lang === "es" ? "Tema" : "Theme"} primaryTypographyProps={{ variant: "overline" }} />
         </ListItem>
         <ListItem sx={{ pt: 0 }}>
           <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-            <Chip
-              icon={<LightModeIcon />}
-              label={lang === "es" ? "Claro" : "Light"}
-              variant={theme === "light" ? "filled" : "outlined"}
-              color={theme === "light" ? "primary" : "default"}
-              onClick={() => setTheme("light")}
-              sx={{ flex: 1 }}
-            />
-            <Chip
-              icon={<DarkModeIcon />}
-              label={lang === "es" ? "Oscuro" : "Dark"}
-              variant={theme === "dark" ? "filled" : "outlined"}
-              color={theme === "dark" ? "primary" : "default"}
-              onClick={() => setTheme("dark")}
-              sx={{ flex: 1 }}
-            />
+            <Chip icon={<LightModeIcon />} label={lang === "es" ? "Claro" : "Light"} variant={theme === "light" ? "filled" : "outlined"} color={theme === "light" ? "primary" : "default"} onClick={() => setTheme("light")} sx={{ flex: 1 }} />
+            <Chip icon={<DarkModeIcon />} label={lang === "es" ? "Oscuro" : "Dark"} variant={theme === "dark" ? "filled" : "outlined"} color={theme === "dark" ? "primary" : "default"} onClick={() => setTheme("dark")} sx={{ flex: 1 }} />
           </Box>
         </ListItem>
 
@@ -138,6 +157,57 @@ export default function SettingsPanel({ open, onClose }) {
             </Select>
           </FormControl>
         </ListItem>
+
+        {user && (
+          <>
+            <Divider variant="middle" />
+
+            <ListItem>
+              <ListItemText
+                primary={lang === "es" ? "Mis Categorías" : "My Categories"}
+                secondary={lang === "es" ? "Aparecen primero al registrar transacciones" : "Shown first when adding transactions"}
+                primaryTypographyProps={{ variant: "overline" }}
+                secondaryTypographyProps={{ variant: "caption" }}
+              />
+            </ListItem>
+            <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
+              {favCats.length > 0 && (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {favCats.map((f) => {
+                    const catData = CATEGORIES[f.tipo === "EGRESO" ? "expense" : "income"][f.categoria];
+                    const label = catData?.[lang] || f.categoria;
+                    return (
+                      <Chip
+                        key={f.categoria}
+                        label={label}
+                        size="small"
+                        onDelete={() => handleRemoveFav(f.categoria)}
+                        color={f.tipo === "EGRESO" ? "error" : "success"}
+                        variant="outlined"
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+              <Autocomplete
+                options={allCatOptions}
+                groupBy={(o) => o.group}
+                value={favInput}
+                onChange={(_, v) => handleAddFav(v)}
+                getOptionLabel={(o) => o?.label || ""}
+                size="small"
+                noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={lang === "es" ? "Agregar categoría..." : "Add category..."}
+                    size="small"
+                  />
+                )}
+              />
+            </ListItem>
+          </>
+        )}
       </List>
     </Drawer>
   );
