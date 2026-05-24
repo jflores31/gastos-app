@@ -39,7 +39,7 @@ export default function ExpensesTab({ period, openModal }) {
   const toggleSection = (section) => setExpandedSection(expandedSection === section ? null : section);
 
   const cardStyles = {
-    height: "100%",
+    height: { xs: "auto", lg: "100%" },
     display: "flex",
     flexDirection: "column",
     boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
@@ -50,8 +50,8 @@ export default function ExpensesTab({ period, openModal }) {
 
   const cardContentStyles = {
     py: 2.5,
-    px: 3,
-    overflowY: "auto",
+    px: { xs: 2, sm: 3 },
+    overflowY: { xs: "visible", lg: "auto" },
     flex: 1,
     display: "flex",
     flexDirection: "column",
@@ -83,7 +83,7 @@ export default function ExpensesTab({ period, openModal }) {
   return (
     <Stack spacing={2.5}>
       <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
-        <Box sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
+        <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
           <Box>
             <Typography variant="h6" fontWeight={700}>{t.dailyTitle}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
@@ -110,11 +110,12 @@ export default function ExpensesTab({ period, openModal }) {
                     const catName = CATEGORIES.expense[tx.categoria]?.[lang] || tx.categoria;
                     const hour = tx.date.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
-                      <Box key={tx.id} sx={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                        <Typography variant="body2" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center", px: 1 }}>{catName}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ textAlign: "right" }}>{hour}</Typography>
-                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ textAlign: "right", minWidth: 70 }}>−{fmtMoney(tx.valor, currency)}</Typography>
+                      <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={700} noWrap sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
+                          <Typography variant="caption" color="text.secondary">{catName} · {hour}</Typography>
+                        </Box>
+                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmtMoney(tx.valor, currency)}</Typography>
                       </Box>
                     );
                   })}
@@ -129,8 +130,8 @@ export default function ExpensesTab({ period, openModal }) {
         </CardContent>
       </Card>
 
-      <Grid container spacing={3} sx={{ height: 460 }}>
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <Grid container spacing={3} sx={{ height: { xs: "auto", lg: 460 } }}>
+        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
           <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
@@ -163,7 +164,7 @@ export default function ExpensesTab({ period, openModal }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
           <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
@@ -198,7 +199,7 @@ export default function ExpensesTab({ period, openModal }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
           <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "success.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
@@ -265,7 +266,7 @@ export default function ExpensesTab({ period, openModal }) {
               })}
             </List>
           )}
-          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: 3, py: 2 }}>
+          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL GASTOS" : "TOTAL EXPENSES"}</Typography>
             <Typography variant="h5" fontWeight={700}>−{fmtMoney(totalOut, currency, true)}</Typography>
           </Box>
