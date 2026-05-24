@@ -40,12 +40,14 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Resumen del período (total, transacciones, promedio diario, mayor gasto)
 - Lista completa con edición y eliminación (confirmación de borrado)
 - Filtrado por categoría
+- Fecha y hora completa en cada transacción: "24 de mayo de 2026, 3:45 p.m."
 
 ### Ingresos (IncomeTab)
 - Tarjeta de ingresos totales con sparkline
 - Grid de categorías con porcentajes y donut
 - Tendencia mensual
 - Lista de transacciones con edición y eliminación
+- Fecha y hora completa en cada transacción
 
 ### Presupuestos (BudgetTab)
 - Health score gauge visual
@@ -70,7 +72,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Idioma Español/Inglés
 - 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
 - **Categorías Favoritas:** marca categorías existentes para verlas primero en el selector
-- **Mis Categorías:** CRUD de categorías propias (nombre, tipo Gasto/Ingreso, color) guardadas en Supabase
+- **Mis Categorías:** CRUD de categorías propias (nombre, tipo Gasto/Ingreso, color) guardadas en Supabase — el nombre se muestra correctamente en todas las listas y filtros
 
 ### Diseño Responsivo
 - Navegación por tabs en desktop, BottomNavigation fija en móvil
@@ -176,6 +178,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **PALETTES:** Definidas como objeto en `SettingsContext.jsx` y exportadas. Nunca redefinir en otro archivo.
 
 **Categorías personalizadas en modal:** Se almacenan como `value: "custom_${id}"` para distinguirlas de las categorías estáticas.
+
+**Resolución de nombre de categoría custom:** Los tabs (`ExpensesTab`, `IncomeTab`) usan un helper `resolveCatName(categoria)` que busca primero en `CATEGORIES`, luego en `customCats` por `id = categoria.slice("custom_".length)`. El array `customCats` viene de `useData()`.
+
+**Fecha y hora en transacciones:** `AddTransactionModal` inicializa con `dayjs()` (hora exacta). Al cambiar solo la fecha en el `DatePicker`, se preserva la hora: `newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second())`. Supabase almacena el ISO completo. Las listas muestran `toLocaleString("es-PE", { day, month: "long", year, hour, minute, hour12: true })`.
+
+**Snackbar sobre BottomNavigation en mobile:** `sx={{ bottom: { xs: 72, sm: 24 } }}` para que no quede tapado por el nav fijo de 56px.
 
 ## Despliegue
 

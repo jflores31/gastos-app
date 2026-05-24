@@ -306,7 +306,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           <DatePicker
             label={lang === "es" ? "Fecha" : "Date"}
             value={fecha}
-            onChange={(newValue) => setFecha(newValue)}
+            onChange={(newValue) => {
+              if (newValue) setFecha(newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second()));
+            }}
             slotProps={{ textField: { fullWidth: true } }}
           />
         </LocalizationProvider>

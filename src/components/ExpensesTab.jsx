@@ -19,7 +19,7 @@ import { NoTransactions } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, currency } = useSettings();
-  const { txs, editBudgets, deleteTx } = useData();
+  const { txs, editBudgets, deleteTx, customCats } = useData();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
@@ -39,6 +39,16 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   }, [periodTxs, activeCat]);
 
   const expenseTxs = useMemo(() => filtered.filter((x) => x.tipo === "EGRESO"), [filtered]);
+
+  const resolveCatName = (categoria) => {
+    if (CATEGORIES.expense[categoria]?.[lang]) return CATEGORIES.expense[categoria][lang];
+    if (CATEGORIES.income[categoria]?.[lang]) return CATEGORIES.income[categoria][lang];
+    if (categoria?.startsWith("custom_")) {
+      const id = categoria.slice("custom_".length);
+      return customCats.find((c) => c.id === id)?.nombre || categoria;
+    }
+    return categoria;
+  };
 
   const toggleSection = (section) => setExpandedSection(expandedSection === section ? null : section);
 
@@ -112,8 +122,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
-                    const color = CATEGORIES.expense[tx.categoria]?.color || "#9e9e9e";
-                    const catName = CATEGORIES.expense[tx.categoria]?.[lang] || tx.categoria;
+                    const color = CATEGORIES.expense[tx.categoria]?.color || customCats.find((c) => c.id === tx.categoria?.slice("custom_".length))?.color || "#9e9e9e";
+                    const catName = resolveCatName(tx.categoria);
                     const hour = tx.date.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
                       <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
@@ -148,8 +158,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 <Stack spacing={1.5}>
                   {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k, v]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
                     const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
-                    const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
-                    const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
+                    const color = CATEGORIES.expense[c.categoria]?.color || customCats.find((cc) => cc.id === c.categoria?.slice("custom_".length))?.color || "#9e9e9e";
+                    const catName = resolveCatName(c.categoria);
                     return (
                       <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "all 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
@@ -247,15 +257,15 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               <Typography variant="h6" fontWeight={700} color="primary.main">{t.transactions}</Typography>
               <Typography variant="body2" color="text.secondary">{expenseTxs.length} {lang === "es" ? "gastos registrados" : "recorded expenses"}</Typography>
             </Box>
-            {activeCat && <Chip size="medium" label={CATEGORIES.expense[activeCat]?.[lang] || activeCat} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
+            {activeCat && <Chip size="medium" label={resolveCatName(activeCat)} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
           </Box>
           {expenseTxs.length === 0 ? (
             <NoTransactions lang={lang} type="expense" />
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
               {expenseTxs.map((x) => {
-                const expColor = CATEGORIES.expense[x.categoria]?.color;
-                const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
+                const expColor = CATEGORIES.expense[x.categoria]?.color || customCats.find((c) => c.id === x.categoria?.slice("custom_".length))?.color;
+                const catName = resolveCatName(x.categoria);
                 return (
                   <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
                     secondaryAction={
@@ -279,7 +289,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
                       secondary={
                         <Typography variant="caption" color="text.secondary" component="span">
-                          {catName} · {x.dia}/{x.mes + 1}/{x.año}
+                          {catName} · {x.date.toLocaleString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                           <Typography variant="caption" fontWeight={700} color="error.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
                             −{fmtMoney(x.valor, currency, true)}
                           </Typography>

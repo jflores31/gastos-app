@@ -18,7 +18,7 @@ const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", 
 
 export default function IncomeTab({ period, openModal, showToast }) {
   const { t, lang, currency } = useSettings();
-  const { txs, deleteTx } = useData();
+  const { txs, deleteTx, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -150,8 +150,8 @@ export default function IncomeTab({ period, openModal, showToast }) {
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
               {incomeTxs.map((x) => {
-              const color = INCOME_COLORS[x.categoria] || "#9e9e9e";
-              const catName = CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
+              const color = INCOME_COLORS[x.categoria] || customCats.find((c) => c.id === x.categoria?.slice("custom_".length))?.color || "#9e9e9e";
+              const catName = CATEGORIES.income[x.categoria]?.[lang] || (x.categoria?.startsWith("custom_") ? customCats.find((c) => c.id === x.categoria.slice("custom_".length))?.nombre : null) || x.categoria;
               return (
                 <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
                   secondaryAction={
@@ -175,7 +175,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
                     secondary={
                       <Typography variant="caption" color="text.secondary" component="span">
-                        {catName} · {x.dia}/{x.mes + 1}/{x.año}
+                        {catName} · {x.date.toLocaleString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                         <Typography variant="caption" fontWeight={700} color="success.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
                           +{fmtMoney(x.valor, currency, true)}
                         </Typography>
