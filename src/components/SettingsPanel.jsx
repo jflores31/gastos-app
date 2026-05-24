@@ -5,7 +5,7 @@ import {
   Drawer, Box, Typography, Divider, Avatar,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
   Autocomplete, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  ToggleButtonGroup, ToggleButton,
+  ToggleButtonGroup, ToggleButton, Snackbar, Alert,
 } from "@mui/material";
 import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -33,6 +33,8 @@ export default function SettingsPanel({ open, onClose }) {
   const [editingCat, setEditingCat] = useState(null);
   const [catForm, setCatForm] = useState(EMPTY_CAT);
   const [catError, setCatError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [snack, setSnack] = useState(null);
 
   const fullName = user?.user_metadata?.full_name || "";
   const email = user?.email || "";
@@ -83,6 +85,16 @@ export default function SettingsPanel({ open, onClose }) {
     if (!catForm.nombre.trim()) { setCatError(lang === "es" ? "Ingresa un nombre" : "Enter a name"); return; }
     await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
     setCatDialog(false);
+    setSnack(editingCat
+      ? (lang === "es" ? "Categoría actualizada" : "Category updated")
+      : (lang === "es" ? "Categoría creada" : "Category created"));
+  };
+
+  const handleDeleteCat = async () => {
+    if (!deleteTarget) return;
+    await deleteCustomCat(deleteTarget.id);
+    setDeleteTarget(null);
+    setSnack(lang === "es" ? "Categoría eliminada" : "Category deleted");
   };
 
   return (
@@ -142,13 +154,15 @@ export default function SettingsPanel({ open, onClose }) {
         <ListItem sx={{ pt: 0 }}>
           <Box sx={{ display: "flex", gap: 1.5 }}>
             {PALETTES.map((p) => (
-              <Box key={p.key} onClick={() => setPalette(p.key)} sx={{
-                width: 36, height: 36, borderRadius: "50%", bgcolor: p.color, cursor: "pointer",
-                border: palette === p.key ? "3px solid" : "2px solid transparent",
-                borderColor: palette === p.key ? "text.primary" : "transparent",
-                transition: "transform 0.15s, border-color 0.15s",
-                "&:hover": { transform: "scale(1.15)" },
-              }} title={p.label} />
+              <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
+                sx={{
+                  width: 40, height: 40, borderRadius: "50%", bgcolor: p.color, cursor: "pointer",
+                  border: palette === p.key ? "3px solid" : "2px solid transparent",
+                  borderColor: palette === p.key ? "text.primary" : "transparent",
+                  transition: "transform 0.15s, border-color 0.15s",
+                  "&:hover": { transform: "scale(1.15)" },
+                }} title={p.label} />
             ))}
           </Box>
         </ListItem>
@@ -211,7 +225,7 @@ export default function SettingsPanel({ open, onClose }) {
                 onChange={(_, v) => handleAddFav(v)} getOptionLabel={(o) => o?.label || ""}
                 size="small" noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
                 renderInput={(params) => (
-                  <TextField {...params} placeholder={lang === "es" ? "Agregar favorita..." : "Add favorite..."} size="small" />
+                  <TextField {...params} label={lang === "es" ? "Agregar favorita" : "Add favorite"} size="small" />
                 )}
               />
             </ListItem>
@@ -246,11 +260,11 @@ export default function SettingsPanel({ open, onClose }) {
                         <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
                         <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
                           size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
-                        <IconButton size="small" onClick={() => openCatDialog(c)} aria-label="Edit" sx={{ minWidth: 32, minHeight: 32 }}>
-                          <EditIcon sx={{ fontSize: 16 }} />
+                        <IconButton onClick={() => openCatDialog(c)} aria-label={lang === "es" ? "Editar categoría" : "Edit category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                          <EditIcon sx={{ fontSize: 18 }} />
                         </IconButton>
-                        <IconButton size="small" color="error" onClick={() => deleteCustomCat(c.id)} aria-label="Delete" sx={{ minWidth: 32, minHeight: 32 }}>
-                          <DeleteIcon sx={{ fontSize: 16 }} />
+                        <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={lang === "es" ? "Eliminar categoría" : "Delete category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                          <DeleteIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Box>
                     ))}
@@ -307,8 +321,10 @@ export default function SettingsPanel({ open, onClose }) {
                 <Box
                   key={c}
                   onClick={() => setCatForm((f) => ({ ...f, color: c }))}
+                  role="radio" aria-checked={catForm.color === c} aria-label={c} tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && setCatForm((f) => ({ ...f, color: c }))}
                   sx={{
-                    width: 28, height: 28, borderRadius: "50%", bgcolor: c, cursor: "pointer",
+                    width: 32, height: 32, borderRadius: "50%", bgcolor: c, cursor: "pointer",
                     border: catForm.color === c ? "3px solid" : "2px solid transparent",
                     borderColor: catForm.color === c ? "text.primary" : "transparent",
                     transition: "transform 0.15s",
@@ -328,6 +344,34 @@ export default function SettingsPanel({ open, onClose }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          {lang === "es" ? "Eliminar categoría" : "Delete category"}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            {lang === "es"
+              ? `¿Eliminar "${deleteTarget?.nombre}"? Las transacciones existentes no se verán afectadas.`
+              : `Delete "${deleteTarget?.nombre}"? Existing transactions won't be affected.`}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)} color="inherit">
+            {lang === "es" ? "Cancelar" : "Cancel"}
+          </Button>
+          <Button onClick={handleDeleteCat} variant="contained" color="error">
+            {lang === "es" ? "Eliminar" : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert severity="success" onClose={() => setSnack(null)} sx={{ width: "100%" }}>
+          {snack}
+        </Alert>
+      </Snackbar>
     </Drawer>
   );
 }
