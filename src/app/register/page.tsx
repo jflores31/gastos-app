@@ -20,6 +20,12 @@ export default function RegisterPage() {
     setLoading(true)
     setError("")
 
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres")
+      setLoading(false)
+      return
+    }
+
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden")
       setLoading(false)

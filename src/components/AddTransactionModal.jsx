@@ -252,7 +252,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
         />
 
         <TextField label={t.concept} value={concepto} onChange={(e) => { setConcepto(e.target.value); if (errors.concepto) setErrors((er) => ({ ...er, concepto: null })); }}
-          error={!!errors.concepto} helperText={errors.concepto} fullWidth />
+          error={!!errors.concepto} helperText={errors.concepto} fullWidth inputProps={{ maxLength: 100 }} />
 
         <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
