@@ -20,10 +20,13 @@ export default function SettingsPanel({ open, onClose }) {
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
   const user = useSupabaseUser();
 
-  const fullName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const fullName = user?.user_metadata?.full_name || "";
   const email = user?.email || "";
+  const displayName = fullName || email || "Usuario";
   const avatarSrc = user?.user_metadata?.avatar_url || undefined;
-  const initials = fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const initials = fullName
+    ? fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : (email[0] || "U").toUpperCase();
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 360 }, p: 0 } }}>
@@ -43,8 +46,8 @@ export default function SettingsPanel({ open, onClose }) {
               {initials || <PersonIcon />}
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle1" fontWeight={700} noWrap>{fullName}</Typography>
-              <Typography variant="caption" noWrap sx={{ opacity: 0.85 }}>{email}</Typography>
+              <Typography variant="subtitle1" fontWeight={700} noWrap>{displayName}</Typography>
+              {fullName && <Typography variant="caption" noWrap sx={{ opacity: 0.85 }}>{email}</Typography>}
             </Box>
           </Box>
           <Divider />

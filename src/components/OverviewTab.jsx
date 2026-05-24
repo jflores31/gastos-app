@@ -22,11 +22,14 @@ import { CATEGORIES, fmtMoney, txByMonth, txByCategory } from "../data/index.js"
 import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
+import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 
 export default function OverviewTab({ period, setPeriod }) {
   const { t, lang, currency } = useSettings();
   const { txs } = useData();
+  const user = useSupabaseUser();
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "";
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
@@ -67,8 +70,9 @@ export default function OverviewTab({ period, setPeriod }) {
           <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2, fontWeight: 600 }}>
             {(() => {
               const h = new Date().getHours();
-              if (lang === "es") return h < 12 ? "Buenos días," : h < 19 ? "Buenas tardes," : "Buenas noches,";
-              return h < 12 ? "Good morning," : h < 19 ? "Good afternoon," : "Good evening,";
+              const name = firstName ? ` ${firstName}` : "";
+              if (lang === "es") return h < 12 ? `Buenos días${name},` : h < 19 ? `Buenas tardes${name},` : `Buenas noches${name},`;
+              return h < 12 ? `Good morning${name},` : h < 19 ? `Good afternoon${name},` : `Good evening${name},`;
             })()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
