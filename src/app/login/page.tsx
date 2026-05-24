@@ -54,7 +54,7 @@ export default function LoginPage() {
 
           {error && (
             <Box sx={{ mb: 2 }}>
-              <Chip label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 1, justifyContent: "center" }} />
+              <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 1, justifyContent: "center" }} />
               {error.includes("expiró") && (
                 <Link href="/forgot-password" style={{ textDecoration: "none" }}>
                   <Typography variant="body2" color="error" sx={{ textAlign: "center", fontWeight: 600, cursor: "pointer" }}>

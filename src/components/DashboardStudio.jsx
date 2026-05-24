@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Snackbar, Alert,
   useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
@@ -46,10 +46,10 @@ export default function DashboardStudio() {
   const [period, setPeriod] = useState("month");
 
   const openModal = useCallback((cat = "", mode = "all") => { setModalCat(cat); setModalMode(mode); setShowModal(true); }, []);
-  const showToast = useCallback((msg, severity = "success") => {
+  const showToast = useCallback((msg, severity = "success", duration = 3000) => {
     clearTimeout(toastTimer.current);
     setToast({ msg, severity });
-    toastTimer.current = setTimeout(() => setToast(null), 3000);
+    toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
 
   const handleAddTx = useCallback(() => {
@@ -61,6 +61,55 @@ export default function DashboardStudio() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }, []);
+
+  // Redirect unauthenticated users (belt-and-suspenders backup to middleware)
+  useEffect(() => {
+    if (user === null) {
+      window.location.href = "/login";
+    }
+  }, [user]);
+
+  // Inactivity auto-logout: 2 minutes with 30s warning
+  useEffect(() => {
+    if (!user) return;
+
+    const TIMEOUT = 120_000;
+    const WARN_BEFORE = 30_000;
+
+    let logoutTimer;
+    let warnTimer;
+
+    const resetTimers = () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warnTimer);
+
+      warnTimer = setTimeout(() => {
+        showToast(
+          lang === "es"
+            ? "La sesión se cerrará en 30 segundos por inactividad"
+            : "Session will close in 30 seconds due to inactivity",
+          "warning",
+          WARN_BEFORE
+        );
+      }, TIMEOUT - WARN_BEFORE);
+
+      logoutTimer = setTimeout(async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+      }, TIMEOUT);
+    };
+
+    const EVENTS = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
+    EVENTS.forEach((e) => window.addEventListener(e, resetTimers, { passive: true }));
+    resetTimers();
+
+    return () => {
+      clearTimeout(logoutTimer);
+      clearTimeout(warnTimer);
+      EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
+    };
+  }, [user, showToast, lang]);
 
   const TAB_LABELS = [
     { id: "overview", label: t.overview, icon: <DashboardIcon /> },
@@ -95,7 +144,7 @@ export default function DashboardStudio() {
           <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44 }}>
             <SettingsIcon fontSize="small" />
           </Fab>
-          {user ? (
+          {user === undefined ? null : user ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Tooltip title={displayName}>
                 <Avatar

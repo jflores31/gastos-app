@@ -33,9 +33,10 @@ export default function LoginModal({ open, onClose }) {
 
   const handleSocialLogin = (provider) => {
     const supabase = createClient()
+    const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
     supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${origin}/` },
     })
   }
 
@@ -43,7 +44,7 @@ export default function LoginModal({ open, onClose }) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogContent sx={{ p: 0 }}>
         <Box sx={{ position: "relative", p: 4 }}>
-          <IconButton onClick={onClose} sx={{ position: "absolute", top: 16, right: 16 }}>
+          <IconButton onClick={onClose} aria-label="Cerrar" sx={{ position: "absolute", top: 16, right: 16 }}>
             <Close />
           </IconButton>
 
@@ -56,7 +57,7 @@ export default function LoginModal({ open, onClose }) {
           </Box>
 
           {error && (
-            <Chip label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
+            <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
           )}
 
           <form onSubmit={handleSubmit}>

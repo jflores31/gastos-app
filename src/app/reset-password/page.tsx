@@ -128,7 +128,7 @@ function ResetPasswordForm() {
         </Box>
 
         {error && (
-          <Chip label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
+          <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
         )}
 
         <form onSubmit={handleSubmit}>
