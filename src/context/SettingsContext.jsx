@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
@@ -9,7 +11,7 @@ const PALETTES = {
   amber:  { label: "Amber",  color: "#c9874a" },
   indigo: { label: "Indigo", color: "#5e6ad2" },
   green:  { label: "Green",  color: "#3a8f5a" },
-  mono:   { label: "Mono",   color: "#222" },
+  mono:   { label: "Mono",   color: "#9e9e9e" },
 };
 
 export { PALETTES };

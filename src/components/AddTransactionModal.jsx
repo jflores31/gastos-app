@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
@@ -147,7 +149,7 @@ const INCOME_ICONS = {
   AHORROS: <SavingsIcon fontSize="small" />,
 };
 
-export default function AddTransactionModal({ initialCategory = "", mode = "all", onClose }) {
+export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose }) {
   const { t, lang, currency } = useSettings();
   const { addTx } = useData();
 
@@ -191,6 +193,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       valor: parseFloat(valor),
       anomaly: false,
     });
+    if (onAdd) onAdd();
     onClose();
   };
 
@@ -198,8 +201,8 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
-      TransitionComponent={Transition}
-      PaperProps={{ sx: { borderRadius: 3 } }}>
+      slots={{ transition: Transition }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle sx={{ fontWeight: 700 }}>{mode === "expense" ? (lang === "es" ? "Registrar Gasto Diario" : "Register Daily Expense") : mode === "income" ? (lang === "es" ? "Registrar Ingreso" : "Register Income") : t.addTx}</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 1 }}>
         {mode === "all" && (
@@ -230,11 +233,11 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           )}
           renderInput={(params) => (
             <TextField {...params} label={t.category} error={!!errors.categoria} helperText={errors.categoria}
-              InputProps={{ ...params.InputProps, startAdornment: (
+              slotProps={{ input: { ...params.InputProps, startAdornment: (
                 <InputAdornment position="start">
                   {categoria?.icon}
                 </InputAdornment>
-              )}}
+              )}}}
             />
           )}
         />
@@ -244,7 +247,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
         <TextField label={t.amount} type="number" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
-          InputProps={{ startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment> }} />
+          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment> } }} />
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? "es" : "en"}>
           <DatePicker

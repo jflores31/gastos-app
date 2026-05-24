@@ -1,7 +1,10 @@
+"use client"
+
 import { useState, useCallback, useRef } from "react";
 import {
   AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Snackbar, Alert,
   useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
+  Avatar, Button, Tooltip,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -11,8 +14,12 @@ import {
   Flag as GoalsIcon,
   Add as AddIcon,
   Settings as SettingsIcon,
+  Login as LoginIcon,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
 import { useSettings } from "../context/SettingsContext.jsx";
+import { useSupabaseUser } from "../context/UserContext";
+import { createClient } from "../lib/supabase";
 import OverviewTab from "./OverviewTab.jsx";
 import ExpensesTab from "./ExpensesTab.jsx";
 import IncomeTab from "./IncomeTab.jsx";
@@ -20,17 +27,20 @@ import BudgetTab from "./BudgetTab.jsx";
 import GoalsTab from "./GoalsTab.jsx";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import SettingsPanel from "./SettingsPanel.jsx";
+import LoginModal from "./LoginModal.jsx";
 
 export default function DashboardStudio() {
   const { t, lang } = useSettings();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const user = useSupabaseUser();
 
   const [activeTab, setActiveTab] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [modalCat, setModalCat] = useState("");
   const [modalMode, setModalMode] = useState("all");
   const [showSettings, setShowSettings] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
   const [period, setPeriod] = useState("month");
@@ -46,6 +56,12 @@ export default function DashboardStudio() {
     showToast(lang === "es" ? "Transacción guardada" : "Transaction saved", "success");
   }, [showToast, lang]);
 
+  const handleSignOut = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }, []);
+
   const TAB_LABELS = [
     { id: "overview", label: t.overview, icon: <DashboardIcon /> },
     { id: "expenses", label: t.expenses, icon: <ReceiptIcon /> },
@@ -53,6 +69,9 @@ export default function DashboardStudio() {
     { id: "budget", label: t.budget, icon: <BudgetIcon /> },
     { id: "goals", label: t.goals, icon: <GoalsIcon /> },
   ];
+
+  const displayName = user?.user_metadata?.full_name || user?.email || "Usuario";
+  const avatarSrc = user?.user_metadata?.avatar_url || undefined;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -76,6 +95,44 @@ export default function DashboardStudio() {
           <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1 }}>
             <SettingsIcon fontSize="small" />
           </Fab>
+          {user ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Tooltip title={displayName}>
+                <Avatar
+                  src={avatarSrc}
+                  sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {displayName[0].toUpperCase()}
+                </Avatar>
+              </Tooltip>
+              {!isMobile && (
+                <Typography variant="body2" noWrap sx={{ fontWeight: 600, maxWidth: 120 }}>
+                  {displayName}
+                </Typography>
+              )}
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                startIcon={<LogoutIcon />}
+                onClick={handleSignOut}
+                aria-label={lang === "es" ? "Cerrar sesión" : "Sign out"}
+                sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+              >
+                {isMobile ? null : (lang === "es" ? "Salir" : "Sign out")}
+              </Button>
+            </Box>
+          ) : (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<LoginIcon />}
+              onClick={() => setShowLoginModal(true)}
+              sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+            >
+              {isMobile ? "Entrar" : "Iniciar sesión"}
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -106,6 +163,7 @@ export default function DashboardStudio() {
 
       {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} />}
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
+      <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </Box>
   );
 }

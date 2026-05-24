@@ -1,3 +1,5 @@
+"use client"
+
 import { useMemo } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
@@ -11,7 +13,7 @@ import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions } from "./shared.jsx";
 
-const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", ALQUILER: "#a87cc4", MUSICA: "#c97a9b", ADELANTO: "#8a8a8a" };
+const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", ALQUILER: "#a87cc4", MUSICA: "#c97a9b", ADELANTO: "#9e9e9e" };
 
 export default function IncomeTab({ period, openModal }) {
   const { t, lang, currency } = useSettings();
@@ -25,11 +27,11 @@ export default function IncomeTab({ period, openModal }) {
   const prevIn = useMemo(() => prevTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [prevTxs]);
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : 0;
   const incomeTxs = useMemo(() => periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [periodTxs]);
-  const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#888" })), [incomeCats]);
+  const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#9e9e9e" })), [incomeCats]);
 
   return (
     <Stack spacing={3}>
-      <Card sx={{ bgcolor: "#fff", border: "1px solid", borderColor: "divider", borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", transition: "all 0.3s", "&:hover": { boxShadow: "0 12px 40px rgba(0,0,0,0.15)", transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
+      <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "all 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
         <CardContent sx={{ p: 2.5, color: "text.primary" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box>
@@ -37,7 +39,7 @@ export default function IncomeTab({ period, openModal }) {
               <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: "success.main" }}>{fmtMoney(totalIn, currency)}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "all 0.2s", "&:hover": { bgcolor: "success.main", color: "#fff", transform: "scale(1.05)" } }}>
+              <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "all 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
                 <AddIcon />
               </IconButton>
               <Avatar sx={{ width: 48, height: 48, bgcolor: "success.light", color: "success.dark" }}>
@@ -87,17 +89,17 @@ export default function IncomeTab({ period, openModal }) {
                 </Box>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 3, mt: 1 }}>
-                <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "grey.50", borderRadius: "50%" }}>
+                <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                   <Donut slices={incomeDonut} size={160} thickness={20} />
-                  <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+                  <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                     <Typography variant="h6" fontWeight={700} color="success.main">{fmtMoney(totalIn, currency, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.income}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   {incomeDonut.map((s) => (
-                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "grey.50", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
-                      <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
+                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                      <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
                       <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{CATEGORIES.income[s.label]?.[lang] || s.label}</Typography>
                       <Typography variant="body2" fontWeight={700} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
                     </Box>
@@ -117,7 +119,7 @@ export default function IncomeTab({ period, openModal }) {
                   <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 3, mb: 2, py: 1.5, bgcolor: "grey.50", borderRadius: 2 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", gap: 3, mb: 2, py: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                   <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: "success.main" }} />
                   <Typography variant="body2" sx={{ color: "success.main", fontWeight: 600 }}>{t.income}</Typography>
@@ -144,12 +146,12 @@ export default function IncomeTab({ period, openModal }) {
           ) : (
             <List disablePadding>
               {incomeTxs.slice(0, 30).map((x) => {
-              const color = INCOME_COLORS[x.categoria] || "#888";
+              const color = INCOME_COLORS[x.categoria] || "#9e9e9e";
               const catName = CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
               return (
                 <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
                   <ListItemAvatar sx={{ minWidth: 52 }}>
-                    <Avatar sx={{ width: 44, height: 44, bgcolor: color, color: "#fff", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
+                    <Avatar sx={{ width: 44, height: 44, bgcolor: color, color: "common.white", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
                   </ListItemAvatar>
                   <ListItemText 
                     primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>} 
@@ -162,7 +164,7 @@ export default function IncomeTab({ period, openModal }) {
             })}
             </List>
           )}
-          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "primary.contrastText", borderRadius: 2, px: 3, py: 2 }}>
+          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL INGRESOS" : "TOTAL INCOME"}</Typography>
             <Typography variant="h5" fontWeight={700}>+{fmtMoney(totalIn, currency, true)}</Typography>
           </Box>

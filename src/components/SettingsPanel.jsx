@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Drawer, Box, Typography, Divider,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
@@ -10,7 +12,7 @@ const PALETTES = [
   { key: "amber", label: "Amber", color: "#c9874a" },
   { key: "indigo", label: "Indigo", color: "#5e6ad2" },
   { key: "green", label: "Green", color: "#3a8f5a" },
-  { key: "mono", label: "Mono", color: "#555" },
+  { key: "mono", label: "Mono", color: "#9e9e9e" },
 ];
 
 export default function SettingsPanel({ open, onClose }) {

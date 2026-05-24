@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useMemo } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Stack, Chip, Avatar, LinearProgress,
@@ -80,12 +82,12 @@ export default function ExpensesTab({ period, openModal }) {
   return (
     <Stack spacing={2.5}>
       <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
-        <Box sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "linear-gradient(135deg, #1976d2 0%, #1565c0 100%)", background: "linear-gradient(135deg, #1976d2 0%, #1565c0 100%)", color: "primary.contrastText" }}>
+        <Box sx={{ px: 3, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
           <Box>
             <Typography variant="h6" fontWeight={700}>{t.dailyTitle}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
           </Box>
-          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.25)", color: "inherit", transition: "all 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.35)", transform: "scale(1.05)" } }}>
+          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "all 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
             <AddIcon />
           </IconButton>
         </Box>
@@ -103,7 +105,7 @@ export default function ExpensesTab({ period, openModal }) {
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
-                    const color = CATEGORIES.expense[tx.categoria]?.color || "#888";
+                    const color = CATEGORIES.expense[tx.categoria]?.color || "#9e9e9e";
                     const catName = CATEGORIES.expense[tx.categoria]?.[lang] || tx.categoria;
                     const hour = tx.date.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
@@ -144,12 +146,12 @@ export default function ExpensesTab({ period, openModal }) {
                 <Stack spacing={1}>
                   {cats.map((c, idx) => {
                     const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
-                    const color = CATEGORIES.expense[c.categoria]?.color || "#888";
+                    const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
                     const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
                     return (
                       <Box key={c.categoria} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover", transform: "translateX(4px)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
-                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
+                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
                             <Typography variant="caption" color="text.secondary">{c.count} {lang === "es" ? "tx" : "tx"} · {pct.toFixed(1)}%</Typography>
@@ -179,13 +181,13 @@ export default function ExpensesTab({ period, openModal }) {
                     const spent = cats.find((c) => c.categoria === cat)?.total || 0;
                     const limit = (editBudgets[cat] || 0) * monthCount(period);
                     const pct = limit ? spent / limit : 0;
-                    const color = CATEGORIES.expense[cat]?.color || "#888";
+                    const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
                     const catName = CATEGORIES.expense[cat]?.[lang] || cat;
                     const isOver = pct > 1;
                     return (
                       <Box key={cat} sx={{ borderRadius: 2, p: 1.5, border: isOver ? "2px solid" : "1px solid", borderColor: isOver ? "error.main" : "divider", bgcolor: isOver ? "error.light" : "background.default", transition: "all 0.2s" }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
-                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
+                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
                             <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver && (lang === "es" ? "(sobre)" : "(over)")}</Typography>
@@ -222,7 +224,7 @@ export default function ExpensesTab({ period, openModal }) {
                   ].map((item, idx) => (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                        <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
+                        <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
                         </Box>

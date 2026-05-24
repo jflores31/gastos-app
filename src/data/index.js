@@ -319,4 +319,4 @@ export const FAMILY_MEMBERS = [
   { id: "hija2",  es: "Sofía",  en: "Sofía",   avatar: "S", color: "#7ab87a",       share: 0.04 },
 ];
 
-export const TRANSACTIONS = generateTransactions();
+// generateTransactions() is available for local dev seeding only — not used in production

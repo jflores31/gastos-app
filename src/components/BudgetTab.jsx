@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
@@ -29,7 +31,7 @@ export default function BudgetTab({ period }) {
   const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : 0;
   const anomalies = periodTxs.filter((x) => x.anomaly);
   const score = healthScore(savingsRate, dOut, anomalies.length);
-  const recurring = useMemo(() => recurringList(), []);
+  const recurring = useMemo(() => recurringList(txs), [txs]);
 
   const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
   const budgetUsed = totalBudget > 0 ? totalOut / totalBudget : 0;
@@ -39,7 +41,7 @@ export default function BudgetTab({ period }) {
   const donutData = useMemo(() => {
     return Object.keys(editBudgets).map((cat) => {
       const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-      const color = CATEGORIES.expense[cat]?.color || "#888";
+      const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
       const catName = CATEGORIES.expense[cat]?.[lang] || cat;
       return { label: catName, value: spent, color };
     }).filter(d => d.value > 0);
@@ -89,12 +91,12 @@ export default function BudgetTab({ period }) {
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "grey.50", borderRadius: 3 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
                 <Avatar sx={{ width: 64, height: 64, bgcolor: gaugeColor + ".light", color: gaugeColor + ".dark", mb: 1 }}>{gaugeIcon}</Avatar>
                 <Box sx={{ position: "relative", width: 120, height: 72 }}>
                   <svg viewBox="0 0 120 72" style={{ width: "100%", height: "100%" }}>
                     <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" opacity={0.15} strokeWidth="10" strokeLinecap="round" />
-                    <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(score / 100) * 172.8} 200`} color={gaugeColor === "success" ? "#4CAF50" : gaugeColor === "warning" ? "#F9A825" : "#B3261E"} />
+                    <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(score / 100) * 172.8} 200`} style={{ color: gaugeColor === "success" ? "var(--income)" : gaugeColor === "warning" ? "#F9A825" : "var(--expense)" }} />
                   </svg>
                   <Typography variant="h4" fontWeight={800} sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 20%)", color: gaugeColor + ".main" }}>{score}</Typography>
                 </Box>
@@ -111,7 +113,7 @@ export default function BudgetTab({ period }) {
                   { lbl: t.income, val: fmtMoney(totalIn, currency, true), c: "success.main", icon: <TrendUpIcon fontSize="small" /> },
                 ].map(({ lbl, val, c, icon }) => (
                   <Grid item xs={6} md={3} key={lbl}>
-                    <Box sx={{ p: 2, bgcolor: "grey.50", borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+                    <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
                         {icon}
                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{lbl}</Typography>
@@ -138,7 +140,7 @@ export default function BudgetTab({ period }) {
           const spent = cats.find((c) => c.categoria === cat)?.total || 0;
           const limit = editBudgets[cat] * monthCount(period);
           const pct = limit ? spent / limit : 0;
-          const color = CATEGORIES.expense[cat]?.color || "#888";
+          const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
           const catName = CATEGORIES.expense[cat]?.[lang] || cat;
           const isEd = editing === cat;
           const isOver = pct > 1;
@@ -149,7 +151,7 @@ export default function BudgetTab({ period }) {
                 <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: color, fontSize: 14, fontWeight: 700, color: "#fff" }}>{catName[0]}</Avatar>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: color, fontSize: 14, fontWeight: 700, color: "common.white" }}>{catName[0]}</Avatar>
                       <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
                     </Box>
                     {isWarning && !isOver && <Chip size="small" label="80%" color="warning" sx={{ height: 20, fontSize: 10 }} />}
@@ -163,7 +165,7 @@ export default function BudgetTab({ period }) {
                       height: 10, 
                       borderRadius: 5, 
                       mb: 1.5, 
-                      bgcolor: "grey.100",
+                      bgcolor: "action.hover",
                       "& .MuiLinearProgress-bar": {
                         transition: "transform 0.8s ease-in-out",
                       }
@@ -180,7 +182,7 @@ export default function BudgetTab({ period }) {
                       <Chip size="small" variant="outlined" label={fmtMoney(limit, currency, true)} onClick={() => startEdit(cat)} sx={{ cursor: "pointer", fontWeight: 600 }} />
                     )}
                   </Box>
-                  <Box sx={{ p: 1, bgcolor: isOver ? "error.main" : isWarning ? "warning.main" : "grey.100", borderRadius: 1 }}>
+                  <Box sx={{ p: 1, bgcolor: isOver ? "error.main" : isWarning ? "warning.main" : "action.hover", borderRadius: 1 }}>
                     <Typography variant="caption" sx={{ color: isOver || isWarning ? "#fff" : "text.secondary", fontWeight: 500 }}>
                       {isOver ? `+${fmtMoney(spent - limit, currency, true)} ${t.overspent.toLowerCase()}` : `${fmtMoney(limit - spent, currency, true)} ${t.remaining.toLowerCase()}`}
                     </Typography>
@@ -191,7 +193,7 @@ export default function BudgetTab({ period }) {
           );
         })}
         <Grid item xs={12} sm={6} md={4}>
-          <Card onClick={() => setAddDialog(true)} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", "&:hover": { bgcolor: "primary.main", color: "#fff" } }}>
+          <Card onClick={() => setAddDialog(true)} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="body1" fontWeight={600}>{lang === "es" ? "Agregar presupuesto" : "Add budget"}</Typography>
@@ -219,7 +221,7 @@ export default function BudgetTab({ period }) {
                 <Box sx={{ flex: 1, maxHeight: 200, overflowY: "auto" }}>
                   {donutData.slice(0, 5).map((s) => (
                     <Tooltip key={s.label} title={s.label} arrow placement="top">
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "grey.50", cursor: "default" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "action.hover", cursor: "default" }}>
                         <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
                         <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</Typography>
                         <Typography variant="body2" fontWeight={700}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
@@ -242,11 +244,11 @@ export default function BudgetTab({ period }) {
                 </Box>
               </Box>
               <Box sx={{ display: "flex", flex: 1, gap: 2, alignItems: "center" }}>
-                <Box sx={{ flex: 1, p: 2.5, bgcolor: "grey.50", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                   <Typography variant="caption" color="text.secondary">{lang === "es" ? "Gasto anterior" : "Previous"}</Typography>
                   <Typography variant="h5" fontWeight={700}>{fmtMoney(prevOut, currency, true)}</Typography>
                 </Box>
-                <Box sx={{ flex: 1, p: 2.5, bgcolor: "grey.50", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                   <Typography variant="caption" color="text.secondary">{lang === "es" ? "Cambio" : "Change"}</Typography>
                   <Chip label={`${dOut > 0 ? "+" : ""}${dOut.toFixed(1)}%`} color={dOut > 0 ? "error" : "success"} size="medium" sx={{ fontWeight: 600, mt: 0.5 }} />
                 </Box>
@@ -267,10 +269,10 @@ export default function BudgetTab({ period }) {
           </Box>
           <Stack spacing={1}>
             {recurring.slice(0, 5).map((r) => {
-              const color = CATEGORIES.expense[r.categoria]?.color || "#888";
+              const color = CATEGORIES.expense[r.categoria]?.color || "#9e9e9e";
               return (
-                <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "grey.50", borderRadius: 2 }}>
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: color, color: "#fff", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
+                <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                  <Avatar sx={{ width: 36, height: 36, bgcolor: color, color: "common.white", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
                     <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{CATEGORIES.expense[r.categoria]?.[lang]}</Typography>
@@ -289,7 +291,7 @@ export default function BudgetTab({ period }) {
           {Object.keys(editBudgets).length > 0 && (
             <>
               <Typography variant="subtitle2" color="text.secondary">{lang === "es" ? "Presupuestos existentes" : "Existing budgets"}</Typography>
-              <List dense sx={{ bgcolor: "grey.50", borderRadius: 1 }}>
+              <List dense sx={{ bgcolor: "action.hover", borderRadius: 1 }}>
                 {Object.entries(editBudgets).map(([cat, amount]) => (
                   <ListItem key={cat} sx={{ py: 0.5 }}>
                     {editExisting === cat ? (

@@ -69,19 +69,29 @@ export function healthLabel(savingsRate, lang) {
   return lang === "es" ? "Crítica" : "Critical";
 }
 
-export function recurringList() {
-  return [
-    { concepto: "ALQUILER",    categoria: "VIVIENDA",        day: 1,  avg: 1700 },
-    { concepto: "STREAMING",   categoria: "ENTRETENIMIENTO", day: 1,  avg: 45 },
-    { concepto: "INTERNET",    categoria: "SERVICIOS",       day: 8,  avg: 120 },
-    { concepto: "BCP",         categoria: "DEUDAS",          day: 10, avg: 380 },
-    { concepto: "LUZ",         categoria: "SERVICIOS",       day: 12, avg: 115 },
-    { concepto: "AGUA",        categoria: "SERVICIOS",       day: 14, avg: 70 },
-    { concepto: "CELULAR",     categoria: "SERVICIOS",       day: 18, avg: 89 },
-    { concepto: "SCOTIABANK",  categoria: "DEUDAS",          day: 20, avg: 290 },
-    { concepto: "COLEGIO",     categoria: "HIJAS",           day: 5,  avg: 850 },
-    { concepto: "ALIMENTO",    categoria: "MASCOTA",         day: 5,  avg: 155 },
-  ].sort((a, b) => a.day - b.day);
+export function recurringList(txs = []) {
+  if (!txs.length) return [];
+
+  const groups = new Map();
+  for (const tx of txs) {
+    if (tx.tipo !== "EGRESO") continue;
+    const key = `${tx.categoria}|${tx.concepto}`;
+    if (!groups.has(key)) groups.set(key, { categoria: tx.categoria, concepto: tx.concepto, months: new Set(), amounts: [], days: [] });
+    const g = groups.get(key);
+    g.months.add(`${tx.año}-${tx.mes}`);
+    g.amounts.push(tx.valor);
+    g.days.push(tx.dia);
+  }
+
+  return [...groups.values()]
+    .filter((g) => g.months.size >= 3)
+    .map((g) => ({
+      concepto: g.concepto,
+      categoria: g.categoria,
+      day: Math.round(g.days.reduce((s, d) => s + d, 0) / g.days.length),
+      avg: Math.round(g.amounts.reduce((s, a) => s + a, 0) / g.amounts.length),
+    }))
+    .sort((a, b) => a.day - b.day);
 }
 
 export function fmtDate(date) {

@@ -1,98 +1,139 @@
-# Gastos App - Expense Tracker
+# Finanzas - Gestión Personal
 
-Aplicación de finanzas personales para rastrear ingresos y gastos con gestión de presupuestos.
+Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos y metas de ahorro. Construida con Next.js 14, Material UI v9, y NextAuth v5.
 
-## 🚀 Características Principales
+## Características
 
-### 📊 Dashboard (OverviewTab)
-- Resumen mensual con ingresos, gastos y balance total
-- Indicador de salud financiera (health score gauge)
-- Comparación de tendencia vs mes anterior
-- Gráfico de flujo de caja (StudioCashflow) mostrando ingresos vs gastos en el tiempo
+### Autenticación
+- Login con email/contraseña (cuenta demo: `demo@finanzas.app` / `demo1234`)
+- Login con Google y GitHub (OAuth)
+- Registro de nuevos usuarios
+- Recuperación de contraseña (flujo completo con token)
+- Middleware que redirige a `/login` si no hay sesión activa
+
+### Dashboard (OverviewTab)
+- Resumen mensual con ingresos, gastos y balance neto
+- Health score gauge (0-100) con arco SVG
+- Gráfico de flujo de caja (StudioCashflow) — ingresos vs gastos por mes
 - Desglose de gastos por categoría con gráfico donut
+- Insights automáticos (IA-style) basados en tus datos
+- Heat calendar de gastos diarios
+- Comparación vs mes anterior con barras de progreso
+- Selector de período (semana, mes, trimestre, año)
 
-### 💰 Gestión de Gastos (ExpensesTab)
-- Filtrado de gastos por categoría
-- Resumen de gastos de hoy
-- Lista de transacciones con iconos de categoría
-- Lista desplazable con max-height para rendimiento
-- Estado vacío cuando no hay transacciones
+### Gastos (ExpensesTab)
+- Gastos de hoy con detalle por transacción
+- Top categorías con filtros y barras de progreso
+- Presupuesto vs real por categoría
+- Resumen del período (total, transacciones, promedio diario, mayor gasto)
+- Lista completa de transacciones con filtrado por categoría
+- Total general con barra destacada
 
-### 💵 Gestión de Ingresos (IncomeTab)
-- Desglose de ingresos por categoría
-- Lista de transacciones con indicadores de ingreso
-- Sparkline de tendencia de ingresos
-- Estado vacío cuando no hay ingresos
+### Ingresos (IncomeTab)
+- Tarjeta de ingresos totales con sparkline
+- Grid de categorías de ingreso con porcentajes
+- Gráfico donut de distribución de ingresos
+- Tendencia de ingresos con StudioCashflow
+- Lista de transacciones de ingreso
+- Total general
 
-### 📈 Gestión de Presupuestos (BudgetTab)
-- Establecer presupuestos mensuales por categoría
-- Barras de progreso con animaciones suaves mostrando gasto vs presupuesto
-- Alertas en umbral del 80% (amarillo) y sobre presupuesto (rojo)
-- **Operaciones CRUD:**
-  - Editar presupuestos existentes en línea
-  - Eliminar presupuestos
-  - Agregar nuevas categorías de presupuesto via diálogo de gestión
-- Gráfico donut para distribución de gastos (top 5 categorías)
+### Presupuestos (BudgetTab)
+- Health score gauge visual
+- Tarjetas de presupuesto por categoría con progreso
+- Donut de distribución de gastos
 - Comparación con mes anterior
-- Cálculo de health score
+- Gastos recurrentes
+- CRUD de presupuestos (crear, editar, eliminar)
+- Alertas en 80% y 100% del presupuesto
 
-### 🎯 Pestaña de Metas (GoalsTab)
-- **Metas de Ahorro (CRUD):** Crear, editar, eliminar metas de ahorro con seguimiento de fecha límite
-- **Gestión de Cuentas:** Agregar, editar, eliminar cuentas bancarias y tarjetas de crédito
-- **Seguimiento de Patrimonio Neto:** Cálculo en tiempo real de activos vs deudas
-- **División de Gastos Familiares:** Desglose visual del gasto por miembro de familia
-- **Pronóstico 3 meses:** Ahorros proyectados basados en tendencias
-- **Resumen de Inversiones:** Seguimiento de AFP, DPF, ahorros, crypto con rendimientos
-- **Control de Deudas:** Monitorear préstamos con progreso y cuotas restantes
-- **Seguimiento de Suscripciones:** Pagos mensuales recurrentes (Netflix, Spotify, etc.)
-- **Evolución del Patrimonio:** Gráfico de historial de 6 meses
-- Selector de fecha para fechas límite de metas (MUI X Date Pickers)
+### Metas (GoalsTab)
+- CRUD de metas de ahorro con fecha límite (DatePicker)
+- Gestión de cuentas bancarias y tarjetas
+- Patrimonio neto (activos - deudas) en tiempo real
+- División de gastos por miembro de familia
+- Pronóstico de 3 meses
+- Seguimiento de inversiones (AFP, DPF, crypto)
+- Control de deudas y préstamos
+- Suscripciones recurrentes
+- Evolución del patrimonio (6 meses)
 
-### 📁 Categorías de Gastos
-- 33+ categorías predefinidas (Comida, Transporte, Entretenimiento, etc.)
-- Iconos codificados por color
-- Soporte multilingüe (Español/Inglés)
+### Configuración (SettingsPanel)
+- Tema claro/oscuro con transición instantánea
+- 4 paletas de acento (Amber, Indigo, Green, Mono)
+- Densidad Comfy/Compact
+- Idioma Español/Inglés
+- 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
 
-## 🛠️ Tecnologías
+### Diseño Responsivo
+- Navegación por tabs en desktop, BottomNavigation en móvil
+- Grid adaptivo con breakpoints (xs, sm, md, lg)
+- Diálogos y modales responsivos
+- Modales de agregar transacción y login
 
-- **Frontend:** React 19 + Vite
-- **UI Framework:** Material UI (MUI) v9
-- **Date Picker:** MUI X Date Pickers (adapter dayjs)
-- **State Management:** React Context
-- **Persistencia:** LocalStorage
-- **Build Tool:** Vite
+## Tecnologías
 
-## 📂 Estructura del Proyecto
+| Categoría | Tecnología |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| UI | Material UI (MUI) v9 |
+| Auth | NextAuth v5 (Credentials + Google + GitHub) |
+| Database ORM | Prisma v6 (MySQL/PlanetScale) |
+| Date Picker | MUI X Date Pickers + dayjs |
+| Animations | Framer Motion |
+| State | React Context + localStorage |
+| Email | Resend (pendiente integración) |
+| Lenguaje | TypeScript (rutas) + JSX/JavaScript (componentes) |
+
+## Estructura del Proyecto
 
 ```
 src/
-├── components/
-│   ├── DashboardStudio.jsx    # App principal con navegación de pestañas
-│   ├── OverviewTab.jsx        # Dashboard con gráficos de flujo de caja
-│   ├── ExpensesTab.jsx       # Seguimiento de gastos y listas
-│   ├── IncomeTab.jsx         # Seguimiento de ingresos y listas
-│   ├── BudgetTab.jsx         # Gestión de presupuestos
-│   ├── GoalsTab.jsx          # Metas de ahorro, cuentas, inversiones
-│   ├── Charts.jsx            # Donut, SparkArea, StudioCashflow, HeatCalendar
-│   ├── shared.jsx            # Componentes reutilizables
-│   ├── AddTransactionModal.jsx  # Modal para agregar transacciones
-│   ├── SettingsPanel.jsx     # Panel de configuración
-│   └── ErrorBoundary.jsx     # Manejo de errores
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                 # Root layout con Providers
+│   ├── page.tsx                   # Home → DashboardStudio
+│   ├── globals.css                # Estilos globales
+│   ├── login/page.tsx             # Página de login
+│   ├── register/page.tsx          # Página de registro
+│   ├── forgot-password/page.tsx    # Recuperar contraseña
+│   ├── reset-password/page.tsx     # Resetear contraseña
+│   ├── api/auth/                  # API routes
+│   │   ├── [...nextauth]/route.ts  # NextAuth handler
+│   │   ├── register/route.ts      # Registro de usuarios
+│   │   ├── forgot-password/route.ts # Generar token de reset
+│   │   └── reset-password/route.ts  # Validar token y resetear
+│   └── components/
+│       ├── Providers.tsx           # SessionProvider → Settings → Data → Theme
+│       └── DynamicThemeProvider.tsx # Tema MUI dinámico + CSS vars
+├── components/                    # Componentes UI
+│   ├── DashboardStudio.jsx        # Shell principal con tabs y AppBar
+│   ├── OverviewTab.jsx            # Dashboard overview
+│   ├── ExpensesTab.jsx            # Pestaña de gastos
+│   ├── IncomeTab.jsx              # Pestaña de ingresos
+│   ├── BudgetTab.jsx              # Pestaña de presupuestos
+│   ├── GoalsTab.jsx               # Pestaña de metas y cuentas
+│   ├── Charts.jsx                 # SVG charts (Donut, SparkArea, Cashflow, HeatMap)
+│   ├── shared.jsx                 # StatsCard, EmptyState, NoTransactions, TxTable
+│   ├── AddTransactionModal.jsx    # Modal de nueva transacción
+│   ├── SettingsPanel.jsx          # Drawer de configuración
+│   ├── LoginModal.jsx             # Modal de login (in-app)
+│   └── ErrorBoundary.jsx          # Error boundary
 ├── context/
-│   ├── DataContext.jsx        # Estado de transacciones y presupuestos
-│   └── SettingsContext.jsx   # Configuración de idioma y moneda
+│   ├── DataContext.jsx             # Estado de transacciones y presupuestos
+│   └── SettingsContext.jsx         # Tema, idioma, moneda, paleta, densidad
 ├── data/
-│   ├── index.js              # Categorías, presupuestos, transacciones
-│   └── helpers.js            # Funciones utilitarias
+│   ├── index.js                    # Categorías, monedas, i18n, seed data
+│   └── helpers.js                  # Filtros de período, health score, insights
 ├── theme/
-│   └── materialTheme.js     # Configuración del tema MUI
+│   └── materialTheme.js            # Temas light/dark + paletas de acento
 ├── hooks/
-│   └── useLocalStorage.js    # Hook personalizado para localStorage
-├── App.jsx                   # Componente raíz
-└── main.jsx                  # Punto de entrada
+│   └── useLocalStorage.js          # Hook para persistir estado en localStorage
+├── lib/
+│   ├── auth.ts                     # NextAuth config (demo user + OAuth)
+│   └── db.ts                       # Prisma client singleton
+└── middleware.ts                    # Protección de rutas (redirect a /login)
 ```
 
-## 🚀 Ejecución
+## Inicio Rápido
 
 ```bash
 # Instalar dependencias
@@ -103,129 +144,89 @@ npm run dev
 
 # Construir para producción
 npm run build
+
+# Iniciar en producción
+npm start
 ```
 
-## 📝 Mejoras Frontend (Fases 1-3)
+La app estará disponible en `http://localhost:3000`.
 
-### Fase 1: Correcciones Críticas
-- GoalsTab: minHeight responsivo (`{ xs: 280, sm: 320, md: 350 }`)
-- GoalsTab: Distribución igual de tarjetas (md={4} para las 3)
-- OverviewTab: Columnas de grid con breakpoints adicionales
+### Cuenta Demo
 
-### Fase 2: Mejoras de UX
-- BudgetTab: Animaciones suaves en barras de progreso (0.8s ease-in-out)
-- BudgetTab: Etiquetas del gráfico donut con tooltip y truncamiento de texto
-- BudgetTab: Tooltips para mejor interacción
-- ExpensesTab: Listas con max-height (400px) y scroll
+Para probar sin crear una cuenta:
 
-### Fase 3: Consistencia Visual
-- **Componente StatsCard:** Tarjeta reutilizable con estilo consistente
-- **Componente EmptyState:** Estado vacío genérico para listas
-- **Componente NoTransactions:** Estado vacío específico para transacciones
-- Estados vacíos estandarizados en ExpensesTab e IncomeTab
+- **Email:** `demo@finanzas.app`
+- **Contraseña:** `demo1234`
 
-## 📦 Biblioteca de Componentes (shared.jsx)
+O haz clic en **"Usar cuenta demo"** en la página de login.
 
-### StatsCard
-```jsx
-<StatsCard 
-  title="Título"
-  subtitle="Subtítulo"
-  icon={<Icono />}
-  iconColor="success"
-  topBorderColor="success.main"
-  minHeight={280}
->
-  {/* contenido */}
-</StatsCard>
+### Variables de Entorno
+
+Crear un archivo `.env.local` con:
+
+```env
+NEXTAUTH_SECRET=tu-secret-aqui
+NEXTAUTH_URL=http://localhost:3000
+
+# OAuth (opcional)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Base de datos (para producción)
+DATABASE_URL=mysql://user:password@host:3306/db
+
+# Email (para recuperación de contraseña)
+RESEND_API_KEY=
 ```
 
-### EmptyState
-```jsx
-<EmptyState 
-  icon={<Icono />}
-  title="Sin datos"
-  subtitle="Descripción"
-/>
+## Tema Oscuro
+
+El modo oscuro es completamente funcional:
+
+- Todos los componentes usan tokens de tema MUI (`background.paper`, `text.primary`, `action.hover`, etc.)
+- Variables CSS dinámicas (`--accent`, `--income`, `--expense`, `--bg`) se actualizan con el tema activo
+- Los SVG charts (SparkArea, StudioCashflow, HeatCalendar) se adaptan al tema
+- 4 paletas de acento: Amber, Indigo, Green, Mono
+- Cambio instantáneo entre claro/oscuro sin recarga
+
+## Autenticación
+
+El middleware protege todas las rutas excepto las páginas de auth y APIs:
+
+- `/login` — Formulario de login con demo, Google y GitHub
+- `/register` — Registro de nuevos usuarios
+- `/forgot-password` — Solicitud de reset de contraseña
+- `/reset-password` — Reset de contraseña con token válido
+
+Los usuarios autenticados son redirigidos al dashboard al intentar acceder a páginas de auth.
+
+## Base de Datos
+
+El schema de Prisma incluye modelos para:
+
+- **User** — Usuarios con email, password (bcrypt), name, image
+- **Account** — Cuentas OAuth vinculadas
+- **Session** — Sesiones de NextAuth
+- **Transaction** — Transacciones (INGRESO/EGRESO) con categoría, concepto, valor, fecha
+- **Budget** — Presupuestos mensuales por categoría
+- **Goal** — Metas de ahorro con target, progreso y deadline
+- **AccountFinancial** — Cuentas bancarias/tarjetas con balance
+
+> Actualmente la app funciona con datos seed en localStorage. La integración con Prisma/PlanetScale está preparada pero pendiente de conectar al DataContext.
+
+## Despliegue
+
+La app está configurada para despliegue en Vercel:
+
+```bash
+# Build de producción
+npm run build
+
+# Las variables de entorno se configuran en Vercel Dashboard
 ```
 
-### NoTransactions
-```jsx
-<NoTransactions lang="es" type="gasto" /> // o "ingreso"
-```
-
-## 🔄 Persistencia de Datos
-
-- Transacciones almacenadas en LocalStorage (`gastos-userTxs`)
-- Presupuestos almacenados en LocalStorage (`gastos-budgets`)
-- Datos por defecto cargados desde `src/data/index.js`
-
-## 🌍 Soporte de Idiomas
-
-Soporte completo Español/Inglés vía SettingsContext:
-- Nombres de categorías
-- Etiquetas y botones de UI
-- Formatos de fecha (DD/MM/YYYY o MM/DD/YYYY)
-- Formato de moneda
-
-## 📱 Soporte de Navegadores
-
-- Navegadores de escritorio (Chrome, Firefox, Safari, Edge)
-- Diseño responsivo móvil con BottomNavigation
-- Interacciones táctiles
-
-## 🔧 Preparación para Backend
-
-El proyecto está listo para integración con backend. Endpoints sugeridos:
-
-### Autenticación
-- `POST /api/auth/login` - Iniciar sesión
-- `POST /api/auth/register` - Registrarse
-- `POST /api/auth/logout` - Cerrar sesión
-- `GET /api/auth/me` - Obtener usuario actual
-
-### Transacciones
-- `GET /api/transactions?period=month` - Obtener transacciones
-- `POST /api/transactions` - Crear transacción
-- `PUT /api/transactions/:id` - Actualizar transacción
-- `DELETE /api/transactions/:id` - Eliminar transacción
-
-### Presupuestos
-- `GET /api/budgets` - Obtener presupuestos
-- `POST /api/budgets` - Crear presupuesto
-- `PUT /api/budgets/:id` - Actualizar presupuesto
-- `DELETE /api/budgets/:id` - Eliminar presupuesto
-
-### Metas de Ahorro
-- `GET /api/goals` - Obtener metas
-- `POST /api/goals` - Crear meta
-- `PUT /api/goals/:id` - Actualizar meta
-- `DELETE /api/goals/:id` - Eliminar meta
-
-### Cuentas
-- `GET /api/accounts` - Obtener cuentas
-- `POST /api/accounts` - Crear cuenta
-- `PUT /api/accounts/:id` - Actualizar cuenta
-- `DELETE /api/accounts/:id` - Eliminar cuenta
-
-## 📋 Historial de Cambios Recientes
-
-- Reescritura completa de BudgetTab.jsx con estructura JSX correcta
-- Agregado diálogo de gestión de presupuestos (editar, eliminar, agregar)
-- Health score gauge con visualización de arco SVG
-- Chips de alerta en umbral del 80%
-- Gráfico donut para distribución de gastos
-- Comparación con mes anterior
-- Tarjeta de gastos recurrentes
-- Alturas de tarjetas uniformes con flexbox
-- Selector de fecha para fechas límite de metas
-- CRUD para metas de ahorro y cuentas
-- Seguimiento de inversiones, deudas, suscripciones
-- Gráfico de evolución del patrimonio neto
-- Mejoras de diseño responsivo
-- Estados vacíos para transacciones
-- Animaciones suaves en barras de progreso
-
-## 📄 Licencia
+## Licencia
 
 MIT

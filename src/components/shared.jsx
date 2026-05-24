@@ -112,7 +112,7 @@ export function TxTable({ txs, lang, currency, t }) {
             <div key={x.id} className="st-tx-row" data-anom={x.anomaly}>
               <div className="st-tx-date"><div className="st-tx-d">{x.dia}</div><div className="st-tx-m">{t.months[x.mes]}</div></div>
               <div className="st-tx-cat">
-                <i style={{ background: `color-mix(in oklch, ${expColor || "#5a9bc9"} 18%, transparent)`, color }}>
+                <i style={{ background: `color-mix(in oklch, ${expColor || "#9e9e9e"} 18%, transparent)`, color }}>
                   {catName.slice(0, 1)}
                 </i>
                 <div className="st-tx-con">

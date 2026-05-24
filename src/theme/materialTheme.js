@@ -95,6 +95,10 @@ export const paletteMap = {
   mono:    { light: { primary: "#333" },    dark: { primary: "#e0e0e0" } },
 };
 
+const theme = lightTheme;
+
+export default theme;
+
 export function getTheme(themeMode, palette) {
   const base = themeMode === "dark" ? darkTheme : lightTheme;
   const accent = paletteMap[palette]?.[themeMode]?.primary;
