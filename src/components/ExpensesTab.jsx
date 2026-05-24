@@ -42,14 +42,15 @@ export default function ExpensesTab({ period, openModal }) {
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
     border: "1px solid",
     borderColor: "divider",
+    borderRadius: 3,
   };
 
   const cardContentStyles = {
-    py: 2,
-    px: 2.5,
+    py: 2.5,
+    px: 3,
     overflowY: "auto",
     flex: 1,
     display: "flex",
@@ -128,7 +129,7 @@ export default function ExpensesTab({ period, openModal }) {
         </CardContent>
       </Card>
 
-      <Grid container spacing={2.5} sx={{ height: 420 }}>
+      <Grid container spacing={3} sx={{ height: 460 }}>
         <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={cardContentStyles}>
