@@ -137,50 +137,27 @@ export default function ExpensesTab({ period, openModal }) {
                 <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
                 <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmtMoney(totalOut, currency, true)}</Typography>
               </Box>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-                <Chip size="small" label={lang === "es" ? "Todos" : "All"} variant={!activeCat ? "filled" : "outlined"} onClick={() => setActiveCat(null)} sx={{ fontWeight: 600 }} />
-                {cats.slice(0, 4).map((c) => (
-                  <Chip key={c.categoria} size="small" label={CATEGORIES.expense[c.categoria]?.[lang] || c.categoria} variant={activeCat === c.categoria ? "filled" : "outlined"} onClick={() => setActiveCat(c.categoria === activeCat ? null : c.categoria)} sx={{ fontWeight: 500 }} />
-                ))}
-              </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
-                {cats.length === 0 ? (
-                  <Stack spacing={1}>
-                    {Object.entries(CATEGORIES.expense).slice(0, 6).map(([key, val]) => (
-                      <Box key={key} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", opacity: 0.5 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: val.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>-</Box>
+                <Stack spacing={1.5}>
+                  {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k, v]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
+                    const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
+                    const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
+                    const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
+                    return (
+                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "all 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                          <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>{val[lang]}</Typography>
-                            <Typography variant="caption" color="text.secondary">{lang === "es" ? "Sin gastos aún" : "No expenses yet"}</Typography>
+                            <Typography variant="body2" fontWeight={600}>{catName}</Typography>
+                            <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} tx · ${pct.toFixed(1)}%`}</Typography>
                           </Box>
-                          <Typography variant="body2" fontWeight={700} color="text.disabled">{fmtMoney(0, currency, true)}</Typography>
+                          <Typography variant="h6" fontWeight={700} color="primary.main">{fmtMoney(c.total, currency, true)}</Typography>
                         </Box>
+                        <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} color="primary" sx={{ height: 8, borderRadius: 4 }} />
                       </Box>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Stack spacing={1}>
-                    {cats.map((c, idx) => {
-                      const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
-                      const color = CATEGORIES.expense[c.categoria]?.color || "#9e9e9e";
-                      const catName = CATEGORIES.expense[c.categoria]?.[lang] || c.categoria;
-                      return (
-                        <Box key={c.categoria} sx={{ borderRadius: 2, p: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover", transform: "translateX(4px)" } }}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
-                            <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                              <Typography variant="caption" color="text.secondary">{c.count} {lang === "es" ? "tx" : "tx"} · {pct.toFixed(1)}%</Typography>
-                            </Box>
-                            <Typography variant="body2" fontWeight={700} color="error.main">{fmtMoney(c.total, currency, true)}</Typography>
-                          </Box>
-                          <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: color, borderRadius: 3 } }} />
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                )}
+                    );
+                  })}
+                </Stack>
               </Box>
             </CardContent>
           </Card>
@@ -191,31 +168,27 @@ export default function ExpensesTab({ period, openModal }) {
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
-                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(CATEGORIES.expense).length} {lang === "es" ? "categorías" : "categories"}</Typography>
+                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {lang === "es" ? "categorías" : "categories"}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
-                <Stack spacing={1}>
-                  {Object.keys(CATEGORIES.expense).slice(0, 8).map((cat, idx) => {
+                <Stack spacing={1.5}>
+                  {Object.keys(CATEGORIES.expense).slice(0, 4).map((cat, idx) => {
                     const spent = cats.find((c) => c.categoria === cat)?.total || 0;
                     const limit = (editBudgets[cat] || 0) * monthCount(period);
                     const pct = limit ? spent / limit : 0;
-                    const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
-                    const catName = CATEGORIES.expense[cat]?.[lang] || cat;
                     const isOver = pct > 1;
+                    const catName = CATEGORIES.expense[cat]?.[lang] || cat;
                     return (
-                      <Box key={cat} sx={{ borderRadius: 2, p: 1.5, border: isOver ? "2px solid" : "1px solid", borderColor: isOver ? "error.main" : "divider", bgcolor: isOver ? "error.light" : "background.default", transition: "all 0.2s" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
-                          <Box sx={{ width: 28, height: 28, borderRadius: 1.5, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 12, fontWeight: 700 }}>{idx + 1}</Box>
+                      <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                          <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                            <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver && (lang === "es" ? "(sobre)" : "(over)")}</Typography>
+                            <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (lang === "es" ? "· Sobre límite" : "· Over limit") : `· ${lang === "es" ? "de" : "of"} ${fmtMoney(limit, currency, true)}`}</Typography>
                           </Box>
-                          <Typography variant="body2" fontWeight={700} color={isOver ? "error.main" : "text.primary"}>{fmtMoney(spent, currency, true)}</Typography>
+                          <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmtMoney(spent, currency, true)}</Typography>
                         </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "success"} sx={{ flex: 1, height: 8, borderRadius: 4 }} />
-                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: 45, textAlign: "right" }}>{fmtMoney(limit, currency, true)}</Typography>
-                        </Box>
+                        <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
                       </Box>
                     );
                   })}
