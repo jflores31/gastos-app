@@ -200,8 +200,8 @@ export default function DashboardStudio() {
 
       <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
-        {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} />}
-        {activeTab === 2 && <IncomeTab period={period} openModal={openModal} />}
+        {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
+        {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 3 && <BudgetTab period={period} />}
         {activeTab === 4 && <GoalsTab />}
       </Box>

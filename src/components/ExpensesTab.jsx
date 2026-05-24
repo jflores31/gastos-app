@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Stack, Chip, Avatar, LinearProgress,
   List, ListItem, ListItemAvatar, ListItemText, IconButton, Collapse,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
@@ -16,12 +17,13 @@ import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { NoTransactions } from "./shared.jsx";
 
-export default function ExpensesTab({ period, openModal }) {
+export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, currency } = useSettings();
   const { txs, editBudgets, deleteTx } = useData();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const cats = useMemo(() => txByCategory(periodTxs), [periodTxs]);
@@ -255,27 +257,36 @@ export default function ExpensesTab({ period, openModal }) {
                 const expColor = CATEGORIES.expense[x.categoria]?.color;
                 const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
                 return (
-                  <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}
+                  <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
                     secondaryAction={
-                      <Box sx={{ display: "flex", gap: 0.5 }}>
-                        <IconButton size="small" onClick={() => setEditingTx(x)} aria-label={lang === "es" ? "Editar" : "Edit"}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ display: { xs: "none", sm: "block" } }}>
+                          −{fmtMoney(x.valor, currency, true)}
+                        </Typography>
+                        <IconButton onClick={() => setEditingTx(x)} aria-label={lang === "es" ? "Editar" : "Edit"} sx={{ minWidth: 40, minHeight: 40 }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" color="error" onClick={() => deleteTx(x.id)} aria-label={lang === "es" ? "Eliminar" : "Delete"}>
+                        <IconButton color="error" onClick={() => setDeleteTarget(x)} aria-label={lang === "es" ? "Eliminar" : "Delete"} sx={{ minWidth: 40, minHeight: 40 }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     }
                   >
                     <ListItemAvatar sx={{ minWidth: 52 }}>
-                      <Avatar sx={{ width: 44, height: 44, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
+                      <Avatar sx={{ width: 40, height: 40, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>}
-                      secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>}
-                      sx={{ mr: 10 }}
+                      primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
+                      secondary={
+                        <Typography variant="caption" color="text.secondary" component="span">
+                          {catName} · {x.dia}/{x.mes + 1}/{x.año}
+                          <Typography variant="caption" fontWeight={700} color="error.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
+                            −{fmtMoney(x.valor, currency, true)}
+                          </Typography>
+                        </Typography>
+                      }
+                      sx={{ mr: { xs: 12, sm: 18 } }}
                     />
-                    <Typography variant="h6" fontWeight={700} color="error.main" sx={{ mr: 9 }}>−{fmtMoney(x.valor, currency, true)}</Typography>
                   </ListItem>
                 );
               })}
@@ -292,10 +303,30 @@ export default function ExpensesTab({ period, openModal }) {
       <AddTransactionModal
         editTx={editingTx}
         mode="expense"
-        onAdd={() => {}}
+        onAdd={() => showToast?.(lang === "es" ? "Transacción actualizada" : "Transaction updated", "success")}
         onClose={() => setEditingTx(null)}
       />
     )}
+    <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "¿Eliminar transacción?" : "Delete transaction?"}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" color="text.secondary">
+          {deleteTarget?.concepto} · {deleteTarget ? fmtMoney(deleteTarget.valor, currency) : ""}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {lang === "es" ? "Esta acción no se puede deshacer." : "This action cannot be undone."}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={() => setDeleteTarget(null)} color="inherit">{lang === "es" ? "Cancelar" : "Cancel"}</Button>
+        <Button
+          variant="contained" color="error"
+          onClick={() => { deleteTx(deleteTarget.id); showToast?.(lang === "es" ? "Transacción eliminada" : "Transaction deleted", "success"); setDeleteTarget(null); }}
+        >
+          {lang === "es" ? "Eliminar" : "Delete"}
+        </Button>
+      </DialogActions>
+    </Dialog>
     </>
   );
 }
