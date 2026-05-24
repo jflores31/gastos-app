@@ -1,9 +1,12 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { IBM_Plex_Sans } from "next/font/google"
 import "./globals.css"
 import Providers from "./components/Providers"
 
-const inter = Inter({ subsets: ["latin"] })
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+})
 
 export const metadata: Metadata = {
   title: "Finanzas - Gestión Personal",
@@ -17,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={ibmPlexSans.className}>
         <Providers>{children}</Providers>
       </body>
     </html>

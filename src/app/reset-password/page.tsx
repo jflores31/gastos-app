@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip } from "@mui/material"
-import { ArrowBack } from "@mui/icons-material"
+import { ArrowBack, LockReset } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
@@ -84,7 +84,7 @@ function ResetPasswordForm() {
     <Card sx={{ maxWidth: 420, width: "100%", borderRadius: 3, borderTop: "4px solid", borderTopColor: "warning.main" }}>
       <CardContent sx={{ p: 4 }}>
         <Box sx={{ textAlign: "center", mb: 3 }}>
-          <Avatar sx={{ width: 64, height: 64, bgcolor: "warning.main", color: "warning.contrastText", fontSize: 28, fontWeight: 700, mx: "auto", mb: 2 }}>◈</Avatar>
+          <Avatar sx={{ width: 64, height: 64, bgcolor: "warning.main", color: "warning.contrastText", mx: "auto", mb: 2 }}><LockReset sx={{ fontSize: 32 }} /></Avatar>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>Nueva Contraseña</Typography>
           <Typography variant="body2" color="text.secondary">Ingresa tu nueva contraseña</Typography>
         </Box>

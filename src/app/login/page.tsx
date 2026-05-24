@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip } from "@mui/material"
+import { AccountBalanceWallet } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
@@ -37,8 +38,8 @@ export default function LoginPage() {
       <Card sx={{ maxWidth: 420, width: "100%", borderRadius: 3, borderTop: "4px solid", borderTopColor: "primary.main" }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Avatar sx={{ width: 64, height: 64, bgcolor: "primary.main", color: "primary.contrastText", fontSize: 28, fontWeight: 700, mx: "auto", mb: 2 }}>
-              ◈
+            <Avatar sx={{ width: 64, height: 64, bgcolor: "primary.main", color: "primary.contrastText", mx: "auto", mb: 2 }}>
+              <AccountBalanceWallet sx={{ fontSize: 32 }} />
             </Avatar>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Finanzas</Typography>
             <Typography variant="body2" color="text.secondary">Bienvenido de vuelta</Typography>

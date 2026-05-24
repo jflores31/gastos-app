@@ -555,10 +555,10 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={goalForm.en} onChange={(e) => setGoalForm({ ...goalForm, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
             </Grid>
             <Grid item xs={6}>
-              <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" value={goalForm.current} onChange={(e) => setGoalForm({ ...goalForm, current: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" inputMode="decimal" value={goalForm.current} onChange={(e) => setGoalForm({ ...goalForm, current: e.target.value })} fullWidth />
             </Grid>
           </Grid>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? es : en}>

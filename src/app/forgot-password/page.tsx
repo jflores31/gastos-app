@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip } from "@mui/material"
-import { ArrowBack } from "@mui/icons-material"
+import { ArrowBack, LockReset } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
       <Card sx={{ maxWidth: 420, width: "100%", borderRadius: 3, borderTop: "4px solid", borderTopColor: "info.main" }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Avatar sx={{ width: 64, height: 64, bgcolor: "info.main", color: "info.contrastText", fontSize: 28, fontWeight: 700, mx: "auto", mb: 2 }}>◈</Avatar>
+            <Avatar sx={{ width: 64, height: 64, bgcolor: "info.main", color: "info.contrastText", mx: "auto", mb: 2 }}><LockReset sx={{ fontSize: 32 }} /></Avatar>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Recuperar Contraseña</Typography>
             <Typography variant="body2" color="text.secondary">Ingresa tu email y te enviaremos un enlace</Typography>
           </Box>

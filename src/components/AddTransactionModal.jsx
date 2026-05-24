@@ -254,7 +254,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
         <TextField label={t.concept} value={concepto} onChange={(e) => { setConcepto(e.target.value); if (errors.concepto) setErrors((er) => ({ ...er, concepto: null })); }}
           error={!!errors.concepto} helperText={errors.concepto} fullWidth />
 
-        <TextField label={t.amount} type="number" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
+        <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
           slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment> } }} />
 
