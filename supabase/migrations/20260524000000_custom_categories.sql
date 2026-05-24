@@ -1,3 +1,5 @@
+-- Applied: 2026-05-24 ✓
+
 CREATE TABLE custom_categories (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
