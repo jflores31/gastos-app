@@ -1,11 +1,12 @@
 "use client"
 
 import {
-  Drawer, Box, Typography, Divider,
+  Drawer, Box, Typography, Divider, Avatar,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
 } from "@mui/material";
-import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "@mui/icons-material";
+import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon } from "@mui/icons-material";
 import { useSettings } from "../context/SettingsContext.jsx";
+import { useSupabaseUser } from "../context/UserContext";
 import { CURRENCIES } from "../data/index.js";
 
 const PALETTES = [
@@ -17,14 +18,39 @@ const PALETTES = [
 
 export default function SettingsPanel({ open, onClose }) {
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
+  const user = useSupabaseUser();
+
+  const fullName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const email = user?.email || "";
+  const avatarSrc = user?.user_metadata?.avatar_url || undefined;
+  const initials = fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 360 }, p: 0 } }}>
       <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Ajustes" : "Settings"}</Typography>
+        <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Perfil y Ajustes" : "Profile & Settings"}</Typography>
         <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
       </Box>
       <Divider />
+
+      {user && (
+        <>
+          <Box sx={{ px: 3, py: 2.5, display: "flex", alignItems: "center", gap: 2, bgcolor: "primary.main", color: "primary.contrastText" }}>
+            <Avatar
+              src={avatarSrc}
+              sx={{ width: 56, height: 56, bgcolor: "primary.light", color: "primary.dark", fontWeight: 700, fontSize: 20 }}
+            >
+              {initials || <PersonIcon />}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="subtitle1" fontWeight={700} noWrap>{fullName}</Typography>
+              <Typography variant="caption" noWrap sx={{ opacity: 0.85 }}>{email}</Typography>
+            </Box>
+          </Box>
+          <Divider />
+        </>
+      )}
+
 
       <List disablePadding>
         <ListItem>
