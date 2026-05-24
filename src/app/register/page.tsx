@@ -39,7 +39,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { full_name: `${name} ${lastName}`.trim() },
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/login`,
       },
     })
 
