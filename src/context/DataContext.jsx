@@ -89,6 +89,7 @@ export function DataProvider({ children }) {
   const [investments, setInvestments] = useState([])
   const [debts, setDebts] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
+  const [customCats, setCustomCats] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export function DataProvider({ children }) {
         { data: investmentsData },
         { data: debtsData },
         { data: subsData },
+        { data: customCatsData },
       ] = await Promise.all([
         supabase.from("transactions").select("*").order("fecha", { ascending: true }),
         supabase.from("budgets").select("*"),
@@ -114,6 +116,7 @@ export function DataProvider({ children }) {
         supabase.from("investments").select("*").order("created_at"),
         supabase.from("debts").select("*").order("created_at"),
         supabase.from("subscriptions").select("*").order("created_at"),
+        supabase.from("custom_categories").select("*").order("created_at"),
       ])
 
       if (txData) setTxs(txData.map(mapRow))
@@ -126,6 +129,7 @@ export function DataProvider({ children }) {
       if (investmentsData) setInvestments(investmentsData.map(mapInvestment))
       if (debtsData) setDebts(debtsData.map(mapDebt))
       if (subsData) setSubscriptions(subsData.map(mapSubscription))
+      if (customCatsData) setCustomCats(customCatsData)
 
       setLoading(false)
     }
@@ -141,6 +145,7 @@ export function DataProvider({ children }) {
         setInvestments([])
         setDebts([])
         setSubscriptions([])
+        setCustomCats([])
       }
       if (event === "SIGNED_IN") load()
     })
@@ -199,6 +204,28 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     await supabase.from("transactions").delete().eq("id", id)
     setTxs((prev) => prev.filter((x) => x.id !== id))
+  }, [])
+
+  const saveCustomCat = useCallback(async (cat) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const row = { user_id: user.id, nombre: cat.nombre, tipo: cat.tipo, color: cat.color }
+
+    if (cat.id) {
+      const { data, error } = await supabase.from("custom_categories").update(row).eq("id", cat.id).select().single()
+      if (!error && data) setCustomCats((prev) => prev.map((x) => x.id === cat.id ? data : x))
+    } else {
+      const { data, error } = await supabase.from("custom_categories").insert(row).select().single()
+      if (!error && data) setCustomCats((prev) => [...prev, data])
+    }
+  }, [])
+
+  const deleteCustomCat = useCallback(async (id) => {
+    const supabase = createClient()
+    await supabase.from("custom_categories").delete().eq("id", id)
+    setCustomCats((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const setEditBudgets = useCallback(
@@ -377,6 +404,7 @@ export function DataProvider({ children }) {
     () => ({
       txs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets,
+      customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,
       investments, saveInvestment, deleteInvestment,
@@ -387,6 +415,7 @@ export function DataProvider({ children }) {
     [
       txs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets,
+      customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,
       investments, saveInvestment, deleteInvestment,

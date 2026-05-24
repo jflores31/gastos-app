@@ -152,7 +152,7 @@ const INCOME_ICONS = {
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null }) {
   const { t, lang, currency } = useSettings();
-  const { addTx, updateTx } = useData();
+  const { addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
@@ -163,6 +163,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const favCats = user?.user_metadata?.fav_categories || [];
   const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
+  const customGroup = lang === "es" ? "🏷️ Personalizadas" : "🏷️ Custom";
 
   const myOptions = favCats
     .map((f) => {
@@ -175,8 +176,18 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     })
     .filter(Boolean);
 
+  const customOptions = customCats.map((c) => ({
+    value: `custom_${c.id}`,
+    label: c.nombre,
+    group: customGroup,
+    type: c.tipo,
+    icon: <Box sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />,
+    color: c.color,
+  }));
+
   const categoryOptions = [
     ...myOptions,
+    ...customOptions,
     ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
     ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
   ];
