@@ -125,13 +125,3 @@ export function HeatCalendar({ values, days = 84, color = "currentColor", cellSi
   );
 }
 
-export function Delta({ value, invert }) {
-  const positive = invert ? value < 0 : value > 0;
-  const sign = value > 0 ? "+" : "";
-  const arrow = value > 0 ? "▲" : value < 0 ? "▼" : "—";
-  return (
-    <span className="delta" data-positive={positive} data-zero={value === 0}>
-      <span className="delta-arrow">{arrow}</span> {sign}{value.toFixed(1)}%
-    </span>
-  );
-}

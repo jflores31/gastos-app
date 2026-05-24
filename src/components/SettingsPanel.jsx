@@ -8,18 +8,13 @@ import {
   ToggleButtonGroup, ToggleButton, Snackbar, Alert,
 } from "@mui/material";
 import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { CURRENCIES, CATEGORIES } from "../data/index.js";
 import { createClient } from "../lib/supabase";
 
-const PALETTES = [
-  { key: "amber", label: "Amber", color: "#c9874a" },
-  { key: "indigo", label: "Indigo", color: "#5e6ad2" },
-  { key: "green", label: "Green", color: "#3a8f5a" },
-  { key: "mono", label: "Mono", color: "#9e9e9e" },
-];
+const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
 
 const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
 const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e" };
