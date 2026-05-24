@@ -89,10 +89,10 @@ export default function DashboardStudio() {
             </Tabs>
           )}
           <Box sx={{ flex: 1, display: { xs: "block", sm: "none" } }} />
-          <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2 }}>
+          <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44 }}>
             <AddIcon />
           </Fab>
-          <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1 }}>
+          <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44 }}>
             <SettingsIcon fontSize="small" />
           </Fab>
           {user ? (

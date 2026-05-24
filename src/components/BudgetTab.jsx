@@ -90,7 +90,7 @@ export default function BudgetTab({ period }) {
       <Card sx={{ borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: gaugeColor + ".main" }}>
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
                 <Avatar sx={{ width: 64, height: 64, bgcolor: gaugeColor + ".light", color: gaugeColor + ".dark", mb: 1 }}>{gaugeIcon}</Avatar>
                 <Box sx={{ position: "relative", width: 120, height: 72 }}>
@@ -104,7 +104,7 @@ export default function BudgetTab({ period }) {
                 <Chip label={healthLabel} color={gaugeColor} size="small" sx={{ fontWeight: 600, mt: 1 }} />
               </Box>
             </Grid>
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Grid container spacing={2}>
                 {[
                   { lbl: lang === "es" ? "Presupuesto" : "Budget", val: fmtMoney(totalBudget, currency, true), c: "primary.main", icon: <WalletIcon fontSize="small" /> },
@@ -112,7 +112,7 @@ export default function BudgetTab({ period }) {
                   { lbl: lang === "es" ? "Uso" : "Usage", val: Math.round(budgetUsed * 100) + "%", c: budgetUsed > 1 ? "error.main" : "primary.main", icon: null },
                   { lbl: t.income, val: fmtMoney(totalIn, currency, true), c: "success.main", icon: <TrendUpIcon fontSize="small" /> },
                 ].map(({ lbl, val, c, icon }) => (
-                  <Grid item xs={6} md={3} key={lbl}>
+                  <Grid size={{ xs: 6, md: 3 }} key={lbl}>
                     <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
                         {icon}
@@ -146,7 +146,7 @@ export default function BudgetTab({ period }) {
           const isOver = pct > 1;
           const isWarning = pct >= 0.8 && pct <= 1;
           return (
-            <Grid item xs={12} sm={6} md={4} key={cat}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cat}>
               <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: isOver ? "error.main" : isWarning ? "warning.main" : "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: isOver ? "error.light" : isWarning ? "warning.light" : "background.paper", height: "100%", display: "flex", flexDirection: "column" }}>
                 <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
@@ -192,7 +192,7 @@ export default function BudgetTab({ period }) {
             </Grid>
           );
         })}
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card onClick={() => setAddDialog(true)} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
@@ -203,7 +203,7 @@ export default function BudgetTab({ period }) {
       </Grid>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "warning.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -233,7 +233,7 @@ export default function BudgetTab({ period }) {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "info.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -287,7 +287,7 @@ export default function BudgetTab({ period }) {
 
       <Dialog open={addDialog} onClose={() => { setAddDialog(false); setEditExisting(null); }}>
         <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "Gestionar Presuspuestos" : "Manage Budgets"}</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2, minWidth: 360 }}>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2, minWidth: { xs: "80vw", sm: 360 } }}>
           {Object.keys(editBudgets).length > 0 && (
             <>
               <Typography variant="subtitle2" color="text.secondary">{lang === "es" ? "Presupuestos existentes" : "Existing budgets"}</Typography>

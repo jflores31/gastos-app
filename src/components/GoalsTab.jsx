@@ -168,7 +168,7 @@ export default function GoalsTab() {
                 const today = new Date();
                 const days = Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000));
                 return (
-                  <Grid item xs={12} sm={6} lg={3} key={g.id}>
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={g.id}>
                     <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "all 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={() => openEditGoal(g)}>
                       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column", "&:last-child": { pb: 2.5 } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -202,7 +202,7 @@ export default function GoalsTab() {
 
       <Grid container spacing={3} alignItems="stretch">
         {/* Net Worth / Accounts */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -219,11 +219,11 @@ export default function GoalsTab() {
                 <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{lang === "es" ? "PATRIMONIO NETO" : "NET WORTH"}</Typography>
                 <Typography variant="h4" fontWeight={800}>{fmtMoney(netWorth, currency)}</Typography>
                 <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" sx={{ opacity: 0.8 }}>{lang === "es" ? "Activos" : "Assets"}</Typography>
                     <Typography variant="body1" fontWeight={700}>+{fmtMoney(totalAssets, currency, true)}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" sx={{ opacity: 0.8 }}>{lang === "es" ? "Deudas" : "Debts"}</Typography>
                     <Typography variant="body1" fontWeight={700}>−{fmtMoney(totalDebt, currency, true)}</Typography>
                   </Grid>
@@ -267,7 +267,7 @@ export default function GoalsTab() {
         </Grid>
 
         {/* Family Split */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: 350, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "secondary.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -306,7 +306,7 @@ export default function GoalsTab() {
         </Grid>
 
         {/* Forecast */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: 350, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "info.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -372,7 +372,7 @@ export default function GoalsTab() {
             <>
               <Grid container spacing={3}>
                 {investments.map((inv) => (
-                  <Grid item xs={12} sm={6} md={3} key={inv.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }} key={inv.id}>
                     <Card variant="outlined" sx={{ borderRadius: 2, p: 2, cursor: "pointer", "&:hover": { boxShadow: 1 } }} onClick={() => openEditInvest(inv)}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                         <Typography variant="body1" fontWeight={600}>{inv[lang]}</Typography>
@@ -406,7 +406,7 @@ export default function GoalsTab() {
 
       <Grid container spacing={3} alignItems="stretch">
         {/* Debts */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "error.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -456,7 +456,7 @@ export default function GoalsTab() {
         </Grid>
 
         {/* Subscriptions */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "secondary.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -501,7 +501,7 @@ export default function GoalsTab() {
         </Grid>
 
         {/* Net Worth Evolution */}
-        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "success.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -554,10 +554,10 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={goalForm.es} onChange={(e) => setGoalForm({ ...goalForm, es: e.target.value })} fullWidth />
           <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={goalForm.en} onChange={(e) => setGoalForm({ ...goalForm, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" inputMode="decimal" value={goalForm.current} onChange={(e) => setGoalForm({ ...goalForm, current: e.target.value })} fullWidth />
             </Grid>
           </Grid>
@@ -613,10 +613,10 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={investForm.es} onChange={(e) => setInvestForm({ ...investForm, es: e.target.value })} fullWidth />
           <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={investForm.en} onChange={(e) => setInvestForm({ ...investForm, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Valor" : "Value"} type="number" value={investForm.value} onChange={(e) => setInvestForm({ ...investForm, value: e.target.value })} fullWidth />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Rendimiento %" : "Return %"} type="number" value={investForm.return} onChange={(e) => setInvestForm({ ...investForm, return: e.target.value })} fullWidth />
             </Grid>
           </Grid>
@@ -648,21 +648,21 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={debtForm.es} onChange={(e) => setDebtForm({ ...debtForm, es: e.target.value })} fullWidth />
           <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={debtForm.en} onChange={(e) => setDebtForm({ ...debtForm, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Saldo pendiente" : "Balance"} type="number" value={debtForm.balance} onChange={(e) => setDebtForm({ ...debtForm, balance: e.target.value })} fullWidth />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Tasa % TEA" : "Rate % TEA"} type="number" value={debtForm.rate} onChange={(e) => setDebtForm({ ...debtForm, rate: e.target.value })} fullWidth />
             </Grid>
           </Grid>
           <Grid container spacing={2}>
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <TextField label={lang === "es" ? "Cuota/mes" : "Monthly"} type="number" value={debtForm.monthly} onChange={(e) => setDebtForm({ ...debtForm, monthly: e.target.value })} fullWidth />
             </Grid>
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <TextField label={lang === "es" ? "Cuotas restantes" : "Remaining"} type="number" value={debtForm.remaining} onChange={(e) => setDebtForm({ ...debtForm, remaining: e.target.value })} fullWidth />
             </Grid>
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <TextField label={lang === "es" ? "Total cuotas" : "Total months"} type="number" value={debtForm.original_months} onChange={(e) => setDebtForm({ ...debtForm, original_months: e.target.value })} fullWidth />
             </Grid>
           </Grid>

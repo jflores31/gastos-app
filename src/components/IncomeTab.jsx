@@ -62,7 +62,7 @@ export default function IncomeTab({ period, openModal }) {
           const count = catData?.count || 0;
           const color = CATEGORIES.income[cat]?.color || ["#5a9bc9", "#e91e63", "#7ab87a", "#a87cc4", "#ff6f61", "#e74c3c", "#2ecc71"][idx];
           return (
-          <Grid item xs={6} sm={3} md={2.4} key={cat}>
+          <Grid size={{ xs: 6, sm: 3, md: 2.4 }} key={cat}>
             <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: "background.paper" }}>
               <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -78,7 +78,7 @@ export default function IncomeTab({ period, openModal }) {
       </Grid>
 
       <Grid container spacing={2.5}>
-        <Grid item xs={12} sm={6} lg={4}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
@@ -109,7 +109,7 @@ export default function IncomeTab({ period, openModal }) {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} lg={4}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>

@@ -8,8 +8,16 @@ import {
   TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon,
   Savings as SavingsIcon, Warning as WarningIcon, AttachMoney as MoneyIcon,
   AccountBalanceWallet as WalletIcon, PieChart as PieIcon, Insights as InsightsIcon,
-  CalendarMonth as CalendarIcon, ShowChart as ChartIcon,
+  CalendarMonth as CalendarIcon, ShowChart as ChartIcon, Timeline as ForecastIcon,
 } from "@mui/icons-material";
+
+const INSIGHT_ICONS = {
+  trend: <ChartIcon />,
+  savings: <SavingsIcon />,
+  warning: <WarningIcon />,
+  forecast: <ForecastIcon />,
+};
+const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
 import { CATEGORIES, fmtMoney, txByMonth, txByCategory } from "../data/index.js";
 import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -58,7 +66,7 @@ export default function OverviewTab({ period, setPeriod }) {
         <Box>
           <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2, fontWeight: 600 }}>{lang === "es" ? "Buenas tardes," : "Good afternoon,"}</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-            <Typography variant="h3" fontWeight={800}>
+            <Typography variant="h3" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "3rem" } }}>
               {net >= 0
                 ? (lang === "es" ? `Ahorrando ${fmtMoney(net, currency, true)}` : `Saving ${fmtMoney(net, currency, true)}`)
                 : (lang === "es" ? `Sobregiro ${fmtMoney(Math.abs(net), currency, true)}` : `Overdrawn ${fmtMoney(Math.abs(net), currency, true)}`)}
@@ -78,7 +86,7 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <Box>
                 <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.balance.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main" }}>{fmtMoney(net, currency)}</Typography>
+                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmtMoney(net, currency)}</Typography>
               </Box>
               <Avatar sx={{ width: 48, height: 48, bgcolor: net >= 0 ? "success.light" : "error.light", color: net >= 0 ? "success.dark" : "error.dark" }}>
                 <WalletIcon sx={{ fontSize: 24 }} />
@@ -193,7 +201,9 @@ export default function OverviewTab({ period, setPeriod }) {
             <Stack spacing={1.5}>
               {insights.map((ins, idx) => (
                 <Box key={ins.title} sx={{ display: "flex", gap: 2, p: 2, bgcolor: idx % 2 === 0 ? "success.light" : "action.hover", borderRadius: 3, border: "1px solid", borderColor: idx % 2 === 0 ? "success.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "translateX(4px)" } }}>
-                  <Typography variant="h5" sx={{ fontSize: 28 }}>{ins.icon}</Typography>
+                  <Avatar sx={{ width: 36, height: 36, bgcolor: `${INSIGHT_COLORS[ins.tone]}.light`, color: `${INSIGHT_COLORS[ins.tone]}.dark`, flexShrink: 0 }}>
+                    {INSIGHT_ICONS[ins.icon]}
+                  </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5 }}>{ins.title}</Typography>
                     <Typography variant="body2" color="text.secondary">{ins.desc}</Typography>

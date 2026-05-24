@@ -102,14 +102,14 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
   const t = [];
   const higherLower = dOut > 0 ? (lang === "es" ? "más altos" : "higher") : (lang === "es" ? "más bajos" : "lower");
   t.push({
-    icon: "📊", tone: dOut > 0 ? "warn" : "good",
+    icon: "trend", tone: dOut > 0 ? "warn" : "good",
     title: lang === "es" ? "Tendencia de gastos" : "Spending trend",
     desc: lang === "es"
       ? `Egresos ${Math.abs(dOut).toFixed(0)}% ${higherLower} que el período anterior.`
       : `Spending ${Math.abs(dOut).toFixed(0)}% ${higherLower} than last period.`
   });
   t.push({
-    icon: "💰", tone: savingsRate >= 20 ? "good" : savingsRate >= 10 ? "info" : "warn",
+    icon: "savings", tone: savingsRate >= 20 ? "good" : savingsRate >= 10 ? "info" : "warn",
     title: lang === "es" ? "Tasa de ahorro" : "Savings rate",
     desc: lang === "es"
       ? `Ahorrando ${savingsRate.toFixed(0)}% de ingresos. ${savingsRate >= 20 ? "¡Objetivo 20% cumplido!" : "Meta: 20%."}`
@@ -117,7 +117,7 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
   });
   if (anomalies.length > 0) {
     t.push({
-      icon: "⚠️", tone: "warn",
+      icon: "warning", tone: "warn",
       title: lang === "es" ? "Gastos inusuales" : "Unusual expenses",
       desc: lang === "es"
         ? `${anomalies.length} transacción(es) inusual(es) detectada(s) este período.`
@@ -125,7 +125,7 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
     });
   }
   t.push({
-    icon: "🔮", tone: "info",
+    icon: "forecast", tone: "info",
     title: lang === "es" ? "Proyección fin de mes" : "Month-end forecast",
     desc: lang === "es"
       ? `Al ritmo actual: ${fmtMoney(totalOut * (30 / 7), currency, true)} proyectado.`
