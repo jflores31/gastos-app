@@ -16,9 +16,16 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const supabase = createClient()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true)
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true)
     })
+
+    // Handle race condition: event may have fired before listener registered
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true)
+    })
+
     return () => subscription.unsubscribe()
   }, [])
 
