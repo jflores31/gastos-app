@@ -21,7 +21,12 @@ export default function LoginPage() {
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (authError) {
-      setError("Credenciales inválidas")
+      const msg = authError.message?.toLowerCase() ?? ""
+      if (msg.includes("email not confirmed")) {
+        setError("Confirma tu email antes de iniciar sesión")
+      } else {
+        setError("Credenciales inválidas")
+      }
       setLoading(false)
     } else {
       window.location.href = "/"
