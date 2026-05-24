@@ -8,6 +8,7 @@ import { createClient } from "../../lib/supabase"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -37,7 +38,7 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { full_name: `${name} ${lastName}`.trim() },
         emailRedirectTo: `${window.location.origin}/login`,
       },
     })
@@ -82,7 +83,10 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <TextField fullWidth label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required sx={{ mb: 2 }} />
+            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+              <TextField fullWidth label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+              <TextField fullWidth label="Apellidos" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            </Box>
             <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }} />
             <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 2 }} />
             <TextField fullWidth label="Confirmar Contraseña" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required sx={{ mb: 3 }} />
