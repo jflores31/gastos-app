@@ -39,7 +39,8 @@ export default function ExpensesTab({ period, openModal }) {
   const toggleSection = (section) => setExpandedSection(expandedSection === section ? null : section);
 
   const cardStyles = {
-    height: { xs: "auto", lg: "100%" },
+    width: "100%",
+    height: "100%",
     display: "flex",
     flexDirection: "column",
     boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
@@ -51,10 +52,10 @@ export default function ExpensesTab({ period, openModal }) {
   const cardContentStyles = {
     py: 2.5,
     px: { xs: 2, sm: 3 },
-    overflowY: { xs: "visible", lg: "auto" },
     flex: 1,
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   };
 
   const sectionTitleStyles = {
@@ -130,9 +131,9 @@ export default function ExpensesTab({ period, openModal }) {
         </CardContent>
       </Card>
 
-      <Grid container spacing={3} sx={{ height: { xs: "auto", lg: 460 } }}>
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
-          <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "primary.main" }}>
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
@@ -164,8 +165,8 @@ export default function ExpensesTab({ period, openModal }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
-          <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
@@ -199,8 +200,8 @@ export default function ExpensesTab({ period, openModal }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} lg={4} sx={{ display: "flex", flexDirection: "column", height: { xs: "auto", lg: "100%" } }}>
-          <Card sx={{ ...cardStyles, flex: 1, borderTop: "3px solid", borderTopColor: "success.main" }}>
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "success.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark", mb: 0.5 }}>{lang === "es" ? "Resumen del periodo" : "Period Summary"}</Typography>
