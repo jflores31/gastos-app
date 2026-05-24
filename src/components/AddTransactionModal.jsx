@@ -149,21 +149,27 @@ const INCOME_ICONS = {
   AHORROS: <SavingsIcon fontSize="small" />,
 };
 
-export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose }) {
+export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null }) {
   const { t, lang, currency } = useSettings();
-  const { addTx } = useData();
+  const { addTx, updateTx } = useData();
 
-  const [tipo, setTipo] = useState(mode === "income" ? "INGRESO" : "EGRESO");
-  const [categoria, setCategoria] = useState(initialCategory || null);
-  const [concepto, setConcepto] = useState("");
-  const [valor, setValor] = useState("");
-  const [fecha, setFecha] = useState(dayjs());
+  const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
+  const [concepto, setConcepto] = useState(editTx?.concepto || "");
+  const [valor, setValor] = useState(editTx?.valor?.toString() || "");
+  const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
 
   const categoryOptions = [
     ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
     ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
   ];
+
+  // When editing, resolve the initial category string to a full option object
+  const [categoria, setCategoria] = useState(() => {
+    if (editTx?.categoria) return categoryOptions.find((o) => o.value === editTx.categoria) || null;
+    if (initialCategory) return categoryOptions.find((o) => o.value === initialCategory) || null;
+    return null;
+  });
 
   const filteredOptions = categoryOptions.filter((o) => {
     if (mode === "expense") return o.type === "EGRESO";
@@ -181,10 +187,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const handleSubmit = () => {
     if (!validate()) return;
-    addTx({
-      id: Date.now(),
+    const tx = {
       tipo,
-      categoria: categoria.value || categoria,
+      categoria: categoria?.value || categoria,
       concepto: concepto.toUpperCase(),
       dia: fecha.date(),
       mes: fecha.month(),
@@ -192,7 +197,12 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       date: fecha.toDate(),
       valor: parseFloat(valor),
       anomaly: false,
-    });
+    };
+    if (editTx) {
+      updateTx({ ...tx, id: editTx.id });
+    } else {
+      addTx(tx);
+    }
     if (onAdd) onAdd();
     onClose();
   };
@@ -203,7 +213,13 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
       slots={{ transition: Transition }}
       slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
-      <DialogTitle sx={{ fontWeight: 700 }}>{mode === "expense" ? (lang === "es" ? "Registrar Gasto Diario" : "Register Daily Expense") : mode === "income" ? (lang === "es" ? "Registrar Ingreso" : "Register Income") : t.addTx}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700 }}>
+        {editTx
+          ? (lang === "es" ? "Editar Transacción" : "Edit Transaction")
+          : mode === "expense" ? (lang === "es" ? "Registrar Gasto Diario" : "Register Daily Expense")
+          : mode === "income" ? (lang === "es" ? "Registrar Ingreso" : "Register Income")
+          : t.addTx}
+      </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 1 }}>
         {mode === "all" && (
           <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); } }} fullWidth size="small">
@@ -269,7 +285,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit">{t.cancel}</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">{t.save}</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">{editTx ? (lang === "es" ? "Actualizar" : "Update") : t.save}</Button>
       </DialogActions>
     </Dialog>
   );

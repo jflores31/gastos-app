@@ -172,6 +172,35 @@ export function DataProvider({ children }) {
     }
   }, [])
 
+  const updateTx = useCallback(async (tx) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from("transactions")
+      .update({
+        tipo: tx.tipo,
+        categoria: tx.categoria,
+        concepto: tx.concepto,
+        valor: tx.valor,
+        fecha: tx.date.toISOString(),
+      })
+      .eq("id", tx.id)
+      .select()
+      .single()
+
+    if (!error && data) {
+      setTxs((prev) => prev.map((x) => x.id === tx.id ? mapRow(data) : x).sort((a, b) => a.date - b.date))
+    }
+  }, [])
+
+  const deleteTx = useCallback(async (id) => {
+    const supabase = createClient()
+    await supabase.from("transactions").delete().eq("id", id)
+    setTxs((prev) => prev.filter((x) => x.id !== id))
+  }, [])
+
   const setEditBudgets = useCallback(
     async (updater) => {
       const supabase = createClient()
@@ -346,7 +375,7 @@ export function DataProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      txs, addTx,
+      txs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,
@@ -356,7 +385,7 @@ export function DataProvider({ children }) {
       loading,
     }),
     [
-      txs, addTx,
+      txs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,

@@ -1,11 +1,12 @@
 "use client"
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
+  IconButton,
 } from "@mui/material";
-import { TrendingUp as TrendUpIcon, AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
+import { TrendingUp as TrendUpIcon, AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -17,7 +18,8 @@ const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", 
 
 export default function IncomeTab({ period, openModal }) {
   const { t, lang, currency } = useSettings();
-  const { txs } = useData();
+  const { txs, deleteTx } = useData();
+  const [editingTx, setEditingTx] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
@@ -30,6 +32,7 @@ export default function IncomeTab({ period, openModal }) {
   const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#9e9e9e" })), [incomeCats]);
 
   return (
+    <>
     <Stack spacing={3}>
       <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "all 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
         <CardContent sx={{ p: 2.5, color: "text.primary" }}>
@@ -149,16 +152,27 @@ export default function IncomeTab({ period, openModal }) {
               const color = INCOME_COLORS[x.categoria] || "#9e9e9e";
               const catName = CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
               return (
-                <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
+                <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}
+                  secondaryAction={
+                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                      <IconButton size="small" onClick={() => setEditingTx(x)} aria-label={lang === "es" ? "Editar" : "Edit"}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => deleteTx(x.id)} aria-label={lang === "es" ? "Eliminar" : "Delete"}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  }
+                >
                   <ListItemAvatar sx={{ minWidth: 52 }}>
                     <Avatar sx={{ width: 44, height: 44, bgcolor: color, color: "common.white", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
                   </ListItemAvatar>
-                  <ListItemText 
-                    primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>} 
-                    secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>} 
-                    sx={{ mr: 2 }}
+                  <ListItemText
+                    primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>}
+                    secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>}
+                    sx={{ mr: 10 }}
                   />
-                  <Typography variant="h6" fontWeight={700} color="success.main">+{fmtMoney(x.valor, currency, true)}</Typography>
+                  <Typography variant="h6" fontWeight={700} color="success.main" sx={{ mr: 9 }}>+{fmtMoney(x.valor, currency, true)}</Typography>
                 </ListItem>
               );
             })}
@@ -171,5 +185,14 @@ export default function IncomeTab({ period, openModal }) {
         </CardContent>
       </Card>
     </Stack>
+    {editingTx && (
+      <AddTransactionModal
+        editTx={editingTx}
+        mode="income"
+        onAdd={() => {}}
+        onClose={() => setEditingTx(null)}
+      />
+    )}
+    </>
   );
 }

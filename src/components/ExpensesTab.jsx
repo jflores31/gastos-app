@@ -7,8 +7,9 @@ import {
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
-  Add as AddIcon,
+  Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
 } from "@mui/icons-material";
+import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByCategoryToday, getTodayExpenses } from "../data/index.js";
 import { filterByPeriod, periodLabel, monthCount } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -17,9 +18,10 @@ import { NoTransactions } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal }) {
   const { t, lang, currency } = useSettings();
-  const { txs, editBudgets } = useData();
+  const { txs, editBudgets, deleteTx } = useData();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
+  const [editingTx, setEditingTx] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const cats = useMemo(() => txByCategory(periodTxs), [periodTxs]);
@@ -82,6 +84,7 @@ export default function ExpensesTab({ period, openModal }) {
   });
 
   return (
+    <>
     <Stack spacing={2.5}>
       <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
         <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
@@ -252,16 +255,27 @@ export default function ExpensesTab({ period, openModal }) {
                 const expColor = CATEGORIES.expense[x.categoria]?.color;
                 const catName = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
                 return (
-                  <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}>
+                  <ListItem key={x.id} disablePadding sx={{ py: 1.5, borderBottom: 1, borderColor: "divider", transition: "all 0.2s", "&:hover": { bgcolor: "action.hover" } }}
+                    secondaryAction={
+                      <Box sx={{ display: "flex", gap: 0.5 }}>
+                        <IconButton size="small" onClick={() => setEditingTx(x)} aria-label={lang === "es" ? "Editar" : "Edit"}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => deleteTx(x.id)} aria-label={lang === "es" ? "Eliminar" : "Delete"}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    }
+                  >
                     <ListItemAvatar sx={{ minWidth: 52 }}>
                       <Avatar sx={{ width: 44, height: 44, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 16, fontWeight: 700 }}>{catName[0]}</Avatar>
                     </ListItemAvatar>
-                    <ListItemText 
-                      primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>} 
-                      secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>} 
-                      sx={{ mr: 2 }}
+                    <ListItemText
+                      primary={<Typography variant="body1" fontWeight={600}>{x.concepto}</Typography>}
+                      secondary={<Typography variant="caption" color="text.secondary">{catName} · {x.dia}/{x.mes + 1}/{x.año}</Typography>}
+                      sx={{ mr: 10 }}
                     />
-                    <Typography variant="h6" fontWeight={700} color="error.main">−{fmtMoney(x.valor, currency, true)}</Typography>
+                    <Typography variant="h6" fontWeight={700} color="error.main" sx={{ mr: 9 }}>−{fmtMoney(x.valor, currency, true)}</Typography>
                   </ListItem>
                 );
               })}
@@ -274,5 +288,14 @@ export default function ExpensesTab({ period, openModal }) {
         </CardContent>
       </Card>
     </Stack>
+    {editingTx && (
+      <AddTransactionModal
+        editTx={editingTx}
+        mode="expense"
+        onAdd={() => {}}
+        onClose={() => setEditingTx(null)}
+      />
+    )}
+    </>
   );
 }
