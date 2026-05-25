@@ -3,7 +3,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "../lib/supabase"
-import { BUDGETS } from "../data/index.js"
 
 const DataContext = createContext(null)
 
@@ -83,7 +82,7 @@ function mapSubscription(row) {
 
 export function DataProvider({ children }) {
   const [txs, setTxs] = useState([])
-  const [editBudgets, setEditBudgetsState] = useState({ ...BUDGETS })
+  const [editBudgets, setEditBudgetsState] = useState({})
   const [goals, setGoals] = useState([])
   const [accounts, setAccounts] = useState([])
   const [investments, setInvestments] = useState([])
@@ -120,9 +119,8 @@ export function DataProvider({ children }) {
       ])
 
       if (txData) setTxs(txData.map(mapRow))
-      if (budgetData?.length) {
-        const bm = Object.fromEntries(budgetData.map((b) => [b.categoria, Number(b.monto)]))
-        setEditBudgetsState((prev) => ({ ...prev, ...bm }))
+      if (budgetData) {
+        setEditBudgetsState(Object.fromEntries(budgetData.map((b) => [b.categoria, Number(b.monto)])))
       }
       if (goalsData) setGoals(goalsData.map(mapGoal))
       if (accountsData) setAccounts(accountsData.map(mapAccount))
@@ -139,7 +137,7 @@ export function DataProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setTxs([])
-        setEditBudgetsState({ ...BUDGETS })
+        setEditBudgetsState({})
         setGoals([])
         setAccounts([])
         setInvestments([])
@@ -242,10 +240,24 @@ export function DataProvider({ children }) {
         categoria,
         monto: Number(monto),
       }))
-      await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
+      if (rows.length > 0) {
+        await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
+      }
     },
     [editBudgets]
   )
+
+  const deleteBudgetCat = useCallback(async (cat) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("budgets").delete().eq("user_id", user.id).eq("categoria", cat)
+    setEditBudgetsState((prev) => {
+      const n = { ...prev }
+      delete n[cat]
+      return n
+    })
+  }, [])
 
   // Goals CRUD
   const saveGoal = useCallback(async (goal) => {
@@ -403,7 +415,7 @@ export function DataProvider({ children }) {
   const value = useMemo(
     () => ({
       txs, addTx, updateTx, deleteTx,
-      editBudgets, setEditBudgets,
+      editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,
@@ -414,7 +426,7 @@ export function DataProvider({ children }) {
     }),
     [
       txs, addTx, updateTx, deleteTx,
-      editBudgets, setEditBudgets,
+      editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress,
   ToggleButton, ToggleButtonGroup, TextField, Autocomplete, InputAdornment,
   Slide, Box, Avatar, Typography,
 } from "@mui/material";
@@ -160,6 +160,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
   const [valor, setValor] = useState(editTx?.valor?.toString() || "");
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const favCats = user?.user_metadata?.fav_categories || [];
   const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
@@ -213,8 +214,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return;
+  const handleSubmit = async () => {
+    if (!validate() || saving) return;
+    setSaving(true);
     const tx = {
       tipo,
       categoria: categoria?.value || categoria,
@@ -227,9 +229,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       anomaly: false,
     };
     if (editTx) {
-      updateTx({ ...tx, id: editTx.id });
+      await updateTx({ ...tx, id: editTx.id });
     } else {
-      addTx(tx);
+      await addTx(tx);
     }
     if (onAdd) onAdd();
     onClose();
@@ -314,8 +316,10 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
         </LocalizationProvider>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} color="inherit">{t.cancel}</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">{editTx ? (lang === "es" ? "Actualizar" : "Update") : t.save}</Button>
+        <Button onClick={onClose} color="inherit" disabled={saving}>{t.cancel}</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary" disabled={saving}>
+          {saving ? <CircularProgress size={20} color="inherit" /> : editTx ? (lang === "es" ? "Actualizar" : "Update") : t.save}
+        </Button>
       </DialogActions>
     </Dialog>
   );

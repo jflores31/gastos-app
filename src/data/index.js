@@ -296,27 +296,4 @@ export function getTodayExpenses(txs) {
     .sort((a, b) => b.date - a.date);
 }
 
-export const SAVINGS_GOALS = [
-  { id: "emerg", es: "Fondo de emergencia",  en: "Emergency fund",       target: 18000, current: 12400, deadline: "2026-12-31", color: "#7ab87a", icon: "◉" },
-  { id: "viaje", es: "Viaje familiar Cusco",  en: "Cusco family trip",    target: 8500,  current: 5100,  deadline: "2026-09-15", color: "#c9a55a", icon: "✈" },
-  { id: "uni",   es: "Universidad hijas",     en: "Daughters' college",   target: 50000, current: 14800, deadline: "2030-03-01", color: "#a87cc4", icon: "▲" },
-  { id: "moto",  es: "Moto nueva",            en: "New motorcycle",       target: 12000, current: 9300,  deadline: "2026-08-30", color: "#7a9bc4", icon: "◆" },
-];
-
-export const ACCOUNTS = [
-  { id: "bcp",   name: "BCP Cuenta Sueldo",  type: "bank", balance: 14250.40, color: "#0033A0" },
-  { id: "scoti", name: "Scotiabank Ahorros", type: "bank", balance: 22100.00, color: "#EE1C25" },
-  { id: "inter", name: "Interbank CTS",      type: "bank", balance: 8400.20,  color: "#00B0E3" },
-  { id: "cash",  name: "Efectivo",           type: "cash", balance: 850.00,   color: "#7ab87a" },
-  { id: "tc",    name: "Tarjeta BCP Visa",   type: "card", balance: -3200.50, color: "#0033A0", limit: 8000 },
-  { id: "tc2",   name: "Diners Club",        type: "card", balance: -1480.00, color: "#005B9F", limit: 5000 },
-];
-
-export const FAMILY_MEMBERS = [
-  { id: "yo",     es: "Tú",     en: "You",     avatar: "T", color: "var(--accent)", share: 0.62 },
-  { id: "pareja", es: "Pareja", en: "Partner", avatar: "P", color: "#a87cc4",       share: 0.28 },
-  { id: "hija1",  es: "Camila", en: "Camila",  avatar: "C", color: "#c9a55a",       share: 0.06 },
-  { id: "hija2",  es: "Sofía",  en: "Sofía",   avatar: "S", color: "#7ab87a",       share: 0.04 },
-];
-
 // generateTransactions() is available for local dev seeding only — not used in production

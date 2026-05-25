@@ -8,8 +8,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Group as GroupIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "@mui/icons-material";
-import { FAMILY_MEMBERS, fmtMoney, txByMonth } from "../data/index.js";
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "@mui/icons-material";
+import { fmtMoney, txByMonth } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 
@@ -202,7 +202,7 @@ export default function GoalsTab() {
 
       <Grid container spacing={3} alignItems="stretch">
         {/* Net Worth / Accounts */}
-        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 6 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -266,47 +266,8 @@ export default function GoalsTab() {
           </Card>
         </Grid>
 
-        {/* Family Split */}
-        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
-          <Card sx={{ width: "100%", minHeight: 350, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "secondary.main" }}>
-            <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.dark" }}><GroupIcon /></Avatar>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={700}>{t.family} · {lang === "es" ? "Reparto" : "Split"}</Typography>
-                  <Typography variant="caption" color="text.secondary">{FAMILY_MEMBERS.length} {lang === "es" ? "miembros" : "members"}</Typography>
-                </Box>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                {(() => {
-                  const total = txs.filter((x) => x.tipo === "EGRESO").reduce((s, x) => s + x.valor, 0);
-                  return (
-                    <Box sx={{ bgcolor: "action.hover", borderRadius: 3, p: 2, mb: 2 }}>
-                      <Box sx={{ display: "flex", height: 20, borderRadius: 10, overflow: "hidden", mb: 2 }} role="img" aria-label={lang === "es" ? "Distribución del gasto familiar" : "Family spending distribution"}>
-                        {FAMILY_MEMBERS.map((m) => <Box key={m.id} sx={{ width: `${m.share * 100}%`, bgcolor: m.color, height: "100%" }} />)}
-                      </Box>
-                      <Stack spacing={1.5}>
-                        {FAMILY_MEMBERS.map((m) => (
-                          <Box key={m.id} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                            <Avatar sx={{ width: 40, height: 40, bgcolor: m.color, color: "common.white", fontWeight: 700 }}>{m.avatar}</Avatar>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" fontWeight={600}>{m[lang]}</Typography>
-                              <Typography variant="caption" color="text.secondary">{Math.round(m.share * 100)}% {lang === "es" ? "del gasto" : "of spend"}</Typography>
-                            </Box>
-                            <Typography variant="body1" fontWeight={700}>{fmtMoney(total * m.share, currency, true)}</Typography>
-                          </Box>
-                        ))}
-                      </Stack>
-                    </Box>
-                  );
-                })()}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
         {/* Forecast */}
-        <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
+        <Grid size={{ xs: 12, md: 6 }} sx={{ display: "flex" }}>
           <Card sx={{ width: "100%", minHeight: 350, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "info.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>

@@ -11,7 +11,7 @@ import { Donut } from "./Charts.jsx";
 
 export default function BudgetTab({ period }) {
   const { t, lang, currency } = useSettings();
-  const { txs, editBudgets, setEditBudgets } = useData();
+  const { txs, editBudgets, setEditBudgets, deleteBudgetCat } = useData();
   const [editing, setEditing] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [addDialog, setAddDialog] = useState(false);
@@ -74,11 +74,7 @@ export default function BudgetTab({ period }) {
   };
 
   const deleteBudget = (cat) => {
-    setEditBudgets((b) => {
-      const n = { ...b };
-      delete n[cat];
-      return n;
-    });
+    deleteBudgetCat(cat);
   };
 
   const healthLabel = score >= 75 ? (lang === "es" ? "Excelente" : "Excellent") : score >= 50 ? (lang === "es" ? "Regular" : "Fair") : (lang === "es" ? "Crítico" : "Critical");
@@ -286,7 +282,7 @@ export default function BudgetTab({ period }) {
       </Card>
 
       <Dialog open={addDialog} onClose={() => { setAddDialog(false); setEditExisting(null); }}>
-        <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "Gestionar Presuspuestos" : "Manage Budgets"}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "Gestionar Presupuestos" : "Manage Budgets"}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2, minWidth: { xs: "80vw", sm: 360 } }}>
           {Object.keys(editBudgets).length > 0 && (
             <>
