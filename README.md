@@ -54,16 +54,17 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Tarjetas por categoría con progreso y alertas al 80% y 100%
 - Donut de distribución de gastos
 - Comparación con mes anterior
-- CRUD de presupuestos
+- CRUD de presupuestos — cargados exclusivamente desde Supabase (sin valores por defecto hardcodeados)
+- Al eliminar un presupuesto se borra permanentemente de la BD
 
 ### Metas y Finanzas (GoalsTab)
 - CRUD de metas de ahorro con fecha límite
-- Gestión de cuentas bancarias/tarjetas/efectivo
+- Gestión de cuentas bancarias/tarjetas/efectivo — 100% datos del usuario en Supabase
 - Patrimonio neto (activos − deudas) en tiempo real
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.)
 - Control de deudas y préstamos con cuotas
 - Suscripciones recurrentes
-- Pronóstico de 3 meses
+- Pronóstico de 3 meses basado en tendencia real
 
 ### Configuración (SettingsPanel)
 - Tema claro/oscuro
@@ -109,12 +110,12 @@ src/
 │   ├── LoginModal.jsx              # Modal de login in-app
 │   └── ErrorBoundary.jsx
 ├── context/
-│   ├── DataContext.jsx             # CRUD: txs, budgets, goals, accounts,
+│   ├── DataContext.jsx             # CRUD: txs, budgets (+ deleteBudgetCat), goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
 │   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES export
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, BUDGETS, CURRENCIES, I18N
+│   ├── index.js                    # CATEGORIES, BUDGETS, CURRENCIES, I18N (sin datos mock)
 │   └── helpers.js                  # filterByPeriod, periodLabel, monthCount
 ├── theme/
 │   └── materialTheme.js            # Temas light/dark + 4 paletas de acento
@@ -176,6 +177,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Supabase redirectTo:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www) pero Supabase solo permite `https://jeshu.cfd/**`. Siempre aplicar `.replace(/^https:\/\/www\./, "https://")` antes de pasarlo como `redirectTo`.
 
 **PALETTES:** Definidas como objeto en `SettingsContext.jsx` y exportadas. Nunca redefinir en otro archivo.
+
+**Sin datos mock en producción:** `SAVINGS_GOALS`, `ACCOUNTS` y `FAMILY_MEMBERS` fueron eliminados de `data/index.js`. La tarjeta "Familia · Reparto" fue removida de `GoalsTab`. Todos los datos provienen exclusivamente de Supabase.
+
+**Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado, evitando que los presupuestos eliminados reaparezcan al recargar.
+
+**AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress` mientras `addTx`/`updateTx` están en vuelo.
 
 **Categorías personalizadas en modal:** Se almacenan como `value: "custom_${id}"` para distinguirlas de las categorías estáticas.
 
