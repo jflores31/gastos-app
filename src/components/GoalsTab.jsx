@@ -286,13 +286,31 @@ export default function GoalsTab() {
                   if (recent.length === 0) {
                     return <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{lang === "es" ? "Sin datos de transacciones" : "No transaction data"}</Typography>;
                   }
-                  const avgIn = recent.reduce((s, m) => s + m.ingreso, 0) / Math.max(1, recent.length);
-                  const avgOut = recent.reduce((s, m) => s + m.egreso, 0) / Math.max(1, recent.length);
+                  if (recent.length < 2) {
+                    const singleNet = recent[0].ingreso - recent[0].egreso;
+                    return (
+                      <Box sx={{ textAlign: "center", py: 3 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
+                          {lang === "es"
+                            ? "Se necesitan al menos 2 meses de historial para calcular la tendencia."
+                            : "At least 2 months of history are needed to calculate the trend."}
+                        </Typography>
+                        <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
+                          <Typography variant="body2" fontWeight={600} color="info.dark">
+                            {lang === "es" ? "Promedio actual:" : "Current average:"} {singleNet >= 0 ? "+" : "−"}{fmtMoney(Math.abs(singleNet), currency, true)}{lang === "es" ? "/mes" : "/mo"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  }
+                  const avgIn = recent.reduce((s, m) => s + m.ingreso, 0) / recent.length;
+                  const avgOut = recent.reduce((s, m) => s + m.egreso, 0) / recent.length;
                   const netAvg = avgIn - avgOut;
                   const nets = recent.map((m) => m.ingreso - m.egreso);
-                  const trend = nets.length >= 2 ? (nets[nets.length - 1] - nets[0]) / (nets.length - 1) : 0;
+                  const trend = (nets[nets.length - 1] - nets[0]) / (nets.length - 1);
                   const next = [1, 2, 3].map((i) => ({ i, label: t.months[(new Date().getMonth() + i) % 12], net: netAvg + trend * i }));
                   const barPct = (n) => avgIn > 0 ? Math.min(100, Math.abs(n.net / avgIn) * 100) : 50;
+                  const isTrendFlat = Math.abs(trend) < 1;
                   return (
                     <Stack spacing={2}>
                       {next.map((n) => (
@@ -308,8 +326,13 @@ export default function GoalsTab() {
                       ))}
                       <Box sx={{ mt: 1, p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
                         <Typography variant="body2" fontWeight={600} color="info.dark">
-                          {lang === "es" ? `Proyección 3 meses:` : `3-month projection:`} {fmtMoney(netAvg * 3, currency, true)}
+                          {lang === "es" ? `Proyección 3 meses:` : `3-month projection:`} {fmtMoney(next.reduce((s, n) => s + n.net, 0), currency, true)}
                         </Typography>
+                        {isTrendFlat && (
+                          <Typography variant="caption" color="info.dark" sx={{ opacity: 0.75, display: "block", mt: 0.5 }}>
+                            {lang === "es" ? `Tendencia estable · ${recent.length} meses de historial` : `Stable trend · ${recent.length} months of history`}
+                          </Typography>
+                        )}
                       </Box>
                     </Stack>
                   );
