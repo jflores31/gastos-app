@@ -153,7 +153,7 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ChartIcon /></Avatar>
               <Box>
-                <Typography variant="h6" fontWeight={700}>{t.cashflow}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.cashflow}</Typography>
                 <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
               </Box>
             </Box>
@@ -180,7 +180,7 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
               <Box>
-                <Typography variant="h6" fontWeight={700}>{t.breakdown}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.breakdown}</Typography>
                 <Typography variant="body2" color="text.secondary">{t.expense} · {periodLabel(period, t)}</Typography>
               </Box>
             </Box>
@@ -188,7 +188,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                 <Donut slices={donut} size={160} thickness={20} />
                 <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <Typography variant="h6" fontWeight={700} color="error.main">{fmtMoney(totalOut, currency, true)}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmtMoney(totalOut, currency, true)}</Typography>
                   <Typography variant="caption" color="text.secondary">{t.expense}</Typography>
                 </Box>
               </Box>
@@ -197,7 +197,7 @@ export default function OverviewTab({ period, setPeriod }) {
                   <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                     <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
-                    <Typography variant="body2" fontWeight={700} color="error.main">{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
                   </Box>
                 ))}
               </Box>
@@ -211,7 +211,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><InsightsIcon /></Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight={700}>{t.insights}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.insights}</Typography>
                   <Typography variant="body2" color="text.secondary">{lang === "es" ? "Análisis automático" : "Auto analysis"}</Typography>
                 </Box>
               </Box>
@@ -238,7 +238,7 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "error.light", color: "error.dark" }}><CalendarIcon /></Avatar>
               <Box>
-                <Typography variant="h6" fontWeight={700}>{t.heatmap}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.heatmap}</Typography>
                 <Typography variant="body2" color="text.secondary">{lang === "es" ? "Gastos diarios · 12 semanas" : "Daily spending · 12 weeks"}</Typography>
               </Box>
             </Box>
@@ -250,34 +250,46 @@ export default function OverviewTab({ period, setPeriod }) {
                 <Typography variant="caption" color="text.secondary">{t.higher}</Typography>
               </Box>
             </Box>
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ color: "primary.main" }}>{lang === "es" ? "vs mes anterior" : "vs previous month"}</Typography>
-              {[
-                { label: t.income, current: totalIn, previous: prevIn, color: "success.main", positive: true },
-                { label: t.expense, current: totalOut, previous: prevOut, color: "error.main", positive: false },
-                { label: t.savings, current: savingsRate, previous: prevSavingsRate, color: "primary.main", positive: true, isPercent: true },
-              ].map((m) => {
-                const change = m.isPercent
-                  ? m.current - m.previous
-                  : (m.previous ? ((m.current - m.previous) / m.previous) * 100 : 0);
-                const max = Math.max(Math.abs(m.current), Math.abs(m.previous), 1);
-                const currentPct = Math.max(0, (Math.abs(m.current) / max) * 100);
-                const prevPct = Math.max(0, (Math.abs(m.previous) / max) * 100);
-                const isPositive = m.positive ? change >= 0 : change <= 0;
-                return (
-                  <Box key={m.label} sx={{ mb: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                      <Typography variant="body2" fontWeight={600}>{m.label}</Typography>
-                      <Chip size="small" label={`${change >= 0 ? "+" : ""}${m.isPercent ? change.toFixed(1) + "pp" : change.toFixed(1) + "%"}`} color={isPositive ? "success" : "error"} variant="filled" sx={{ fontWeight: 600, fontSize: 10, height: 22 }} />
-                    </Box>
-                    <Box sx={{ height: 10, borderRadius: 2, bgcolor: "action.hover", position: "relative", overflow: "hidden" }}>
-                      <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, opacity: 0.2, width: `${prevPct}%`, transition: "width 0.5s" }} />
-                      <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, width: `${currentPct}%`, transition: "width 0.5s", boxShadow: `0 0 8px ${m.color}` }} />
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
+            {period !== "all" && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ color: "primary.main", fontWeight: 700 }}>
+                  {lang === "es"
+                    ? `vs ${period === "week" ? "semana" : period === "month" ? "mes" : period === "quarter" ? "trimestre" : "año"} anterior`
+                    : `vs previous ${period === "week" ? "week" : period === "month" ? "month" : period === "quarter" ? "quarter" : "year"}`}
+                </Typography>
+                {prevIn === 0 && prevOut === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic", textAlign: "center", py: 1 }}>
+                    {lang === "es" ? "Sin datos del período anterior" : "No data for previous period"}
+                  </Typography>
+                ) : (
+                  [
+                    { label: t.income, current: totalIn, previous: prevIn, color: "success.main", positive: true },
+                    { label: t.expense, current: totalOut, previous: prevOut, color: "error.main", positive: false },
+                    { label: t.savings, current: savingsRate, previous: prevSavingsRate, color: "primary.main", positive: true, isPercent: true },
+                  ].map((m) => {
+                    const change = m.isPercent
+                      ? m.current - m.previous
+                      : (m.previous ? ((m.current - m.previous) / m.previous) * 100 : 0);
+                    const max = Math.max(Math.abs(m.current), Math.abs(m.previous), 1);
+                    const currentPct = Math.max(0, (Math.abs(m.current) / max) * 100);
+                    const prevPct = Math.max(0, (Math.abs(m.previous) / max) * 100);
+                    const isPositive = m.positive ? change >= 0 : change <= 0;
+                    return (
+                      <Box key={m.label} sx={{ mb: 2 }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{m.label}</Typography>
+                          <Chip size="small" label={`${change >= 0 ? "+" : ""}${m.isPercent ? change.toFixed(1) + "pp" : change.toFixed(1) + "%"}`} color={isPositive ? "success" : "error"} variant="filled" sx={{ fontWeight: 600, fontSize: 10, height: 22 }} />
+                        </Box>
+                        <Box sx={{ height: 10, borderRadius: 2, bgcolor: "action.hover", position: "relative", overflow: "hidden" }}>
+                          <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, opacity: 0.2, width: `${prevPct}%`, transition: "width 0.5s" }} />
+                          <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, width: `${currentPct}%`, transition: "width 0.5s", boxShadow: `0 0 8px ${m.color}` }} />
+                        </Box>
+                      </Box>
+                    );
+                  })
+                )}
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Box>
