@@ -23,7 +23,7 @@ import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
-import { Donut, SparkArea, SparkBar, StudioCashflow, HeatCalendar } from "./Charts.jsx";
+import { Donut, SparkArea, MiniBarLabeled, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 
 export default function OverviewTab({ period, setPeriod }) {
   const { t, lang, currency } = useSettings();
@@ -59,6 +59,17 @@ export default function OverviewTab({ period, setPeriod }) {
   }), [cats, customCats, lang]);
   const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, fmtMoney, period);
 
+  const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO").slice(0, 6).map((c) => {
+    const isCustom = c.categoria?.startsWith("custom_");
+    const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
+    return {
+      id: c.categoria,
+      label: customCat?.nombre || CATEGORIES.income[c.categoria]?.[lang] || c.categoria,
+      value: c.total,
+      color: customCat?.color || CATEGORIES.income[c.categoria]?.color || "#22c55e",
+    };
+  }), [periodTxs, customCats, lang]);
+
   const heatVals = useMemo(() => {
     const m = new Map();
     for (const x of periodTxs) if (x.tipo === "EGRESO") { const k = x.date.toDateString(); m.set(k, (m.get(k) || 0) + x.valor); }
@@ -68,8 +79,8 @@ export default function OverviewTab({ period, setPeriod }) {
   const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
   const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, spark: months.map((m) => m.ingreso), sparkColor: "var(--income)" },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, spark: months.map((m) => m.egreso), sparkColor: "var(--expense)" },
+    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, catData: incomeCats, chartType: "bar" },
+    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, catData: donut, chartType: "donut" },
     { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
     { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
   ];
@@ -144,9 +155,14 @@ export default function OverviewTab({ period, setPeriod }) {
                 />
               )}
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
-              {card.spark && card.spark.length >= 1 && (
+              {card.catData && card.catData.length > 0 && card.chartType === "bar" && (
                 <Box sx={{ mt: 1.5 }}>
-                  <SparkBar data={card.spark} color={card.sparkColor} />
+                  <MiniBarLabeled data={card.catData} />
+                </Box>
+              )}
+              {card.catData && card.catData.length > 0 && card.chartType === "donut" && (
+                <Box sx={{ mt: 1.5, display: "flex", justifyContent: "center" }}>
+                  <Donut slices={card.catData} size={88} thickness={16} />
                 </Box>
               )}
             </CardContent>
