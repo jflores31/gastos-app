@@ -286,7 +286,9 @@ export default function GoalsTab() {
                   const avgIn = recent.reduce((s, m) => s + m.ingreso, 0) / Math.max(1, recent.length);
                   const avgOut = recent.reduce((s, m) => s + m.egreso, 0) / Math.max(1, recent.length);
                   const netAvg = avgIn - avgOut;
-                  const next = [1, 2, 3].map((i) => ({ i, label: t.months[(new Date().getMonth() + i) % 12], net: netAvg * (0.95 + Math.sin(i * 1.3) * 0.08) }));
+                  const nets = recent.map((m) => m.ingreso - m.egreso);
+                  const trend = nets.length >= 2 ? (nets[nets.length - 1] - nets[0]) / (nets.length - 1) : 0;
+                  const next = [1, 2, 3].map((i) => ({ i, label: t.months[(new Date().getMonth() + i) % 12], net: netAvg + trend * i }));
                   return (
                     <Stack spacing={2}>
                       {next.map((n) => (
