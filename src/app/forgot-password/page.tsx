@@ -1,10 +1,32 @@
 "use client"
 
 import { useState } from "react"
-import { Box, Typography, TextField, Button, Chip, Avatar } from "@mui/material"
+import { Box, Typography, TextField, Button, Chip, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
+
+const darkField = {
+  "& .MuiOutlinedInput-root": {
+    color: "#fff",
+    bgcolor: "rgba(255,255,255,0.03)",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+    "&.Mui-focused fieldset": { borderColor: "#38bdf8", borderWidth: 1.5 },
+  },
+  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#7dd3fc" },
+} as const
+
+const card = {
+  position: "relative", zIndex: 1,
+  width: "100%", maxWidth: 440,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  backdropFilter: "blur(36px)",
+  borderRadius: "20px",
+  boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+} as const
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -26,76 +48,145 @@ export default function ForgotPasswordPage() {
 
   return (
     <Box sx={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      bgcolor: "background.default", p: 3,
-      background: (theme) => theme.palette.mode === "dark"
-        ? "linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%)"
-        : "linear-gradient(180deg, #f0f4ff 0%, #ffffff 100%)",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden",
+      bgcolor: "#07080f",
+      p: { xs: 2, sm: 3 },
     }}>
-      <Box sx={{ width: "100%", maxWidth: 420 }}>
-        {success ? (
-          <Box sx={{ textAlign: "center" }}>
-            <Box sx={{
-              width: 88, height: 88, borderRadius: "50%", mx: "auto", mb: 3,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              bgcolor: "info.light",
-            }}>
-              <MarkEmailRead sx={{ fontSize: 48, color: "info.main" }} />
-            </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800 }} gutterBottom>Revisa tu email</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              Enviamos un enlace a <strong>{email}</strong> para restablecer tu contraseña.
-            </Typography>
-            <Link href="/login" style={{ textDecoration: "none" }}>
-              <Button variant="outlined" startIcon={<ArrowBack />} sx={{ borderRadius: 2, fontWeight: 600 }}>
-                Volver al login
-              </Button>
-            </Link>
+      {/* Blobs — acento azul cielo */}
+      <Box sx={{
+        position: "absolute", top: "-20%", left: "-10%",
+        width: 580, height: 580, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 68%)",
+      }} />
+      <Box sx={{
+        position: "absolute", bottom: "-18%", right: "-8%",
+        width: 500, height: 500, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)",
+      }} />
+      <Box sx={{
+        position: "absolute", top: "55%", right: "28%",
+        width: 280, height: 280, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(14,165,233,0.09) 0%, transparent 70%)",
+      }} />
+
+      {success ? (
+        /* ── Success state ── */
+        <Box sx={{ ...card, p: { xs: 4, sm: 5.5 }, textAlign: "center" }}>
+          <Box sx={{
+            width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg, #38bdf8, #0284c7)",
+            boxShadow: "0 0 0 12px rgba(56,189,248,0.1), 0 14px 40px rgba(56,189,248,0.35)",
+          }}>
+            <MarkEmailRead sx={{ fontSize: 38, color: "#fff" }} />
           </Box>
-        ) : (
-          <>
-            <Box sx={{ mb: 4 }}>
-              <Link href="/login" style={{ textDecoration: "none" }}>
-                <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 4, cursor: "pointer", "&:hover": { color: "primary.main" } }}>
-                  <ArrowBack sx={{ fontSize: 16 }} /> Volver al login
-                </Typography>
-              </Link>
-              <Box sx={{
-                width: 72, height: 72, borderRadius: 3, mb: 3,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                bgcolor: "info.light",
-              }}>
-                <LockReset sx={{ fontSize: 36, color: "info.main" }} />
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800 }} gutterBottom>
-                Recuperar contraseña
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
-              </Typography>
+          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, mb: 1.5 }}>
+            Revisa tu email
+          </Typography>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.42)", mb: 1, lineHeight: 1.75 }}>
+            Enviamos un enlace a
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#7dd3fc", fontWeight: 700, mb: 3.5, wordBreak: "break-all" }}>
+            {email}
+          </Typography>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.3)", mb: 4, lineHeight: 1.7 }}>
+            Haz click en el enlace del email para restablecer tu contraseña. Si no lo ves, revisa tu carpeta de spam.
+          </Typography>
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Button fullWidth startIcon={<ArrowBack sx={{ fontSize: 17 }} />}
+              sx={{
+                py: 1.4, borderRadius: "10px", fontWeight: 700, fontSize: 14.5, textTransform: "none",
+                color: "rgba(255,255,255,0.72)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                bgcolor: "rgba(255,255,255,0.05)",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                transition: "all 0.18s",
+              }}
+            >
+              Volver al login
+            </Button>
+          </Link>
+        </Box>
+      ) : (
+        /* ── Form state ── */
+        <Box sx={{ ...card, p: { xs: 3.5, sm: 5.5 } }}>
+          {/* Back link */}
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Typography variant="body2" sx={{
+              display: "inline-flex", alignItems: "center", gap: 0.5, mb: 4,
+              color: "rgba(255,255,255,0.3)", fontWeight: 500,
+              "&:hover": { color: "rgba(255,255,255,0.65)" }, transition: "color 0.15s",
+            }}>
+              <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
+            </Typography>
+          </Link>
+
+          {/* Icon + heading */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{
+              width: 70, height: 70, borderRadius: "18px", mb: 3,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "linear-gradient(135deg, #38bdf8 0%, #6366f1 100%)",
+              boxShadow: "0 0 0 10px rgba(56,189,248,0.1), 0 14px 40px rgba(56,189,248,0.35)",
+            }}>
+              <LockReset sx={{ fontSize: 36, color: "#fff" }} />
             </Box>
+            <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, mb: 1 }}>
+              Recuperar contraseña
+            </Typography>
+            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.35)", lineHeight: 1.75 }}>
+              Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+            </Typography>
+          </Box>
 
-            {error && (
-              <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
-            )}
+          {/* Error */}
+          {error && (
+            <Chip
+              role="alert" label={error}
+              sx={{
+                width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
+                bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+                border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
+                "& .MuiChip-label": { whiteSpace: "normal" },
+              }}
+            />
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth label="Email" type="email"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                required autoComplete="email"
-                sx={{ mb: 3 }}
-              />
-              <Button
-                fullWidth variant="contained" color="info" type="submit" disabled={loading}
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, fontSize: 16, boxShadow: "0 4px 14px rgba(2,136,209,0.35)" }}
-              >
-                {loading ? "Enviando..." : "Enviar enlace"}
-              </Button>
-            </form>
-          </>
-        )}
-      </Box>
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth label="Email" type="email"
+              value={email} onChange={(e) => setEmail(e.target.value)}
+              required autoComplete="email"
+              sx={{ mb: 3, ...darkField }}
+            />
+            <Button
+              fullWidth type="submit" disabled={loading}
+              sx={{
+                py: 1.55, borderRadius: "10px", fontWeight: 700, fontSize: 15,
+                textTransform: "none", letterSpacing: 0.2,
+                background: "linear-gradient(90deg, #38bdf8 0%, #0284c7 100%)",
+                color: "#fff",
+                boxShadow: "0 4px 22px rgba(56,189,248,0.38)",
+                "&:hover:not(:disabled)": {
+                  background: "linear-gradient(90deg, #7dd3fc 0%, #38bdf8 100%)",
+                  boxShadow: "0 6px 30px rgba(56,189,248,0.5)",
+                  transform: "translateY(-1px)",
+                },
+                "&:disabled": { background: "rgba(56,189,248,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
+                transition: "all 0.2s",
+              }}
+            >
+              {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Enviar enlace"}
+            </Button>
+          </form>
+        </Box>
+      )}
     </Box>
   )
 }
