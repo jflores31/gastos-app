@@ -476,15 +476,23 @@ export default function GoalsTab() {
               </Box>
               <Box sx={{ flex: 1 }}>
                 {(() => {
-                  const history = months.slice(-6).map((m, i) => ({ month: t.months[m.mes], value: netWorth * (0.85 + i * 0.03 + 0.05) }));
-                  const maxVal = Math.max(...history.map(h => h.value), 1);
+                  const recent = months.slice(-6);
+                  if (recent.length === 0) {
+                    return <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{lang === "es" ? "Sin datos de transacciones" : "No transaction data"}</Typography>;
+                  }
+                  const nets = recent.map((m) => m.ingreso - m.egreso);
+                  const history = recent.map((m, i) => {
+                    const futureSum = nets.slice(i + 1).reduce((s, n) => s + n, 0);
+                    return { month: t.months[m.mes], value: netWorth - futureSum };
+                  });
+                  const maxVal = Math.max(...history.map((h) => Math.abs(h.value)), 1);
                   return (
                     <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 150 }} role="img" aria-label={lang === "es" ? "Gráfico de evolución del patrimonio" : "Net worth evolution chart"}>
                       {history.map((h, i) => (
                         <Box key={i} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                           <Typography variant="caption" fontWeight={600}>{fmtMoney(h.value, currency, true)}</Typography>
                           <Box sx={{ width: "100%", height: 100, bgcolor: "action.hover", borderRadius: 1, position: "relative", overflow: "hidden" }}>
-                            <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(h.value / maxVal) * 100}%`, bgcolor: i === history.length - 1 ? "success.main" : "success.light", borderRadius: 1, transition: "all 0.3s" }} />
+                            <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(Math.abs(h.value) / maxVal) * 100}%`, bgcolor: h.value >= 0 ? (i === history.length - 1 ? "success.main" : "success.light") : "error.light", borderRadius: 1, transition: "all 0.3s" }} />
                           </Box>
                           <Typography variant="caption" color="text.secondary">{h.month}</Typography>
                         </Box>
@@ -496,7 +504,7 @@ export default function GoalsTab() {
               <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", p: 2, bgcolor: "success.light", borderRadius: 2 }}>
                 <Box>
                   <Typography variant="caption" color="success.dark">{lang === "es" ? "Patrimonio inicial" : "Initial net worth"}</Typography>
-                  <Typography variant="body1" fontWeight={700} color="success.dark">{fmtMoney(months[0] ? (months[0].ingreso - months[0].egreso) * 6 : netWorth * 0.7, currency)}</Typography>
+                  <Typography variant="body1" fontWeight={700} color="success.dark">{fmtMoney(months.length > 0 ? netWorth - months.slice(-6).map((m) => m.ingreso - m.egreso).slice(1).reduce((s, n) => s + n, 0) : netWorth, currency)}</Typography>
                 </Box>
                 <Box sx={{ textAlign: "right" }}>
                   <Typography variant="caption" color="success.dark">{lang === "es" ? "Patrimonio actual" : "Current net worth"}</Typography>
