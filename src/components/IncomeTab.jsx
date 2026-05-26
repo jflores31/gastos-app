@@ -5,7 +5,7 @@ import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
-import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, ArrowDownward as ArrowDownIcon } from "@mui/icons-material";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
@@ -78,72 +78,70 @@ export default function IncomeTab({ period, openModal, showToast }) {
         </CardContent>
       </Card>
 
-      <Grid container spacing={2}>
-        {Object.keys(CATEGORIES.income).slice(0, 7).map((cat, idx) => {
-          const catData = incomeCats.find((c) => c.categoria === cat);
-          const total = catData?.total || 0;
-          const count = catData?.count || 0;
-          const color = CATEGORIES.income[cat]?.color || ["#5a9bc9", "#e91e63", "#7ab87a", "#a87cc4", "#ff6f61", "#e74c3c", "#2ecc71"][idx];
-          const isActive = activeCat === cat;
-          const catLabel = CATEGORIES.income[cat]?.[lang] || cat;
-          return (
-          <Grid size={{ xs: 6, sm: 3, md: 2.4 }} key={cat}>
-            <Card
-              onClick={() => setActiveCat(isActive ? null : cat)}
-              sx={{
-                borderRadius: 2, border: "2px solid", borderColor: isActive ? color : "divider",
-                boxShadow: isActive ? `0 0 0 3px ${color}33` : "0 2px 12px rgba(0,0,0,0.06)",
-                transition: "all 0.2s", cursor: "pointer", height: "100%",
-                "&:hover": { boxShadow: `0 8px 24px rgba(0,0,0,0.12)`, transform: "translateY(-2px)" },
-                borderTop: "4px solid", borderTopColor: color, bgcolor: isActive ? `${color}12` : "background.paper",
-              }}
-            >
-              <CardContent sx={{ p: 1.5, pb: "12px !important", display: "flex", flexDirection: "column", gap: 1 }}>
-                {/* Header */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                  <Avatar sx={{ width: 26, height: 26, bgcolor: color, fontSize: 10, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{catLabel[0]}</Avatar>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: 10 }} noWrap>{catLabel}</Typography>
-                </Box>
-
-                {/* Stats */}
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "success.main", lineHeight: 1 }}>{fmtMoney(total, currency, true)}</Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10 }}>
-                    {count} tx · {totalIn > 0 ? Math.round((total / totalIn) * 100) : 0}%
-                  </Typography>
-                </Box>
-
-                {/* Registrar button */}
-                <Button
-                  size="small"
-                  fullWidth
-                  variant="contained"
-                  startIcon={<AddIcon sx={{ fontSize: "14px !important" }} />}
-                  onClick={(e) => { e.stopPropagation(); openModal(cat, "income"); }}
-                  aria-label={lang === "es" ? `Registrar ${catLabel}` : `Add ${catLabel}`}
-                  sx={{
-                    mt: "auto", borderRadius: 1.5, textTransform: "none", fontWeight: 700, fontSize: 11, py: 0.5,
-                    bgcolor: color, color: "#fff", boxShadow: "none",
-                    "&:hover": { bgcolor: color, opacity: 0.88, boxShadow: "none" },
-                  }}
-                >
-                  {lang === "es" ? "Registrar" : "Add"}
-                </Button>
-
-                {/* Active indicator */}
-                {isActive && count > 0 && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "center" }}>
-                    <ArrowDownIcon sx={{ fontSize: 12, color }} />
-                    <Typography variant="caption" sx={{ color, fontWeight: 700, fontSize: 9 }}>
-                      {lang === "es" ? `Ver ${count} abajo` : `See ${count} below`}
+      <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{lang === "es" ? "Fuentes de ingreso" : "Income sources"}</Typography>
+              <Typography variant="body2" color="text.secondary">{periodLabel(period, t)} · {incomeCats.length} {lang === "es" ? "categorías" : "categories"}</Typography>
+            </Box>
+            <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><PieIcon /></Avatar>
+          </Box>
+          {incomeCats.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3, fontStyle: "italic" }}>
+              {lang === "es" ? "Sin ingresos en este período" : "No income in this period"}
+            </Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              {[...incomeCats].sort((a, b) => b.total - a.total).map((c) => {
+                const isCustom = c.categoria?.startsWith("custom_");
+                const resolvedColor = (isCustom
+                  ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.color
+                  : CATEGORIES.income[c.categoria]?.color) || "#9e9e9e";
+                const catLabel = isCustom
+                  ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
+                  : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
+                const pct = totalIn > 0 ? (c.total / totalIn) * 100 : 0;
+                const isActive = activeCat === c.categoria;
+                return (
+                  <Box
+                    key={c.categoria}
+                    onClick={() => setActiveCat(isActive ? null : c.categoria)}
+                    sx={{
+                      p: 1.5, borderRadius: 2, border: "1px solid", cursor: "pointer",
+                      borderColor: isActive ? resolvedColor : "divider",
+                      bgcolor: isActive ? `${resolvedColor}12` : "action.hover",
+                      transition: "all 0.2s",
+                      "&:hover": { bgcolor: `${resolvedColor}18`, borderColor: resolvedColor },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: resolvedColor, flexShrink: 0 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }} noWrap>{catLabel}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>{fmtMoney(c.total, currency, true)}</Typography>
+                      <Chip size="small" label={`${Math.round(pct)}%`} sx={{ bgcolor: resolvedColor, color: "#fff", fontWeight: 700, fontSize: 10, height: 20 }} />
+                      <IconButton
+                        size="small"
+                        onClick={(e) => { e.stopPropagation(); openModal(c.categoria, "income"); }}
+                        aria-label={lang === "es" ? `Registrar ${catLabel}` : `Add ${catLabel}`}
+                        sx={{ width: 28, height: 28, bgcolor: resolvedColor, color: "#fff", flexShrink: 0, "&:hover": { bgcolor: resolvedColor, opacity: 0.85 } }}
+                      >
+                        <AddIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ height: 7, borderRadius: 4, bgcolor: "background.paper", overflow: "hidden" }}>
+                      <Box sx={{ height: "100%", width: `${pct}%`, bgcolor: resolvedColor, borderRadius: 4, transition: "width 0.6s cubic-bezier(.4,0,.2,1)" }} />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                      {c.count} {lang === "es" ? "transacciones" : "transactions"}
                     </Typography>
                   </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>);
-        })}
-      </Grid>
+                );
+              })}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
 
       <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
