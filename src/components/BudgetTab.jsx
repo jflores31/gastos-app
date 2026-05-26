@@ -206,7 +206,7 @@ export default function BudgetTab({ period }) {
                 <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
                 <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Distribución" : "Distribution"}</Typography>
               </Box>
-              <Box sx={{ display: "flex", flex: 1, gap: 3, alignItems: "center" }}>
+              <Box sx={{ display: "flex", flex: 1, gap: 3, alignItems: "center", flexDirection: { xs: "column", sm: "row" } }}>
                 <Box sx={{ position: "relative", width: 180, height: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Donut slices={donutData} size={160} thickness={16} />
                   <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 80, height: 80, display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>

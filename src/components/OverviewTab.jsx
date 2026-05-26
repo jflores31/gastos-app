@@ -92,11 +92,11 @@ export default function OverviewTab({ period, setPeriod }) {
             </Typography>
           </Box>
         </Box>
-        <Stack direction="row" spacing={1.5}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           {["week", "month", "quarter", "year"].map((p) => (
             <Chip key={p} label={t[p]} variant={period === p ? "filled" : "outlined"} color={period === p ? "primary" : "default"} onClick={() => setPeriod(p)} sx={{ fontWeight: 600, px: 1 }} />
           ))}
-        </Stack>
+        </Box>
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr" }, gap: 2, alignItems: "stretch" }}>

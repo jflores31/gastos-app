@@ -149,7 +149,7 @@ export default function SettingsPanel({ open, onClose }) {
           <ListItemText primary={lang === "es" ? "Color de acento" : "Accent color"} primaryTypographyProps={{ variant: "overline" }} />
         </ListItem>
         <ListItem sx={{ pt: 0 }}>
-          <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
             {PALETTES.map((p) => (
               <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}

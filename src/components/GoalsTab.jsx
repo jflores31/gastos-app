@@ -283,19 +283,23 @@ export default function GoalsTab() {
               <Box sx={{ flex: 1 }}>
                 {(() => {
                   const recent = months.slice(-6);
+                  if (recent.length === 0) {
+                    return <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{lang === "es" ? "Sin datos de transacciones" : "No transaction data"}</Typography>;
+                  }
                   const avgIn = recent.reduce((s, m) => s + m.ingreso, 0) / Math.max(1, recent.length);
                   const avgOut = recent.reduce((s, m) => s + m.egreso, 0) / Math.max(1, recent.length);
                   const netAvg = avgIn - avgOut;
                   const nets = recent.map((m) => m.ingreso - m.egreso);
                   const trend = nets.length >= 2 ? (nets[nets.length - 1] - nets[0]) / (nets.length - 1) : 0;
                   const next = [1, 2, 3].map((i) => ({ i, label: t.months[(new Date().getMonth() + i) % 12], net: netAvg + trend * i }));
+                  const barPct = (n) => avgIn > 0 ? Math.min(100, Math.abs(n.net / avgIn) * 100) : 50;
                   return (
                     <Stack spacing={2}>
                       {next.map((n) => (
                         <Box key={n.i} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                           <Typography variant="body2" sx={{ width: 50, fontFamily: "monospace", fontWeight: 600 }}>{n.label}</Typography>
-                          <Box sx={{ flex: 1, height: 12, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }} role="progressbar" aria-valuenow={Math.round(Math.abs(n.net / avgIn) * 100)} aria-valuemin={0} aria-valuemax={100}>
-                            <Box sx={{ height: "100%", width: `${Math.min(100, Math.abs(n.net / avgIn) * 100)}%`, borderRadius: 6, bgcolor: n.net >= 0 ? "success.main" : "error.main" }} />
+                          <Box sx={{ flex: 1, height: 12, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }} role="progressbar" aria-valuenow={Math.round(barPct(n))} aria-valuemin={0} aria-valuemax={100}>
+                            <Box sx={{ height: "100%", width: `${barPct(n)}%`, borderRadius: 6, bgcolor: n.net >= 0 ? "success.main" : "error.main" }} />
                           </Box>
                           <Typography variant="body2" fontWeight={700} color={n.net >= 0 ? "success.main" : "error.main"} sx={{ minWidth: 85, textAlign: "right" }}>
                             {n.net >= 0 ? "+" : "−"}{fmtMoney(Math.abs(n.net), currency, true)}

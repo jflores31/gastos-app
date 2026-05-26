@@ -218,7 +218,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 <Stack spacing={1.5}>
                   {[
                     { label: t.spent, value: filteredTotal, color: "error.main", bg: "error.light" },
-                    { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light" },
+                    { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light", isCount: true },
                     { label: lang === "es" ? "Promedio diario" : "Daily avg", value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light" },
                     { label: lang === "es" ? "Mayor gasto" : "Top expense", value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light" },
                   ].map((item, idx) => (
@@ -229,7 +229,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
                         </Box>
                         <Typography variant="h6" fontWeight={700} color={item.color}>
-                          {typeof item.value === "number" && item.value < 1000 ? item.value : fmtMoney(item.value, currency, true)}
+                          {item.isCount ? item.value : fmtMoney(item.value, currency, true)}
                         </Typography>
                       </Box>
                       <LinearProgress variant="determinate" value={idx === 0 ? Math.min(100, (totalOut / (Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period))) * 100) : Math.min(100, (expenseTxs.length / 50) * 100)} color={idx === 0 ? "error" : idx === 1 ? "info" : idx === 2 ? "warning" : "error"} sx={{ height: 8, borderRadius: 4 }} />
