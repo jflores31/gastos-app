@@ -42,6 +42,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Desglose de gastos por categoría con gráfico donut
 - Heat calendar de gastos diarios
 - Comparación vs período anterior con barras de progreso — oculta en "todo", muestra "Sin datos" si no hay transacciones previas; etiqueta dinámica según período activo
+- **Mini cards de ingresos y gastos:** chip `+X.X% vs ant.` se muestra solo si hay período anterior con datos (`delta != null`); sub-etiqueta "N registros / N gastos" con singular/plural bilingüe; `SparkArea` mensual sutil (opacidad 0.6) al pie de las tarjetas de ingreso y gasto
 - Selector de período: semana, mes, trimestre, año (con `flexWrap` para pantallas pequeñas)
 - Insight "Proyección" proporcional al período activo (usa `daysCount(period)` como divisor)
 
@@ -81,7 +82,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.)
 - Control de deudas y préstamos con cuotas
 - Suscripciones recurrentes
-- **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); guard para cuando no hay datos
+- **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); 3 estados según historial disponible: "Sin datos" (0 meses), "Se necesitan al menos 2 meses" + promedio actual (1 mes), barras reales con `+trend×i` (2+ meses); nota "Tendencia estable · N meses" si `|trend| < 1`; total proyectado = suma real de los 3 meses
 - **Evolución del patrimonio** reconstruye historial real trabajando hacia atrás desde `netWorth` actual
 
 ### Configuración (SettingsPanel)
@@ -215,11 +216,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Filtros en ExpensesTab/IncomeTab:** `filteredTotal` se deriva con `useMemo` desde la lista ya filtrada (`expenseTxs`/`incomeTxs`). El footer y las cards de resumen siempre leen ese valor. El promedio diario usa `daysCount(period)` (7/30/90/365).
 
-**Pronóstico GoalsTab:** Tendencia = `(nets[last] - nets[0]) / (length - 1)` sobre los últimos 6 meses de netos reales. La barra de progreso usa `avgIn > 0 ? barPct : 50` para evitar `NaN%`. Guard `recent.length === 0` muestra "Sin datos" en vez de renderizar barras vacías.
+**Pronóstico GoalsTab:** 3 guards según historial: `length === 0` → "Sin datos"; `length === 1` → mensaje "Se necesitan al menos 2 meses" + promedio del mes disponible; `length >= 2` → tendencia real `(nets[last] - nets[0]) / (length - 1)`. La barra de progreso usa `avgIn > 0 ? barPct : 50` para evitar `NaN%`. Si `|trend| < 1` muestra nota "Tendencia estable · N meses de historial". Total proyectado = `next.reduce((s,n) => s+n.net, 0)` (suma real, no `netAvg * 3`).
 
 **Evolución del patrimonio GoalsTab:** Se reconstruye desde `netWorth` actual hacia atrás: `history[i].value = netWorth - sum(nets[i+1..end])`. Barras rojas si el valor es negativo, verdes si positivo.
 
 **`insightsList` period-aware:** Acepta `period` como último parámetro. La proyección de fin de período usa `(totalOut / daysCount(period)) * 30` para normalizar a mes-equivalente independientemente del período seleccionado.
+
+**Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. El `SparkArea` de tendencia mensual se añade con `opacity: 0.6` vía `mt: "auto"` al pie de las tarjetas de ingreso y gasto.
 
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
