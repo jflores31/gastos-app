@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
+import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, Chip, CircularProgress, IconButton, InputAdornment,
 } from "@mui/material"
@@ -8,51 +9,36 @@ import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, Visibilit
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
-const darkField = {
-  "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    bgcolor: "rgba(255,255,255,0.03)",
-    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-    "&.Mui-focused fieldset": { borderColor: "#f59e0b", borderWidth: 1.5 },
-  },
-  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#fcd34d" },
-  "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.3)" },
-} as const
-
-const cardSx = {
-  position: "relative" as const, zIndex: 1,
-  width: "100%", maxWidth: 440,
-  background: "rgba(255,255,255,0.045)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  backdropFilter: "blur(36px)",
-  borderRadius: "20px",
-  boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
-  p: { xs: 3.5, sm: 5.5 },
-}
-
-const Blobs = () => (
+const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
     <Box sx={{
       position: "absolute", top: "-18%", right: "-10%",
       width: 600, height: 600, borderRadius: "50%", pointerEvents: "none",
-      background: "radial-gradient(circle, rgba(245,158,11,0.17) 0%, transparent 68%)",
+      background: isDark
+        ? "radial-gradient(circle, rgba(245,158,11,0.17) 0%, transparent 68%)"
+        : "radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 68%)",
     }} />
     <Box sx={{
       position: "absolute", bottom: "-15%", left: "-8%",
       width: 520, height: 520, borderRadius: "50%", pointerEvents: "none",
-      background: "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)",
+      background: isDark
+        ? "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)"
+        : "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 68%)",
     }} />
     <Box sx={{
       position: "absolute", top: "50%", left: "25%",
       width: 300, height: 300, borderRadius: "50%", pointerEvents: "none",
-      background: "radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%)",
+      background: isDark
+        ? "radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%)"
+        : "radial-gradient(circle, rgba(251,191,36,0.04) 0%, transparent 70%)",
     }} />
   </>
 )
 
 function ResetPasswordForm() {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
+
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPwd, setShowPwd] = useState(false)
@@ -62,6 +48,34 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false)
   const [ready, setReady] = useState(false)
   const [expired, setExpired] = useState(false)
+
+  const darkField = isDark ? {
+    "& .MuiOutlinedInput-root": {
+      color: "#fff",
+      bgcolor: "rgba(255,255,255,0.03)",
+      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+      "&.Mui-focused fieldset": { borderColor: "#f59e0b", borderWidth: 1.5 },
+    },
+    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#fcd34d" },
+    "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.3)" },
+  } : {}
+
+  const cardSx = {
+    position: "relative" as const, zIndex: 1,
+    width: "100%", maxWidth: 440,
+    bgcolor: isDark ? "transparent" : "background.paper",
+    background: isDark ? "rgba(255,255,255,0.045)" : undefined,
+    border: "1px solid",
+    borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
+    backdropFilter: isDark ? "blur(36px)" : "none",
+    borderRadius: "20px",
+    boxShadow: isDark
+      ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
+      : "0 8px 32px rgba(245,158,11,0.10), 0 2px 8px rgba(0,0,0,0.06)",
+    p: { xs: 3.5, sm: 5.5 },
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -107,10 +121,12 @@ function ResetPasswordForm() {
         }}>
           <ErrorOutlined sx={{ fontSize: 38, color: "#fff" }} />
         </Box>
-        <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, mb: 1.5 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
+          color: isDark ? "#f1f5f9" : "text.primary" }}>
           Enlace expirado
         </Typography>
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.38)", mb: 4, lineHeight: 1.75 }}>
+        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75,
+          color: isDark ? "rgba(255,255,255,0.38)" : "text.secondary" }}>
           El enlace de recuperación ya no es válido. Los enlaces expiran después de 1 hora o si ya fueron usados.
         </Typography>
         <Link href="/forgot-password" style={{ textDecoration: "none" }}>
@@ -126,8 +142,10 @@ function ResetPasswordForm() {
         </Link>
         <Link href="/login" style={{ textDecoration: "none" }}>
           <Typography variant="body2" sx={{
-            color: "rgba(255,255,255,0.28)", display: "inline-flex", alignItems: "center", gap: 0.5, mt: 0.5,
-            "&:hover": { color: "rgba(255,255,255,0.6)" }, transition: "color 0.15s",
+            display: "inline-flex", alignItems: "center", gap: 0.5, mt: 0.5,
+            transition: "color 0.15s",
+            color: isDark ? "rgba(255,255,255,0.28)" : "text.secondary",
+            "&:hover": { color: isDark ? "rgba(255,255,255,0.6)" : "text.primary" },
           }}>
             <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
           </Typography>
@@ -141,10 +159,11 @@ function ResetPasswordForm() {
     return (
       <Box sx={{ ...cardSx, textAlign: "center" }}>
         <CircularProgress size={48} sx={{ color: "#f59e0b", mb: 3 }} />
-        <Typography variant="h5" sx={{ color: "#f1f5f9", fontWeight: 700, mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1,
+          color: isDark ? "#f1f5f9" : "text.primary" }}>
           Verificando enlace...
         </Typography>
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.35)" }}>
+        <Typography variant="body2" sx={{ color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
           Esto solo tarda un momento.
         </Typography>
       </Box>
@@ -163,10 +182,12 @@ function ResetPasswordForm() {
         }}>
           <CheckCircle sx={{ fontSize: 38, color: "#fff" }} />
         </Box>
-        <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, mb: 1.5 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
+          color: isDark ? "#f1f5f9" : "text.primary" }}>
           ¡Contraseña actualizada!
         </Typography>
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.38)", mb: 4, lineHeight: 1.75 }}>
+        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75,
+          color: isDark ? "rgba(255,255,255,0.38)" : "text.secondary" }}>
           Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión.
         </Typography>
         <Link href="/login" style={{ textDecoration: "none" }}>
@@ -191,8 +212,9 @@ function ResetPasswordForm() {
       <Link href="/login" style={{ textDecoration: "none" }}>
         <Typography variant="body2" sx={{
           display: "inline-flex", alignItems: "center", gap: 0.5, mb: 4,
-          color: "rgba(255,255,255,0.3)", fontWeight: 500,
-          "&:hover": { color: "rgba(255,255,255,0.65)" }, transition: "color 0.15s",
+          fontWeight: 500, transition: "color 0.15s",
+          color: isDark ? "rgba(255,255,255,0.3)" : "text.secondary",
+          "&:hover": { color: isDark ? "rgba(255,255,255,0.65)" : "text.primary" },
         }}>
           <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
         </Typography>
@@ -208,10 +230,12 @@ function ResetPasswordForm() {
         }}>
           <LockReset sx={{ fontSize: 36, color: "#fff" }} />
         </Box>
-        <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 1,
+          color: isDark ? "#f1f5f9" : "text.primary" }}>
           Nueva contraseña
         </Typography>
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.35)", lineHeight: 1.75 }}>
+        <Typography variant="body2" sx={{ lineHeight: 1.75,
+          color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
           Elige una contraseña segura para tu cuenta.
         </Typography>
       </Box>
@@ -222,7 +246,7 @@ function ResetPasswordForm() {
           role="alert" label={error}
           sx={{
             width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
-            bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+            bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
             border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
             "& .MuiChip-label": { whiteSpace: "normal" },
           }}
@@ -243,7 +267,7 @@ function ResetPasswordForm() {
                 <InputAdornment position="end">
                   <IconButton size="small" edge="end" onClick={() => setShowPwd(!showPwd)}
                     aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}>
+                    sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
                     {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                   </IconButton>
                 </InputAdornment>
@@ -263,7 +287,7 @@ function ResetPasswordForm() {
                 <InputAdornment position="end">
                   <IconButton size="small" edge="end" onClick={() => setShowConfirm(!showConfirm)}
                     aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}>
+                    sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
                     {showConfirm ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                   </IconButton>
                 </InputAdornment>
@@ -297,12 +321,17 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
+
   return (
     <Box sx={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      position: "relative", overflow: "hidden", bgcolor: "#07080f", p: { xs: 2, sm: 3 },
+      position: "relative", overflow: "hidden",
+      bgcolor: isDark ? "#07080f" : "background.default",
+      p: { xs: 2, sm: 3 },
     }}>
-      <Blobs />
+      <Blobs isDark={isDark} />
       <Suspense fallback={
         <Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
           <CircularProgress size={40} sx={{ color: "#f59e0b" }} />

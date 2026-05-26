@@ -1,38 +1,46 @@
 "use client"
 
 import { useState } from "react"
+import { useTheme } from "@mui/material/styles"
 import { Box, Typography, TextField, Button, Chip, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
-const darkField = {
-  "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    bgcolor: "rgba(255,255,255,0.03)",
-    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-    "&.Mui-focused fieldset": { borderColor: "#38bdf8", borderWidth: 1.5 },
-  },
-  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#7dd3fc" },
-} as const
-
-const card = {
-  position: "relative", zIndex: 1,
-  width: "100%", maxWidth: 440,
-  background: "rgba(255,255,255,0.045)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  backdropFilter: "blur(36px)",
-  borderRadius: "20px",
-  boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
-} as const
-
 export default function ForgotPasswordPage() {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
+
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  const darkField = isDark ? {
+    "& .MuiOutlinedInput-root": {
+      color: "#fff",
+      bgcolor: "rgba(255,255,255,0.03)",
+      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+      "&.Mui-focused fieldset": { borderColor: "#38bdf8", borderWidth: 1.5 },
+    },
+    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#7dd3fc" },
+  } : {}
+
+  const card = {
+    position: "relative" as const, zIndex: 1,
+    width: "100%", maxWidth: 440,
+    bgcolor: isDark ? "transparent" : "background.paper",
+    background: isDark ? "rgba(255,255,255,0.045)" : undefined,
+    border: "1px solid",
+    borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
+    backdropFilter: isDark ? "blur(36px)" : "none",
+    borderRadius: "20px",
+    boxShadow: isDark
+      ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
+      : "0 8px 32px rgba(56,189,248,0.10), 0 2px 8px rgba(0,0,0,0.06)",
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,24 +62,30 @@ export default function ForgotPasswordPage() {
       justifyContent: "center",
       position: "relative",
       overflow: "hidden",
-      bgcolor: "#07080f",
+      bgcolor: isDark ? "#07080f" : "background.default",
       p: { xs: 2, sm: 3 },
     }}>
       {/* Blobs — acento azul cielo */}
       <Box sx={{
         position: "absolute", top: "-20%", left: "-10%",
         width: 580, height: 580, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 68%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 68%)"
+          : "radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 68%)",
       }} />
       <Box sx={{
         position: "absolute", bottom: "-18%", right: "-8%",
         width: 500, height: 500, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)"
+          : "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 68%)",
       }} />
       <Box sx={{
         position: "absolute", top: "55%", right: "28%",
         width: 280, height: 280, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(14,165,233,0.09) 0%, transparent 70%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(14,165,233,0.09) 0%, transparent 70%)"
+          : "radial-gradient(circle, rgba(14,165,233,0.05) 0%, transparent 70%)",
       }} />
 
       {success ? (
@@ -85,26 +99,33 @@ export default function ForgotPasswordPage() {
           }}>
             <MarkEmailRead sx={{ fontSize: 38, color: "#fff" }} />
           </Box>
-          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, mb: 1.5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
+            color: isDark ? "#f1f5f9" : "text.primary" }}>
             Revisa tu email
           </Typography>
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.42)", mb: 1, lineHeight: 1.75 }}>
+          <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.75,
+            color: isDark ? "rgba(255,255,255,0.42)" : "text.secondary" }}>
             Enviamos un enlace a
           </Typography>
-          <Typography variant="body2" sx={{ color: "#7dd3fc", fontWeight: 700, mb: 3.5, wordBreak: "break-all" }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, mb: 3.5, wordBreak: "break-all",
+            color: isDark ? "#7dd3fc" : "primary.main" }}>
             {email}
           </Typography>
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.3)", mb: 4, lineHeight: 1.7 }}>
+          <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.7,
+            color: isDark ? "rgba(255,255,255,0.3)" : "text.secondary" }}>
             Haz click en el enlace del email para restablecer tu contraseña. Si no lo ves, revisa tu carpeta de spam.
           </Typography>
           <Link href="/login" style={{ textDecoration: "none" }}>
             <Button fullWidth startIcon={<ArrowBack sx={{ fontSize: 17 }} />}
+              variant="outlined" color="inherit"
               sx={{
                 py: 1.4, borderRadius: "10px", fontWeight: 700, fontSize: 14.5, textTransform: "none",
-                color: "rgba(255,255,255,0.72)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                bgcolor: "rgba(255,255,255,0.05)",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                ...(isDark ? {
+                  color: "rgba(255,255,255,0.72)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  bgcolor: "rgba(255,255,255,0.05)",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                } : {}),
                 transition: "all 0.18s",
               }}
             >
@@ -119,8 +140,9 @@ export default function ForgotPasswordPage() {
           <Link href="/login" style={{ textDecoration: "none" }}>
             <Typography variant="body2" sx={{
               display: "inline-flex", alignItems: "center", gap: 0.5, mb: 4,
-              color: "rgba(255,255,255,0.3)", fontWeight: 500,
-              "&:hover": { color: "rgba(255,255,255,0.65)" }, transition: "color 0.15s",
+              fontWeight: 500, transition: "color 0.15s",
+              color: isDark ? "rgba(255,255,255,0.3)" : "text.secondary",
+              "&:hover": { color: isDark ? "rgba(255,255,255,0.65)" : "text.primary" },
             }}>
               <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
             </Typography>
@@ -136,10 +158,12 @@ export default function ForgotPasswordPage() {
             }}>
               <LockReset sx={{ fontSize: 36, color: "#fff" }} />
             </Box>
-            <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, mb: 1 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 1,
+              color: isDark ? "#f1f5f9" : "text.primary" }}>
               Recuperar contraseña
             </Typography>
-            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.35)", lineHeight: 1.75 }}>
+            <Typography variant="body2" sx={{ lineHeight: 1.75,
+              color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
               Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
             </Typography>
           </Box>
@@ -150,7 +174,7 @@ export default function ForgotPasswordPage() {
               role="alert" label={error}
               sx={{
                 width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
-                bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+                bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
                 border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
                 "& .MuiChip-label": { whiteSpace: "normal" },
               }}

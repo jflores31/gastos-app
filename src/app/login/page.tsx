@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
@@ -10,19 +11,10 @@ const OAUTH_ENABLED = false
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
-const darkField = {
-  "& .MuiOutlinedInput-root": {
-    color: "#fff",
-    bgcolor: "rgba(255,255,255,0.03)",
-    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-    "&.Mui-focused fieldset": { borderColor: "#6366f1", borderWidth: 1.5 },
-  },
-  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#a5b4fc" },
-} as const
-
 export default function LoginPage() {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPwd, setShowPwd] = useState(false)
@@ -57,6 +49,18 @@ export default function LoginPage() {
     }
   }
 
+  const darkField = isDark ? {
+    "& .MuiOutlinedInput-root": {
+      color: "#fff",
+      bgcolor: "rgba(255,255,255,0.03)",
+      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+      "&.Mui-focused fieldset": { borderColor: "#6366f1", borderWidth: 1.5 },
+    },
+    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#a5b4fc" },
+  } : {}
+
   return (
     <Box sx={{
       minHeight: "100vh",
@@ -65,36 +69,46 @@ export default function LoginPage() {
       justifyContent: "center",
       position: "relative",
       overflow: "hidden",
-      bgcolor: "#07080f",
+      bgcolor: isDark ? "#07080f" : "background.default",
       p: { xs: 2, sm: 3 },
     }}>
       {/* Gradient blobs */}
       <Box sx={{
         position: "absolute", top: "-20%", left: "-12%",
         width: 650, height: 650, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 68%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 68%)"
+          : "radial-gradient(circle, rgba(99,102,241,0.09) 0%, transparent 68%)",
       }} />
       <Box sx={{
         position: "absolute", bottom: "-18%", right: "-8%",
         width: 550, height: 550, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(34,197,94,0.14) 0%, transparent 68%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(34,197,94,0.14) 0%, transparent 68%)"
+          : "radial-gradient(circle, rgba(34,197,94,0.07) 0%, transparent 68%)",
       }} />
       <Box sx={{
         position: "absolute", top: "52%", right: "22%",
         width: 320, height: 320, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(139,92,246,0.11) 0%, transparent 70%)",
+        background: isDark
+          ? "radial-gradient(circle, rgba(139,92,246,0.11) 0%, transparent 70%)"
+          : "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)",
       }} />
 
-      {/* Glass card */}
+      {/* Card */}
       <Box sx={{
         position: "relative", zIndex: 1,
         width: "100%", maxWidth: 460,
-        background: "rgba(255,255,255,0.045)",
-        border: "1px solid rgba(255,255,255,0.09)",
-        backdropFilter: "blur(36px)",
+        bgcolor: isDark ? "transparent" : "background.paper",
+        background: isDark ? "rgba(255,255,255,0.045)" : undefined,
+        border: "1px solid",
+        borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
+        backdropFilter: isDark ? "blur(36px)" : "none",
         borderRadius: "20px",
         p: { xs: 3.5, sm: 5.5 },
-        boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+        boxShadow: isDark
+          ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
+          : "0 8px 32px rgba(99,102,241,0.10), 0 2px 8px rgba(0,0,0,0.06)",
       }}>
 
         {/* Branding */}
@@ -103,14 +117,16 @@ export default function LoginPage() {
             width: 70, height: 70, borderRadius: "18px", mx: "auto", mb: 2.5,
             display: "flex", alignItems: "center", justifyContent: "center",
             background: "linear-gradient(135deg, #6366f1 0%, #22c55e 100%)",
-            boxShadow: "0 0 0 10px rgba(99,102,241,0.1), 0 14px 40px rgba(99,102,241,0.4)",
+            boxShadow: "0 0 0 10px rgba(99,102,241,0.1), 0 14px 40px rgba(99,102,241,0.35)",
           }}>
             <AccountBalanceWallet sx={{ fontSize: 36, color: "#fff" }} />
           </Box>
-          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, lineHeight: 1 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, lineHeight: 1,
+            color: isDark ? "#f1f5f9" : "text.primary" }}>
             Finanzas
           </Typography>
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.32)", mt: 0.75, letterSpacing: 0.2 }}>
+          <Typography variant="body2" sx={{ mt: 0.75, letterSpacing: 0.2,
+            color: isDark ? "rgba(255,255,255,0.32)" : "text.secondary" }}>
             Bienvenido de vuelta
           </Typography>
         </Box>
@@ -122,14 +138,14 @@ export default function LoginPage() {
               role="alert" label={error}
               sx={{
                 width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75,
-                bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+                bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
                 border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
                 "& .MuiChip-label": { whiteSpace: "normal" },
               }}
             />
             {error.includes("expiró") && (
               <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-                <Typography variant="body2" sx={{ color: "#fca5a5", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
+                <Typography variant="body2" sx={{ color: "error.main", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
                   Solicitar nuevo enlace &rarr;
                 </Typography>
               </Link>
@@ -137,19 +153,21 @@ export default function LoginPage() {
           </Box>
         )}
 
-
         {/* OAuth — activar cuando esté implementado: OAUTH_ENABLED = true */}
         {OAUTH_ENABLED && (
           <>
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
               {([["google", <Google key="g" sx={{ fontSize: 17 }} />], ["github", <GitHub key="gh" sx={{ fontSize: 17 }} />]] as const).map(([p, icon]) => (
                 <Button key={p} fullWidth startIcon={icon} onClick={() => handleOAuth(p)}
+                  variant="outlined" color="inherit"
                   sx={{
                     py: 1.25, borderRadius: "10px", textTransform: "none", fontWeight: 600, fontSize: 13.5,
-                    color: "rgba(255,255,255,0.72)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    bgcolor: "rgba(255,255,255,0.05)",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                    ...(isDark ? {
+                      color: "rgba(255,255,255,0.72)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      bgcolor: "rgba(255,255,255,0.05)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                    } : {}),
                     transition: "all 0.18s",
                   }}
                 >
@@ -157,8 +175,9 @@ export default function LoginPage() {
                 </Button>
               ))}
             </Box>
-            <Divider sx={{ mb: 3, "&::before, &::after": { borderColor: "rgba(255,255,255,0.07)" } }}>
-              <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.22)", fontWeight: 700, letterSpacing: 1.8, fontSize: 10 }}>
+            <Divider sx={{ mb: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 1.8, fontSize: 10,
+                color: isDark ? "rgba(255,255,255,0.22)" : "text.disabled" }}>
                 O CON EMAIL
               </Typography>
             </Divider>
@@ -186,7 +205,7 @@ export default function LoginPage() {
                       size="small" edge="end"
                       onClick={() => setShowPwd(!showPwd)}
                       aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-                      sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}
+                      sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}
                     >
                       {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                     </IconButton>
@@ -199,7 +218,12 @@ export default function LoginPage() {
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
             <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-              <Typography variant="body2" sx={{ color: "rgba(165,180,252,0.75)", fontWeight: 500, "&:hover": { color: "#a5b4fc" }, transition: "color 0.15s" }}>
+              <Typography variant="body2" sx={{
+                fontWeight: 500,
+                color: isDark ? "rgba(165,180,252,0.75)" : "primary.main",
+                "&:hover": { color: isDark ? "#a5b4fc" : "primary.dark" },
+                transition: "color 0.15s",
+              }}>
                 ¿Olvidaste tu contraseña?
               </Typography>
             </Link>
@@ -226,10 +250,16 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <Typography variant="body2" sx={{ textAlign: "center", color: "rgba(255,255,255,0.28)", fontSize: 13 }}>
+        <Typography variant="body2" sx={{ textAlign: "center", fontSize: 13,
+          color: isDark ? "rgba(255,255,255,0.28)" : "text.secondary" }}>
           ¿No tienes cuenta?{" "}
           <Link href="/register" style={{ textDecoration: "none" }}>
-            <Typography component="span" variant="body2" sx={{ color: "#a5b4fc", fontWeight: 700, fontSize: 13, "&:hover": { color: "#818cf8" }, transition: "color 0.15s" }}>
+            <Typography component="span" variant="body2" sx={{
+              fontWeight: 700, fontSize: 13,
+              color: isDark ? "#a5b4fc" : "primary.main",
+              "&:hover": { color: isDark ? "#818cf8" : "primary.dark" },
+              transition: "color 0.15s",
+            }}>
               Regístrate gratis
             </Typography>
           </Link>
