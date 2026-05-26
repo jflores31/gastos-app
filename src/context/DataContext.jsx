@@ -120,9 +120,7 @@ export function DataProvider({ children }) {
         { data: customCatsData, error: e8 },
       ] = results
 
-      if (process.env.NODE_ENV !== "production") {
-        [e1, e2, e3, e4, e5, e6, e7, e8].forEach((e, i) => { if (e) console.warn(`[DataContext] load error [${i}]:`, e.message) })
-      }
+      [e1, e2, e3, e4, e5, e6, e7, e8].forEach((e, i) => { if (e) console.error(`[DataContext] load error [${i}]:`, e.message) })
 
       if (txData) setTxs(txData.map(mapRow))
       if (budgetData) {
@@ -209,8 +207,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id)
-    setTxs((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setTxs((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const saveCustomCat = useCallback(async (cat) => {
@@ -233,15 +231,14 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("custom_categories").delete().eq("id", id).eq("user_id", user.id)
-    setCustomCats((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("custom_categories").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setCustomCats((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const setEditBudgets = useCallback(
     async (updater) => {
       const supabase = createClient()
       const newBudgets = typeof updater === "function" ? updater(editBudgets) : updater
-      setEditBudgetsState(newBudgets)
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -252,7 +249,10 @@ export function DataProvider({ children }) {
         monto: Number(monto),
       }))
       if (rows.length > 0) {
-        await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
+        const { error } = await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
+        if (!error) setEditBudgetsState(newBudgets)
+      } else {
+        setEditBudgetsState(newBudgets)
       }
     },
     [editBudgets]
@@ -262,8 +262,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("budgets").delete().eq("user_id", user.id).eq("categoria", cat)
-    setEditBudgetsState((prev) => {
+    const { error } = await supabase.from("budgets").delete().eq("user_id", user.id).eq("categoria", cat)
+    if (!error) setEditBudgetsState((prev) => {
       const n = { ...prev }
       delete n[cat]
       return n
@@ -300,8 +300,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("goals").delete().eq("id", id).eq("user_id", user.id)
-    setGoals((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("goals").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setGoals((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Accounts CRUD
@@ -332,8 +332,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
-    setAccounts((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setAccounts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Investments CRUD
@@ -364,8 +364,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("investments").delete().eq("id", id).eq("user_id", user.id)
-    setInvestments((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("investments").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setInvestments((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Debts CRUD
@@ -398,8 +398,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("debts").delete().eq("id", id).eq("user_id", user.id)
-    setDebts((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("debts").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setDebts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Subscriptions CRUD
@@ -429,8 +429,8 @@ export function DataProvider({ children }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from("subscriptions").delete().eq("id", id).eq("user_id", user.id)
-    setSubscriptions((prev) => prev.filter((x) => x.id !== id))
+    const { error } = await supabase.from("subscriptions").delete().eq("id", id).eq("user_id", user.id)
+    if (!error) setSubscriptions((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const value = useMemo(

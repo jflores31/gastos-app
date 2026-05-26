@@ -215,24 +215,28 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
   const handleSubmit = async () => {
     if (!validate() || saving) return;
     setSaving(true);
-    const tx = {
-      tipo,
-      categoria: categoria?.value || categoria,
-      concepto: concepto.toUpperCase(),
-      dia: fecha.date(),
-      mes: fecha.month(),
-      año: fecha.year(),
-      date: fecha.toDate(),
-      valor: parseFloat(valor),
-      anomaly: false,
-    };
-    if (editTx) {
-      await updateTx({ ...tx, id: editTx.id });
-    } else {
-      await addTx(tx);
+    try {
+      const tx = {
+        tipo,
+        categoria: categoria?.value || categoria,
+        concepto: concepto.toUpperCase(),
+        dia: fecha.date(),
+        mes: fecha.month(),
+        año: fecha.year(),
+        date: fecha.toDate(),
+        valor: parseFloat(valor),
+        anomaly: false,
+      };
+      if (editTx) {
+        await updateTx({ ...tx, id: editTx.id });
+      } else {
+        await addTx(tx);
+      }
+      if (onAdd) onAdd();
+      onClose();
+    } catch {
+      setSaving(false);
     }
-    if (onAdd) onAdd();
-    onClose();
   };
 
   const currSymbol = { PEN: "S/", USD: "$", EUR: "€", MXN: "$", COP: "$", ARS: "$", CLP: "$", BRL: "R$" }[currency] || "$";

@@ -56,13 +56,15 @@ export default function SettingsPanel({ open, onClose }) {
 
   const saveFavCats = async (newList) => {
     const supabase = createClient();
-    await supabase.auth.updateUser({ data: { fav_categories: newList } });
+    const { error } = await supabase.auth.updateUser({ data: { fav_categories: newList } });
+    if (error) setSnack({ msg: lang === "es" ? "Error al guardar favoritos" : "Error saving favorites", severity: "error" });
+    return !error;
   };
 
   const handleAddFav = async (option) => {
     if (!option) return;
-    await saveFavCats([...favCats, { categoria: option.value, tipo: option.tipo }]);
-    setFavInput(null);
+    const ok = await saveFavCats([...favCats, { categoria: option.value, tipo: option.tipo }]);
+    if (ok) setFavInput(null);
   };
 
   const handleRemoveFav = async (categoria) => {
@@ -80,16 +82,16 @@ export default function SettingsPanel({ open, onClose }) {
     if (!catForm.nombre.trim()) { setCatError(lang === "es" ? "Ingresa un nombre" : "Enter a name"); return; }
     await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
     setCatDialog(false);
-    setSnack(editingCat
+    setSnack({ msg: editingCat
       ? (lang === "es" ? "Categoría actualizada" : "Category updated")
-      : (lang === "es" ? "Categoría creada" : "Category created"));
+      : (lang === "es" ? "Categoría creada" : "Category created"), severity: "success" });
   };
 
   const handleDeleteCat = async () => {
     if (!deleteTarget) return;
     await deleteCustomCat(deleteTarget.id);
     setDeleteTarget(null);
-    setSnack(lang === "es" ? "Categoría eliminada" : "Category deleted");
+    setSnack({ msg: lang === "es" ? "Categoría eliminada" : "Category deleted", severity: "success" });
   };
 
   return (
@@ -363,8 +365,8 @@ export default function SettingsPanel({ open, onClose }) {
 
       <Snackbar open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-        <Alert severity="success" onClose={() => setSnack(null)} sx={{ width: "100%" }}>
-          {snack}
+        <Alert severity={snack?.severity ?? "success"} onClose={() => setSnack(null)} sx={{ width: "100%" }}>
+          {snack?.msg}
         </Alert>
       </Snackbar>
     </Drawer>
