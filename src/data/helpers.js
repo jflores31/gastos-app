@@ -98,7 +98,7 @@ export function fmtDate(date) {
   return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney) {
+export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney, period = "month") {
   const t = [];
   const higherLower = dOut > 0 ? (lang === "es" ? "más altos" : "higher") : (lang === "es" ? "más bajos" : "lower");
   t.push({
@@ -128,8 +128,8 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
     icon: "forecast", tone: "info",
     title: lang === "es" ? "Proyección fin de mes" : "Month-end forecast",
     desc: lang === "es"
-      ? `Al ritmo actual: ${fmtMoney(totalOut * (30 / 7), currency, true)} proyectado.`
-      : `At current pace: ${fmtMoney(totalOut * (30 / 7), currency, true)} projected.`
+      ? `Al ritmo actual: ${fmtMoney((totalOut / daysCount(period)) * 30, currency, true)} proyectado al mes.`
+      : `At current pace: ${fmtMoney((totalOut / daysCount(period)) * 30, currency, true)} projected per month.`
   });
   return t;
 }

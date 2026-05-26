@@ -12,7 +12,7 @@ import {
 } from "@mui/icons-material";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, getTodayExpenses } from "../data/index.js";
-import { filterByPeriod, periodLabel, monthCount } from "../data/helpers.js";
+import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
@@ -219,7 +219,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                   {[
                     { label: t.spent, value: filteredTotal, color: "error.main", bg: "error.light" },
                     { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light" },
-                    { label: lang === "es" ? "Promedio diario" : "Daily avg", value: filteredTotal / 30, color: "warning.main", bg: "warning.light" },
+                    { label: lang === "es" ? "Promedio diario" : "Daily avg", value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light" },
                     { label: lang === "es" ? "Mayor gasto" : "Top expense", value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light" },
                   ].map((item, idx) => (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>

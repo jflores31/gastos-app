@@ -57,7 +57,7 @@ export default function OverviewTab({ period, setPeriod }) {
       color: customCat?.color || CATEGORIES.expense[c.categoria]?.color || "#9e9e9e",
     };
   }), [cats, customCats, lang]);
-  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney);
+  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney, period);
 
   const heatVals = useMemo(() => {
     const m = new Map();
