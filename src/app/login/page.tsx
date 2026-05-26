@@ -2,17 +2,23 @@
 
 import { useState } from "react"
 import {
-  Box, Typography, TextField, Button, Avatar, Chip, Divider, IconButton, InputAdornment,
+  Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
-import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, TrendingUp, PieChart, Savings } from "@mui/icons-material"
+import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
-const FEATURES = [
-  { icon: <TrendingUp sx={{ fontSize: 20 }} />, text: "Registra gastos e ingresos al instante" },
-  { icon: <PieChart sx={{ fontSize: 20 }} />, text: "Análisis visual de tus finanzas" },
-  { icon: <Savings sx={{ fontSize: 20 }} />, text: "Presupuestos inteligentes con alertas" },
-]
+const darkField = {
+  "& .MuiOutlinedInput-root": {
+    color: "#fff",
+    bgcolor: "rgba(255,255,255,0.03)",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+    "&.Mui-focused fieldset": { borderColor: "#6366f1", borderWidth: 1.5 },
+  },
+  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#a5b4fc" },
+} as const
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -50,181 +56,178 @@ export default function LoginPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex" }}>
-      {/* ── LEFT PANEL ── */}
+    <Box sx={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden",
+      bgcolor: "#07080f",
+      p: { xs: 2, sm: 3 },
+    }}>
+      {/* Gradient blobs */}
       <Box sx={{
-        display: { xs: "none", md: "flex" },
-        width: "44%",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        p: 6,
-        position: "relative",
-        overflow: "hidden",
-        background: "linear-gradient(150deg, #0a1628 0%, #0d2e6e 45%, #1565c0 100%)",
+        position: "absolute", top: "-20%", left: "-12%",
+        width: 650, height: 650, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 68%)",
+      }} />
+      <Box sx={{
+        position: "absolute", bottom: "-18%", right: "-8%",
+        width: 550, height: 550, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(34,197,94,0.14) 0%, transparent 68%)",
+      }} />
+      <Box sx={{
+        position: "absolute", top: "52%", right: "22%",
+        width: 320, height: 320, borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(139,92,246,0.11) 0%, transparent 70%)",
+      }} />
+
+      {/* Glass card */}
+      <Box sx={{
+        position: "relative", zIndex: 1,
+        width: "100%", maxWidth: 460,
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.09)",
+        backdropFilter: "blur(36px)",
+        borderRadius: "20px",
+        p: { xs: 3.5, sm: 5.5 },
+        boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
       }}>
-        {/* Decorative blobs */}
-        <Box sx={{ position: "absolute", top: -100, right: -100, width: 380, height: 380, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.04)" }} />
-        <Box sx={{ position: "absolute", bottom: -80, left: -80, width: 320, height: 320, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.04)" }} />
-        <Box sx={{ position: "absolute", top: "35%", left: -40, width: 180, height: 180, borderRadius: "50%", bgcolor: "rgba(99,179,237,0.08)" }} />
 
         {/* Branding */}
-        <Box sx={{ position: "relative", textAlign: "center", mb: 6 }}>
+        <Box sx={{ textAlign: "center", mb: 4.5 }}>
           <Box sx={{
-            width: 88, height: 88, borderRadius: 4, mx: "auto", mb: 3,
+            width: 70, height: 70, borderRadius: "18px", mx: "auto", mb: 2.5,
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,255,255,0.12)",
-            backdropFilter: "blur(8px)",
-            border: "1.5px solid rgba(255,255,255,0.2)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            background: "linear-gradient(135deg, #6366f1 0%, #22c55e 100%)",
+            boxShadow: "0 0 0 10px rgba(99,102,241,0.1), 0 14px 40px rgba(99,102,241,0.4)",
           }}>
-            <AccountBalanceWallet sx={{ fontSize: 44, color: "#fff" }} />
+            <AccountBalanceWallet sx={{ fontSize: 36, color: "#fff" }} />
           </Box>
-          <Typography variant="h3" sx={{ color: "#fff", letterSpacing: -1, fontWeight: 800 }}>
+          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, lineHeight: 1 }}>
             Finanzas
           </Typography>
-          <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.55)", mt: 1, fontWeight: 400 }}>
-            Toma el control de tu dinero
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.32)", mt: 0.75, letterSpacing: 0.2 }}>
+            Bienvenido de vuelta
           </Typography>
         </Box>
 
-        {/* Feature list */}
-        <Box sx={{ position: "relative", width: "100%", maxWidth: 340 }}>
-          {FEATURES.map((f, i) => (
-            <Box key={i} sx={{
-              display: "flex", alignItems: "center", gap: 2, mb: 2, p: 2, borderRadius: 3,
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(6px)",
-            }}>
-              <Box sx={{
-                width: 40, height: 40, borderRadius: 2, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                bgcolor: "rgba(99,179,237,0.2)", color: "#90caf9",
-              }}>
-                {f.icon}
-              </Box>
-              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
-                {f.text}
-              </Typography>
-            </Box>
+        {/* Error */}
+        {error && (
+          <Box sx={{ mb: 2.5 }}>
+            <Chip
+              role="alert" label={error}
+              sx={{
+                width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75,
+                bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+                border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
+                "& .MuiChip-label": { whiteSpace: "normal" },
+              }}
+            />
+            {error.includes("expiró") && (
+              <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+                <Typography variant="body2" sx={{ color: "#fca5a5", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
+                  Solicitar nuevo enlace &rarr;
+                </Typography>
+              </Link>
+            )}
+          </Box>
+        )}
+
+        {/* OAuth */}
+        <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+          {([["google", <Google key="g" sx={{ fontSize: 17 }} />], ["github", <GitHub key="gh" sx={{ fontSize: 17 }} />]] as const).map(([p, icon]) => (
+            <Button key={p} fullWidth startIcon={icon} onClick={() => handleOAuth(p)}
+              sx={{
+                py: 1.25, borderRadius: "10px", textTransform: "none", fontWeight: 600, fontSize: 13.5,
+                color: "rgba(255,255,255,0.72)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                bgcolor: "rgba(255,255,255,0.05)",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                transition: "all 0.18s",
+              }}
+            >
+              {p === "google" ? "Google" : "GitHub"}
+            </Button>
           ))}
         </Box>
 
-        {/* Bottom tagline */}
-        <Typography variant="caption" sx={{ position: "absolute", bottom: 24, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>
-          jeshu.cfd · Finanzas personales
-        </Typography>
-      </Box>
-
-      {/* ── RIGHT PANEL ── */}
-      <Box sx={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        p: { xs: 3, sm: 5 },
-        bgcolor: "background.default",
-      }}>
-        <Box sx={{ width: "100%", maxWidth: 400 }}>
-          {/* Mobile logo */}
-          <Box sx={{ textAlign: "center", mb: 4, display: { md: "none" } }}>
-            <Avatar sx={{ width: 60, height: 60, bgcolor: "primary.main", mx: "auto", mb: 1.5 }}>
-              <AccountBalanceWallet sx={{ fontSize: 30 }} />
-            </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Finanzas</Typography>
-          </Box>
-
-          {/* Heading */}
-          <Typography variant="h4" sx={{ mb: 0.5, display: { xs: "none", md: "block" }, fontWeight: 800 }}>
-            Bienvenido
+        <Divider sx={{ mb: 3, "&::before, &::after": { borderColor: "rgba(255,255,255,0.07)" } }}>
+          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.22)", fontWeight: 700, letterSpacing: 1.8, fontSize: 10 }}>
+            O CON EMAIL
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Ingresa con tu cuenta para continuar
-          </Typography>
+        </Divider>
 
-          {/* OAuth */}
-          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-            {([["google", <Google key="g" />], ["github", <GitHub key="gh" />]] as const).map(([p, icon]) => (
-              <Button
-                key={p} fullWidth variant="outlined"
-                startIcon={icon}
-                onClick={() => handleOAuth(p)}
-                sx={{ py: 1.25, borderRadius: 2, textTransform: "none", fontWeight: 600, borderColor: "divider", color: "text.primary", "&:hover": { borderColor: "primary.main", bgcolor: "primary.light" } }}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </Button>
-            ))}
-          </Box>
-
-          <Divider sx={{ mb: 3 }}>
-            <Typography variant="caption" color="text.disabled" sx={{ px: 1, fontWeight: 600, letterSpacing: 0.5 }}>
-              O CON EMAIL
-            </Typography>
-          </Divider>
-
-          {/* Error */}
-          {error && (
-            <Box sx={{ mb: 2 }}>
-              <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", justifyContent: "center", mb: error.includes("expiró") ? 1 : 0 }} />
-              {error.includes("expiró") && (
-                <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-                  <Typography variant="body2" color="error" sx={{ textAlign: "center", fontWeight: 600, mt: 0.5 }}>
-                    → Solicitar nuevo enlace
-                  </Typography>
-                </Link>
-              )}
-            </Box>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth label="Email" type="email"
-              value={email} onChange={(e) => setEmail(e.target.value)}
-              required autoComplete="email"
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth label="Contraseña"
-              type={showPwd ? "text" : "password"}
-              value={password} onChange={(e) => setPassword(e.target.value)}
-              required autoComplete="current-password"
-              slotProps={{ input: {
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth label="Email" type="email"
+            value={email} onChange={(e) => setEmail(e.target.value)}
+            required autoComplete="email"
+            sx={{ mb: 2, ...darkField }}
+          />
+          <TextField
+            fullWidth label="Contraseña"
+            type={showPwd ? "text" : "password"}
+            value={password} onChange={(e) => setPassword(e.target.value)}
+            required autoComplete="current-password"
+            slotProps={{
+              input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShowPwd(!showPwd)} edge="end" aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}>
-                      {showPwd ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    <IconButton
+                      size="small" edge="end"
+                      onClick={() => setShowPwd(!showPwd)}
+                      aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}
+                    >
+                      {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                     </IconButton>
                   </InputAdornment>
                 ),
-              } }}
-              sx={{ mb: 1 }}
-            />
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
-              <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-                <Typography variant="body2" color="primary" sx={{ fontWeight: 500, cursor: "pointer" }}>
-                  ¿Olvidaste tu contraseña?
-                </Typography>
-              </Link>
-            </Box>
-            <Button
-              fullWidth variant="contained" type="submit" disabled={loading}
-              sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, fontSize: 16, mb: 2, boxShadow: "0 4px 14px rgba(21,101,192,0.4)" }}
-            >
-              {loading ? "Ingresando..." : "Ingresar"}
-            </Button>
-          </form>
+              },
+            }}
+            sx={{ mb: 1, ...darkField }}
+          />
 
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-            ¿No tienes cuenta?{" "}
-            <Link href="/register" style={{ textDecoration: "none" }}>
-              <Typography component="span" variant="body2" color="primary" sx={{ fontWeight: 700 }}>
-                Regístrate gratis
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
+            <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+              <Typography variant="body2" sx={{ color: "rgba(165,180,252,0.75)", fontWeight: 500, "&:hover": { color: "#a5b4fc" }, transition: "color 0.15s" }}>
+                ¿Olvidaste tu contraseña?
               </Typography>
             </Link>
-          </Typography>
-        </Box>
+          </Box>
+
+          <Button
+            fullWidth type="submit" disabled={loading}
+            sx={{
+              py: 1.55, borderRadius: "10px", fontWeight: 700, fontSize: 15,
+              textTransform: "none", letterSpacing: 0.2, mb: 3.5,
+              background: "linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)",
+              color: "#fff",
+              boxShadow: "0 4px 22px rgba(99,102,241,0.42)",
+              "&:hover:not(:disabled)": {
+                background: "linear-gradient(90deg, #818cf8 0%, #6366f1 100%)",
+                boxShadow: "0 6px 30px rgba(99,102,241,0.55)",
+                transform: "translateY(-1px)",
+              },
+              "&:disabled": { background: "rgba(99,102,241,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
+              transition: "all 0.2s",
+            }}
+          >
+            {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Ingresar"}
+          </Button>
+        </form>
+
+        <Typography variant="body2" sx={{ textAlign: "center", color: "rgba(255,255,255,0.28)", fontSize: 13 }}>
+          ¿No tienes cuenta?{" "}
+          <Link href="/register" style={{ textDecoration: "none" }}>
+            <Typography component="span" variant="body2" sx={{ color: "#a5b4fc", fontWeight: 700, fontSize: 13, "&:hover": { color: "#818cf8" }, transition: "color 0.15s" }}>
+              Regístrate gratis
+            </Typography>
+          </Link>
+        </Typography>
       </Box>
     </Box>
   )
