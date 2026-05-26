@@ -42,7 +42,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Desglose de gastos por categoría con gráfico donut
 - Heat calendar de gastos diarios
 - Comparación vs período anterior con barras de progreso — oculta en "todo", muestra "Sin datos" si no hay transacciones previas; etiqueta dinámica según período activo
-- **Mini cards de ingresos y gastos:** chip `+X.X% vs ant.` se muestra solo si hay período anterior con datos (`delta != null`); sub-etiqueta "N registros / N gastos" con singular/plural bilingüe; `SparkArea` mensual sutil (opacidad 0.6) al pie de las tarjetas de ingreso y gasto
+- **Mini cards de ingresos y gastos:** chip `+X.X% vs ant.` se muestra solo si hay período anterior con datos (`delta != null`); sub-etiqueta "N registros / N gastos" con singular/plural bilingüe; `SparkBar` de barras verticales mensuales al pie (verde para ingresos, rojo para gastos; barra más reciente resaltada)
 - Selector de período: semana, mes, trimestre, año (con `flexWrap` para pantallas pequeñas)
 - Insight "Proyección" proporcional al período activo (usa `daysCount(period)` como divisor)
 
@@ -222,7 +222,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **`insightsList` period-aware:** Acepta `period` como último parámetro. La proyección de fin de período usa `(totalOut / daysCount(period)) * 30` para normalizar a mes-equivalente independientemente del período seleccionado.
 
-**Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. El `SparkArea` de tendencia mensual se añade con `opacity: 0.6` vía `mt: "auto"` al pie de las tarjetas de ingreso y gasto.
+**Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. `SparkBar` de barras verticales mensuales al pie de las tarjetas de ingreso y gasto: usa `--income` / `--expense` del tema, barra más reciente a 90% opacidad, anteriores a 40%.
 
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
