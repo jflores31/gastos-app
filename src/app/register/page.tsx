@@ -2,17 +2,44 @@
 
 import { useState } from "react"
 import {
-  Box, Typography, TextField, Button, Avatar, Chip, Divider, IconButton, InputAdornment,
+  Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
-import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle, Shield, BarChart } from "@mui/icons-material"
+import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
-const PERKS = [
-  { icon: <Shield sx={{ fontSize: 20 }} />, text: "Datos privados y seguros con cifrado" },
-  { icon: <BarChart sx={{ fontSize: 20 }} />, text: "Reportes mensuales automáticos" },
-  { icon: <CheckCircle sx={{ fontSize: 20 }} />, text: "Categorías personalizadas y metas" },
-]
+const darkField = {
+  "& .MuiOutlinedInput-root": {
+    color: "#fff",
+    bgcolor: "rgba(255,255,255,0.03)",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
+    "&.Mui-focused fieldset": { borderColor: "#22c55e", borderWidth: 1.5 },
+  },
+  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#86efac" },
+  "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.3)" },
+} as const
+
+const Blobs = () => (
+  <>
+    <Box sx={{
+      position: "absolute", top: "-18%", right: "-10%",
+      width: 620, height: 620, borderRadius: "50%", pointerEvents: "none",
+      background: "radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 68%)",
+    }} />
+    <Box sx={{
+      position: "absolute", bottom: "-15%", left: "-8%",
+      width: 520, height: 520, borderRadius: "50%", pointerEvents: "none",
+      background: "radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 68%)",
+    }} />
+    <Box sx={{
+      position: "absolute", top: "45%", left: "30%",
+      width: 300, height: 300, borderRadius: "50%", pointerEvents: "none",
+      background: "radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%)",
+    }} />
+  </>
+)
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -52,22 +79,44 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "background.default", p: 3 }}>
-        <Box sx={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
+      <Box sx={{
+        minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+        position: "relative", overflow: "hidden", bgcolor: "#07080f", p: 3,
+      }}>
+        <Blobs />
+        <Box sx={{
+          position: "relative", zIndex: 1,
+          width: "100%", maxWidth: 420, textAlign: "center",
+          background: "rgba(255,255,255,0.045)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          backdropFilter: "blur(36px)",
+          borderRadius: "20px",
+          p: { xs: 4, sm: 6 },
+          boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+        }}>
           <Box sx={{
-            width: 88, height: 88, borderRadius: "50%", mx: "auto", mb: 3,
+            width: 80, height: 80, borderRadius: "50%", mx: "auto", mb: 3,
             display: "flex", alignItems: "center", justifyContent: "center",
-            bgcolor: "success.light",
+            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            boxShadow: "0 0 0 12px rgba(34,197,94,0.1), 0 14px 40px rgba(34,197,94,0.35)",
           }}>
-            <CheckCircle sx={{ fontSize: 48, color: "success.main" }} />
+            <CheckCircle sx={{ fontSize: 42, color: "#fff" }} />
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }} gutterBottom>¡Listo!</Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, mb: 1.5 }}>
+            ¡Listo!
+          </Typography>
+          <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.45)", mb: 4, lineHeight: 1.7 }}>
             Revisa tu email para confirmar tu cuenta y luego inicia sesión.
           </Typography>
           <Link href="/login" style={{ textDecoration: "none" }}>
-            <Button variant="contained" fullWidth sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, fontSize: 16 }}>
-              Ir a Login
+            <Button fullWidth sx={{
+              py: 1.5, borderRadius: "10px", fontWeight: 700, fontSize: 15, textTransform: "none",
+              background: "linear-gradient(90deg, #22c55e 0%, #16a34a 100%)",
+              color: "#fff", boxShadow: "0 4px 22px rgba(34,197,94,0.4)",
+              "&:hover": { background: "linear-gradient(90deg, #4ade80 0%, #22c55e 100%)", boxShadow: "0 6px 30px rgba(34,197,94,0.5)", transform: "translateY(-1px)" },
+              transition: "all 0.2s",
+            }}>
+              Ir a iniciar sesión
             </Button>
           </Link>
         </Box>
@@ -76,174 +125,182 @@ export default function RegisterPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex" }}>
-      {/* ── LEFT PANEL ── */}
-      <Box sx={{
-        display: { xs: "none", md: "flex" },
-        width: "44%",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        p: 6,
-        position: "relative",
-        overflow: "hidden",
-        background: "linear-gradient(150deg, #0a1f0f 0%, #1b5e20 50%, #2e7d32 100%)",
-      }}>
-        <Box sx={{ position: "absolute", top: -100, right: -100, width: 380, height: 380, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.04)" }} />
-        <Box sx={{ position: "absolute", bottom: -80, left: -80, width: 320, height: 320, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.04)" }} />
+    <Box sx={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden",
+      bgcolor: "#07080f",
+      p: { xs: 2, sm: 3 },
+      py: { xs: 4, sm: 5 },
+    }}>
+      <Blobs />
 
-        <Box sx={{ position: "relative", textAlign: "center", mb: 6 }}>
+      {/* Glass card */}
+      <Box sx={{
+        position: "relative", zIndex: 1,
+        width: "100%", maxWidth: 480,
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.09)",
+        backdropFilter: "blur(36px)",
+        borderRadius: "20px",
+        p: { xs: 3.5, sm: 5 },
+        boxShadow: "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+      }}>
+
+        {/* Branding */}
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box sx={{
-            width: 88, height: 88, borderRadius: 4, mx: "auto", mb: 3,
+            width: 70, height: 70, borderRadius: "18px", mx: "auto", mb: 2.5,
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,255,255,0.12)",
-            backdropFilter: "blur(8px)",
-            border: "1.5px solid rgba(255,255,255,0.2)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            background: "linear-gradient(135deg, #22c55e 0%, #6366f1 100%)",
+            boxShadow: "0 0 0 10px rgba(34,197,94,0.1), 0 14px 40px rgba(34,197,94,0.38)",
           }}>
-            <AccountBalanceWallet sx={{ fontSize: 44, color: "#fff" }} />
+            <AccountBalanceWallet sx={{ fontSize: 36, color: "#fff" }} />
           </Box>
-          <Typography variant="h3" sx={{ color: "#fff", letterSpacing: -1, fontWeight: 800 }}>
-            Finanzas
+          <Typography variant="h4" sx={{ color: "#f1f5f9", fontWeight: 800, letterSpacing: -0.5, lineHeight: 1 }}>
+            Crear cuenta
           </Typography>
-          <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.55)", mt: 1 }}>
-            Empieza gratis hoy mismo
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.32)", mt: 0.75, letterSpacing: 0.2 }}>
+            Es gratis, siempre
           </Typography>
         </Box>
 
-        <Box sx={{ position: "relative", width: "100%", maxWidth: 340 }}>
-          {PERKS.map((f, i) => (
-            <Box key={i} sx={{
-              display: "flex", alignItems: "center", gap: 2, mb: 2, p: 2, borderRadius: 3,
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(6px)",
-            }}>
-              <Box sx={{
-                width: 40, height: 40, borderRadius: 2, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                bgcolor: "rgba(129,199,132,0.2)", color: "#a5d6a7",
-              }}>
-                {f.icon}
-              </Box>
-              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
-                {f.text}
-              </Typography>
-            </Box>
+        {/* Error */}
+        {error && (
+          <Chip
+            role="alert" label={error}
+            sx={{
+              width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
+              bgcolor: "rgba(239,68,68,0.1)", color: "#fca5a5",
+              border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
+              "& .MuiChip-label": { whiteSpace: "normal" },
+            }}
+          />
+        )}
+
+        {/* OAuth */}
+        <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+          {([["google", <Google key="g" sx={{ fontSize: 17 }} />], ["github", <GitHub key="gh" sx={{ fontSize: 17 }} />]] as const).map(([p, icon]) => (
+            <Button key={p} fullWidth startIcon={icon} onClick={() => handleOAuth(p)}
+              sx={{
+                py: 1.25, borderRadius: "10px", textTransform: "none", fontWeight: 600, fontSize: 13.5,
+                color: "rgba(255,255,255,0.72)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                bgcolor: "rgba(255,255,255,0.05)",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                transition: "all 0.18s",
+              }}
+            >
+              {p === "google" ? "Google" : "GitHub"}
+            </Button>
           ))}
         </Box>
 
-        <Typography variant="caption" sx={{ position: "absolute", bottom: 24, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>
-          jeshu.cfd · Finanzas personales
-        </Typography>
-      </Box>
+        <Divider sx={{ mb: 3, "&::before, &::after": { borderColor: "rgba(255,255,255,0.07)" } }}>
+          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.22)", fontWeight: 700, letterSpacing: 1.8, fontSize: 10 }}>
+            O CON EMAIL
+          </Typography>
+        </Divider>
 
-      {/* ── RIGHT PANEL ── */}
-      <Box sx={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        p: { xs: 3, sm: 5 },
-        bgcolor: "background.default",
-        overflowY: "auto",
-      }}>
-        <Box sx={{ width: "100%", maxWidth: 420, py: 2 }}>
-          {/* Mobile logo */}
-          <Box sx={{ textAlign: "center", mb: 3, display: { md: "none" } }}>
-            <Avatar sx={{ width: 56, height: 56, bgcolor: "success.main", mx: "auto", mb: 1.5 }}>
-              <AccountBalanceWallet sx={{ fontSize: 28 }} />
-            </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Finanzas</Typography>
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, mb: 2 }}>
+            <TextField
+              fullWidth label="Nombre" value={name}
+              onChange={(e) => setName(e.target.value)}
+              required autoComplete="given-name"
+              sx={darkField}
+            />
+            <TextField
+              fullWidth label="Apellidos" value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required autoComplete="family-name"
+              sx={darkField}
+            />
           </Box>
 
-          <Typography variant="h4" sx={{ mb: 0.5, display: { xs: "none", md: "block" }, fontWeight: 800 }}>
-            Crear cuenta
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Es gratis, siempre.
-          </Typography>
+          <TextField
+            fullWidth label="Email" type="email"
+            value={email} onChange={(e) => setEmail(e.target.value)}
+            required autoComplete="email"
+            sx={{ mb: 2, ...darkField }}
+          />
 
-          {/* OAuth */}
-          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-            {([["google", <Google key="g" />], ["github", <GitHub key="gh" />]] as const).map(([p, icon]) => (
-              <Button
-                key={p} fullWidth variant="outlined"
-                startIcon={icon}
-                onClick={() => handleOAuth(p)}
-                sx={{ py: 1.25, borderRadius: 2, textTransform: "none", fontWeight: 600, borderColor: "divider", color: "text.primary", "&:hover": { borderColor: "success.main", bgcolor: "success.light" } }}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </Button>
-            ))}
-          </Box>
+          <TextField
+            fullWidth label="Contraseña"
+            type={showPwd ? "text" : "password"}
+            value={password} onChange={(e) => setPassword(e.target.value)}
+            required autoComplete="new-password"
+            helperText="Mínimo 8 caracteres"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton size="small" edge="end" onClick={() => setShowPwd(!showPwd)}
+                      aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}>
+                      {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mb: 2, ...darkField }}
+          />
 
-          <Divider sx={{ mb: 3 }}>
-            <Typography variant="caption" color="text.disabled" sx={{ px: 1, fontWeight: 600, letterSpacing: 0.5 }}>
-              O CON EMAIL
+          <TextField
+            fullWidth label="Confirmar contraseña"
+            type={showConfirm ? "text" : "password"}
+            value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+            required autoComplete="new-password"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton size="small" edge="end" onClick={() => setShowConfirm(!showConfirm)}
+                      aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      sx={{ color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } }}>
+                      {showConfirm ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mb: 3, ...darkField }}
+          />
+
+          <Button
+            fullWidth type="submit" disabled={loading}
+            sx={{
+              py: 1.55, borderRadius: "10px", fontWeight: 700, fontSize: 15,
+              textTransform: "none", letterSpacing: 0.2, mb: 3.5,
+              background: "linear-gradient(90deg, #22c55e 0%, #16a34a 100%)",
+              color: "#fff",
+              boxShadow: "0 4px 22px rgba(34,197,94,0.38)",
+              "&:hover:not(:disabled)": {
+                background: "linear-gradient(90deg, #4ade80 0%, #22c55e 100%)",
+                boxShadow: "0 6px 30px rgba(34,197,94,0.5)",
+                transform: "translateY(-1px)",
+              },
+              "&:disabled": { background: "rgba(34,197,94,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
+              transition: "all 0.2s",
+            }}
+          >
+            {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Crear cuenta gratis"}
+          </Button>
+        </form>
+
+        <Typography variant="body2" sx={{ textAlign: "center", color: "rgba(255,255,255,0.28)", fontSize: 13 }}>
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Typography component="span" variant="body2" sx={{ color: "#86efac", fontWeight: 700, fontSize: 13, "&:hover": { color: "#4ade80" }, transition: "color 0.15s" }}>
+              Inicia sesión
             </Typography>
-          </Divider>
-
-          {error && (
-            <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, mb: 2 }}>
-              <TextField fullWidth label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="given-name" />
-              <TextField fullWidth label="Apellidos" value={lastName} onChange={(e) => setLastName(e.target.value)} required autoComplete="family-name" />
-            </Box>
-            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" sx={{ mb: 2 }} />
-            <TextField
-              fullWidth label="Contraseña"
-              type={showPwd ? "text" : "password"}
-              value={password} onChange={(e) => setPassword(e.target.value)}
-              required autoComplete="new-password"
-              helperText="Mínimo 8 caracteres"
-              slotProps={{ input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShowPwd(!showPwd)} edge="end" aria-label={showPwd ? "Ocultar" : "Mostrar"}>
-                      {showPwd ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              } }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth label="Confirmar contraseña"
-              type={showConfirm ? "text" : "password"}
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-              required autoComplete="new-password"
-              slotProps={{ input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShowConfirm(!showConfirm)} edge="end" aria-label={showConfirm ? "Ocultar" : "Mostrar"}>
-                      {showConfirm ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              } }}
-              sx={{ mb: 3 }}
-            />
-            <Button
-              fullWidth variant="contained" color="success" type="submit" disabled={loading}
-              sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, fontSize: 16, mb: 2, boxShadow: "0 4px 14px rgba(46,125,50,0.4)" }}
-            >
-              {loading ? "Creando cuenta..." : "Crear cuenta gratis"}
-            </Button>
-          </form>
-
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-            ¿Ya tienes cuenta?{" "}
-            <Link href="/login" style={{ textDecoration: "none" }}>
-              <Typography component="span" variant="body2" color="primary" sx={{ fontWeight: 700 }}>
-                Inicia sesión
-              </Typography>
-            </Link>
-          </Typography>
-        </Box>
+          </Link>
+        </Typography>
       </Box>
     </Box>
   )
