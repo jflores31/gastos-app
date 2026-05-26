@@ -27,6 +27,7 @@ export default function LoginModal({ open, onClose }) {
       setLoading(false)
     } else {
       onClose()
+      window.location.reload()
     }
   }
 

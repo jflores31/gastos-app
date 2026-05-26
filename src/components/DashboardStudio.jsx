@@ -20,6 +20,7 @@ import {
 } from "@mui/icons-material";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
+import { useData } from "../context/DataContext.jsx";
 import { createClient } from "../lib/supabase";
 import OverviewTab from "./OverviewTab.jsx";
 import ExpensesTab from "./ExpensesTab.jsx";
@@ -36,6 +37,7 @@ export default function DashboardStudio() {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const user = useSupabaseUser();
   const router = useRouter();
+  const { loadError } = useData();
 
   const [activeTab, setActiveTab] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -201,6 +203,13 @@ export default function DashboardStudio() {
       )}
 
       <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
+        {loadError && (
+          <Alert severity="error" sx={{ mb: 2 }} action={
+            <Button color="inherit" size="small" onClick={() => window.location.reload()}>Reintentar</Button>
+          }>
+            Error al cargar datos: {loadError}
+          </Alert>
+        )}
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
         {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}

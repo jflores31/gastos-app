@@ -90,51 +90,62 @@ export function DataProvider({ children }) {
   const [subscriptions, setSubscriptions] = useState([])
   const [customCats, setCustomCats] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     const supabase = createClient()
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      try {
+        const { data: { user }, error: userErr } = await supabase.auth.getUser()
+        if (userErr) console.error("[DataContext] getUser error:", userErr.message)
+        if (!user) { setLoading(false); return }
 
-      setLoading(true)
-      const results = await Promise.all([
-        supabase.from("transactions").select("*").order("fecha", { ascending: true }),
-        supabase.from("budgets").select("*"),
-        supabase.from("goals").select("*").order("created_at"),
-        supabase.from("accounts").select("*").order("created_at"),
-        supabase.from("investments").select("*").order("created_at"),
-        supabase.from("debts").select("*").order("created_at"),
-        supabase.from("subscriptions").select("*").order("created_at"),
-        supabase.from("custom_categories").select("*").order("created_at"),
-      ])
+        setLoading(true)
+        setLoadError(null)
+        const results = await Promise.all([
+          supabase.from("transactions").select("*").order("fecha", { ascending: true }),
+          supabase.from("budgets").select("*"),
+          supabase.from("goals").select("*").order("created_at"),
+          supabase.from("accounts").select("*").order("created_at"),
+          supabase.from("investments").select("*").order("created_at"),
+          supabase.from("debts").select("*").order("created_at"),
+          supabase.from("subscriptions").select("*").order("created_at"),
+          supabase.from("custom_categories").select("*").order("created_at"),
+        ])
 
-      const [
-        { data: txData, error: e1 },
-        { data: budgetData, error: e2 },
-        { data: goalsData, error: e3 },
-        { data: accountsData, error: e4 },
-        { data: investmentsData, error: e5 },
-        { data: debtsData, error: e6 },
-        { data: subsData, error: e7 },
-        { data: customCatsData, error: e8 },
-      ] = results
+        const [
+          { data: txData, error: e1 },
+          { data: budgetData, error: e2 },
+          { data: goalsData, error: e3 },
+          { data: accountsData, error: e4 },
+          { data: investmentsData, error: e5 },
+          { data: debtsData, error: e6 },
+          { data: subsData, error: e7 },
+          { data: customCatsData, error: e8 },
+        ] = results
 
-      [e1, e2, e3, e4, e5, e6, e7, e8].forEach((e, i) => { if (e) console.error(`[DataContext] load error [${i}]:`, e.message) })
+        const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
+        errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
+        if (errors.length > 0) setLoadError(errors[0].message)
 
-      if (txData) setTxs(txData.map(mapRow))
-      if (budgetData) {
-        setEditBudgetsState(Object.fromEntries(budgetData.map((b) => [b.categoria, Number(b.monto)])))
+        if (txData) setTxs(txData.map(mapRow))
+        if (budgetData) {
+          setEditBudgetsState(Object.fromEntries(budgetData.map((b) => [b.categoria, Number(b.monto)])))
+        }
+        if (goalsData) setGoals(goalsData.map(mapGoal))
+        if (accountsData) setAccounts(accountsData.map(mapAccount))
+        if (investmentsData) setInvestments(investmentsData.map(mapInvestment))
+        if (debtsData) setDebts(debtsData.map(mapDebt))
+        if (subsData) setSubscriptions(subsData.map(mapSubscription))
+        if (customCatsData) setCustomCats(customCatsData)
+
+        setLoading(false)
+      } catch (err) {
+        console.error("[DataContext] load() uncaught error:", err)
+        setLoadError(err?.message ?? "Error desconocido")
+        setLoading(false)
       }
-      if (goalsData) setGoals(goalsData.map(mapGoal))
-      if (accountsData) setAccounts(accountsData.map(mapAccount))
-      if (investmentsData) setInvestments(investmentsData.map(mapInvestment))
-      if (debtsData) setDebts(debtsData.map(mapDebt))
-      if (subsData) setSubscriptions(subsData.map(mapSubscription))
-      if (customCatsData) setCustomCats(customCatsData)
-
-      setLoading(false)
     }
 
     load()
@@ -149,6 +160,7 @@ export function DataProvider({ children }) {
         setDebts([])
         setSubscriptions([])
         setCustomCats([])
+        setLoadError(null)
         setLoading(false)
       }
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") load()
@@ -445,7 +457,7 @@ export function DataProvider({ children }) {
       investments, saveInvestment, deleteInvestment,
       debts, saveDebt, deleteDebt,
       subscriptions, saveSubscription, deleteSubscription,
-      loading,
+      loading, loadError,
     }),
     [
       txs, addTx, updateTx, deleteTx,
@@ -456,7 +468,7 @@ export function DataProvider({ children }) {
       investments, saveInvestment, deleteInvestment,
       debts, saveDebt, deleteDebt,
       subscriptions, saveSubscription, deleteSubscription,
-      loading,
+      loading, loadError,
     ]
   )
 
