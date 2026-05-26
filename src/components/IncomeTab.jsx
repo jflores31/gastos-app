@@ -175,21 +175,16 @@ export default function IncomeTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
-      <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
-
       <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, pb: 2, borderBottom: "2px solid", borderColor: "success.main" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "success.main" }}>
             <Box>
-              <Typography variant="h6" fontWeight={700} color="success.main">{t.incomes}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }} color="success.main">{t.incomes}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {incomeTxs.length} {lang === "es" ? "registros" : "records"}
-                {calFilter && ` · ${calFilter.type === "day"
-                  ? calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long" })
-                  : calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { month: "long", year: "numeric" })}`}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center" }}>
               {activeCat && (
                 <Chip
                   size="small"
@@ -200,6 +195,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   sx={{ fontWeight: 600 }}
                 />
               )}
+              <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
             </Box>
           </Box>
           {incomeTxs.length === 0 ? (

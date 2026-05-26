@@ -240,22 +240,19 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
-      <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
-
       <Card sx={{ borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
             <Box>
-              <Typography variant="h6" fontWeight={700} color="primary.main">{t.transactions}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">{t.transactions}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {calFilter
-                  ? `${expenseTxs.length} ${lang === "es" ? "gastos" : "expenses"} · ${calFilter.type === "day"
-                      ? calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long" })
-                      : calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { month: "long", year: "numeric" })}`
-                  : `${expenseTxs.length} ${lang === "es" ? "gastos registrados" : "recorded expenses"}`}
+                {expenseTxs.length} {lang === "es" ? "gastos registrados" : "recorded expenses"}
               </Typography>
             </Box>
-            {activeCat && <Chip size="medium" label={resolveCatName(activeCat)} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {activeCat && <Chip size="small" label={resolveCatName(activeCat)} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
+              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
+            </Box>
           </Box>
           {expenseTxs.length === 0 ? (
             <NoTransactions lang={lang} type="expense" />
