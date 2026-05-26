@@ -144,8 +144,8 @@ export default function OverviewTab({ period, setPeriod }) {
                 />
               )}
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
-              {card.spark && card.spark.length > 1 && (
-                <Box sx={{ mt: "auto", pt: 1.5, opacity: 0.7 }}>
+              {card.spark && card.spark.length >= 1 && (
+                <Box sx={{ mt: 1.5 }}>
                   <SparkBar data={card.spark} color={card.sparkColor} />
                 </Box>
               )}

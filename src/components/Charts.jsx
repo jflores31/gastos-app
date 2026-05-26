@@ -29,7 +29,7 @@ export function SparkBar({ data, color = "var(--accent)" }) {
   const slotW = W / data.length;
   const barW = slotW * 0.65;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: "auto" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: "40px", display: "block" }}>
       {data.map((v, i) => {
         const barH = Math.max(2, (v / max) * H);
         return (
