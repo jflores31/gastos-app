@@ -44,9 +44,9 @@ export default function OverviewTab({ period, setPeriod }) {
   const net = totalIn - totalOut;
   const savingsRate = totalIn > 0 ? (net / totalIn) * 100 : 0;
   const prevSavingsRate = prevIn > 0 ? ((prevIn - prevOut) / prevIn) * 100 : 0;
-  const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : 0;
-  const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : 0;
-  const score = healthScore(savingsRate, dOut, anomalies.length);
+  const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : null;
+  const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null;
+  const score = healthScore(savingsRate, dOut ?? 0, anomalies.length);
   const donut = useMemo(() => cats.slice(0, 6).map((c) => {
     const isCustom = c.categoria?.startsWith("custom_");
     const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
@@ -57,7 +57,7 @@ export default function OverviewTab({ period, setPeriod }) {
       color: customCat?.color || CATEGORIES.expense[c.categoria]?.color || "#9e9e9e",
     };
   }), [cats, customCats, lang]);
-  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney, period);
+  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, fmtMoney, period);
 
   const heatVals = useMemo(() => {
     const m = new Map();
@@ -65,9 +65,11 @@ export default function OverviewTab({ period, setPeriod }) {
     return [...m.entries()].map(([k, v]) => ({ date: new Date(k), value: v }));
   }, [periodTxs]);
 
+  const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
+  const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: `${periodTxs.filter((x) => x.tipo === "INGRESO").length} tx` },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: `${periodTxs.filter((x) => x.tipo === "EGRESO").length} tx`, invert: true },
+    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, spark: months.map((m) => m.ingreso) },
+    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, spark: months.map((m) => m.egreso) },
     { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
     { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
   ];
@@ -133,15 +135,20 @@ export default function OverviewTab({ period, setPeriod }) {
               </Box>
               <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{card.value}</Typography>
               {card.delta != null && (
-                <Chip 
-                  size="small" 
-                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}%`} 
-                  color={card.invert ? (card.delta < 0 ? "success" : "error") : (card.delta > 0 ? "success" : "error")} 
-                  variant="filled" 
-                  sx={{ fontWeight: 600, fontSize: 11, alignSelf: "flex-start", mb: 1 }} 
+                <Chip
+                  size="small"
+                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% vs ant.`}
+                  color={card.invert ? (card.delta < 0 ? "success" : "error") : (card.delta > 0 ? "success" : "error")}
+                  variant="filled"
+                  sx={{ fontWeight: 600, fontSize: 11, alignSelf: "flex-start", mb: 1 }}
                 />
               )}
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
+              {card.spark && card.spark.length > 1 && (
+                <Box sx={{ mt: "auto", pt: 1.5, opacity: 0.6 }}>
+                  <SparkArea data={card.spark} />
+                </Box>
+              )}
             </CardContent>
           </Card>
         ))}
