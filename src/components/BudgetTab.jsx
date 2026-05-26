@@ -41,11 +41,11 @@ export default function BudgetTab({ period }) {
   const donutData = useMemo(() => {
     return Object.keys(editBudgets).map((cat) => {
       const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-      const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
-      const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+      const color = getCatColor(cat);
+      const catName = getCatName(cat);
       return { label: catName, value: spent, color };
     }).filter(d => d.value > 0);
-  }, [editBudgets, cats, lang]);
+  }, [editBudgets, cats, lang, customCats]);
 
   const startEdit = (cat) => { setEditing(cat); setEditVal(String(editBudgets[cat])); };
   const saveEdit = () => {
@@ -79,7 +79,23 @@ export default function BudgetTab({ period }) {
 
   const healthLabel = score >= 75 ? (lang === "es" ? "Excelente" : "Excellent") : score >= 50 ? (lang === "es" ? "Regular" : "Fair") : (lang === "es" ? "Crítico" : "Critical");
 
-  const availableCats = Object.keys(CATEGORIES.expense).filter(cat => !editBudgets[cat]);
+  const getCatName = (cat) => {
+    if (cat?.startsWith("custom_")) {
+      return customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat;
+    }
+    return CATEGORIES.expense[cat]?.[lang] || cat;
+  };
+  const getCatColor = (cat) => {
+    if (cat?.startsWith("custom_")) {
+      return customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e";
+    }
+    return CATEGORIES.expense[cat]?.color || "#9e9e9e";
+  };
+
+  const availableCats = [
+    ...Object.keys(CATEGORIES.expense).filter((cat) => !editBudgets[cat]),
+    ...customCats.filter((cc) => cc.tipo === "EGRESO" && !editBudgets[`custom_${cc.id}`]).map((cc) => `custom_${cc.id}`),
+  ];
 
   return (
     <Stack spacing={3}>
@@ -136,8 +152,8 @@ export default function BudgetTab({ period }) {
           const spent = cats.find((c) => c.categoria === cat)?.total || 0;
           const limit = editBudgets[cat] * monthCount(period);
           const pct = limit ? spent / limit : 0;
-          const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
-          const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+          const color = getCatColor(cat);
+          const catName = getCatName(cat);
           const isEd = editing === cat;
           const isOver = pct > 1;
           const isWarning = pct >= 0.8 && pct <= 1;
@@ -270,8 +286,8 @@ export default function BudgetTab({ period }) {
                 const limit = editBudgets[cat] * monthCount(period);
                 const pct = limit > 0 ? Math.min(spent / limit, 1) : 0;
                 const rawPct = limit > 0 ? (spent / limit) * 100 : 0;
-                const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
-                const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+                const color = getCatColor(cat);
+                const catName = getCatName(cat);
                 const isOver = rawPct > 100;
                 const isWarn = rawPct >= 80 && rawPct <= 100;
                 const barColor = isOver ? "error.main" : isWarn ? "warning.main" : "success.main";
@@ -393,7 +409,7 @@ export default function BudgetTab({ period }) {
                       </Box>
                     ) : (
                       <>
-                        <ListItemText primary={CATEGORIES.expense[cat]?.[lang] || cat} secondary={fmtMoney(amount * monthCount(period), currency, true) + (lang === "es" ? "/mes" : "/month")} />
+                        <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount * monthCount(period), currency, true) + (lang === "es" ? "/mes" : "/month")} />
                         <ListItemSecondaryAction>
                           <IconButton size="small" onClick={() => startEditExisting(cat)}><EditIcon fontSize="small" /></IconButton>
                           <IconButton size="small" color="error" onClick={() => deleteBudget(cat)}><DeleteIcon fontSize="small" /></IconButton>
@@ -410,7 +426,12 @@ export default function BudgetTab({ period }) {
             <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
             <Select value={newCat} onChange={(e) => setNewCat(e.target.value)} label={lang === "es" ? "Categoría" : "Category"}>
               {availableCats.map((cat) => (
-                <MenuItem key={cat} value={cat}>{CATEGORIES.expense[cat]?.[lang] || cat}</MenuItem>
+                <MenuItem key={cat} value={cat}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: getCatColor(cat), flexShrink: 0 }} />
+                    {getCatName(cat)}
+                  </Box>
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
