@@ -17,11 +17,22 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 ## Características
 
 ### Autenticación
-- Login con email/contraseña, Google OAuth y GitHub OAuth — diseño split-screen con panel izquierdo glassmorphism
-- Registro con nombre, apellidos y email — confirmación por email — mismo diseño split-screen en verde
+- Login con email/contraseña, Google OAuth y GitHub OAuth
+- Registro con nombre, apellidos y email — confirmación por email
 - Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
 - Protección de rutas doble capa: `src/proxy.ts` (server) + `router.replace` en `DashboardStudio` (client)
 - Auto-logout por inactividad a los 2 minutos con aviso a los 30 s
+
+**Sistema de diseño unificado en todas las páginas de auth:**
+
+| Página | Acento | Estado especial |
+|---|---|---|
+| `login` | Índigo `#6366f1` | — |
+| `register` | Verde `#22c55e` | Success: dark glass card con checkmark |
+| `forgot-password` | Sky `#38bdf8` | Success: email resaltado, instrucciones sobre spam |
+| `reset-password` | Ámbar `#f59e0b` | 4 estados: loading, expired, form, success |
+
+Todos comparten: fondo `#07080f`, 3 blobs de gradiente radial posicionados, tarjeta de vidrio centrada (`backdropFilter: blur(36px)`, borde semitransparente, sombra profunda), inputs oscuros con focus coloreado, botón con gradiente animado y `CircularProgress` en carga.
 
 ### Dashboard (OverviewTab)
 - Saludo dinámico por hora del día + nombre del usuario logueado
