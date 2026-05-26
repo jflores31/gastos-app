@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Snackbar, Alert,
   useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
@@ -34,6 +35,7 @@ export default function DashboardStudio() {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const user = useSupabaseUser();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -59,15 +61,15 @@ export default function DashboardStudio() {
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/login";
-  }, []);
+    router.replace("/login");
+  }, [router]);
 
   // Redirect unauthenticated users (belt-and-suspenders backup to middleware)
   useEffect(() => {
     if (user === null) {
-      window.location.href = "/login";
+      router.replace("/login");
     }
-  }, [user]);
+  }, [user, router]);
 
   // Inactivity auto-logout: 2 minutes with 30s warning
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function DashboardStudio() {
       logoutTimer = setTimeout(async () => {
         const supabase = createClient();
         await supabase.auth.signOut();
-        window.location.href = "/login";
+        router.replace("/login");
       }, TIMEOUT);
     };
 
@@ -109,7 +111,7 @@ export default function DashboardStudio() {
       clearTimeout(warnTimer);
       EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
     };
-  }, [user, showToast, lang]);
+  }, [user, showToast, lang, router]);
 
   const TAB_LABELS = [
     { id: "overview", label: t.overview, icon: <DashboardIcon /> },

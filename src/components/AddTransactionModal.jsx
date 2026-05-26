@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress,
   ToggleButton, ToggleButtonGroup, TextField, Autocomplete, InputAdornment,
-  Slide, Box, Avatar, Typography,
+  Slide, Box, Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -12,7 +12,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 import {
-  Home, Restaurant, FlashOn, Movie, AccountBalance, Pets, ChildCare, MoreHoriz,
+  Home, Restaurant, Movie, AccountBalance, Pets,
   AttachMoney, Work, Lightbulb, WaterDrop, Wifi, PhoneAndroid, DirectionsBus,
   LocalGasStation, DirectionsCar, TwoWheeler, Build, TireRepair, OilBarrel,
   Security, LocalParking, Coffee, Checkroom, HealthAndSafety, School,
@@ -24,12 +24,9 @@ import {
 
 const HomeIcon = Home;
 const RestaurantIcon = Restaurant;
-const ServicesIcon = FlashOn;
 const MovieIcon = Movie;
 const DebtIcon = AccountBalance;
 const PetIcon = Pets;
-const KidsIcon = ChildCare;
-const OtherIcon = MoreHoriz;
 const IncomeIcon = AttachMoney;
 const BusinessIcon = Work;
 const LightIcon = Lightbulb;
@@ -210,6 +207,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     if (!categoria) errs.categoria = lang === "es" ? "Selecciona una categoría" : "Select a category";
     if (!concepto.trim()) errs.concepto = lang === "es" ? "Ingresa un concepto" : "Enter a concept";
     if (!valor || parseFloat(valor) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
+    else if (parseFloat(valor) > 10_000_000) errs.valor = lang === "es" ? "El monto máximo es 10,000,000" : "Maximum amount is 10,000,000";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -302,7 +300,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
         <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
-          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment> } }} />
+          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: 10_000_000, step: "any" } } }} />
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? "es" : "en"}>
           <DatePicker

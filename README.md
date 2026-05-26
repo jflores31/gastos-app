@@ -17,10 +17,10 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 ## Características
 
 ### Autenticación
-- Login con email/contraseña, Google OAuth y GitHub OAuth
-- Registro con nombre, apellidos y email — confirmación por email
+- Login con email/contraseña, Google OAuth y GitHub OAuth — diseño split-screen con panel izquierdo glassmorphism
+- Registro con nombre, apellidos y email — confirmación por email — mismo diseño split-screen en verde
 - Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
-- Protección de rutas doble capa: `src/proxy.ts` (server) + redirect en `DashboardStudio` (client)
+- Protección de rutas doble capa: `src/proxy.ts` (server) + `router.replace` en `DashboardStudio` (client)
 - Auto-logout por inactividad a los 2 minutos con aviso a los 30 s
 
 ### Dashboard (OverviewTab)
@@ -40,12 +40,14 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Resumen del período (total, transacciones, promedio diario, mayor gasto)
 - Lista completa con edición y eliminación (confirmación de borrado)
 - Filtrado por categoría
+- **CalendarFilter:** mapa de calor interactivo — vista por día (7 columnas) y por mes (4×3) con intensidad de color proporcional al gasto; click para filtrar la lista, chip con X para limpiar el filtro
 - Fecha y hora completa en cada transacción: "24 de mayo de 2026, 3:45 p.m."
 
 ### Ingresos (IncomeTab)
 - Tarjeta de ingresos totales con sparkline
-- Grid de categorías con porcentajes y donut
+- Grid de categorías con porcentajes y donut — **tarjetas interactivas:** click en la tarjeta filtra la lista por esa categoría; botón "+" añade una transacción pre-seleccionando esa categoría
 - Tendencia mensual
+- **CalendarFilter:** mismo mapa de calor que Gastos pero en color verde (success)
 - Lista de transacciones con edición y eliminación
 - Fecha y hora completa en cada transacción
 
@@ -53,6 +55,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Health score gauge visual
 - Tarjetas por categoría con progreso y alertas al 80% y 100%
 - Donut de distribución de gastos
+- **Gráfica "Presupuesto vs Gasto real":** barras horizontales por categoría, coloreadas verde/amarillo/rojo según uso; barras al 100%+ con patrón de rayas diagonales; footer con totales y chip del porcentaje global
 - Comparación con mes anterior
 - CRUD de presupuestos — cargados exclusivamente desde Supabase (sin valores por defecto hardcodeados)
 - Al eliminar un presupuesto se borra permanentemente de la BD
@@ -104,7 +107,7 @@ src/
 │   ├── BudgetTab.jsx               # Presupuestos
 │   ├── GoalsTab.jsx                # Metas, cuentas, inversiones, deudas, subs
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
-│   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions
+│   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
 │   ├── SettingsPanel.jsx           # Drawer de ajustes + categorías personalizadas
 │   ├── LoginModal.jsx              # Modal de login in-app
@@ -115,7 +118,7 @@ src/
 │   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES export
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, BUDGETS, CURRENCIES, I18N (sin datos mock)
+│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N (sin datos mock)
 │   └── helpers.js                  # filterByPeriod, periodLabel, monthCount
 ├── theme/
 │   └── materialTheme.js            # Temas light/dark + 4 paletas de acento
@@ -170,6 +173,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
+## Seguridad
+
+| Medida | Detalle |
+|---|---|
+| HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
+| RLS en Supabase | Todas las tablas con `auth.uid() = user_id` |
+| Guardas en DELETE/UPDATE | Cada mutación llama `getUser()` y añade `.eq("user_id", user.id)` antes de ejecutar la query |
+| Sesión persistente | `persistSession: true` (default) — sesión sobrevive recargas de página |
+| Límite en montos | Monto máximo 10,000,000 validado en cliente y con `max` en el input |
+| Redirección segura | `router.replace("/login")` en vez de `window.location.href` |
+
 ## Notas Técnicas
 
 **`proxy.ts` vs `middleware.ts`:** Next.js 16 usa la convención `proxy.ts`. El nombre `middleware.ts` está deprecado y produce warning en build.
@@ -178,7 +192,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **PALETTES:** Definidas como objeto en `SettingsContext.jsx` y exportadas. Nunca redefinir en otro archivo.
 
-**Sin datos mock en producción:** `SAVINGS_GOALS`, `ACCOUNTS` y `FAMILY_MEMBERS` fueron eliminados de `data/index.js`. La tarjeta "Familia · Reparto" fue removida de `GoalsTab`. Todos los datos provienen exclusivamente de Supabase.
+**Sin datos mock en producción:** `SAVINGS_GOALS`, `ACCOUNTS`, `FAMILY_MEMBERS`, `BUDGETS` y `generateTransactions()` fueron eliminados de `data/index.js`. Todos los datos provienen exclusivamente de Supabase.
 
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado, evitando que los presupuestos eliminados reaparezcan al recargar.
 
@@ -186,7 +200,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Categorías personalizadas en modal:** Se almacenan como `value: "custom_${id}"` para distinguirlas de las categorías estáticas.
 
-**Resolución de nombre de categoría custom:** Los tabs (`ExpensesTab`, `IncomeTab`) usan un helper `resolveCatName(categoria)` que busca primero en `CATEGORIES`, luego en `customCats` por `id = categoria.slice("custom_".length)`. El array `customCats` viene de `useData()`.
+**Resolución de nombre de categoría custom:** Todos los tabs usan `resolveCatName(categoria)` que busca primero en `CATEGORIES`, luego en `customCats` por `id = categoria.slice("custom_".length)`. Aplica en `ExpensesTab`, `IncomeTab`, `OverviewTab` y `BudgetTab`. El array `customCats` viene de `useData()`.
+
+**CalendarFilter:** Componente en `shared.jsx`. Recibe `{ txs, tipo, onFilter, lang, currency }`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Color rojo (error) para EGRESO, verde (success) para INGRESO. Click en celda llama `onFilter({ type: "day"|"month", date })`, click nuevamente limpia el filtro.
 
 **Fecha y hora en transacciones:** `AddTransactionModal` inicializa con `dayjs()` (hora exacta). Al cambiar solo la fecha en el `DatePicker`, se preserva la hora: `newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second())`. Supabase almacena el ISO completo. Las listas muestran `toLocaleString("es-PE", { day, month: "long", year, hour, minute, hour12: true })`.
 

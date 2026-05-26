@@ -2,11 +2,11 @@
 
 import { useMemo } from "react";
 import {
-  Box, Card, CardContent, Typography, Chip, Avatar, Stack, LinearProgress,
+  Box, Card, CardContent, Typography, Chip, Avatar, Stack,
 } from "@mui/material";
 import {
   TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon,
-  Savings as SavingsIcon, Warning as WarningIcon, AttachMoney as MoneyIcon,
+  Savings as SavingsIcon, Warning as WarningIcon,
   AccountBalanceWallet as WalletIcon, PieChart as PieIcon, Insights as InsightsIcon,
   CalendarMonth as CalendarIcon, ShowChart as ChartIcon, Timeline as ForecastIcon,
 } from "@mui/icons-material";
@@ -27,7 +27,7 @@ import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 
 export default function OverviewTab({ period, setPeriod }) {
   const { t, lang, currency } = useSettings();
-  const { txs } = useData();
+  const { txs, customCats } = useData();
   const user = useSupabaseUser();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "";
 
@@ -47,7 +47,16 @@ export default function OverviewTab({ period, setPeriod }) {
   const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : 0;
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : 0;
   const score = healthScore(savingsRate, dOut, anomalies.length);
-  const donut = useMemo(() => cats.slice(0, 6).map((c) => ({ label: c.categoria, value: c.total, color: CATEGORIES.expense[c.categoria]?.color || "#9e9e9e" })), [cats]);
+  const donut = useMemo(() => cats.slice(0, 6).map((c) => {
+    const isCustom = c.categoria?.startsWith("custom_");
+    const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
+    return {
+      id: c.categoria,
+      label: customCat?.nombre || CATEGORIES.expense[c.categoria]?.[lang] || c.categoria,
+      value: c.total,
+      color: customCat?.color || CATEGORIES.expense[c.categoria]?.color || "#9e9e9e",
+    };
+  }), [cats, customCats, lang]);
   const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney);
 
   const heatVals = useMemo(() => {
@@ -185,9 +194,9 @@ export default function OverviewTab({ period, setPeriod }) {
               </Box>
               <Box sx={{ flex: 1 }}>
                 {donut.map((s) => (
-                  <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                  <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                     <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
-                    <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{CATEGORIES.expense[s.label]?.[lang] || s.label}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                     <Typography variant="body2" fontWeight={700} color="error.main">{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
                   </Box>
                 ))}
@@ -237,7 +246,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <HeatCalendar values={heatVals} days={84} color="currentColor" cellSize={10} gap={2} />
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, justifyContent: "center" }}>
                 <Typography variant="caption" color="text.secondary">{t.lower}</Typography>
-                <Box sx={{ width: 100, height: 10, borderRadius: 2, background: "linear-gradient(to right, transparent, error.main)" }} />
+                <Box sx={{ width: 100, height: 10, borderRadius: 2, background: (theme) => `linear-gradient(to right, transparent, ${theme.palette.error.main})` }} />
                 <Typography variant="caption" color="text.secondary">{t.higher}</Typography>
               </Box>
             </Box>

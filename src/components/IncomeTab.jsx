@@ -5,14 +5,14 @@ import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
-import { TrendingUp as TrendUpIcon, AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
-import { NoTransactions } from "./shared.jsx";
+import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", ALQUILER: "#a87cc4", MUSICA: "#c97a9b", ADELANTO: "#9e9e9e" };
 
@@ -21,6 +21,8 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const { txs, deleteTx, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [calFilter, setCalFilter] = useState(null);
+  const [activeCat, setActiveCat] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
@@ -29,7 +31,24 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
   const prevIn = useMemo(() => prevTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [prevTxs]);
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : 0;
-  const incomeTxs = useMemo(() => periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [periodTxs]);
+  const allIncomeTxs = useMemo(() => txs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [txs]);
+
+  const incomeTxs = useMemo(() => {
+    let base;
+    if (calFilter) {
+      base = allIncomeTxs.filter((x) => {
+        if (calFilter.type === "day") {
+          const d = calFilter.date;
+          return x.date.getFullYear() === d.getFullYear() && x.date.getMonth() === d.getMonth() && x.date.getDate() === d.getDate();
+        }
+        return x.date.getFullYear() === calFilter.date.getFullYear() && x.date.getMonth() === calFilter.date.getMonth();
+      });
+    } else {
+      base = periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse();
+    }
+    if (activeCat) base = base.filter((x) => x.categoria === activeCat);
+    return base;
+  }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
   const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#9e9e9e" })), [incomeCats]);
 
   return (
@@ -65,16 +84,35 @@ export default function IncomeTab({ period, openModal, showToast }) {
           const total = catData?.total || 0;
           const count = catData?.count || 0;
           const color = CATEGORIES.income[cat]?.color || ["#5a9bc9", "#e91e63", "#7ab87a", "#a87cc4", "#ff6f61", "#e74c3c", "#2ecc71"][idx];
+          const isActive = activeCat === cat;
           return (
           <Grid size={{ xs: 6, sm: 3, md: 2.4 }} key={cat}>
-            <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: "background.paper" }}>
+            <Card
+              onClick={() => setActiveCat(isActive ? null : cat)}
+              sx={{
+                borderRadius: 2, border: "2px solid", borderColor: isActive ? color : "divider",
+                boxShadow: isActive ? `0 0 0 3px ${color}33` : "0 2px 12px rgba(0,0,0,0.06)",
+                transition: "all 0.2s", cursor: "pointer",
+                "&:hover": { boxShadow: `0 8px 24px rgba(0,0,0,0.12)`, transform: "translateY(-4px)" },
+                borderTop: "4px solid", borderTopColor: color, bgcolor: isActive ? `${color}18` : "background.paper",
+              }}
+            >
               <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                   <Avatar sx={{ width: 28, height: 28, bgcolor: color, fontSize: 11, fontWeight: 700, color: "#fff" }}>{(CATEGORIES.income[cat]?.[lang] || cat)[0]}</Avatar>
                   <Typography variant="caption" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{CATEGORIES.income[cat]?.[lang] || cat}</Typography>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => { e.stopPropagation(); openModal(cat, "income"); }}
+                    aria-label={lang === "es" ? `Agregar ${CATEGORIES.income[cat]?.[lang]}` : `Add ${CATEGORIES.income[cat]?.en}`}
+                    sx={{ width: 24, height: 24, bgcolor: color, color: "#fff", "&:hover": { bgcolor: color, opacity: 0.85 }, p: 0 }}
+                  >
+                    <AddIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
                 </Box>
                 <Typography variant="h6" fontWeight={700} color="success.main">{fmtMoney(total, currency, true)}</Typography>
                 <Typography variant="caption" color="text.secondary">{count} tx · {totalIn > 0 ? Math.round((total / totalIn) * 100) : 0}%</Typography>
+                {isActive && <Typography variant="caption" sx={{ color, fontWeight: 700, display: "block", mt: 0.5 }}>{lang === "es" ? "✓ Filtrando" : "✓ Filtering"}</Typography>}
               </CardContent>
             </Card>
           </Grid>);
@@ -137,12 +175,31 @@ export default function IncomeTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
+      <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
+
       <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, pb: 2, borderBottom: "2px solid", borderColor: "success.main" }}>
             <Box>
               <Typography variant="h6" fontWeight={700} color="success.main">{t.incomes}</Typography>
-              <Typography variant="body2" color="text.secondary">{incomeTxs.length} {lang === "es" ? "registros" : "records"}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {incomeTxs.length} {lang === "es" ? "registros" : "records"}
+                {calFilter && ` · ${calFilter.type === "day"
+                  ? calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long" })
+                  : calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { month: "long", year: "numeric" })}`}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {activeCat && (
+                <Chip
+                  size="small"
+                  label={CATEGORIES.income[activeCat]?.[lang] || activeCat}
+                  onDelete={() => setActiveCat(null)}
+                  color="success"
+                  variant="filled"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
             </Box>
           </Box>
           {incomeTxs.length === 0 ? (

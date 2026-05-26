@@ -11,7 +11,7 @@ import { Donut } from "./Charts.jsx";
 
 export default function BudgetTab({ period }) {
   const { t, lang, currency } = useSettings();
-  const { txs, editBudgets, setEditBudgets, deleteBudgetCat } = useData();
+  const { txs, editBudgets, setEditBudgets, deleteBudgetCat, customCats } = useData();
   const [editing, setEditing] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [addDialog, setAddDialog] = useState(false);
@@ -254,6 +254,98 @@ export default function BudgetTab({ period }) {
         </Grid>
       </Grid>
 
+      {Object.keys(editBudgets).length > 0 && (
+        <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "primary.main" }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+              <Avatar sx={{ bgcolor: "primary.light", color: "primary.dark" }}><CompareIcon /></Avatar>
+              <Box>
+                <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Presupuesto vs Gasto real" : "Budget vs Actual"}</Typography>
+                <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
+              </Box>
+            </Box>
+            <Stack spacing={2}>
+              {Object.keys(editBudgets).map((cat) => {
+                const spent = cats.find((c) => c.categoria === cat)?.total || 0;
+                const limit = editBudgets[cat] * monthCount(period);
+                const pct = limit > 0 ? Math.min(spent / limit, 1) : 0;
+                const rawPct = limit > 0 ? (spent / limit) * 100 : 0;
+                const color = CATEGORIES.expense[cat]?.color || "#9e9e9e";
+                const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+                const isOver = rawPct > 100;
+                const isWarn = rawPct >= 80 && rawPct <= 100;
+                const barColor = isOver ? "error.main" : isWarn ? "warning.main" : "success.main";
+                return (
+                  <Box key={cat}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />
+                        <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 120, sm: 200 } }}>{catName}</Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {fmtMoney(spent, currency, true)} / {fmtMoney(limit, currency, true)}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={`${rawPct.toFixed(0)}%`}
+                          color={isOver ? "error" : isWarn ? "warning" : "success"}
+                          variant="filled"
+                          sx={{ fontWeight: 700, height: 20, fontSize: 11, minWidth: 46 }}
+                        />
+                      </Box>
+                    </Box>
+                    {/* Budget track (background) + Spent bar */}
+                    <Box sx={{ position: "relative", height: 12, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }}>
+                      {/* Limit marker at 100% — visual reference */}
+                      <Box
+                        sx={{
+                          position: "absolute", left: 0, top: 0, height: "100%",
+                          width: `${pct * 100}%`,
+                          bgcolor: barColor,
+                          borderRadius: 6,
+                          transition: "width 0.7s cubic-bezier(0.4,0,0.2,1)",
+                          backgroundImage: isOver
+                            ? "repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 4px, transparent 4px, transparent 8px)"
+                            : "none",
+                        }}
+                      />
+                    </Box>
+                    {/* Spent amount and remaining */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: barColor, fontWeight: 600 }}>
+                        {isOver
+                          ? `${lang === "es" ? "Excedido" : "Over"} +${fmtMoney(spent - limit, currency, true)}`
+                          : `${lang === "es" ? "Disponible" : "Left"} ${fmtMoney(limit - spent, currency, true)}`}
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: 10 }}>
+                        {lang === "es" ? "límite" : "limit"} {fmtMoney(limit, currency, true)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Stack>
+            {/* Summary footer */}
+            <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                {lang === "es" ? "Total gastado" : "Total spent"}: <strong>{fmtMoney(totalOut, currency, true)}</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                {lang === "es" ? "Total presupuestado" : "Total budget"}: <strong>{fmtMoney(totalBudget, currency, true)}</strong>
+              </Typography>
+              <Chip
+                size="small"
+                label={`${Math.round(budgetUsed * 100)}% ${lang === "es" ? "usado" : "used"}`}
+                color={budgetUsed > 1 ? "error" : budgetUsed >= 0.8 ? "warning" : "success"}
+                variant="outlined"
+                sx={{ fontWeight: 700 }}
+              />
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "success.main" }}>
         <CardContent sx={{ p: 2.5 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -265,13 +357,16 @@ export default function BudgetTab({ period }) {
           </Box>
           <Stack spacing={1}>
             {recurring.slice(0, 5).map((r) => {
-              const color = CATEGORIES.expense[r.categoria]?.color || "#9e9e9e";
+              const isCustom = r.categoria?.startsWith("custom_");
+              const customCat = isCustom ? customCats.find((cc) => cc.id === r.categoria.slice("custom_".length)) : null;
+              const color = customCat?.color || CATEGORIES.expense[r.categoria]?.color || "#9e9e9e";
+              const catName = customCat?.nombre || CATEGORIES.expense[r.categoria]?.[lang] || r.categoria;
               return (
                 <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                   <Avatar sx={{ width: 36, height: 36, bgcolor: color, color: "common.white", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
-                    <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{CATEGORIES.expense[r.categoria]?.[lang]}</Typography>
+                    <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName}</Typography>
                   </Box>
                   <Typography variant="body1" fontWeight={700}>{fmtMoney(r.avg, currency, true)}</Typography>
                 </Box>

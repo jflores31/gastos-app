@@ -16,7 +16,9 @@ export async function createServerSupabaseClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {}
+          } catch (e) {
+            if (process.env.NODE_ENV !== "production") console.warn("[supabase-server] setAll:", e)
+          }
         },
       },
     }

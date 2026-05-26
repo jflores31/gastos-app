@@ -11,11 +11,11 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
 } from "@mui/icons-material";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { CATEGORIES, fmtMoney, txByCategory, txByCategoryToday, getTodayExpenses } from "../data/index.js";
+import { CATEGORIES, fmtMoney, txByCategory, getTodayExpenses } from "../data/index.js";
 import { filterByPeriod, periodLabel, monthCount } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
-import { NoTransactions } from "./shared.jsx";
+import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, currency } = useSettings();
@@ -24,10 +24,10 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [calFilter, setCalFilter] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const cats = useMemo(() => txByCategory(periodTxs), [periodTxs]);
-  const catsToday = useMemo(() => txByCategoryToday(txs), [txs]);
   const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
   const totalOut = useMemo(() => periodTxs.filter((x) => x.tipo === "EGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
@@ -38,7 +38,20 @@ export default function ExpensesTab({ period, openModal, showToast }) {
     return list.slice().reverse();
   }, [periodTxs, activeCat]);
 
-  const expenseTxs = useMemo(() => filtered.filter((x) => x.tipo === "EGRESO"), [filtered]);
+  const allExpenseTxs = useMemo(() => txs.filter((x) => x.tipo === "EGRESO").slice().reverse(), [txs]);
+
+  const expenseTxs = useMemo(() => {
+    if (calFilter) {
+      return allExpenseTxs.filter((x) => {
+        if (calFilter.type === "day") {
+          const d = calFilter.date;
+          return x.date.getFullYear() === d.getFullYear() && x.date.getMonth() === d.getMonth() && x.date.getDate() === d.getDate();
+        }
+        return x.date.getFullYear() === calFilter.date.getFullYear() && x.date.getMonth() === calFilter.date.getMonth();
+      });
+    }
+    return filtered.filter((x) => x.tipo === "EGRESO");
+  }, [filtered, allExpenseTxs, calFilter]);
 
   const resolveCatName = (categoria) => {
     if (CATEGORIES.expense[categoria]?.[lang]) return CATEGORIES.expense[categoria][lang];
@@ -72,28 +85,6 @@ export default function ExpensesTab({ period, openModal, showToast }) {
     overflow: "hidden",
   };
 
-  const sectionTitleStyles = {
-    mb: 2,
-    pb: 1.5,
-    borderBottom: "2px solid",
-    borderColor: "primary.main",
-  };
-
-  const itemCardStyles = (color, isActive) => ({
-    borderRadius: 2,
-    p: 1.5,
-    mb: 1,
-    bgcolor: isActive ? "primary.light" : "background.default",
-    border: isActive ? "2px solid" : "1px solid",
-    borderColor: isActive ? "primary.main" : "divider",
-    transition: "all 0.2s ease",
-    cursor: "pointer",
-    "&:hover": {
-      bgcolor: isActive ? "primary.light" : "action.hover",
-      transform: "translateY(-1px)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-    },
-  });
 
   return (
     <>
@@ -122,7 +113,6 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
-                    const color = CATEGORIES.expense[tx.categoria]?.color || customCats.find((c) => c.id === tx.categoria?.slice("custom_".length))?.color || "#9e9e9e";
                     const catName = resolveCatName(tx.categoria);
                     const hour = tx.date.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
@@ -156,7 +146,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <Stack spacing={1.5}>
-                  {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k, v]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
+                  {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
                     const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
                     const color = CATEGORIES.expense[c.categoria]?.color || customCats.find((cc) => cc.id === c.categoria?.slice("custom_".length))?.color || "#9e9e9e";
                     const catName = resolveCatName(c.categoria);
@@ -250,12 +240,20 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
+      <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
+
       <Card sx={{ borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
             <Box>
               <Typography variant="h6" fontWeight={700} color="primary.main">{t.transactions}</Typography>
-              <Typography variant="body2" color="text.secondary">{expenseTxs.length} {lang === "es" ? "gastos registrados" : "recorded expenses"}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {calFilter
+                  ? `${expenseTxs.length} ${lang === "es" ? "gastos" : "expenses"} · ${calFilter.type === "day"
+                      ? calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long" })
+                      : calFilter.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { month: "long", year: "numeric" })}`
+                  : `${expenseTxs.length} ${lang === "es" ? "gastos registrados" : "recorded expenses"}`}
+              </Typography>
             </Box>
             {activeCat && <Chip size="medium" label={resolveCatName(activeCat)} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
           </Box>

@@ -95,7 +95,7 @@ export function StudioCashflow({ months, t }) {
 }
 
 export function HeatCalendar({ values, days = 84, color = "currentColor", cellSize = 10, gap = 2 }) {
-  const today = new Date(2026, 4, 7);
+  const today = new Date();
   const start = new Date(today); start.setDate(today.getDate() - days + 1);
   const startDow = (start.getDay() + 6) % 7;
   const map = new Map(values.map((v) => [v.date.toDateString(), v.value]));

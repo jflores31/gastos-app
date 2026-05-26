@@ -98,16 +98,7 @@ export function DataProvider({ children }) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      const [
-        { data: txData },
-        { data: budgetData },
-        { data: goalsData },
-        { data: accountsData },
-        { data: investmentsData },
-        { data: debtsData },
-        { data: subsData },
-        { data: customCatsData },
-      ] = await Promise.all([
+      const results = await Promise.all([
         supabase.from("transactions").select("*").order("fecha", { ascending: true }),
         supabase.from("budgets").select("*"),
         supabase.from("goals").select("*").order("created_at"),
@@ -117,6 +108,21 @@ export function DataProvider({ children }) {
         supabase.from("subscriptions").select("*").order("created_at"),
         supabase.from("custom_categories").select("*").order("created_at"),
       ])
+
+      const [
+        { data: txData, error: e1 },
+        { data: budgetData, error: e2 },
+        { data: goalsData, error: e3 },
+        { data: accountsData, error: e4 },
+        { data: investmentsData, error: e5 },
+        { data: debtsData, error: e6 },
+        { data: subsData, error: e7 },
+        { data: customCatsData, error: e8 },
+      ] = results
+
+      if (process.env.NODE_ENV !== "production") {
+        [e1, e2, e3, e4, e5, e6, e7, e8].forEach((e, i) => { if (e) console.warn(`[DataContext] load error [${i}]:`, e.message) })
+      }
 
       if (txData) setTxs(txData.map(mapRow))
       if (budgetData) {
@@ -190,6 +196,7 @@ export function DataProvider({ children }) {
         fecha: tx.date.toISOString(),
       })
       .eq("id", tx.id)
+      .eq("user_id", user.id)
       .select()
       .single()
 
@@ -200,7 +207,9 @@ export function DataProvider({ children }) {
 
   const deleteTx = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("transactions").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id)
     setTxs((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -222,7 +231,9 @@ export function DataProvider({ children }) {
 
   const deleteCustomCat = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("custom_categories").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("custom_categories").delete().eq("id", id).eq("user_id", user.id)
     setCustomCats((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -287,7 +298,9 @@ export function DataProvider({ children }) {
 
   const deleteGoal = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("goals").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("goals").delete().eq("id", id).eq("user_id", user.id)
     setGoals((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -317,7 +330,9 @@ export function DataProvider({ children }) {
 
   const deleteAccount = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("accounts").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
     setAccounts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -347,7 +362,9 @@ export function DataProvider({ children }) {
 
   const deleteInvestment = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("investments").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("investments").delete().eq("id", id).eq("user_id", user.id)
     setInvestments((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -379,7 +396,9 @@ export function DataProvider({ children }) {
 
   const deleteDebt = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("debts").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("debts").delete().eq("id", id).eq("user_id", user.id)
     setDebts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
@@ -408,7 +427,9 @@ export function DataProvider({ children }) {
 
   const deleteSubscription = useCallback(async (id) => {
     const supabase = createClient()
-    await supabase.from("subscriptions").delete().eq("id", id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from("subscriptions").delete().eq("id", id).eq("user_id", user.id)
     setSubscriptions((prev) => prev.filter((x) => x.id !== id))
   }, [])
 

@@ -141,15 +141,6 @@ export const CATEGORIES = {
   }
 };
 
-export const BUDGETS = {
-  VIVIENDA: 1800, LUZ: 150, AGUA: 80, INTERNET: 120, CELULAR: 80,
-  COMIDA: 1400, TRANSPORTE: 200, GASOLINA: 300, AUTO: 250, MOTO: 150,
-  REPUESTOS: 100, LLANTAS: 80, ACEITE: 60, SOAT: 100, ESTACIONAMIENTO: 80,
-  STREAMING: 60, CAFES: 100, ROPA: 150, SALUD: 200, DEUDAS: 900,
-  EDUCACION: 300, MASCOTA: 150, REGALOS: 100, IMPREVISTOS: 200,
-  AHORRO: 500, DELIVERY: 150, JUEGOS: 50, SALIDAS: 200, HIGIENE: 100,
-  GIMNASIO: 80, VIAJES: 150, IMPUESTOS: 100, COMPRAS: 100,
-};
 
 export const CURRENCIES = {
   PEN: { symbol: "S/", code: "PEN", name: "Sol Peruano", rate: 1 },
@@ -172,81 +163,8 @@ export function fmtMoney(v, curr = "PEN", compact = false) {
   return c.symbol + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: n >= 100 ? 0 : 2 });
 }
 
-function mulberry32(seed) {
-  return function () {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 export function getToday() {
   return new Date();
-}
-
-export function generateTransactions() {
-  const rng = mulberry32(42);
-  const txs = [];
-  const today = getToday();
-  const startMonth = new Date(today.getFullYear() - 1, today.getMonth(), 1);
-  let id = 0;
-
-  for (let m = 0; m < 13; m++) {
-    const monthDate = new Date(startMonth.getFullYear(), startMonth.getMonth() + m, 1);
-    const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
-
-    txs.push(mk(id++, "INGRESO", "SUELDO", "SUELDO POR PLANILLA", 2, monthDate, 4500 + Math.round(rng() * 100)));
-    if (m % 6 === 5) txs.push(mk(id++, "INGRESO", "BONO", "GRATIFICACION", 15, monthDate, 4500));
-    if (m === 6) txs.push(mk(id++, "INGRESO", "BONO", "AGUINALDO", 15, monthDate, 1800));
-    if (rng() > 0.3) txs.push(mk(id++, "INGRESO", "MUSICA", rng() > 0.5 ? "EVENTOS" : "CLASES", Math.ceil(rng() * 28), monthDate, 300 + Math.round(rng() * 900)));
-    if (rng() > 0.5) txs.push(mk(id++, "INGRESO", "NEGOCIO", "VENTAS", Math.ceil(rng() * 28), monthDate, 200 + Math.round(rng() * 600)));
-
-    txs.push(mk(id++, "EGRESO", "VIVIENDA", "ALQUILER", 5, monthDate, 1700));
-    txs.push(mk(id++, "EGRESO", "SERVICIOS", "INTERNET", 8, monthDate, 120));
-    txs.push(mk(id++, "EGRESO", "SERVICIOS", "LUZ", 12, monthDate, 95 + Math.round(rng() * 40)));
-    txs.push(mk(id++, "EGRESO", "SERVICIOS", "AGUA", 14, monthDate, 60 + Math.round(rng() * 20)));
-    txs.push(mk(id++, "EGRESO", "SERVICIOS", "CELULAR", 18, monthDate, 89));
-    txs.push(mk(id++, "EGRESO", "DEUDAS", "BCP", 10, monthDate, 380));
-    txs.push(mk(id++, "EGRESO", "DEUDAS", "SCOTIABANK", 20, monthDate, 290));
-    if (m % 3 === 0) txs.push(mk(id++, "EGRESO", "DEUDAS", "INTERBANK", 25, monthDate, 220));
-    txs.push(mk(id++, "EGRESO", "ENTRETENIMIENTO", "STREAMING", 1, monthDate, 45));
-    txs.push(mk(id++, "EGRESO", "MASCOTA", "ALIMENTO", 5, monthDate, 140 + Math.round(rng() * 30)));
-    if (m % 4 === 0) txs.push(mk(id++, "EGRESO", "MASCOTA", "VETERINARIO", 12, monthDate, 200));
-
-    const foodDays = Math.min(daysInMonth, m === 12 ? today.getDate() : daysInMonth);
-    for (let d = 1; d <= foodDays; d++) {
-      if (rng() > 0.18) {
-        const concepts = ["DESAYUNO", "ALMUERZO", "CENA", "MERCADO"];
-        const concept = concepts[Math.floor(rng() * concepts.length)];
-        const base = concept === "MERCADO" ? 80 + rng() * 120 : 12 + rng() * 30;
-        txs.push(mk(id++, "EGRESO", "COMIDA", concept, d, monthDate, Math.round(base)));
-      }
-    }
-    const outings = 4 + Math.floor(rng() * 5);
-    for (let k = 0; k < outings; k++) {
-      const d = 1 + Math.floor(rng() * foodDays);
-      txs.push(mk(id++, "EGRESO", "ENTRETENIMIENTO", rng() > 0.5 ? "SALIDAS" : "PASEOS", d, monthDate, 30 + Math.round(rng() * 180)));
-    }
-    txs.push(mk(id++, "EGRESO", "HIJAS", "COLEGIO", 5, monthDate, 850));
-    if (rng() > 0.5) txs.push(mk(id++, "EGRESO", "HIJAS", "UTILES", Math.ceil(rng() * 28), monthDate, 50 + Math.round(rng() * 150)));
-    if (m % 3 === 1) txs.push(mk(id++, "EGRESO", "HIJAS", "ROPA", Math.ceil(rng() * 28), monthDate, 180 + Math.round(rng() * 120)));
-    const others = 2 + Math.floor(rng() * 4);
-    for (let k = 0; k < others; k++) {
-      const d = 1 + Math.floor(rng() * foodDays);
-      const concepts = ["GASTOS MOTO", "FARMACIA", "REGALOS"];
-      txs.push(mk(id++, "EGRESO", "OTROS", concepts[Math.floor(rng() * 3)], d, monthDate, 20 + Math.round(rng() * 200)));
-    }
-    if (m === 9) txs.push(mk(id++, "EGRESO", "MASCOTA", "VETERINARIO", 18, monthDate, 1850, true));
-    if (m === 11) txs.push(mk(id++, "EGRESO", "VIVIENDA", "MANTENIMIENTO", 22, monthDate, 1200, true));
-  }
-
-  function mk(id, tipo, categoria, concepto, dia, monthDate, valor, anomaly = false) {
-    const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), dia);
-    return { id, tipo, categoria, concepto, dia, mes: monthDate.getMonth(), año: monthDate.getFullYear(), date, valor, anomaly };
-  }
-
-  return txs.filter((t) => t.date <= today).sort((a, b) => a.date - b.date);
 }
 
 export function txByMonth(txs) {
@@ -296,4 +214,3 @@ export function getTodayExpenses(txs) {
     .sort((a, b) => b.date - a.date);
 }
 
-// generateTransactions() is available for local dev seeding only — not used in production
