@@ -53,6 +53,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
     return filtered.filter((x) => x.tipo === "EGRESO");
   }, [filtered, allExpenseTxs, calFilter]);
 
+  const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
+
   const resolveCatName = (categoria) => {
     if (CATEGORIES.expense[categoria]?.[lang]) return CATEGORIES.expense[categoria][lang];
     if (CATEGORIES.income[categoria]?.[lang]) return CATEGORIES.income[categoria][lang];
@@ -215,7 +217,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <Stack spacing={1.5}>
                   {[
-                    { label: t.spent, value: totalOut, color: "error.main", bg: "error.light" },
+                    { label: t.spent, value: filteredTotal, color: "error.main", bg: "error.light" },
                     { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light" },
                     { label: lang === "es" ? "Promedio diario" : "Daily avg", value: totalOut / 30, color: "warning.main", bg: "warning.light" },
                     { label: lang === "es" ? "Mayor gasto" : "Top expense", value: cats[0]?.total || 0, color: "error.dark", bg: "error.light" },
@@ -298,8 +300,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             </List>
           )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
-            <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL GASTOS" : "TOTAL EXPENSES"}</Typography>
-            <Typography variant="h5" fontWeight={700}>−{fmtMoney(totalOut, currency, true)}</Typography>
+            <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL GASTOS" : "TOTAL EXPENSES"}{(calFilter || activeCat) ? ` (${lang === "es" ? "filtrado" : "filtered"})` : ""}</Typography>
+            <Typography variant="h5" fontWeight={700}>−{fmtMoney(filteredTotal, currency, true)}</Typography>
           </Box>
         </CardContent>
       </Card>

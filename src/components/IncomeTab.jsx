@@ -49,6 +49,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
     if (activeCat) base = base.filter((x) => x.categoria === activeCat);
     return base;
   }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
+  const filteredTotal = useMemo(() => incomeTxs.reduce((s, x) => s + x.valor, 0), [incomeTxs]);
   const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#9e9e9e" })), [incomeCats]);
 
   return (
@@ -266,8 +267,8 @@ export default function IncomeTab({ period, openModal, showToast }) {
             </List>
           )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
-            <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL INGRESOS" : "TOTAL INCOME"}</Typography>
-            <Typography variant="h5" fontWeight={700}>+{fmtMoney(totalIn, currency, true)}</Typography>
+            <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL INGRESOS" : "TOTAL INCOME"}{(calFilter || activeCat) ? ` (${lang === "es" ? "filtrado" : "filtered"})` : ""}</Typography>
+            <Typography variant="h5" fontWeight={700}>+{fmtMoney(filteredTotal, currency, true)}</Typography>
           </Box>
         </CardContent>
       </Card>
