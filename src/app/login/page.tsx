@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
@@ -24,7 +23,6 @@ const darkField = {
 } as const
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPwd, setShowPwd] = useState(false)
@@ -55,7 +53,7 @@ export default function LoginPage() {
       setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
       setLoading(false)
     } else {
-      router.replace("/")
+      window.location.href = "/"
     }
   }
 

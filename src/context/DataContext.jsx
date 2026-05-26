@@ -98,6 +98,7 @@ export function DataProvider({ children }) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
+      setLoading(true)
       const results = await Promise.all([
         supabase.from("transactions").select("*").order("fecha", { ascending: true }),
         supabase.from("budgets").select("*"),
@@ -148,8 +149,9 @@ export function DataProvider({ children }) {
         setDebts([])
         setSubscriptions([])
         setCustomCats([])
+        setLoading(false)
       }
-      if (event === "SIGNED_IN") load()
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") load()
     })
 
     return () => subscription.unsubscribe()
