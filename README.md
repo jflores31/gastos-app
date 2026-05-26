@@ -30,7 +30,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Gráfico de flujo de caja (ingresos vs gastos por mes)
 - Desglose de gastos por categoría con gráfico donut
 - Heat calendar de gastos diarios
-- Comparación vs mes anterior con barras de progreso
+- Comparación vs período anterior con barras de progreso — oculta en "todo" (sin período definido), muestra "Sin datos" si no hay transacciones en el período previo; etiqueta dinámica según período activo
 - Selector de período: semana, mes, trimestre, año
 
 ### Gastos (ExpensesTab)
@@ -203,6 +203,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Resolución de nombre de categoría custom:** Todos los tabs usan `resolveCatName(categoria)` que busca primero en `CATEGORIES`, luego en `customCats` por `id = categoria.slice("custom_".length)`. Aplica en `ExpensesTab`, `IncomeTab`, `OverviewTab` y `BudgetTab`. El array `customCats` viene de `useData()`.
 
 **CalendarFilter:** Componente en `shared.jsx`. Recibe `{ txs, tipo, onFilter, lang, currency }`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Color rojo (error) para EGRESO, verde (success) para INGRESO. Click en celda llama `onFilter({ type: "day"|"month", date })`, click nuevamente limpia el filtro.
+
+**Comparación vs período anterior (OverviewTab):** `filterByPeriod(txs, "all", -1)` ignora el offset y retorna todos los datos — la sección se oculta cuando `period === "all"`. Cuando no hay transacciones en el período anterior (`prevIn === 0 && prevOut === 0`), muestra "Sin datos del período anterior" en lugar de barras vacías con "+0.0%". La etiqueta es dinámica: "vs semana/mes/trimestre/año anterior" según el período seleccionado.
 
 **Fecha y hora en transacciones:** `AddTransactionModal` inicializa con `dayjs()` (hora exacta). Al cambiar solo la fecha en el `DatePicker`, se preserva la hora: `newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second())`. Supabase almacena el ISO completo. Las listas muestran `toLocaleString("es-PE", { day, month: "long", year, hour, minute, hour12: true })`.
 
