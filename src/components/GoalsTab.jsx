@@ -19,12 +19,12 @@ const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 const EMPTY_SUB = { name: "", price: "", cycle: "monthly", category: "" };
 
-function EmptySection({ label, onAdd }) {
+function EmptySection({ label, onAdd, lang = "es" }) {
   return (
     <Box sx={{ textAlign: "center", py: 4, color: "text.secondary" }}>
       <Typography variant="body2" sx={{ mb: 1 }}>{label}</Typography>
       <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={onAdd}>
-        Agregar
+        {lang === "es" ? "Agregar" : "Add"}
       </Button>
     </Box>
   );
@@ -159,7 +159,7 @@ export default function GoalsTab() {
             </Button>
           </Box>
           {goals.length === 0 ? (
-            <EmptySection label={lang === "es" ? "Sin metas de ahorro. Agrega la primera." : "No savings goals yet."} onAdd={openNewGoal} />
+            <EmptySection label={lang === "es" ? "Sin metas de ahorro. Agrega la primera." : "No savings goals yet."} onAdd={openNewGoal} lang={lang} />
           ) : (
             <Grid container spacing={3}>
               {goals.map((g) => {
@@ -230,7 +230,7 @@ export default function GoalsTab() {
                 </Grid>
               </Box>
               {accounts.length === 0 ? (
-                <EmptySection label={lang === "es" ? "Sin cuentas registradas." : "No accounts yet."} onAdd={openNewAccount} />
+                <EmptySection label={lang === "es" ? "Sin cuentas registradas." : "No accounts yet."} onAdd={openNewAccount} lang={lang} />
               ) : (
                 <Box sx={{ flex: 1 }}>
                   <Stack spacing={1}>
@@ -357,7 +357,7 @@ export default function GoalsTab() {
             <Button variant="outlined" startIcon={<AddIcon />} onClick={openNewInvest}>{lang === "es" ? "Agregar" : "Add"}</Button>
           </Box>
           {investments.length === 0 ? (
-            <EmptySection label={lang === "es" ? "Sin inversiones registradas." : "No investments yet."} onAdd={openNewInvest} />
+            <EmptySection label={lang === "es" ? "Sin inversiones registradas." : "No investments yet."} onAdd={openNewInvest} lang={lang} />
           ) : (
             <>
               <Grid container spacing={3}>
@@ -410,7 +410,7 @@ export default function GoalsTab() {
                 <IconButton size="small" aria-label={lang === "es" ? "Agregar deuda" : "Add debt"} onClick={openNewDebt} sx={{ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
               </Box>
               {debts.length === 0 ? (
-                <EmptySection label={lang === "es" ? "Sin préstamos registrados." : "No loans yet."} onAdd={openNewDebt} />
+                <EmptySection label={lang === "es" ? "Sin préstamos registrados." : "No loans yet."} onAdd={openNewDebt} lang={lang} />
               ) : (
                 <Box sx={{ flex: 1 }}>
                   {debts.map((d) => {
@@ -460,7 +460,7 @@ export default function GoalsTab() {
                 <IconButton size="small" aria-label={lang === "es" ? "Agregar suscripción" : "Add subscription"} onClick={openNewSub} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
               </Box>
               {subscriptions.length === 0 ? (
-                <EmptySection label={lang === "es" ? "Sin suscripciones registradas." : "No subscriptions yet."} onAdd={openNewSub} />
+                <EmptySection label={lang === "es" ? "Sin suscripciones registradas." : "No subscriptions yet."} onAdd={openNewSub} lang={lang} />
               ) : (
                 <>
                   <Box sx={{ flex: 1 }}>

@@ -235,7 +235,7 @@ export default function BudgetTab({ period }) {
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
                 <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><CompareIcon /></Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight={700}>{lang === "es" ? "vs mes anterior" : "vs previous month"}</Typography>
+                  <Typography variant="h6" fontWeight={700}>{lang === "es" ? `vs ${period === "week" ? "semana" : period === "month" ? "mes" : period === "quarter" ? "trimestre" : "año"} anterior` : `vs previous ${period === "week" ? "week" : period === "month" ? "month" : period === "quarter" ? "quarter" : "year"}`}</Typography>
                   <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
                 </Box>
               </Box>

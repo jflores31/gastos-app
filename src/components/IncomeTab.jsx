@@ -14,7 +14,6 @@ import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
-const INCOME_COLORS = { SUELDO: "#5a9bc9", BONO: "#c9a55a", NEGOCIO: "#7ab87a", ALQUILER: "#a87cc4", MUSICA: "#c97a9b", ADELANTO: "#9e9e9e" };
 
 export default function IncomeTab({ period, openModal, showToast }) {
   const { t, lang, currency } = useSettings();
@@ -30,7 +29,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const totalIn = useMemo(() => periodTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
   const prevIn = useMemo(() => prevTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [prevTxs]);
-  const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : 0;
+  const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null;
   const allIncomeTxs = useMemo(() => txs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [txs]);
 
   const incomeTxs = useMemo(() => {
@@ -50,7 +49,13 @@ export default function IncomeTab({ period, openModal, showToast }) {
     return base;
   }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
   const filteredTotal = useMemo(() => incomeTxs.reduce((s, x) => s + x.valor, 0), [incomeTxs]);
-  const incomeDonut = useMemo(() => incomeCats.map((c) => ({ label: c.categoria, value: c.total, color: INCOME_COLORS[c.categoria] || "#9e9e9e" })), [incomeCats]);
+  const incomeDonut = useMemo(() => incomeCats.map((c) => {
+    const isCustom = c.categoria?.startsWith("custom_");
+    const color = isCustom
+      ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.color || "#9e9e9e")
+      : (CATEGORIES.income[c.categoria]?.color || "#9e9e9e");
+    return { label: c.categoria, value: c.total, color };
+  }), [incomeCats, customCats]);
 
   return (
     <>
@@ -72,7 +77,9 @@ export default function IncomeTab({ period, openModal, showToast }) {
             </Box>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1 }}>
-            <Chip size="small" label={`${dIn > 0 ? "+" : ""}${dIn.toFixed(1)}%`} color={dIn > 0 ? "success" : "error"} variant="filled" sx={{ fontWeight: 600 }} />
+            {dIn != null && (
+              <Chip size="small" label={`${dIn > 0 ? "+" : ""}${dIn.toFixed(1)}% vs ant.`} color={dIn > 0 ? "success" : "error"} variant="filled" sx={{ fontWeight: 600 }} />
+            )}
             <Typography variant="body2" color="text.secondary">{incomeTxs.length} {lang === "es" ? "ingresos" : "income records"}</Typography>
           </Box>
           <Box sx={{ mt: 1 }}><SparkArea data={months.map((m) => m.ingreso)} /></Box>
@@ -186,11 +193,13 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 3, mb: 2, py: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: "success.main" }} />
-                  <Typography variant="body2" sx={{ color: "success.main", fontWeight: 600 }}>{t.income}</Typography>
-                </Box>
+              <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 2, py: 1.5, bgcolor: "action.hover", borderRadius: 2, flexWrap: "wrap" }}>
+                {[{ color: "success.main", label: t.income }, { color: "error.main", label: t.expense }, { color: "primary.main", label: t.net }].map(({ color, label }) => (
+                  <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: color }} />
+                    <Typography variant="body2" sx={{ color, fontWeight: 600, fontSize: 12 }}>{label}</Typography>
+                  </Box>
+                ))}
               </Box>
               <Box sx={{ mt: 1 }}>
                 <StudioCashflow months={months} t={t} />
@@ -228,7 +237,9 @@ export default function IncomeTab({ period, openModal, showToast }) {
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
               {incomeTxs.map((x) => {
-              const color = INCOME_COLORS[x.categoria] || customCats.find((c) => c.id === x.categoria?.slice("custom_".length))?.color || "#9e9e9e";
+              const color = (x.categoria?.startsWith("custom_")
+                ? customCats.find((c) => c.id === x.categoria.slice("custom_".length))?.color
+                : CATEGORIES.income[x.categoria]?.color) || "#9e9e9e";
               const catName = CATEGORIES.income[x.categoria]?.[lang] || (x.categoria?.startsWith("custom_") ? customCats.find((c) => c.id === x.categoria.slice("custom_".length))?.nombre : null) || x.categoria;
               return (
                 <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}

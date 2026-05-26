@@ -180,28 +180,34 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {lang === "es" ? "categorías" : "categories"}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
-                <Stack spacing={1.5}>
-                  {Object.keys(CATEGORIES.expense).slice(0, 4).map((cat, idx) => {
-                    const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-                    const limit = (editBudgets[cat] || 0) * monthCount(period);
-                    const pct = limit ? spent / limit : 0;
-                    const isOver = pct > 1;
-                    const catName = CATEGORIES.expense[cat]?.[lang] || cat;
-                    return (
-                      <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                          <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                            <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (lang === "es" ? "· Sobre límite" : "· Over limit") : `· ${lang === "es" ? "de" : "of"} ${fmtMoney(limit, currency, true)}`}</Typography>
+                {Object.keys(editBudgets).length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3, fontStyle: "italic" }}>
+                    {lang === "es" ? "Sin presupuestos configurados" : "No budgets configured"}
+                  </Typography>
+                ) : (
+                  <Stack spacing={1.5}>
+                    {Object.keys(editBudgets).slice(0, 4).map((cat, idx) => {
+                      const spent = cats.find((c) => c.categoria === cat)?.total || 0;
+                      const limit = editBudgets[cat] * monthCount(period);
+                      const pct = limit ? spent / limit : 0;
+                      const isOver = pct > 1;
+                      const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+                      return (
+                        <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                            <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" fontWeight={600}>{catName}</Typography>
+                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (lang === "es" ? "· Sobre límite" : "· Over limit") : `· ${lang === "es" ? "de" : "of"} ${fmtMoney(limit, currency, true)}`}</Typography>
+                            </Box>
+                            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmtMoney(spent, currency, true)}</Typography>
                           </Box>
-                          <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmtMoney(spent, currency, true)}</Typography>
+                          <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
                         </Box>
-                        <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
-                      </Box>
-                    );
-                  })}
-                </Stack>
+                      );
+                    })}
+                  </Stack>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -221,9 +227,17 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light", isCount: true },
                     { label: lang === "es" ? "Promedio diario" : "Daily avg", value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light" },
                     { label: lang === "es" ? "Mayor gasto" : "Top expense", value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light" },
-                  ].map((item, idx) => (
+                  ].map((item, idx) => {
+                    const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
+                    const maxExpense = expenseTxs.reduce((m, x) => Math.max(m, x.valor), 0);
+                    const barVal = idx === 0
+                      ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : 0)
+                      : idx === 1 ? Math.min(100, (expenseTxs.length / Math.max(expenseTxs.length, 1)) * 100)
+                      : idx === 2 ? (filteredTotal > 0 ? Math.min(100, ((filteredTotal / daysCount(period)) / (filteredTotal / daysCount(period))) * 100) : 0)
+                      : (filteredTotal > 0 ? Math.min(100, (maxExpense / filteredTotal) * 100) : 0);
+                    return (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
                         <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
@@ -232,9 +246,10 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           {item.isCount ? item.value : fmtMoney(item.value, currency, true)}
                         </Typography>
                       </Box>
-                      <LinearProgress variant="determinate" value={idx === 0 ? Math.min(100, (totalOut / (Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period))) * 100) : Math.min(100, (expenseTxs.length / 50) * 100)} color={idx === 0 ? "error" : idx === 1 ? "info" : idx === 2 ? "warning" : "error"} sx={{ height: 8, borderRadius: 4 }} />
+                      {!item.isCount && <LinearProgress variant="determinate" value={barVal} color={idx === 0 ? "error" : idx === 2 ? "warning" : "error"} sx={{ height: 8, borderRadius: 4 }} />}
                     </Box>
-                  ))}
+                    );
+                  })}
                 </Stack>
               </Box>
             </CardContent>
