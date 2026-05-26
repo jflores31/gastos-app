@@ -5,7 +5,7 @@ import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
-import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, ArrowDownward as ArrowDownIcon } from "@mui/icons-material";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
@@ -85,6 +85,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           const count = catData?.count || 0;
           const color = CATEGORIES.income[cat]?.color || ["#5a9bc9", "#e91e63", "#7ab87a", "#a87cc4", "#ff6f61", "#e74c3c", "#2ecc71"][idx];
           const isActive = activeCat === cat;
+          const catLabel = CATEGORIES.income[cat]?.[lang] || cat;
           return (
           <Grid size={{ xs: 6, sm: 3, md: 2.4 }} key={cat}>
             <Card
@@ -92,27 +93,52 @@ export default function IncomeTab({ period, openModal, showToast }) {
               sx={{
                 borderRadius: 2, border: "2px solid", borderColor: isActive ? color : "divider",
                 boxShadow: isActive ? `0 0 0 3px ${color}33` : "0 2px 12px rgba(0,0,0,0.06)",
-                transition: "all 0.2s", cursor: "pointer",
-                "&:hover": { boxShadow: `0 8px 24px rgba(0,0,0,0.12)`, transform: "translateY(-4px)" },
-                borderTop: "4px solid", borderTopColor: color, bgcolor: isActive ? `${color}18` : "background.paper",
+                transition: "all 0.2s", cursor: "pointer", height: "100%",
+                "&:hover": { boxShadow: `0 8px 24px rgba(0,0,0,0.12)`, transform: "translateY(-2px)" },
+                borderTop: "4px solid", borderTopColor: color, bgcolor: isActive ? `${color}12` : "background.paper",
               }}
             >
-              <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                  <Avatar sx={{ width: 28, height: 28, bgcolor: color, fontSize: 11, fontWeight: 700, color: "#fff" }}>{(CATEGORIES.income[cat]?.[lang] || cat)[0]}</Avatar>
-                  <Typography variant="caption" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{CATEGORIES.income[cat]?.[lang] || cat}</Typography>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => { e.stopPropagation(); openModal(cat, "income"); }}
-                    aria-label={lang === "es" ? `Agregar ${CATEGORIES.income[cat]?.[lang]}` : `Add ${CATEGORIES.income[cat]?.en}`}
-                    sx={{ width: 24, height: 24, bgcolor: color, color: "#fff", "&:hover": { bgcolor: color, opacity: 0.85 }, p: 0 }}
-                  >
-                    <AddIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
+              <CardContent sx={{ p: 1.5, pb: "12px !important", display: "flex", flexDirection: "column", gap: 1 }}>
+                {/* Header */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Avatar sx={{ width: 26, height: 26, bgcolor: color, fontSize: 10, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{catLabel[0]}</Avatar>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: 10 }} noWrap>{catLabel}</Typography>
                 </Box>
-                <Typography variant="h6" fontWeight={700} color="success.main">{fmtMoney(total, currency, true)}</Typography>
-                <Typography variant="caption" color="text.secondary">{count} tx · {totalIn > 0 ? Math.round((total / totalIn) * 100) : 0}%</Typography>
-                {isActive && <Typography variant="caption" sx={{ color, fontWeight: 700, display: "block", mt: 0.5 }}>{lang === "es" ? "✓ Filtrando" : "✓ Filtering"}</Typography>}
+
+                {/* Stats */}
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "success.main", lineHeight: 1 }}>{fmtMoney(total, currency, true)}</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: 10 }}>
+                    {count} tx · {totalIn > 0 ? Math.round((total / totalIn) * 100) : 0}%
+                  </Typography>
+                </Box>
+
+                {/* Registrar button */}
+                <Button
+                  size="small"
+                  fullWidth
+                  variant="contained"
+                  startIcon={<AddIcon sx={{ fontSize: "14px !important" }} />}
+                  onClick={(e) => { e.stopPropagation(); openModal(cat, "income"); }}
+                  aria-label={lang === "es" ? `Registrar ${catLabel}` : `Add ${catLabel}`}
+                  sx={{
+                    mt: "auto", borderRadius: 1.5, textTransform: "none", fontWeight: 700, fontSize: 11, py: 0.5,
+                    bgcolor: color, color: "#fff", boxShadow: "none",
+                    "&:hover": { bgcolor: color, opacity: 0.88, boxShadow: "none" },
+                  }}
+                >
+                  {lang === "es" ? "Registrar" : "Add"}
+                </Button>
+
+                {/* Active indicator */}
+                {isActive && count > 0 && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "center" }}>
+                    <ArrowDownIcon sx={{ fontSize: 12, color }} />
+                    <Typography variant="caption" sx={{ color, fontWeight: 700, fontSize: 9 }}>
+                      {lang === "es" ? `Ver ${count} abajo` : `See ${count} below`}
+                    </Typography>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>);
