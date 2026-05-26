@@ -23,7 +23,7 @@ import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
-import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
+import { Donut, SparkArea, SparkBar, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 
 export default function OverviewTab({ period, setPeriod }) {
   const { t, lang, currency } = useSettings();
@@ -68,8 +68,8 @@ export default function OverviewTab({ period, setPeriod }) {
   const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
   const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, spark: months.map((m) => m.ingreso) },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, spark: months.map((m) => m.egreso) },
+    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, spark: months.map((m) => m.ingreso), sparkColor: "var(--income)" },
+    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, spark: months.map((m) => m.egreso), sparkColor: "var(--expense)" },
     { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
     { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
   ];
@@ -145,8 +145,8 @@ export default function OverviewTab({ period, setPeriod }) {
               )}
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
               {card.spark && card.spark.length > 1 && (
-                <Box sx={{ mt: "auto", pt: 1.5, opacity: 0.6 }}>
-                  <SparkArea data={card.spark} />
+                <Box sx={{ mt: "auto", pt: 1.5, opacity: 0.7 }}>
+                  <SparkBar data={card.spark} color={card.sparkColor} />
                 </Box>
               )}
             </CardContent>

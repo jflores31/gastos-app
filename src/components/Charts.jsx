@@ -22,6 +22,33 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
   );
 }
 
+export function SparkBar({ data, color = "var(--accent)" }) {
+  if (!data || !data.length) return null;
+  const W = 600, H = 56;
+  const max = Math.max(...data, 1);
+  const slotW = W / data.length;
+  const barW = slotW * 0.65;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: "auto" }}>
+      {data.map((v, i) => {
+        const barH = Math.max(2, (v / max) * H);
+        return (
+          <rect
+            key={i}
+            x={i * slotW + (slotW - barW) / 2}
+            y={H - barH}
+            width={barW}
+            height={barH}
+            fill={color}
+            rx={2}
+            opacity={i === data.length - 1 ? 0.9 : 0.4}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
 export function SparkArea({ data }) {
   if (!data || !data.length) return null;
   const W = 600, H = 64;
