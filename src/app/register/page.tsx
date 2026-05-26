@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import {
-  Box, Typography, TextField, Button, Chip, IconButton, InputAdornment, CircularProgress,
+  Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
-import { AccountBalanceWallet, Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material"
+import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material"
+
+const OAUTH_ENABLED = false
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 
@@ -52,6 +54,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  const handleOAuth = (provider: "google" | "github") => {
+    const supabase = createClient()
+    const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
+    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/` } })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -175,6 +183,33 @@ export default function RegisterPage() {
           />
         )}
 
+
+        {/* OAuth — activar cuando esté implementado: OAUTH_ENABLED = true */}
+        {OAUTH_ENABLED && (
+          <>
+            <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+              {([["google", <Google key="g" sx={{ fontSize: 17 }} />], ["github", <GitHub key="gh" sx={{ fontSize: 17 }} />]] as const).map(([p, icon]) => (
+                <Button key={p} fullWidth startIcon={icon} onClick={() => handleOAuth(p)}
+                  sx={{
+                    py: 1.25, borderRadius: "10px", textTransform: "none", fontWeight: 600, fontSize: 13.5,
+                    color: "rgba(255,255,255,0.72)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    bgcolor: "rgba(255,255,255,0.05)",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                    transition: "all 0.18s",
+                  }}
+                >
+                  {p === "google" ? "Google" : "GitHub"}
+                </Button>
+              ))}
+            </Box>
+            <Divider sx={{ mb: 3, "&::before, &::after": { borderColor: "rgba(255,255,255,0.07)" } }}>
+              <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.22)", fontWeight: 700, letterSpacing: 1.8, fontSize: 10 }}>
+                O CON EMAIL
+              </Typography>
+            </Divider>
+          </>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
