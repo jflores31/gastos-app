@@ -190,10 +190,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 |---|---|
 | HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con `auth.uid() = user_id` |
-| Guardas en DELETE/UPDATE | Cada mutación llama `getUser()` y añade `.eq("user_id", user.id)` antes de ejecutar la query |
+| Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y solo muta el estado local `if (!error)` — evita desincronización si la operación falla en la BD |
 | Sesión persistente | `persistSession: true` (default) — sesión sobrevive recargas de página |
 | Límite en montos | Monto máximo 10,000,000 validado en cliente y con `max` en el input |
-| Redirección segura | `router.replace("/login")` en vez de `window.location.href` |
+| Error feedback | `loadError` state en `DataContext` — banner visible con botón Reintentar si la carga de datos falla |
 
 ## Notas Técnicas
 
@@ -201,13 +201,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Supabase redirectTo:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www) pero Supabase solo permite `https://jeshu.cfd/**`. Siempre aplicar `.replace(/^https:\/\/www\./, "https://")` antes de pasarlo como `redirectTo`.
 
+**Múltiples instancias de Supabase client:** `createClient()` crea instancias de `createBrowserClient` independientes. Los eventos de `onAuthStateChange` (ej. `SIGNED_IN`) **no se propagan** entre instancias distintas en la misma página. Por eso `LoginModal` usa `window.location.reload()` tras el login — garantiza que `DataContext` recargue los datos sin depender de la propagación de eventos.
+
 **PALETTES:** Definidas como objeto en `SettingsContext.jsx` y exportadas. Nunca redefinir en otro archivo.
 
 **Sin datos mock en producción:** `SAVINGS_GOALS`, `ACCOUNTS`, `FAMILY_MEMBERS`, `BUDGETS` y `generateTransactions()` fueron eliminados de `data/index.js`. Todos los datos provienen exclusivamente de Supabase.
 
-**Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado, evitando que los presupuestos eliminados reaparezcan al recargar.
+**Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado. `setEditBudgets` solo llama `setEditBudgetsState` después de confirmar el upsert — sin actualizaciones optimistas que puedan desincronizarse.
 
-**AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress` mientras `addTx`/`updateTx` están en vuelo.
+**AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress` mientras `addTx`/`updateTx` están en vuelo. `handleSubmit` tiene try-catch para liberar `saving` si la operación lanza una excepción.
+
+**DataContext — `load()`:** Wrapped en try-catch. Llama `setLoading(true)` solo después de confirmar que hay usuario autenticado. Expone `loadError` en el contexto. Responde a `SIGNED_IN` e `INITIAL_SESSION` en `onAuthStateChange` para cubrir todos los flujos de re-autenticación.
 
 **Categorías personalizadas en modal:** Se almacenan como `value: "custom_${id}"` para distinguirlas de las categorías estáticas.
 
@@ -215,7 +219,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **CalendarFilter:** Componente en `shared.jsx`. Recibe `{ txs, tipo, onFilter, lang, currency }`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Color rojo (error) para EGRESO, verde (success) para INGRESO. Click en celda llama `onFilter({ type: "day"|"month", date })`, click nuevamente limpia el filtro.
 
-**Comparación vs período anterior (OverviewTab):** `filterByPeriod(txs, "all", -1)` ignora el offset y retorna todos los datos — la sección se oculta cuando `period === "all"`. Cuando no hay transacciones en el período anterior (`prevIn === 0 && prevOut === 0`), muestra "Sin datos del período anterior" en lugar de barras vacías con "+0.0%". La etiqueta es dinámica: "vs semana/mes/trimestre/año anterior" según el período seleccionado.
+**Comparación vs período anterior (OverviewTab):** La sección se oculta cuando `period === "all"`. Cuando no hay transacciones en el período anterior, muestra "Sin datos del período anterior". La etiqueta es dinámica según el período seleccionado.
 
 **Fecha y hora en transacciones:** `AddTransactionModal` inicializa con `dayjs()` (hora exacta). Al cambiar solo la fecha en el `DatePicker`, se preserva la hora: `newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second())`. Supabase almacena el ISO completo. Las listas muestran `toLocaleString("es-PE", { day, month: "long", year, hour, minute, hour12: true })`.
 
