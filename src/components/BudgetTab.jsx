@@ -33,6 +33,19 @@ export default function BudgetTab({ period }) {
   const score = healthScore(savingsRate, dOut, anomalies.length);
   const recurring = useMemo(() => recurringList(txs), [txs]);
 
+  const getCatName = (cat) => {
+    if (cat?.startsWith("custom_")) {
+      return customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat;
+    }
+    return CATEGORIES.expense[cat]?.[lang] || cat;
+  };
+  const getCatColor = (cat) => {
+    if (cat?.startsWith("custom_")) {
+      return customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e";
+    }
+    return CATEGORIES.expense[cat]?.color || "#9e9e9e";
+  };
+
   const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
   const budgetUsed = totalBudget > 0 ? totalOut / totalBudget : 0;
   const gaugeColor = score >= 75 ? "success" : score >= 50 ? "warning" : "error";
@@ -78,19 +91,6 @@ export default function BudgetTab({ period }) {
   };
 
   const healthLabel = score >= 75 ? (lang === "es" ? "Excelente" : "Excellent") : score >= 50 ? (lang === "es" ? "Regular" : "Fair") : (lang === "es" ? "Crítico" : "Critical");
-
-  const getCatName = (cat) => {
-    if (cat?.startsWith("custom_")) {
-      return customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat;
-    }
-    return CATEGORIES.expense[cat]?.[lang] || cat;
-  };
-  const getCatColor = (cat) => {
-    if (cat?.startsWith("custom_")) {
-      return customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e";
-    }
-    return CATEGORIES.expense[cat]?.color || "#9e9e9e";
-  };
 
   const availableCats = [
     ...Object.keys(CATEGORIES.expense).filter((cat) => !editBudgets[cat]),
