@@ -49,8 +49,8 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Gastos (ExpensesTab)
 - Gastos de hoy con detalle por transacción
 - Top categorías con barras de progreso
-- Presupuesto vs real por categoría con alertas visuales
-- Resumen del período (total, transacciones, promedio diario, mayor gasto) — **todos reflejan el filtro activo**
+- Presupuesto vs real — muestra las categorías del presupuesto activo (`editBudgets`), no hardcoded; mensaje "Sin presupuestos" si no hay ninguno
+- Resumen del período (total, transacciones, promedio diario, mayor gasto) — **todos reflejan el filtro activo**; barras de progreso con valores relativos significativos (sin barra para el conteo)
 - Promedio diario calculado con `daysCount(period)` (7/30/90/365 según período)
 - Mayor gasto = máximo de las transacciones filtradas
 - Lista completa con edición y eliminación (confirmación de borrado)
@@ -60,19 +60,19 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Fecha y hora completa en cada transacción
 
 ### Ingresos (IncomeTab)
-- Tarjeta de ingresos totales con sparkline
-- Grid de categorías con porcentajes y donut — tarjetas interactivas para filtrar por fuente
-- Tendencia mensual
+- Tarjeta de ingresos totales con sparkline; chip `+X.X% vs ant.` oculto cuando no hay período anterior (`dIn = null`)
+- Grid de categorías con porcentajes y donut — colores reales de `CATEGORIES.income[k].color` y categorías personalizadas; tarjetas interactivas para filtrar por fuente
+- Tendencia mensual con leyenda completa: ingreso / egreso / neto
 - **CalendarFilter** en color verde (success)
 - Footer total actualiza en tiempo real al aplicar cualquier filtro
-- Lista de transacciones con edición y eliminación
+- Lista de transacciones con edición y eliminación; avatares con colores correctos por categoría
 
 ### Presupuestos (BudgetTab)
 - Health score gauge visual
 - Tarjetas por categoría con progreso y alertas al 80% y 100%
 - Donut de distribución de gastos — **apila verticalmente en mobile** (columna en xs, fila en sm+)
 - **Gráfica "Presupuesto vs Gasto real":** barras horizontales por categoría, coloreadas verde/amarillo/rojo; barras al 100%+ con patrón de rayas diagonales; footer con totales
-- Comparación con mes anterior
+- Comparación con período anterior — etiqueta dinámica según período activo (semana/mes/trimestre/año)
 - CRUD de presupuestos — exclusivamente desde Supabase
 
 ### Metas y Finanzas (GoalsTab)
@@ -81,7 +81,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Patrimonio neto (activos − deudas) en tiempo real
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.)
 - Control de deudas y préstamos con cuotas
-- Suscripciones recurrentes
+- Suscripciones recurrentes; botón "Agregar / Add" bilingüe en estados vacíos
 - **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); 3 estados según historial disponible: "Sin datos" (0 meses), "Se necesitan al menos 2 meses" + promedio actual (1 mes), barras reales con `+trend×i` (2+ meses); nota "Tendencia estable · N meses" si `|trend| < 1`; total proyectado = suma real de los 3 meses
 - **Evolución del patrimonio** reconstruye historial real trabajando hacia atrás desde `netWorth` actual
 
@@ -223,6 +223,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **`insightsList` period-aware:** Acepta `period` como último parámetro. La proyección de fin de período usa `(totalOut / daysCount(period)) * 30` para normalizar a mes-equivalente independientemente del período seleccionado.
 
 **Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. Card de ingresos: `MiniBarLabeled` — SVG con barras verticales por categoría de ingreso (color propio, nombre truncado debajo). Card de gastos: `Donut` (88px, thickness 16) con las mismas categorías del período activo. Categorías calculadas con `txByCategory(periodTxs, "INGRESO")` mapeadas a `CATEGORIES.income`.
+
+**IncomeTab — colores por categoría:** Se eliminó el mapa estático `INCOME_COLORS` (desactualizado a 6 categorías). Los colores se leen directamente de `CATEGORIES.income[c.categoria]?.color` para categorías nativas y de `customCats.find(...)?.color` para personalizadas. El chip delta usa `dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null` — `null` oculta el chip cuando no hay período anterior con datos (mismo patrón que OverviewTab).
+
+**ExpensesTab — Presupuesto vs real:** La sección usa `Object.keys(editBudgets)` (categorías del presupuesto activo cargado desde Supabase) en vez de categorías hardcodeadas. Muestra mensaje "Sin presupuestos configurados" si `editBudgets` está vacío. Las barras de progreso del resumen usan valores relativos significativos; el ítem de conteo (`isCount`) no renderiza `LinearProgress`.
+
+**BudgetTab — etiqueta de período dinámica:** La comparación con período anterior muestra "vs semana/mes/trimestre/año anterior" según el `period` activo, en lugar de "vs mes anterior" fijo.
 
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
