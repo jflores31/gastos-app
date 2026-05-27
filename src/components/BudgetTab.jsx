@@ -62,6 +62,8 @@ export default function BudgetTab({ period, showToast }) {
     }).filter(d => d.value > 0);
   }, [editBudgets, cats, lang, customCats]);
 
+  const donutTotal = donutData.reduce((s, d) => s + d.value, 0);
+
   const startEdit = (cat) => { setEditing(cat); setEditVal(String(editBudgets[cat])); };
   const saveEdit = () => {
     const v = parseFloat(editVal);
@@ -243,7 +245,7 @@ export default function BudgetTab({ period, showToast }) {
                 <Box sx={{ position: "relative", width: 180, height: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Donut slices={donutData} size={160} thickness={16} />
                   <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 80, height: 80, display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                    <Typography variant="body1" fontWeight={700}>{fmtMoney(totalOut, currency, true)}</Typography>
+                    <Typography variant="body1" fontWeight={700}>{fmtMoney(donutTotal, currency, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.spent}</Typography>
                   </Box>
                 </Box>
@@ -253,7 +255,7 @@ export default function BudgetTab({ period, showToast }) {
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "action.hover", cursor: "default" }}>
                         <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
                         <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</Typography>
-                        <Typography variant="body2" fontWeight={700}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
+                        <Typography variant="body2" fontWeight={700}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
                       </Box>
                     </Tooltip>
                   ))}
