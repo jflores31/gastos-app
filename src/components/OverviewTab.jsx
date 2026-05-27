@@ -212,7 +212,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                 <Donut slices={donut} size={160} thickness={20} />
                 <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmtMoney(totalOut, currency, true)}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmtMoney(donutTotal, currency, true)}</Typography>
                   <Typography variant="caption" color="text.secondary">{t.expense}</Typography>
                 </Box>
               </Box>

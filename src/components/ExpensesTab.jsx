@@ -55,6 +55,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
   // cats derived from expenseTxs so Top Categorías respects both period and calFilter
   const cats = useMemo(() => txByCategory(expenseTxs), [expenseTxs]);
+  // periodCats always uses full period (no calFilter) — used for budget comparison so it's not distorted by a single-day filter
+  const periodCats = useMemo(() => txByCategory(periodTxs.filter((x) => x.tipo === "EGRESO")), [periodTxs]);
 
   const resolveCatName = (categoria) => {
     if (CATEGORIES.expense[categoria]?.[lang]) return CATEGORIES.expense[categoria][lang];
@@ -188,7 +190,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                 ) : (
                   <Stack spacing={1.5}>
                     {Object.keys(editBudgets).slice(0, 4).map((cat, idx) => {
-                      const spent = cats.find((c) => c.categoria === cat)?.total || 0;
+                      const spent = periodCats.find((c) => c.categoria === cat)?.total || 0;
                       const limit = editBudgets[cat] * monthCount(period);
                       const pct = limit ? spent / limit : 0;
                       const isOver = pct > 1;

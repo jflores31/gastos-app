@@ -237,7 +237,7 @@ export default function GoalsTab({ showToast }) {
             <Grid container spacing={3}>
               {goals.map((g) => {
                 const pct = g.target > 0 ? g.current / g.target : 0;
-                const left = g.target - g.current;
+                const left = Math.max(0, g.target - g.current);
                 const today = new Date();
                 const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000)) : null;
                 return (
@@ -255,7 +255,9 @@ export default function GoalsTab({ showToast }) {
                           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                             <Typography variant="h5" fontWeight={800} sx={{ color: g.color }}>{Math.round(pct * 100)}%</Typography>
                             <Typography variant="body2" fontWeight={600} color={pct >= 1 ? "success.main" : "text.secondary"}>
-                              {fmtMoney(left, currency, true)} {lang === "es" ? "faltan" : "to go"}
+                              {pct >= 1
+                                ? (lang === "es" ? "¡Meta cumplida!" : "Goal reached!")
+                                : `${fmtMoney(left, currency, true)} ${lang === "es" ? "faltan" : "to go"}`}
                             </Typography>
                           </Box>
                           <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} sx={{ height: 8, borderRadius: 4, mb: 1.5, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: g.color, borderRadius: 4 } }} />
