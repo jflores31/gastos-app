@@ -312,27 +312,27 @@ export default function BudgetTab({ period, showToast }) {
                 const barColor = isOver ? "error.main" : isWarn ? "warning.main" : "success.main";
                 return (
                   <Box key={cat}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />
-                        <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 120, sm: 200 } }}>{catName}</Typography>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.75 }}>
+                      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: color, flexShrink: 0, mt: 0.5 }} />
+                        <Box>
+                          <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 140, sm: 220 } }}>{catName}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {lang === "es" ? "Gastado" : "Spent"}{" "}
+                            <Box component="strong" sx={{ color: isOver ? "error.main" : "text.primary" }}>{fmtMoney(spent, currency, true)}</Box>
+                            {" · "}{lang === "es" ? "límite" : "limit"} {fmtMoney(limit, currency, true)}
+                          </Typography>
+                        </Box>
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {fmtMoney(spent, currency, true)} / {fmtMoney(limit, currency, true)}
-                        </Typography>
-                        <Chip
-                          size="small"
-                          label={`${rawPct.toFixed(0)}%`}
-                          color={isOver ? "error" : isWarn ? "warning" : "success"}
-                          variant="filled"
-                          sx={{ fontWeight: 700, height: 20, fontSize: 11, minWidth: 46 }}
-                        />
-                      </Box>
+                      <Chip
+                        size="small"
+                        label={`${rawPct.toFixed(0)}%`}
+                        color={isOver ? "error" : isWarn ? "warning" : "success"}
+                        variant="filled"
+                        sx={{ fontWeight: 700, height: 20, fontSize: 11, minWidth: 46, flexShrink: 0 }}
+                      />
                     </Box>
-                    {/* Budget track (background) + Spent bar */}
-                    <Box sx={{ position: "relative", height: 12, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }}>
-                      {/* Limit marker at 100% — visual reference */}
+                    <Box sx={{ position: "relative", height: 10, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }}>
                       <Box
                         sx={{
                           position: "absolute", left: 0, top: 0, height: "100%",
@@ -346,17 +346,11 @@ export default function BudgetTab({ period, showToast }) {
                         }}
                       />
                     </Box>
-                    {/* Spent amount and remaining */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
-                      <Typography variant="caption" sx={{ color: barColor, fontWeight: 600 }}>
-                        {isOver
-                          ? `${lang === "es" ? "Excedido" : "Over"} +${fmtMoney(spent - limit, currency, true)}`
-                          : `${lang === "es" ? "Disponible" : "Left"} ${fmtMoney(limit - spent, currency, true)}`}
-                      </Typography>
-                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: 10 }}>
-                        {lang === "es" ? "límite" : "limit"} {fmtMoney(limit, currency, true)}
-                      </Typography>
-                    </Box>
+                    <Typography variant="caption" sx={{ color: barColor, fontWeight: 600, mt: 0.5, display: "block" }}>
+                      {isOver
+                        ? `${lang === "es" ? "Excedido en" : "Over by"} ${fmtMoney(spent - limit, currency, true)}`
+                        : `${lang === "es" ? "Disponible" : "Available"} ${fmtMoney(limit - spent, currency, true)}`}
+                    </Typography>
                   </Box>
                 );
               })}
