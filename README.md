@@ -236,6 +236,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **GoalsTab — categoría en suscripciones:** El campo de categoría en el diálogo de suscripciones es un `Select` con todas las categorías de gasto (nativas de `CATEGORIES.expense` + `customCats` de tipo EGRESO), cada una con su punto de color. Antes era un `TextField` libre sin opciones.
 
+**GoalsTab — `customCats` en useData:** El destructuring de `useData()` incluye `customCats` — faltaba y causaba crash al abrir el diálogo de suscripciones con el nuevo selector de categorías.
+
+**DataContext — tipos numéricos en deudas:** `mapDebt` convierte `remaining` y `original_months` a `Number` (antes llegaban como strings desde Supabase), evitando cálculos de progreso rotos.
+
+**GoalsTab — barra de progreso de deuda:** Fallback corregido: `orig = d.original_months || d.remaining || 1` en lugar de `d.remaining + 1`, que sobreestimaba el total de cuotas cuando `original_months` no estaba definido.
+
+**ExpensesTab — nombre de categoría custom en presupuesto:** La tarjeta "Presupuesto vs real" resuelve el nombre de categorías `custom_*` via `customCats` en vez de mostrar la clave cruda.
+
+**IncomeTab — chip de filtro activo con categorías custom:** El chip que muestra la categoría activa resuelve el nombre de `custom_*` via `customCats` en vez de mostrar la clave cruda.
+
+**BudgetTab — monto en diálogo de gestión:** La lista de presupuestos existentes mostraba `amount × monthCount(period)` con etiqueta "/mes" — doble cálculo incorrecto. Ahora muestra `amount` (valor mensual) directamente.
+
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado.
