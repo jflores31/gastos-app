@@ -218,6 +218,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                 key={mode}
                 size="small"
                 label={mode === "day" ? (lang === "es" ? "Día" : "Day") : (lang === "es" ? "Mes" : "Month")}
+                aria-label={mode === "day" ? (lang === "es" ? "Ver por día" : "View by day") : (lang === "es" ? "Ver por mes" : "View by month")}
                 onClick={() => { setViewMode(mode); clearFilter(); setOpen(true); }}
                 variant={viewMode === mode ? "filled" : "outlined"}
                 sx={{ fontWeight: 600, fontSize: 10, height: 20, bgcolor: viewMode === mode ? mainColor : undefined, color: viewMode === mode ? "#fff" : "text.secondary", borderColor: viewMode === mode ? mainColor : "divider", "&:hover": { opacity: 0.85 } }}

@@ -80,18 +80,27 @@ export default function SettingsPanel({ open, onClose }) {
 
   const handleSaveCat = async () => {
     if (!catForm.nombre.trim()) { setCatError(lang === "es" ? "Ingresa un nombre" : "Enter a name"); return; }
-    await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
-    setCatDialog(false);
-    setSnack({ msg: editingCat
-      ? (lang === "es" ? "Categoría actualizada" : "Category updated")
-      : (lang === "es" ? "Categoría creada" : "Category created"), severity: "success" });
+    try {
+      await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
+      setCatDialog(false);
+      setSnack({ msg: editingCat
+        ? (lang === "es" ? "Categoría actualizada" : "Category updated")
+        : (lang === "es" ? "Categoría creada" : "Category created"), severity: "success" });
+    } catch {
+      setSnack({ msg: lang === "es" ? "Error al guardar categoría" : "Error saving category", severity: "error" });
+    }
   };
 
   const handleDeleteCat = async () => {
     if (!deleteTarget) return;
-    await deleteCustomCat(deleteTarget.id);
-    setDeleteTarget(null);
-    setSnack({ msg: lang === "es" ? "Categoría eliminada" : "Category deleted", severity: "success" });
+    try {
+      await deleteCustomCat(deleteTarget.id);
+      setDeleteTarget(null);
+      setSnack({ msg: lang === "es" ? "Categoría eliminada" : "Category deleted", severity: "success" });
+    } catch {
+      setDeleteTarget(null);
+      setSnack({ msg: lang === "es" ? "Error al eliminar categoría" : "Error deleting category", severity: "error" });
+    }
   };
 
   return (

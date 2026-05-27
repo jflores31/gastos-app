@@ -148,7 +148,7 @@ export default function OverviewTab({ period, setPeriod }) {
               {card.delta != null && (
                 <Chip
                   size="small"
-                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% vs ant.`}
+                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% ${lang === "es" ? "vs ant." : "vs prev."}`}
                   color={card.invert ? (card.delta < 0 ? "success" : "error") : (card.delta > 0 ? "success" : "error")}
                   variant="filled"
                   sx={{ fontWeight: 600, fontSize: 11, alignSelf: "flex-start", mb: 1 }}

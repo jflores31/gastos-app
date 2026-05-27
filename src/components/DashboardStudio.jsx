@@ -213,7 +213,7 @@ export default function DashboardStudio() {
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
         {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}
-        {activeTab === 3 && <BudgetTab period={period} />}
+        {activeTab === 3 && <BudgetTab period={period} showToast={showToast} />}
         {activeTab === 4 && <GoalsTab />}
       </Box>
 

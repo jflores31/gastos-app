@@ -9,7 +9,7 @@ import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { Donut } from "./Charts.jsx";
 
-export default function BudgetTab({ period }) {
+export default function BudgetTab({ period, showToast }) {
   const { t, lang, currency } = useSettings();
   const { txs, editBudgets, setEditBudgets, deleteBudgetCat, customCats } = useData();
   const [editing, setEditing] = useState(null);
@@ -20,6 +20,7 @@ export default function BudgetTab({ period }) {
   const [editExisting, setEditExisting] = useState(null);
   const [editExistingVal, setEditExistingVal] = useState("");
   const [deletingCat, setDeletingCat] = useState(null);
+  const [showAllRecurring, setShowAllRecurring] = useState(false);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
@@ -64,13 +65,17 @@ export default function BudgetTab({ period }) {
   const startEdit = (cat) => { setEditing(cat); setEditVal(String(editBudgets[cat])); };
   const saveEdit = () => {
     const v = parseFloat(editVal);
-    if (v > 0) setEditBudgets((b) => ({ ...b, [editing]: v }));
+    if (v > 0) {
+      setEditBudgets((b) => ({ ...b, [editing]: v }));
+      showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
+    }
     setEditing(null);
   };
 
   const handleAddBudget = () => {
     if (newCat && newBudget > 0) {
       setEditBudgets((b) => ({ ...b, [newCat]: parseFloat(newBudget) }));
+      showToast?.(lang === "es" ? "Presupuesto agregado" : "Budget added");
       setNewCat("");
       setNewBudget("");
     }
@@ -83,7 +88,10 @@ export default function BudgetTab({ period }) {
 
   const saveEditExisting = () => {
     const v = parseFloat(editExistingVal);
-    if (v > 0) setEditBudgets((b) => ({ ...b, [editExisting]: v }));
+    if (v > 0) {
+      setEditBudgets((b) => ({ ...b, [editExisting]: v }));
+      showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
+    }
     setEditExisting(null);
   };
 
@@ -373,7 +381,7 @@ export default function BudgetTab({ period }) {
             </Box>
           </Box>
           <Stack spacing={1}>
-            {recurring.slice(0, 5).map((r) => {
+            {(showAllRecurring ? recurring : recurring.slice(0, 5)).map((r) => {
               const isCustom = r.categoria?.startsWith("custom_");
               const customCat = isCustom ? customCats.find((cc) => cc.id === r.categoria.slice("custom_".length)) : null;
               const color = customCat?.color || CATEGORIES.expense[r.categoria]?.color || "#9e9e9e";
@@ -390,6 +398,11 @@ export default function BudgetTab({ period }) {
               );
             })}
           </Stack>
+          {recurring.length > 5 && (
+            <Button size="small" onClick={() => setShowAllRecurring((v) => !v)} sx={{ mt: 1, alignSelf: "center" }}>
+              {showAllRecurring ? (lang === "es" ? "Ver menos" : "Show less") : (lang === "es" ? `Ver más (${recurring.length - 5})` : `Show more (${recurring.length - 5})`)}
+            </Button>
+          )}
         </CardContent>
       </Card>
 

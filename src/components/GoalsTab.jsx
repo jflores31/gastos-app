@@ -557,10 +557,10 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre" : "Name"} value={goalForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setGoalForm({ ...goalForm, es: e.target.value, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
-              <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
             </Grid>
             <Grid size={{ xs: 6 }}>
-              <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" inputMode="decimal" value={goalForm.current} onChange={(e) => setGoalForm({ ...goalForm, current: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={goalForm.current} onChange={(e) => setGoalForm({ ...goalForm, current: e.target.value })} fullWidth />
             </Grid>
           </Grid>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? es : en}>
@@ -615,7 +615,7 @@ export default function GoalsTab() {
           <TextField label={lang === "es" ? "Nombre" : "Name"} value={investForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setInvestForm({ ...investForm, es: e.target.value, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
-              <TextField label={lang === "es" ? "Valor" : "Value"} type="number" value={investForm.value} onChange={(e) => setInvestForm({ ...investForm, value: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Valor" : "Value"} type="number" inputProps={{ min: 0 }} value={investForm.value} onChange={(e) => setInvestForm({ ...investForm, value: e.target.value })} fullWidth />
             </Grid>
             <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Rendimiento %" : "Return %"} type="number" value={investForm.return} onChange={(e) => setInvestForm({ ...investForm, return: e.target.value })} fullWidth />
@@ -636,7 +636,7 @@ export default function GoalsTab() {
           {editingInvest && <Button color="error" disabled={savingInvest} onClick={() => handleDeleteInvest(editingInvest.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeInvestDialog}>{t.cancel}</Button>
-          <Button variant="contained" onClick={handleSaveInvest} disabled={savingInvest || !investForm.es || !investForm.value}>{savingInvest ? <CircularProgress size={18} /> : t.save}</Button>
+          <Button variant="contained" onClick={handleSaveInvest} disabled={savingInvest || !investForm.es || !investForm.value || parseFloat(investForm.value) <= 0}>{savingInvest ? <CircularProgress size={18} /> : t.save}</Button>
         </DialogActions>
       </Dialog>
 
@@ -652,7 +652,7 @@ export default function GoalsTab() {
               <TextField label={lang === "es" ? "Saldo pendiente" : "Balance"} type="number" value={debtForm.balance} onChange={(e) => setDebtForm({ ...debtForm, balance: e.target.value })} fullWidth />
             </Grid>
             <Grid size={{ xs: 6 }}>
-              <TextField label={lang === "es" ? "Tasa % TEA" : "Rate % TEA"} type="number" value={debtForm.rate} onChange={(e) => setDebtForm({ ...debtForm, rate: e.target.value })} fullWidth />
+              <TextField label={lang === "es" ? "Tasa % TEA" : "Rate % TEA"} type="number" value={debtForm.rate} onChange={(e) => setDebtForm({ ...debtForm, rate: e.target.value })} fullWidth helperText={lang === "es" ? "Tasa efectiva anual" : "Annual effective rate"} />
             </Grid>
           </Grid>
           <Grid container spacing={2}>
@@ -671,7 +671,7 @@ export default function GoalsTab() {
           {editingDebt && <Button color="error" disabled={savingDebt} onClick={() => handleDeleteDebt(editingDebt.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeDebtDialog}>{t.cancel}</Button>
-          <Button variant="contained" onClick={handleSaveDebt} disabled={savingDebt || !debtForm.es || !debtForm.balance}>{savingDebt ? <CircularProgress size={18} /> : t.save}</Button>
+          <Button variant="contained" onClick={handleSaveDebt} disabled={savingDebt || !debtForm.es || !debtForm.balance || (debtForm.remaining && debtForm.original_months && parseInt(debtForm.remaining) > parseInt(debtForm.original_months))}>{savingDebt ? <CircularProgress size={18} /> : t.save}</Button>
         </DialogActions>
       </Dialog>
 
@@ -682,7 +682,17 @@ export default function GoalsTab() {
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
           <TextField label={lang === "es" ? "Nombre" : "Name"} value={subForm.name} inputProps={{ maxLength: 60 }} onChange={(e) => setSubForm({ ...subForm, name: e.target.value })} fullWidth />
-          <TextField label={lang === "es" ? "Precio" : "Price"} type="number" value={subForm.price} onChange={(e) => setSubForm({ ...subForm, price: e.target.value })} fullWidth />
+          <TextField
+            label={lang === "es" ? "Precio" : "Price"}
+            type="number"
+            inputProps={{ min: 0 }}
+            value={subForm.price}
+            onChange={(e) => setSubForm({ ...subForm, price: e.target.value })}
+            fullWidth
+            helperText={subForm.cycle === "yearly" && subForm.price > 0
+              ? (lang === "es" ? `≈ ${(parseFloat(subForm.price) / 12).toFixed(2)}/mes` : `≈ ${(parseFloat(subForm.price) / 12).toFixed(2)}/month`)
+              : undefined}
+          />
           <FormControl fullWidth>
             <InputLabel>{lang === "es" ? "Ciclo" : "Cycle"}</InputLabel>
             <Select value={subForm.cycle} onChange={(e) => setSubForm({ ...subForm, cycle: e.target.value })} label={lang === "es" ? "Ciclo" : "Cycle"}>
@@ -716,7 +726,7 @@ export default function GoalsTab() {
           {editingSub && <Button color="error" disabled={savingSub} onClick={() => handleDeleteSub(editingSub.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeSubDialog}>{t.cancel}</Button>
-          <Button variant="contained" onClick={handleSaveSub} disabled={savingSub || !subForm.name || !subForm.price}>{savingSub ? <CircularProgress size={18} /> : t.save}</Button>
+          <Button variant="contained" onClick={handleSaveSub} disabled={savingSub || !subForm.name || !subForm.price || parseFloat(subForm.price) <= 0}>{savingSub ? <CircularProgress size={18} /> : t.save}</Button>
         </DialogActions>
       </Dialog>
     </Stack>

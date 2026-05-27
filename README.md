@@ -276,9 +276,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress`. `handleSubmit` tiene try-catch para liberar `saving` si la operación lanza excepción.
 
-**CalendarFilter:** En `shared.jsx`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Rojo para EGRESO, verde para INGRESO. Click en celda activa `onFilter({ type, date })`, click nuevamente limpia.
+**CalendarFilter:** En `shared.jsx`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Rojo para EGRESO, verde para INGRESO. Click en celda activa `onFilter({ type, date })`, click nuevamente limpia. Chips de modo Día/Mes incluyen `aria-label` bilingüe para accesibilidad.
 
 **Fecha y hora en transacciones:** `AddTransactionModal` inicializa con `dayjs()` (hora exacta). Al cambiar la fecha en el `DatePicker` se preserva la hora: `newValue.hour(h).minute(m).second(s)`.
+
+**BudgetTab — toast feedback en presupuestos:** `saveEdit`, `saveEditExisting` y `handleAddBudget` muestran toast de confirmación al actualizar o agregar un presupuesto. Reciben `showToast` como prop desde `DashboardStudio`. La lista "Pagos recurrentes" limitada a 5 items muestra botón "Ver más / Show more (N)" si hay más; "Ver menos / Show less" para colapsar.
+
+**SettingsPanel — try-catch en categorías personalizadas:** `handleSaveCat` y `handleDeleteCat` envuelven las llamadas a `saveCustomCat`/`deleteCustomCat` en `try/catch`; si falla la operación se muestra Snackbar de error en lugar de quedar en silencio.
+
+**GoalsTab — validaciones de formulario:** Campos de monto objetivo/actual con `inputProps={{ min: 0 }}`; campo "Valor" de inversión ídem. Botón Guardar deshabilitado si `value ≤ 0` (inversión) o `price ≤ 0` (suscripción) o `remaining > original_months` (deuda). Campo TEA de deuda incluye `helperText` bilingüe explicando "Tasa efectiva anual / Annual effective rate". Campo Precio de suscripción muestra equivalente mensual cuando ciclo es anual (`≈ X.XX/mes`).
+
+**OverviewTab — chip delta bilingüe:** El chip "vs ant." en las mini cards del resumen ahora cambia a "vs prev." cuando el idioma está en inglés (`lang === "es" ? "vs ant." : "vs prev."`).
 
 ## Despliegue
 
