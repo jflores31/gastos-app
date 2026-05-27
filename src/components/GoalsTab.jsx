@@ -30,7 +30,7 @@ function EmptySection({ label, onAdd, lang = "es" }) {
   );
 }
 
-export default function GoalsTab() {
+export default function GoalsTab({ showToast }) {
   const { t, lang, currency } = useSettings();
   const {
     txs, loading,
@@ -80,11 +80,25 @@ export default function GoalsTab() {
   const closeGoalDialog = () => { setGoalsDialog(false); setEditingGoal(null); };
   const handleSaveGoal = async () => {
     setSavingGoal(true);
-    await saveGoal({ ...goalForm, target: parseFloat(goalForm.target), current: parseFloat(goalForm.current) || 0 });
-    setSavingGoal(false);
+    try {
+      await saveGoal({ ...goalForm, target: parseFloat(goalForm.target), current: parseFloat(goalForm.current) || 0 });
+      showToast?.(lang === "es" ? "Meta guardada" : "Goal saved", "success");
+      closeGoalDialog();
+    } catch {
+      showToast?.(lang === "es" ? "Error al guardar meta" : "Error saving goal", "error");
+    } finally {
+      setSavingGoal(false);
+    }
+  };
+  const handleDeleteGoal = async (id) => {
+    try {
+      await deleteGoal(id);
+      showToast?.(lang === "es" ? "Meta eliminada" : "Goal deleted", "success");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar meta" : "Error deleting goal", "error");
+    }
     closeGoalDialog();
   };
-  const handleDeleteGoal = async (id) => { await deleteGoal(id); closeGoalDialog(); };
 
   // Account handlers
   const openNewAccount = () => { setEditingAccount(null); setAccountForm(EMPTY_ACCOUNT); setAccountsDialog(true); };
@@ -92,11 +106,25 @@ export default function GoalsTab() {
   const closeAccountDialog = () => { setAccountsDialog(false); setEditingAccount(null); };
   const handleSaveAccount = async () => {
     setSavingAccount(true);
-    await saveAccount({ ...accountForm, balance: parseFloat(accountForm.balance), limit: accountForm.limit ? parseFloat(accountForm.limit) : undefined });
-    setSavingAccount(false);
+    try {
+      await saveAccount({ ...accountForm, balance: parseFloat(accountForm.balance), limit: accountForm.limit ? parseFloat(accountForm.limit) : undefined });
+      showToast?.(lang === "es" ? "Cuenta guardada" : "Account saved", "success");
+      closeAccountDialog();
+    } catch {
+      showToast?.(lang === "es" ? "Error al guardar cuenta" : "Error saving account", "error");
+    } finally {
+      setSavingAccount(false);
+    }
+  };
+  const handleDeleteAccount = async (id) => {
+    try {
+      await deleteAccount(id);
+      showToast?.(lang === "es" ? "Cuenta eliminada" : "Account deleted", "success");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar cuenta" : "Error deleting account", "error");
+    }
     closeAccountDialog();
   };
-  const handleDeleteAccount = async (id) => { await deleteAccount(id); closeAccountDialog(); };
 
   // Investment handlers
   const openNewInvest = () => { setEditingInvest(null); setInvestForm(EMPTY_INVESTMENT); setInvestDialog(true); };
@@ -104,11 +132,25 @@ export default function GoalsTab() {
   const closeInvestDialog = () => { setInvestDialog(false); setEditingInvest(null); };
   const handleSaveInvest = async () => {
     setSavingInvest(true);
-    await saveInvestment({ ...investForm, value: parseFloat(investForm.value), return: parseFloat(investForm.return) || 0 });
-    setSavingInvest(false);
+    try {
+      await saveInvestment({ ...investForm, value: parseFloat(investForm.value), return: parseFloat(investForm.return) || 0 });
+      showToast?.(lang === "es" ? "Inversión guardada" : "Investment saved", "success");
+      closeInvestDialog();
+    } catch {
+      showToast?.(lang === "es" ? "Error al guardar inversión" : "Error saving investment", "error");
+    } finally {
+      setSavingInvest(false);
+    }
+  };
+  const handleDeleteInvest = async (id) => {
+    try {
+      await deleteInvestment(id);
+      showToast?.(lang === "es" ? "Inversión eliminada" : "Investment deleted", "success");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar inversión" : "Error deleting investment", "error");
+    }
     closeInvestDialog();
   };
-  const handleDeleteInvest = async (id) => { await deleteInvestment(id); closeInvestDialog(); };
 
   // Debt handlers
   const openNewDebt = () => { setEditingDebt(null); setDebtForm(EMPTY_DEBT); setDebtDialog(true); };
@@ -116,11 +158,25 @@ export default function GoalsTab() {
   const closeDebtDialog = () => { setDebtDialog(false); setEditingDebt(null); };
   const handleSaveDebt = async () => {
     setSavingDebt(true);
-    await saveDebt({ ...debtForm, balance: parseFloat(debtForm.balance), rate: parseFloat(debtForm.rate) || 0, monthly: parseFloat(debtForm.monthly) || 0, remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
-    setSavingDebt(false);
+    try {
+      await saveDebt({ ...debtForm, balance: parseFloat(debtForm.balance), rate: parseFloat(debtForm.rate) || 0, monthly: parseFloat(debtForm.monthly) || 0, remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
+      showToast?.(lang === "es" ? "Préstamo guardado" : "Loan saved", "success");
+      closeDebtDialog();
+    } catch {
+      showToast?.(lang === "es" ? "Error al guardar préstamo" : "Error saving loan", "error");
+    } finally {
+      setSavingDebt(false);
+    }
+  };
+  const handleDeleteDebt = async (id) => {
+    try {
+      await deleteDebt(id);
+      showToast?.(lang === "es" ? "Préstamo eliminado" : "Loan deleted", "success");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar préstamo" : "Error deleting loan", "error");
+    }
     closeDebtDialog();
   };
-  const handleDeleteDebt = async (id) => { await deleteDebt(id); closeDebtDialog(); };
 
   // Subscription handlers
   const openNewSub = () => { setEditingSub(null); setSubForm(EMPTY_SUB); setSubDialog(true); };
@@ -128,11 +184,25 @@ export default function GoalsTab() {
   const closeSubDialog = () => { setSubDialog(false); setEditingSub(null); };
   const handleSaveSub = async () => {
     setSavingSub(true);
-    await saveSubscription({ ...subForm, price: parseFloat(subForm.price) });
-    setSavingSub(false);
+    try {
+      await saveSubscription({ ...subForm, price: parseFloat(subForm.price) });
+      showToast?.(lang === "es" ? "Suscripción guardada" : "Subscription saved", "success");
+      closeSubDialog();
+    } catch {
+      showToast?.(lang === "es" ? "Error al guardar suscripción" : "Error saving subscription", "error");
+    } finally {
+      setSavingSub(false);
+    }
+  };
+  const handleDeleteSub = async (id) => {
+    try {
+      await deleteSubscription(id);
+      showToast?.(lang === "es" ? "Suscripción eliminada" : "Subscription deleted", "success");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar suscripción" : "Error deleting subscription", "error");
+    }
     closeSubDialog();
   };
-  const handleDeleteSub = async (id) => { await deleteSubscription(id); closeSubDialog(); };
 
   const totalAssets = accounts.filter((a) => a.balance > 0).reduce((s, a) => s + a.balance, 0);
   const totalDebt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))
@@ -165,7 +235,7 @@ export default function GoalsTab() {
           ) : (
             <Grid container spacing={3}>
               {goals.map((g) => {
-                const pct = g.current / g.target;
+                const pct = g.target > 0 ? g.current / g.target : 0;
                 const left = g.target - g.current;
                 const today = new Date();
                 const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000)) : null;

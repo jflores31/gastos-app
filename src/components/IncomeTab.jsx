@@ -295,6 +295,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
         mode="income"
         onAdd={() => showToast?.(lang === "es" ? "Transacción actualizada" : "Transaction updated", "success")}
         onClose={() => setEditingTx(null)}
+        showToast={showToast}
       />
     )}
     <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>

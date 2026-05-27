@@ -188,9 +188,8 @@ export function DataProvider({ children }) {
       .select()
       .single()
 
-    if (!error && data) {
-      setTxs((prev) => [...prev, mapRow(data)].sort((a, b) => a.date - b.date))
-    }
+    if (error) throw error
+    if (data) setTxs((prev) => [...prev, mapRow(data)].sort((a, b) => a.date - b.date))
   }, [])
 
   const updateTx = useCallback(async (tx) => {
@@ -212,9 +211,8 @@ export function DataProvider({ children }) {
       .select()
       .single()
 
-    if (!error && data) {
-      setTxs((prev) => prev.map((x) => x.id === tx.id ? mapRow(data) : x).sort((a, b) => a.date - b.date))
-    }
+    if (error) throw error
+    if (data) setTxs((prev) => prev.map((x) => x.id === tx.id ? mapRow(data) : x).sort((a, b) => a.date - b.date))
   }, [])
 
   const deleteTx = useCallback(async (id) => {
@@ -222,7 +220,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setTxs((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setTxs((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const saveCustomCat = useCallback(async (cat) => {
@@ -304,10 +303,12 @@ export function DataProvider({ children }) {
 
     if (goal.id) {
       const { data, error } = await supabase.from("goals").update(row).eq("id", goal.id).select().single()
-      if (!error && data) setGoals((prev) => prev.map((x) => x.id === goal.id ? mapGoal(data) : x))
+      if (error) throw error
+      if (data) setGoals((prev) => prev.map((x) => x.id === goal.id ? mapGoal(data) : x))
     } else {
       const { data, error } = await supabase.from("goals").insert(row).select().single()
-      if (!error && data) setGoals((prev) => [...prev, mapGoal(data)])
+      if (error) throw error
+      if (data) setGoals((prev) => [...prev, mapGoal(data)])
     }
   }, [])
 
@@ -316,7 +317,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("goals").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setGoals((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setGoals((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Accounts CRUD
@@ -336,10 +338,12 @@ export function DataProvider({ children }) {
 
     if (account.id) {
       const { data, error } = await supabase.from("accounts").update(row).eq("id", account.id).select().single()
-      if (!error && data) setAccounts((prev) => prev.map((x) => x.id === account.id ? mapAccount(data) : x))
+      if (error) throw error
+      if (data) setAccounts((prev) => prev.map((x) => x.id === account.id ? mapAccount(data) : x))
     } else {
       const { data, error } = await supabase.from("accounts").insert(row).select().single()
-      if (!error && data) setAccounts((prev) => [...prev, mapAccount(data)])
+      if (error) throw error
+      if (data) setAccounts((prev) => [...prev, mapAccount(data)])
     }
   }, [])
 
@@ -348,7 +352,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("accounts").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setAccounts((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setAccounts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Investments CRUD
@@ -368,10 +373,12 @@ export function DataProvider({ children }) {
 
     if (inv.id) {
       const { data, error } = await supabase.from("investments").update(row).eq("id", inv.id).select().single()
-      if (!error && data) setInvestments((prev) => prev.map((x) => x.id === inv.id ? mapInvestment(data) : x))
+      if (error) throw error
+      if (data) setInvestments((prev) => prev.map((x) => x.id === inv.id ? mapInvestment(data) : x))
     } else {
       const { data, error } = await supabase.from("investments").insert(row).select().single()
-      if (!error && data) setInvestments((prev) => [...prev, mapInvestment(data)])
+      if (error) throw error
+      if (data) setInvestments((prev) => [...prev, mapInvestment(data)])
     }
   }, [])
 
@@ -380,7 +387,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("investments").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setInvestments((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setInvestments((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Debts CRUD
@@ -402,10 +410,12 @@ export function DataProvider({ children }) {
 
     if (debt.id) {
       const { data, error } = await supabase.from("debts").update(row).eq("id", debt.id).select().single()
-      if (!error && data) setDebts((prev) => prev.map((x) => x.id === debt.id ? mapDebt(data) : x))
+      if (error) throw error
+      if (data) setDebts((prev) => prev.map((x) => x.id === debt.id ? mapDebt(data) : x))
     } else {
       const { data, error } = await supabase.from("debts").insert(row).select().single()
-      if (!error && data) setDebts((prev) => [...prev, mapDebt(data)])
+      if (error) throw error
+      if (data) setDebts((prev) => [...prev, mapDebt(data)])
     }
   }, [])
 
@@ -414,7 +424,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("debts").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setDebts((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setDebts((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   // Subscriptions CRUD
@@ -433,10 +444,12 @@ export function DataProvider({ children }) {
 
     if (sub.id) {
       const { data, error } = await supabase.from("subscriptions").update(row).eq("id", sub.id).select().single()
-      if (!error && data) setSubscriptions((prev) => prev.map((x) => x.id === sub.id ? mapSubscription(data) : x))
+      if (error) throw error
+      if (data) setSubscriptions((prev) => prev.map((x) => x.id === sub.id ? mapSubscription(data) : x))
     } else {
       const { data, error } = await supabase.from("subscriptions").insert(row).select().single()
-      if (!error && data) setSubscriptions((prev) => [...prev, mapSubscription(data)])
+      if (error) throw error
+      if (data) setSubscriptions((prev) => [...prev, mapSubscription(data)])
     }
   }, [])
 
@@ -445,7 +458,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("subscriptions").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setSubscriptions((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setSubscriptions((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const value = useMemo(

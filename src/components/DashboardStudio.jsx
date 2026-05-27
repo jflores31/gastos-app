@@ -214,7 +214,7 @@ export default function DashboardStudio() {
         {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 3 && <BudgetTab period={period} showToast={showToast} />}
-        {activeTab === 4 && <GoalsTab />}
+        {activeTab === 4 && <GoalsTab showToast={showToast} />}
       </Box>
 
       <Snackbar open={!!toast} autoHideDuration={toast?.duration ?? 3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} sx={{ bottom: { xs: 72, sm: 24 } }}>

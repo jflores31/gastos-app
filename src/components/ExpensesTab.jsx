@@ -235,7 +235,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     const barVal = idx === 0
                       ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : 0)
                       : idx === 1 ? Math.min(100, (expenseTxs.length / Math.max(expenseTxs.length, 1)) * 100)
-                      : idx === 2 ? (filteredTotal > 0 ? Math.min(100, ((filteredTotal / daysCount(period)) / (filteredTotal / daysCount(period))) * 100) : 0)
+                      : idx === 2 ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : filteredTotal > 0 ? 50 : 0)
                       : (filteredTotal > 0 ? Math.min(100, (maxExpense / filteredTotal) * 100) : 0);
                     return (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
@@ -329,6 +329,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         mode="expense"
         onAdd={() => showToast?.(lang === "es" ? "Transacción actualizada" : "Transaction updated", "success")}
         onClose={() => setEditingTx(null)}
+        showToast={showToast}
       />
     )}
     <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
