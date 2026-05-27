@@ -22,33 +22,6 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
   );
 }
 
-export function MiniBarLabeled({ data }) {
-  if (!data || !data.length) return null;
-  const W = 500, BARH = 48, TEXTH = 18, H = BARH + TEXTH;
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const slotW = W / data.length;
-  const barW = slotW * 0.6;
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-      {data.map((d, i) => {
-        const barH = Math.max(3, (d.value / max) * BARH);
-        const x = i * slotW + (slotW - barW) / 2;
-        const cx = i * slotW + slotW / 2;
-        const label = d.label.length > 9 ? d.label.slice(0, 8) + "…" : d.label;
-        return (
-          <g key={i}>
-            <rect x={x} y={BARH - barH} width={barW} height={barH} fill={d.color} rx={2} opacity={0.72} />
-            <text x={cx} y={H - 2} textAnchor="middle" fontSize="11" fill="currentColor" opacity="0.5"
-              style={{ fontFamily: "Inter, Roboto, sans-serif" }}>
-              {label}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 export function SparkBar({ data, color = "var(--accent)" }) {
   if (!data || !data.length) return null;
   const W = 600, H = 56;

@@ -23,7 +23,29 @@ import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
-import { Donut, SparkArea, MiniBarLabeled, StudioCashflow, HeatCalendar } from "./Charts.jsx";
+import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
+
+function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
+  if (!data || !data.length) return null;
+  const items = data.slice(0, max);
+  const peak = Math.max(...items.map((d) => d.value), 1);
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {items.map((d) => (
+        <Box key={d.id}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.4 }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color, flexShrink: 0 }} />
+            <Typography variant="caption" noWrap sx={{ flex: 1, fontWeight: 600, color: "text.secondary" }}>{d.label}</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(d.value, currency, true)}</Typography>
+          </Box>
+          <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: "hidden" }}>
+            <Box sx={{ height: "100%", width: `${(d.value / peak) * 100}%`, bgcolor: d.color, borderRadius: 3, transition: "width 0.5s cubic-bezier(.4,0,.2,1)" }} />
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 export default function OverviewTab({ period, setPeriod }) {
   const { t, lang, currency } = useSettings();
@@ -80,8 +102,8 @@ export default function OverviewTab({ period, setPeriod }) {
   const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
   const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, catData: incomeCats, chartType: "bar" },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, catData: donut, chartType: "donut" },
+    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, catData: incomeCats },
+    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, catData: donut },
     { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
     { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
   ];
@@ -156,14 +178,9 @@ export default function OverviewTab({ period, setPeriod }) {
                 />
               )}
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
-              {card.catData && card.catData.length > 0 && card.chartType === "bar" && (
-                <Box sx={{ mt: 1.5 }}>
-                  <MiniBarLabeled data={card.catData} />
-                </Box>
-              )}
-              {card.catData && card.catData.length > 0 && card.chartType === "donut" && (
-                <Box sx={{ mt: 1.5, display: "flex", justifyContent: "center" }}>
-                  <Donut slices={card.catData} size={88} thickness={16} />
+              {card.catData && card.catData.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <CategoryBars data={card.catData} currency={currency} fmtMoney={fmtMoney} />
                 </Box>
               )}
             </CardContent>

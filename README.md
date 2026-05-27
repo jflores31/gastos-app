@@ -42,7 +42,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Desglose de gastos por categoría con gráfico donut
 - Heat calendar de gastos diarios
 - Comparación vs período anterior con barras de progreso — oculta en "todo", muestra "Sin datos" si no hay transacciones previas; etiqueta dinámica según período activo
-- **Mini cards de ingresos y gastos:** chip `+X.X% vs ant.` se muestra solo si hay período anterior con datos (`delta != null`); sub-etiqueta "N registros / N gastos" con singular/plural bilingüe; card de ingresos incluye `MiniBarLabeled` — barras verticales por categoría con nombre debajo; card de gastos incluye `Donut` circular pequeño por categoría
+- **Mini cards de ingresos y gastos:** chip `+X.X% vs ant.` se muestra solo si hay período anterior con datos (`delta != null`); sub-etiqueta "N registros / N gastos" con singular/plural bilingüe; ambas cards usan `CategoryBars` — lista de barras horizontales (top 5) con dot de color, nombre, monto exacto y barra proporcional a la categoría más grande
 - Selector de período: semana, mes, trimestre, año (con `flexWrap` para pantallas pequeñas)
 - Insight "Proyección" proporcional al período activo (usa `daysCount(period)` como divisor)
 
@@ -223,7 +223,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **`insightsList` period-aware:** Acepta `period` como último parámetro. La proyección de fin de período usa `(totalOut / daysCount(period)) * 30` para normalizar a mes-equivalente independientemente del período seleccionado.
 
-**Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. Card de ingresos: `MiniBarLabeled` — SVG con barras verticales por categoría de ingreso (color propio, nombre truncado debajo). Card de gastos: `Donut` (88px, thickness 16) con las mismas categorías del período activo. Categorías calculadas con `txByCategory(periodTxs, "INGRESO")` mapeadas a `CATEGORIES.income`.
+**Mini cards OverviewTab:** `dIn`/`dOut` son `null` (no `0`) cuando `prevIn`/`prevOut === 0`, lo que oculta el chip delta completamente. Cuando se muestra: `"+X.X% vs ant."` con signo siempre explícito. Sub-etiqueta: "N registros" (ingreso) / "N gastos" (egreso) con singular/plural y soporte bilingüe. Categorías de ingreso calculadas con `txByCategory(periodTxs, "INGRESO")` mapeadas a `CATEGORIES.income`; las de gasto desde el array `donut`.
+
+**OverviewTab — `CategoryBars` reemplaza `MiniBarLabeled` + donut pequeño:** Los gráficos previos de las mini cards eran ilegibles — barras verticales sin montos (ingresos) y un donut de 88px sin leyenda (gastos). Ahora ambas cards usan el mismo componente `CategoryBars`: lista de barras horizontales (top 5) con dot de color, nombre (`noWrap`), monto exacto (`fmtMoney(..., true)`, tabular-nums) y barra proporcional a la categoría más grande del set (`value / peak`). Sigue el patrón aprobado de barras horizontales para desgloses de categoría. `MiniBarLabeled` se eliminó de `Charts.jsx` (sin uso).
 
 **IncomeTab — colores por categoría:** Se eliminó el mapa estático `INCOME_COLORS` (desactualizado a 6 categorías). Los colores se leen directamente de `CATEGORIES.income[c.categoria]?.color` para categorías nativas y de `customCats.find(...)?.color` para personalizadas. El chip delta usa `dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null` — `null` oculta el chip cuando no hay período anterior con datos (mismo patrón que OverviewTab).
 
@@ -328,6 +330,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **GoalsTab — rendimiento promedio de inversiones:** Cambiado de promedio simple a promedio ponderado por valor (`Σ(value × rate) / Σ(value)`). El promedio simple daba igual peso a todas las inversiones sin importar su tamaño.
 
 **`linearRegressionSlope` en `helpers.js`:** Nueva función utilitaria que calcula la pendiente de una serie temporal por mínimos cuadrados ordinarios (OLS). Reemplaza el cálculo `(último - primero) / (n-1)` en el forecast de GoalsTab — el slope anterior era inestable cuando el primer o último mes era un outlier.
+
+**GoalsTab — suscripciones anuales normalizadas a mensual:** El total mensual de suscripciones (`subscriptions.reduce(...)`) ahora aplica `cycle === "yearly" ? price / 12 : price` por cada ítem. Antes, una suscripción anual de S/120 añadía 120 al total mensual en lugar de 10 — el "Total mensual" se sobreestimaba enormemente si había suscripciones anuales.
+
+**SettingsPanel — `inputProps` deprecado en MUI v9:** El `TextField` de nombre de categoría usaba `inputProps={{ maxLength: 40 }}` (prop de MUI v4/v5). Cambiado a `slotProps={{ htmlInput: { maxLength: 40 } }}`, consistente con el resto del proyecto.
 
 ## Despliegue
 
