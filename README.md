@@ -73,14 +73,14 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Donut de distribución de gastos — **apila verticalmente en mobile** (columna en xs, fila en sm+)
 - **Gráfica "Presupuesto vs Gasto real":** barras horizontales por categoría, coloreadas verde/amarillo/rojo; barras al 100%+ con patrón de rayas diagonales; footer con totales
 - Comparación con período anterior — etiqueta dinámica según período activo (semana/mes/trimestre/año)
-- CRUD de presupuestos — exclusivamente desde Supabase
+- CRUD de presupuestos — exclusivamente desde Supabase; selector incluye categorías personalizadas (custom) además de las nativas
 
 ### Metas y Finanzas (GoalsTab)
-- CRUD de metas de ahorro con fecha límite
+- CRUD de metas de ahorro con fecha límite — formulario con nombre único
 - Gestión de cuentas bancarias/tarjetas/efectivo
 - Patrimonio neto (activos − deudas) en tiempo real
-- Seguimiento de inversiones (AFP, DPF, cripto, etc.)
-- Control de deudas y préstamos con cuotas
+- Seguimiento de inversiones (AFP, DPF, cripto, etc.) — formulario con nombre único
+- Control de deudas y préstamos con cuotas — formulario con campo de nombre único (guarda en ambos idiomas automáticamente)
 - Suscripciones recurrentes; botón "Agregar / Add" bilingüe en estados vacíos
 - **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); 3 estados según historial disponible: "Sin datos" (0 meses), "Se necesitan al menos 2 meses" + promedio actual (1 mes), barras reales con `+trend×i` (2+ meses); nota "Tendencia estable · N meses" si `|trend| < 1`; total proyectado = suma real de los 3 meses
 - **Evolución del patrimonio** reconstruye historial real trabajando hacia atrás desde `netWorth` actual
@@ -229,6 +229,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **ExpensesTab — Presupuesto vs real:** La sección usa `Object.keys(editBudgets)` (categorías del presupuesto activo cargado desde Supabase) en vez de categorías hardcodeadas. Muestra mensaje "Sin presupuestos configurados" si `editBudgets` está vacío. Las barras de progreso del resumen usan valores relativos significativos; el ítem de conteo (`isCount`) no renderiza `LinearProgress`.
 
 **BudgetTab — etiqueta de período dinámica:** La comparación con período anterior muestra "vs semana/mes/trimestre/año anterior" según el `period` activo, en lugar de "vs mes anterior" fijo.
+
+**BudgetTab — categorías personalizadas:** `getCatName`/`getCatColor` resuelven nombre y color tanto para categorías nativas (`CATEGORIES.expense`) como para `custom_*` (via `customCats`). Definidas antes de `donutData` useMemo para evitar temporal dead zone. El selector "Agregar presupuesto" incluye `customCats.filter(cc => cc.tipo === "EGRESO")` junto a las nativas.
+
+**GoalsTab — nombre único en formularios:** Los diálogos de metas, inversiones y deudas usan un solo campo "Nombre" que actualiza `es` y `en` simultáneamente (`setForm({ ...f, es: v, en: v })`). La BD sigue recibiendo `label_es` y `label_en` con el mismo valor; `d[lang]` funciona igual en cualquier idioma.
 
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
