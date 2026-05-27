@@ -10,6 +10,7 @@ import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "@mui/icons-material";
 import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
+import { linearRegressionSlope } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 
@@ -379,7 +380,7 @@ export default function GoalsTab({ showToast }) {
                   const avgOut = recent.reduce((s, m) => s + m.egreso, 0) / recent.length;
                   const netAvg = avgIn - avgOut;
                   const nets = recent.map((m) => m.ingreso - m.egreso);
-                  const trend = (nets[nets.length - 1] - nets[0]) / (nets.length - 1);
+                  const trend = linearRegressionSlope(nets);
                   const next = [1, 2, 3].map((i) => ({ i, label: t.months[(new Date().getMonth() + i) % 12], net: netAvg + trend * i }));
                   const barPct = (n) => avgIn > 0 ? Math.min(100, Math.abs(n.net / avgIn) * 100) : 50;
                   const isTrendFlat = Math.abs(trend) < 1;
@@ -456,9 +457,17 @@ export default function GoalsTab({ showToast }) {
                 </Box>
                 <Box sx={{ textAlign: "right" }}>
                   <Typography variant="caption" color="warning.dark">{lang === "es" ? "Promedio rendimiento" : "Avg return"}</Typography>
-                  <Typography variant="h6" fontWeight={700} color={investments.reduce((s, i) => s + i.return, 0) >= 0 ? "success.dark" : "error.dark"}>
-                    {investments.reduce((s, i) => s + i.return, 0) >= 0 ? "+" : ""}{(investments.reduce((s, i) => s + i.return, 0) / investments.length).toFixed(1)}%
-                  </Typography>
+                  {(() => {
+                    const totalVal = investments.reduce((s, i) => s + i.value, 0);
+                    const weightedReturn = totalVal > 0
+                      ? investments.reduce((s, i) => s + i.value * i.return, 0) / totalVal
+                      : 0;
+                    return (
+                      <Typography variant="h6" fontWeight={700} color={weightedReturn >= 0 ? "success.dark" : "error.dark"}>
+                        {weightedReturn >= 0 ? "+" : ""}{weightedReturn.toFixed(1)}%
+                      </Typography>
+                    );
+                  })()}
                 </Box>
               </Box>
             </>

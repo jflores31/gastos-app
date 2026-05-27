@@ -57,6 +57,7 @@ export default function OverviewTab({ period, setPeriod }) {
       color: customCat?.color || CATEGORIES.expense[c.categoria]?.color || "#9e9e9e",
     };
   }), [cats, customCats, lang]);
+  const donutTotal = useMemo(() => donut.reduce((s, d) => s + d.value, 0), [donut]);
   const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, fmtMoney, period);
 
   const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO").slice(0, 6).map((c) => {
@@ -220,7 +221,7 @@ export default function OverviewTab({ period, setPeriod }) {
                   <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                     <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{totalOut > 0 ? Math.round((s.value / totalOut) * 100) : 0}%</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
                   </Box>
                 ))}
               </Box>
