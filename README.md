@@ -273,6 +273,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
+**DataContext — `saveCustomCat` / `deleteCustomCat` lanzan error:** Ambas funciones ahora hacen `if (error) throw error` antes de mutar el estado local. Antes usaban `if (!error) setCustomCats(...)` sin throw — el try/catch de `SettingsPanel.handleSaveCat`/`handleDeleteCat` nunca disparaba, los errores de Supabase se perdían silenciosamente.
+
+**IncomeTab — chip delta bilingüe:** El chip "vs ant." ahora usa `lang === "es" ? "vs ant." : "vs prev."`, consistente con OverviewTab.
+
+**StudioCashflow — línea de neto con escala propia:** La línea de neto (ingreso − egreso) usaba `yFor()` diseñado para el rango 0–max de barras. Si el neto era negativo, la línea se renderizaba fuera del SVG (debajo de los labels de meses). Ahora usa `yForNet()` que escala al rango real del neto (min negativo → max positivo), manteniéndose siempre dentro del `viewBox`.
+
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado.
 
 **AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress`. `handleSubmit` tiene try-catch para liberar `saving` si la operación lanza excepción.
