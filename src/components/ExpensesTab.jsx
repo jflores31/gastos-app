@@ -191,7 +191,9 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       const limit = editBudgets[cat] * monthCount(period);
                       const pct = limit ? spent / limit : 0;
                       const isOver = pct > 1;
-                      const catName = CATEGORIES.expense[cat]?.[lang] || cat;
+                      const catName = cat?.startsWith("custom_")
+                        ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat)
+                        : (CATEGORIES.expense[cat]?.[lang] || cat);
                       return (
                         <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>

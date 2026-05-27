@@ -39,6 +39,7 @@ export default function GoalsTab() {
     investments, saveInvestment, deleteInvestment,
     debts, saveDebt, deleteDebt,
     subscriptions, saveSubscription, deleteSubscription,
+    customCats,
   } = useData();
 
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
@@ -414,7 +415,7 @@ export default function GoalsTab() {
               ) : (
                 <Box sx={{ flex: 1 }}>
                   {debts.map((d) => {
-                    const orig = d.original_months || (d.remaining + 1);
+                    const orig = d.original_months || d.remaining || 1;
                     const paid = orig - d.remaining;
                     const pct = orig > 0 ? paid / orig : 0;
                     return (

@@ -65,8 +65,8 @@ function mapDebt(row) {
     balance: Number(row.balance),
     rate: Number(row.rate),
     monthly: Number(row.monthly),
-    remaining: row.remaining,
-    original_months: row.original_months,
+    remaining: Number(row.remaining) || 0,
+    original_months: Number(row.original_months) || 0,
   }
 }
 

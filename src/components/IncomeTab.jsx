@@ -222,7 +222,9 @@ export default function IncomeTab({ period, openModal, showToast }) {
               {activeCat && (
                 <Chip
                   size="small"
-                  label={CATEGORIES.income[activeCat]?.[lang] || activeCat}
+                  label={activeCat?.startsWith("custom_")
+                    ? (customCats.find((c) => c.id === activeCat.slice("custom_".length))?.nombre || activeCat)
+                    : (CATEGORIES.income[activeCat]?.[lang] || activeCat)}
                   onDelete={() => setActiveCat(null)}
                   color="success"
                   variant="filled"

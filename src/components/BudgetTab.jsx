@@ -409,7 +409,7 @@ export default function BudgetTab({ period }) {
                       </Box>
                     ) : (
                       <>
-                        <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount * monthCount(period), currency, true) + (lang === "es" ? "/mes" : "/month")} />
+                        <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount, currency, true) + (lang === "es" ? "/mes" : "/month")} />
                         <ListItemSecondaryAction>
                           <IconButton size="small" onClick={() => startEditExisting(cat)}><EditIcon fontSize="small" /></IconButton>
                           <IconButton size="small" color="error" onClick={() => deleteBudget(cat)}><DeleteIcon fontSize="small" /></IconButton>
