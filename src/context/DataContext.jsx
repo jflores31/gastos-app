@@ -233,10 +233,12 @@ export function DataProvider({ children }) {
 
     if (cat.id) {
       const { data, error } = await supabase.from("custom_categories").update(row).eq("id", cat.id).select().single()
-      if (!error && data) setCustomCats((prev) => prev.map((x) => x.id === cat.id ? data : x))
+      if (error) throw error
+      if (data) setCustomCats((prev) => prev.map((x) => x.id === cat.id ? data : x))
     } else {
       const { data, error } = await supabase.from("custom_categories").insert(row).select().single()
-      if (!error && data) setCustomCats((prev) => [...prev, data])
+      if (error) throw error
+      if (data) setCustomCats((prev) => [...prev, data])
     }
   }, [])
 
@@ -245,7 +247,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("custom_categories").delete().eq("id", id).eq("user_id", user.id)
-    if (!error) setCustomCats((prev) => prev.filter((x) => x.id !== id))
+    if (error) throw error
+    setCustomCats((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
   const setEditBudgets = useCallback(

@@ -104,10 +104,14 @@ export function StudioCashflow({ months, t }) {
   const W = 720, H = 240, P = 36;
   const max = Math.max(...months.map((m) => Math.max(m.ingreso, m.egreso)), 1);
   const stepX = (W - P * 2) / Math.max(1, months.length - 1);
-  const yFor = (v) => H - P - (v / max) * (H - P * 2);
+  const yFor = (v) => H - P - (Math.max(0, v) / max) * (H - P * 2);
   const ins = months.map((m) => m.ingreso);
   const outs = months.map((m) => m.egreso);
   const nets = months.map((m) => m.ingreso - m.egreso);
+  const netMin = Math.min(...nets, 0);
+  const netMax = Math.max(...nets, 0);
+  const netRange = netMax - netMin || 1;
+  const yForNet = (v) => H - P - ((v - netMin) / netRange) * (H - P * 2);
   const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + (P + i * stepX) + "," + yFor(v)).join(" ");
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg" style={{ width: '100%', height: 'auto' }}>
@@ -129,7 +133,7 @@ export function StudioCashflow({ months, t }) {
       <path d={line(outs) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill="url(#gexp)" />
       <path d={line(ins)} fill="none" stroke="var(--income)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d={line(outs)} fill="none" stroke="var(--expense)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={line(nets)} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round" />
+      <path d={nets.map((v, i) => (i ? "L" : "M") + (P + i * stepX) + "," + yForNet(v)).join(" ")} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round" />
       {months.map((m, i) => (
         <g key={i}>
           {i === months.length - 1 && (

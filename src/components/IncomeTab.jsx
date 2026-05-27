@@ -81,7 +81,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1 }}>
             {dIn != null && (
-              <Chip size="small" label={`${dIn > 0 ? "+" : ""}${dIn.toFixed(1)}% vs ant.`} color={dIn > 0 ? "success" : "error"} variant="filled" sx={{ fontWeight: 600 }} />
+              <Chip size="small" label={`${dIn > 0 ? "+" : ""}${dIn.toFixed(1)}% ${lang === "es" ? "vs ant." : "vs prev."}`} color={dIn > 0 ? "success" : "error"} variant="filled" sx={{ fontWeight: 600 }} />
             )}
             <Typography variant="body2" color="text.secondary">{incomeTxs.length} {lang === "es" ? "ingresos" : "income records"}</Typography>
           </Box>
