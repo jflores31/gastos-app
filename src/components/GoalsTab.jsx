@@ -473,7 +473,11 @@ export default function GoalsTab() {
                           </Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{sub.name}</Typography>
-                            <Typography variant="caption" color="text.secondary">{sub.category}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {sub.category?.startsWith("custom_")
+                                ? (customCats.find((c) => c.id === sub.category.slice("custom_".length))?.nombre || sub.category)
+                                : (CATEGORIES.expense[sub.category]?.[lang] || sub.category || "—")}
+                            </Typography>
                           </Box>
                           <Typography variant="body2" fontWeight={700}>{fmtMoney(sub.price, currency, true)}</Typography>
                         </Box>
@@ -560,7 +564,7 @@ export default function GoalsTab() {
             </Grid>
           </Grid>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? es : en}>
-            <DatePicker label={lang === "es" ? "Fecha límite" : "Deadline"} value={goalForm.deadline ? dayjs(goalForm.deadline) : null} onChange={(v) => setGoalForm({ ...goalForm, deadline: v ? v.format("YYYY-MM-DD") : null })} slotProps={{ textField: { fullWidth: true } }} format={lang === "es" ? "DD/MM/YYYY" : "MM/DD/YYYY"} />
+            <DatePicker label={lang === "es" ? "Fecha límite" : "Deadline"} value={goalForm.deadline ? dayjs(goalForm.deadline) : null} onChange={(v) => setGoalForm({ ...goalForm, deadline: v ? v.format("YYYY-MM-DD") : null })} minDate={dayjs()} slotProps={{ textField: { fullWidth: true } }} format={lang === "es" ? "DD/MM/YYYY" : "MM/DD/YYYY"} />
           </LocalizationProvider>
           <Box sx={{ display: "flex", gap: 2 }}>
             <TextField label="Color" type="color" value={goalForm.color} onChange={(e) => setGoalForm({ ...goalForm, color: e.target.value })} sx={{ width: 80 }} />
@@ -568,7 +572,7 @@ export default function GoalsTab() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          {editingGoal && <Button color="error" onClick={() => handleDeleteGoal(editingGoal.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
+          {editingGoal && <Button color="error" disabled={savingGoal} onClick={() => handleDeleteGoal(editingGoal.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeGoalDialog}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSaveGoal} disabled={savingGoal || !goalForm.es || !goalForm.target}>{savingGoal ? <CircularProgress size={18} /> : t.save}</Button>
@@ -595,7 +599,7 @@ export default function GoalsTab() {
           <TextField label="Color" type="color" value={accountForm.color} onChange={(e) => setAccountForm({ ...accountForm, color: e.target.value })} sx={{ width: 80 }} />
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          {editingAccount && <Button color="error" onClick={() => handleDeleteAccount(editingAccount.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
+          {editingAccount && <Button color="error" disabled={savingAccount} onClick={() => handleDeleteAccount(editingAccount.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeAccountDialog}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSaveAccount} disabled={savingAccount || !accountForm.name || accountForm.balance === ""}>{savingAccount ? <CircularProgress size={18} /> : t.save}</Button>
@@ -629,7 +633,7 @@ export default function GoalsTab() {
           </FormControl>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          {editingInvest && <Button color="error" onClick={() => handleDeleteInvest(editingInvest.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
+          {editingInvest && <Button color="error" disabled={savingInvest} onClick={() => handleDeleteInvest(editingInvest.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeInvestDialog}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSaveInvest} disabled={savingInvest || !investForm.es || !investForm.value}>{savingInvest ? <CircularProgress size={18} /> : t.save}</Button>
@@ -664,7 +668,7 @@ export default function GoalsTab() {
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          {editingDebt && <Button color="error" onClick={() => handleDeleteDebt(editingDebt.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
+          {editingDebt && <Button color="error" disabled={savingDebt} onClick={() => handleDeleteDebt(editingDebt.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeDebtDialog}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSaveDebt} disabled={savingDebt || !debtForm.es || !debtForm.balance}>{savingDebt ? <CircularProgress size={18} /> : t.save}</Button>
@@ -709,7 +713,7 @@ export default function GoalsTab() {
           </FormControl>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          {editingSub && <Button color="error" onClick={() => handleDeleteSub(editingSub.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
+          {editingSub && <Button color="error" disabled={savingSub} onClick={() => handleDeleteSub(editingSub.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
           <Box sx={{ flex: 1 }} />
           <Button onClick={closeSubDialog}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSaveSub} disabled={savingSub || !subForm.name || !subForm.price}>{savingSub ? <CircularProgress size={18} /> : t.save}</Button>

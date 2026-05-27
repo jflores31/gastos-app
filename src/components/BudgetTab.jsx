@@ -19,6 +19,7 @@ export default function BudgetTab({ period }) {
   const [newBudget, setNewBudget] = useState("");
   const [editExisting, setEditExisting] = useState(null);
   const [editExistingVal, setEditExistingVal] = useState("");
+  const [deletingCat, setDeletingCat] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
@@ -412,7 +413,7 @@ export default function BudgetTab({ period }) {
                         <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount, currency, true) + (lang === "es" ? "/mes" : "/month")} />
                         <ListItemSecondaryAction>
                           <IconButton size="small" onClick={() => startEditExisting(cat)}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" color="error" onClick={() => deleteBudget(cat)}><DeleteIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" color="error" onClick={() => setDeletingCat(cat)}><DeleteIcon fontSize="small" /></IconButton>
                         </ListItemSecondaryAction>
                       </>
                     )}
@@ -442,6 +443,19 @@ export default function BudgetTab({ period }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setAddDialog(false); setEditExisting(null); }}>{lang === "es" ? "Cerrar" : "Close"}</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!deletingCat} onClose={() => setDeletingCat(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "Eliminar presupuesto" : "Delete budget"}</DialogTitle>
+        <DialogContent>
+          <Typography>{lang === "es" ? `¿Eliminar el presupuesto de "${getCatName(deletingCat)}"?` : `Delete budget for "${getCatName(deletingCat)}"?`}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeletingCat(null)}>{lang === "es" ? "Cancelar" : "Cancel"}</Button>
+          <Button color="error" variant="contained" onClick={() => { deleteBudget(deletingCat); setDeletingCat(null); setAddDialog(false); }}>
+            {lang === "es" ? "Eliminar" : "Delete"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Stack>

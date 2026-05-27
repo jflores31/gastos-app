@@ -183,7 +183,7 @@ export default function DashboardStudio() {
               onClick={() => setShowLoginModal(true)}
               sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
             >
-              {isMobile ? "Entrar" : "Iniciar sesión"}
+              {isMobile ? (lang === "es" ? "Entrar" : "Sign in") : (lang === "es" ? "Iniciar sesión" : "Sign in")}
             </Button>
           )}
         </Toolbar>
@@ -205,9 +205,9 @@ export default function DashboardStudio() {
       <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
         {loadError && (
           <Alert severity="error" sx={{ mb: 2 }} action={
-            <Button color="inherit" size="small" onClick={() => window.location.reload()}>Reintentar</Button>
+            <Button color="inherit" size="small" onClick={() => window.location.reload()}>{lang === "es" ? "Reintentar" : "Retry"}</Button>
           }>
-            Error al cargar datos: {loadError}
+            {lang === "es" ? "Error al cargar datos" : "Error loading data"}: {loadError}
           </Alert>
         )}
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}

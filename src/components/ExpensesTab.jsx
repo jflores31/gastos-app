@@ -345,7 +345,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         <Button onClick={() => setDeleteTarget(null)} color="inherit">{lang === "es" ? "Cancelar" : "Cancel"}</Button>
         <Button
           variant="contained" color="error"
-          onClick={() => { deleteTx(deleteTarget.id); showToast?.(lang === "es" ? "Transacción eliminada" : "Transaction deleted", "success"); setDeleteTarget(null); }}
+          onClick={async () => { try { await deleteTx(deleteTarget.id); showToast?.(lang === "es" ? "Transacción eliminada" : "Transaction deleted", "success"); } catch { showToast?.(lang === "es" ? "Error al eliminar" : "Error deleting", "error"); } finally { setDeleteTarget(null); } }}
         >
           {lang === "es" ? "Eliminar" : "Delete"}
         </Button>
