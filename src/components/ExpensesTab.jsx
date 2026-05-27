@@ -27,7 +27,6 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   const [calFilter, setCalFilter] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
-  const cats = useMemo(() => txByCategory(periodTxs), [periodTxs]);
   const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
   const totalOut = useMemo(() => periodTxs.filter((x) => x.tipo === "EGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
@@ -54,6 +53,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   }, [filtered, allExpenseTxs, calFilter]);
 
   const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
+  // cats derived from expenseTxs so Top Categorías respects both period and calFilter
+  const cats = useMemo(() => txByCategory(expenseTxs), [expenseTxs]);
 
   const resolveCatName = (categoria) => {
     if (CATEGORIES.expense[categoria]?.[lang]) return CATEGORIES.expense[categoria][lang];
@@ -144,12 +145,12 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
-                <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmtMoney(totalOut, currency, true)}</Typography>
+                <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmtMoney(filteredTotal, currency, true)}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <Stack spacing={1.5}>
                   {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
-                    const pct = totalOut > 0 ? (c.total / totalOut) * 100 : 0;
+                    const pct = filteredTotal > 0 ? (c.total / filteredTotal) * 100 : 0;
                     const color = CATEGORIES.expense[c.categoria]?.color || customCats.find((cc) => cc.id === c.categoria?.slice("custom_".length))?.color || "#9e9e9e";
                     const catName = resolveCatName(c.categoria);
                     return (
