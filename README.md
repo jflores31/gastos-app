@@ -279,6 +279,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **StudioCashflow — línea de neto con escala propia:** La línea de neto (ingreso − egreso) usaba `yFor()` diseñado para el rango 0–max de barras. Si el neto era negativo, la línea se renderizaba fuera del SVG (debajo de los labels de meses). Ahora usa `yForNet()` que escala al rango real del neto (min negativo → max positivo), manteniéndose siempre dentro del `viewBox`.
 
+**OverviewTab — centro del donut Distribución consistente:** El centro mostraba `totalOut` (todos los gastos del período) pero los porcentajes usaban `donutTotal` (suma de top-6). El centro ahora usa `donutTotal` también — arco ↔ etiqueta ↔ centro todos relativos al mismo conjunto de segmentos visibles.
+
+**GoalsTab — meta cumplida no muestra número negativo:** Cuando `current > target` (meta superada), `left = target - current` era negativo y se mostraba como "-S/X.XX faltan". Fix: `Math.max(0, target - current)` + texto `"¡Meta cumplida!" / "Goal reached!"` cuando `pct >= 1`.
+
+**ExpensesTab — "Presupuesto vs real" no se distorsiona con calFilter activo:** La sección de presupuesto usaba `cats` (derivado de `expenseTxs`, calFilter-aware). Con un filtro de un día activo, mostraba 0% de uso para todas las categorías. Fix: nuevo memo `periodCats = txByCategory(periodTxs.filter(EGRESO))` para esa sección — siempre usa el período completo, independiente del calFilter.
+
+**BudgetTab — "Presupuesto vs Gasto real" etiquetas legibles:** El encabezado de cada fila mostraba `S/204 / S/800` sin contexto. Ahora muestra `Gastado S/204 · límite S/800` (etiquetado, gastado en negrita y coloreado en rojo si excede). Se eliminó la línea inferior redundante de "límite S/800". Texto de excedido cambiado de "Excedido +S/X" a "Excedido en S/X".
+
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado.
 
 **AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress`. `handleSubmit` tiene try-catch para liberar `saving` si la operación lanza excepción.
