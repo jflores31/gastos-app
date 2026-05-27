@@ -139,7 +139,8 @@ src/
 ├── data/
 │   ├── index.js                    # CATEGORIES, CURRENCIES, I18N (sin datos mock)
 │   └── helpers.js                  # filterByPeriod, periodLabel, monthCount, daysCount,
-│                                   #   healthScore, recurringList, insightsList (period-aware)
+│                                   #   healthScore, recurringList, insightsList,
+│                                   #   linearRegressionSlope (OLS slope para series temporales)
 ├── theme/
 │   └── materialTheme.js            # Temas light/dark + paletas de acento
 ├── hooks/
@@ -216,7 +217,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Filtros en ExpensesTab/IncomeTab:** `filteredTotal` se deriva con `useMemo` desde la lista ya filtrada (`expenseTxs`/`incomeTxs`). El footer y las cards de resumen siempre leen ese valor. El promedio diario usa `daysCount(period)` (7/30/90/365).
 
-**Pronóstico GoalsTab:** 3 guards según historial: `length === 0` → "Sin datos"; `length === 1` → mensaje "Se necesitan al menos 2 meses" + promedio del mes disponible; `length >= 2` → tendencia real `(nets[last] - nets[0]) / (length - 1)`. La barra de progreso usa `avgIn > 0 ? barPct : 50` para evitar `NaN%`. Si `|trend| < 1` muestra nota "Tendencia estable · N meses de historial". Total proyectado = `next.reduce((s,n) => s+n.net, 0)` (suma real, no `netAvg * 3`).
+**Pronóstico GoalsTab:** 3 guards según historial: `length === 0` → "Sin datos"; `length === 1` → mensaje "Se necesitan al menos 2 meses" + promedio del mes disponible; `length >= 2` → tendencia OLS `linearRegressionSlope(nets)` (mínimos cuadrados sobre todos los puntos, más estable que primer-último). La barra de progreso usa `avgIn > 0 ? barPct : 50` para evitar `NaN%`. Si `|trend| < 1` muestra nota "Tendencia estable · N meses de historial". Total proyectado = `next.reduce((s,n) => s+n.net, 0)` (suma real, no `netAvg * 3`).
 
 **Evolución del patrimonio GoalsTab:** Se reconstruye desde `netWorth` actual hacia atrás: `history[i].value = netWorth - sum(nets[i+1..end])`. Barras rojas si el valor es negativo, verdes si positivo.
 
@@ -305,6 +306,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **ExpensesTab / IncomeTab — `showToast` en modal de edición:** El `<AddTransactionModal editTx={...}>` que se monta al editar una transacción ahora recibe `showToast={showToast}`. Sin esta prop, los errores al guardar una edición (red, RLS) eran silenciosos — el spinner desaparecía sin ningún mensaje.
 
 **ExpensesTab — barra "Promedio diario" corregida:** La barra de progreso del resumen de período usaba la fórmula tautológica `(X / daysCount) / (X / daysCount) = 1`, siempre 100%. Ahora usa `filteredTotal / totalBudget` (% del presupuesto gastado) si hay presupuesto configurado, o 50% neutral si no lo hay.
+
+**ExpensesTab — Top Categorías sync con calFilter:** `cats` ahora se deriva de `expenseTxs` (que ya incorpora `calFilter` y `activeCat`) en lugar de `periodTxs`. Antes, filtrar un día en el calendario actualizaba la lista y los totales pero las cards de "Top Categorías" seguían mostrando datos del mes completo. Los porcentajes y el total en el header de Top Categorías usan `filteredTotal` para ser consistentes con la vista activa.
+
+**Matemática corregida en gráficos de distribución:** El denominador de los porcentajes en los gráficos donut/pie siempre es la suma de los propios segmentos mostrados (`sliceTotal`), no el total global. Antes, si el gráfico mostraba solo las top-6 categorías o solo las presupuestadas, los porcentajes nunca sumaban 100%. Aplicado en `OverviewTab` (Breakdown) y `BudgetTab` (Distribución).
+
+**GoalsTab — rendimiento promedio de inversiones:** Cambiado de promedio simple a promedio ponderado por valor (`Σ(value × rate) / Σ(value)`). El promedio simple daba igual peso a todas las inversiones sin importar su tamaño.
+
+**`linearRegressionSlope` en `helpers.js`:** Nueva función utilitaria que calcula la pendiente de una serie temporal por mínimos cuadrados ordinarios (OLS). Reemplaza el cálculo `(último - primero) / (n-1)` en el forecast de GoalsTab — el slope anterior era inestable cuando el primer o último mes era un outlier.
 
 ## Despliegue
 
