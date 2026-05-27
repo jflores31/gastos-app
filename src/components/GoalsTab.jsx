@@ -369,7 +369,7 @@ export default function GoalsTab({ showToast }) {
                         </Typography>
                         <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
                           <Typography variant="body2" fontWeight={600} color="info.dark">
-                            {lang === "es" ? "Promedio actual:" : "Current average:"} {singleNet >= 0 ? "+" : "−"}{fmtMoney(Math.abs(singleNet), currency, true)}{lang === "es" ? "/mes" : "/mo"}
+                            {lang === "es" ? "Promedio actual:" : "Current average:"} {singleNet >= 0 ? "+" : "−"}{fmtMoney(Math.abs(singleNet), currency, true)}{lang === "es" ? "/mes" : "/month"}
                           </Typography>
                         </Box>
                       </Box>
@@ -497,7 +497,7 @@ export default function GoalsTab({ showToast }) {
                         </Box>
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                           <Typography variant="body2" color="text.secondary">{fmtMoney(d.balance, currency, true)}</Typography>
-                          <Typography variant="body2" fontWeight={600}>{fmtMoney(d.monthly, currency, true)} {lang === "es" ? "/mes" : "/mo"}</Typography>
+                          <Typography variant="body2" fontWeight={600}>{fmtMoney(d.monthly, currency, true)} {lang === "es" ? "/mes" : "/month"}</Typography>
                         </Box>
                         <LinearProgress variant="determinate" value={pct * 100} sx={{ height: 6, borderRadius: 3, mb: 0.5, bgcolor: "action.selected", "& .MuiLinearProgress-bar": { bgcolor: "error.main" } }} />
                         <Typography variant="caption" color="text.secondary">{d.remaining} {lang === "es" ? "cuotas restantes" : "installments left"}</Typography>
@@ -526,7 +526,7 @@ export default function GoalsTab({ showToast }) {
                   <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.dark" }}><SubIcon /></Avatar>
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Suscripciones" : "Subscriptions"}</Typography>
-                    <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(subscriptions.reduce((s, s2) => s + s2.price, 0), currency)}/mes` : ""}</Typography>
+                    <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(subscriptions.reduce((s, s2) => s + s2.price, 0), currency)}${lang === "es" ? "/mes" : "/month"}` : ""}</Typography>
                   </Box>
                 </Box>
                 <IconButton size="small" aria-label={lang === "es" ? "Agregar suscripción" : "Add subscription"} onClick={openNewSub} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
