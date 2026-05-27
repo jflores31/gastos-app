@@ -549,8 +549,7 @@ export default function GoalsTab() {
           {editingGoal ? (lang === "es" ? "Editar meta" : "Edit goal") : (lang === "es" ? "Nueva meta" : "New goal")}
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
-          <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={goalForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setGoalForm({ ...goalForm, es: e.target.value })} fullWidth />
-          <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={goalForm.en} inputProps={{ maxLength: 60 }} onChange={(e) => setGoalForm({ ...goalForm, en: e.target.value })} fullWidth />
+          <TextField label={lang === "es" ? "Nombre" : "Name"} value={goalForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setGoalForm({ ...goalForm, es: e.target.value, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" value={goalForm.target} onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })} fullWidth />
@@ -608,8 +607,7 @@ export default function GoalsTab() {
           {editingInvest ? (lang === "es" ? "Editar inversión" : "Edit investment") : (lang === "es" ? "Nueva inversión" : "New investment")}
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
-          <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={investForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setInvestForm({ ...investForm, es: e.target.value })} fullWidth />
-          <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={investForm.en} inputProps={{ maxLength: 60 }} onChange={(e) => setInvestForm({ ...investForm, en: e.target.value })} fullWidth />
+          <TextField label={lang === "es" ? "Nombre" : "Name"} value={investForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setInvestForm({ ...investForm, es: e.target.value, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Valor" : "Value"} type="number" value={investForm.value} onChange={(e) => setInvestForm({ ...investForm, value: e.target.value })} fullWidth />
@@ -643,8 +641,7 @@ export default function GoalsTab() {
           {editingDebt ? (lang === "es" ? "Editar préstamo" : "Edit loan") : (lang === "es" ? "Nuevo préstamo" : "New loan")}
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
-          <TextField label={lang === "es" ? "Nombre (ES)" : "Name (ES)"} value={debtForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setDebtForm({ ...debtForm, es: e.target.value })} fullWidth />
-          <TextField label={lang === "es" ? "Nombre (EN)" : "Name (EN)"} value={debtForm.en} inputProps={{ maxLength: 60 }} onChange={(e) => setDebtForm({ ...debtForm, en: e.target.value })} fullWidth />
+          <TextField label={lang === "es" ? "Nombre" : "Name"} value={debtForm.es} inputProps={{ maxLength: 60 }} onChange={(e) => setDebtForm({ ...debtForm, es: e.target.value, en: e.target.value })} fullWidth />
           <Grid container spacing={2}>
             <Grid size={{ xs: 6 }}>
               <TextField label={lang === "es" ? "Saldo pendiente" : "Balance"} type="number" value={debtForm.balance} onChange={(e) => setDebtForm({ ...debtForm, balance: e.target.value })} fullWidth />
