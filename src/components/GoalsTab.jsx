@@ -135,7 +135,8 @@ export default function GoalsTab() {
   const handleDeleteSub = async (id) => { await deleteSubscription(id); closeSubDialog(); };
 
   const totalAssets = accounts.filter((a) => a.balance > 0).reduce((s, a) => s + a.balance, 0);
-  const totalDebt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0));
+  const totalDebt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))
+    + debts.reduce((s, d) => s + (d.balance || 0), 0);
   const netWorth = totalAssets - totalDebt;
 
   if (loading) {
