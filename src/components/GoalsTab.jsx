@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "@mui/icons-material";
-import { fmtMoney, txByMonth } from "../data/index.js";
+import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 
@@ -685,7 +685,27 @@ export default function GoalsTab() {
               <MenuItem value="yearly">{lang === "es" ? "Anual" : "Yearly"}</MenuItem>
             </Select>
           </FormControl>
-          <TextField label={lang === "es" ? "Categoría" : "Category"} value={subForm.category} onChange={(e) => setSubForm({ ...subForm, category: e.target.value })} fullWidth />
+          <FormControl fullWidth>
+            <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
+            <Select value={subForm.category} onChange={(e) => setSubForm({ ...subForm, category: e.target.value })} label={lang === "es" ? "Categoría" : "Category"}>
+              {Object.keys(CATEGORIES.expense).map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: CATEGORIES.expense[cat]?.color || "#9e9e9e", flexShrink: 0 }} />
+                    {CATEGORIES.expense[cat]?.[lang] || cat}
+                  </Box>
+                </MenuItem>
+              ))}
+              {customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => (
+                <MenuItem key={`custom_${cc.id}`} value={`custom_${cc.id}`}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: cc.color || "#9e9e9e", flexShrink: 0 }} />
+                    {cc.nombre}
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
           {editingSub && <Button color="error" onClick={() => handleDeleteSub(editingSub.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}
