@@ -163,7 +163,7 @@ export function DataProvider({ children }) {
         setLoadError(null)
         setLoading(false)
       }
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") load()
+      if (event === "INITIAL_SESSION") load()
     })
 
     return () => subscription.unsubscribe()
