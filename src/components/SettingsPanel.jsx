@@ -297,7 +297,7 @@ export default function SettingsPanel({ open, onClose }) {
             helperText={catError}
             fullWidth
             autoFocus
-            inputProps={{ maxLength: 40 }}
+            slotProps={{ htmlInput: { maxLength: 40 } }}
           />
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>

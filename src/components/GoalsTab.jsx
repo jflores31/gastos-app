@@ -537,7 +537,7 @@ export default function GoalsTab({ showToast }) {
                   <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.dark" }}><SubIcon /></Avatar>
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Suscripciones" : "Subscriptions"}</Typography>
-                    <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(subscriptions.reduce((s, s2) => s + s2.price, 0), currency)}${lang === "es" ? "/mes" : "/month"}` : ""}</Typography>
+                    <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(subscriptions.reduce((s, s2) => s + (s2.cycle === "yearly" ? s2.price / 12 : s2.price), 0), currency)}${lang === "es" ? "/mes" : "/month"}` : ""}</Typography>
                   </Box>
                 </Box>
                 <IconButton size="small" aria-label={lang === "es" ? "Agregar suscripción" : "Add subscription"} onClick={openNewSub} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
@@ -568,7 +568,7 @@ export default function GoalsTab({ showToast }) {
                   </Box>
                   <Box sx={{ mt: 2, p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
                     <Typography variant="body2" color="secondary.dark" fontWeight={600}>
-                      {lang === "es" ? "Total mensual:" : "Monthly total:"} {fmtMoney(subscriptions.reduce((s, s2) => s + s2.price, 0), currency)}
+                      {lang === "es" ? "Total mensual:" : "Monthly total:"} {fmtMoney(subscriptions.reduce((s, s2) => s + (s2.cycle === "yearly" ? s2.price / 12 : s2.price), 0), currency)}
                     </Typography>
                   </Box>
                 </>
