@@ -199,7 +199,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 |---|---|
 | HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con `auth.uid() = user_id` |
-| Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y solo muta el estado local `if (!error)` |
+| Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
 | Sesión persistente | `persistSession: true` — sesión sobrevive recargas |
 | Límite en montos | Máximo 10,000,000 validado en cliente y con `max` en el input |
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
@@ -293,6 +293,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **BudgetTab — delete de presupuesto con feedback correcto:** `deleteBudgetCat` en `DataContext` ahora hace `throw error` cuando Supabase falla, permitiendo que `BudgetTab.deleteBudget` (async con try/catch/finally) muestre toast de éxito o error y cierre los diálogos en `finally`. Antes el diálogo cerraba al instante sin esperar la DB; si fallaba, el presupuesto reaparecía en silencio. Consistente con el patrón de `ExpensesTab` e `IncomeTab`.
 
 **GoalsTab — metas sin fecha límite:** Las metas sin `deadline` ya no muestran "0 días". El cálculo de días retorna `null` cuando `g.deadline` es null, y la línea se oculta completamente en el UI (`{days !== null && <Typography>...`). `new Date(null)` devuelve epoch (1970) que resultaba en 0 días — valor incorrecto.
+
+**DataContext — todas las funciones CRUD lanzan error (`throw`):** Las 13 funciones CRUD (`addTx`, `updateTx`, `deleteTx`, `saveGoal`, `deleteGoal`, `saveAccount`, `deleteAccount`, `saveInvestment`, `deleteInvestment`, `saveDebt`, `deleteDebt`, `saveSubscription`, `deleteSubscription`) ahora hacen `if (error) throw error` en lugar de `if (!error && data)`. Esto permite que los handlers de los componentes atrapen el error y muestren feedback. Antes todos fallaban silenciosamente — solo `deleteBudgetCat` tenía `throw`.
+
+**GoalsTab — `showToast` prop obligatoria:** `DashboardStudio` ahora pasa `showToast={showToast}` a `GoalsTab`. Sin esta prop, las 10 operaciones CRUD del tab (metas, cuentas, inversiones, deudas, suscripciones) daban éxito o error sin ningún feedback al usuario.
+
+**GoalsTab — handlers con `try/catch/finally`:** Los 5 handlers de guardado (`handleSaveGoal`, `handleSaveAccount`, `handleSaveInvest`, `handleSaveDebt`, `handleSaveSub`) y sus equivalentes de borrado tienen `try/catch/finally` con `setSaving`. Sin `finally`, si Supabase lanzaba excepción el spinner quedaba activo y el dialog no se podía cerrar.
+
+**GoalsTab — guard contra división por cero en progreso:** `const pct = g.target > 0 ? g.current / g.target : 0` evita `Infinity%` cuando el target de una meta es 0. Antes `Math.round(Infinity * 100)` renderizaba `"Infinity%"` y `fmtMoney(left)` mostraba un monto negativo en "faltan".
+
+**ExpensesTab / IncomeTab — `showToast` en modal de edición:** El `<AddTransactionModal editTx={...}>` que se monta al editar una transacción ahora recibe `showToast={showToast}`. Sin esta prop, los errores al guardar una edición (red, RLS) eran silenciosos — el spinner desaparecía sin ningún mensaje.
+
+**ExpensesTab — barra "Promedio diario" corregida:** La barra de progreso del resumen de período usaba la fórmula tautológica `(X / daysCount) / (X / daysCount) = 1`, siempre 100%. Ahora usa `filteredTotal / totalBudget` (% del presupuesto gastado) si hay presupuesto configurado, o 50% neutral si no lo hay.
 
 ## Despliegue
 
