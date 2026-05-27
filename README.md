@@ -290,6 +290,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **AddTransactionModal — error toast en fallo de guardado:** El bloque `catch` del `handleSubmit` muestra toast de error "Error al guardar. Intenta de nuevo." cuando `addTx`/`updateTx` lanza excepción (red, RLS). Requiere prop `showToast` pasada desde `DashboardStudio`. Sin esto el spinner desaparecía silenciosamente sin feedback.
 
+**BudgetTab — delete de presupuesto con feedback correcto:** `deleteBudgetCat` en `DataContext` ahora hace `throw error` cuando Supabase falla, permitiendo que `BudgetTab.deleteBudget` (async con try/catch/finally) muestre toast de éxito o error y cierre los diálogos en `finally`. Antes el diálogo cerraba al instante sin esperar la DB; si fallaba, el presupuesto reaparecía en silencio. Consistente con el patrón de `ExpensesTab` e `IncomeTab`.
+
 **GoalsTab — metas sin fecha límite:** Las metas sin `deadline` ya no muestran "0 días". El cálculo de días retorna `null` cuando `g.deadline` es null, y la línea se oculta completamente en el UI (`{days !== null && <Typography>...`). `new Date(null)` devuelve epoch (1970) que resultaba en 0 días — valor incorrecto.
 
 ## Despliegue
