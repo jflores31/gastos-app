@@ -221,7 +221,7 @@ export default function DashboardStudio() {
         {toast && <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.msg}</Alert>}
       </Snackbar>
 
-      {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} />}
+      {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
       <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </Box>

@@ -167,7 +167,7 @@ export default function GoalsTab() {
                 const pct = g.current / g.target;
                 const left = g.target - g.current;
                 const today = new Date();
-                const days = Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000));
+                const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000)) : null;
                 return (
                   <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={g.id}>
                     <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "all 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={() => openEditGoal(g)}>
@@ -176,7 +176,7 @@ export default function GoalsTab() {
                           <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body1" fontWeight={600} noWrap>{g[lang]}</Typography>
-                            <Typography variant="caption" color="text.secondary">{days} {lang === "es" ? "días" : "days"}</Typography>
+                            {days !== null && <Typography variant="caption" color="text.secondary">{days} {lang === "es" ? "días" : "days"}</Typography>}
                           </Box>
                         </Box>
                         <Box sx={{ flex: 1 }}>

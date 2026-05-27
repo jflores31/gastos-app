@@ -147,7 +147,7 @@ const INCOME_ICONS = {
   AHORROS: <SavingsIcon fontSize="small" />,
 };
 
-export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null }) {
+export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency } = useSettings();
   const { addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
@@ -236,6 +236,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       onClose();
     } catch {
       setSaving(false);
+      showToast?.(lang === "es" ? "Error al guardar. Intenta de nuevo." : "Error saving. Please try again.", "error");
     }
   };
 
