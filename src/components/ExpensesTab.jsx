@@ -159,7 +159,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                            <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} tx · ${pct.toFixed(1)}%`}</Typography>
+                            <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} ${lang === "es" ? "transacciones" : "transactions"} · ${pct.toFixed(1)}%`}</Typography>
                           </Box>
                           <Typography variant="h6" fontWeight={700} color="primary.main">{fmtMoney(c.total, currency, true)}</Typography>
                         </Box>
