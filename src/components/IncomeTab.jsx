@@ -54,8 +54,11 @@ export default function IncomeTab({ period, openModal, showToast }) {
     const color = isCustom
       ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.color || "#9e9e9e")
       : (CATEGORIES.income[c.categoria]?.color || "#9e9e9e");
-    return { label: c.categoria, value: c.total, color };
-  }), [incomeCats, customCats]);
+    const label = isCustom
+      ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
+      : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
+    return { label, value: c.total, color };
+  }), [incomeCats, customCats, lang]);
 
   return (
     <>
@@ -174,7 +177,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   {incomeDonut.map((s) => (
                     <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                       <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
-                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{CATEGORIES.income[s.label]?.[lang] || s.label}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                       <Typography variant="body2" fontWeight={700} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
                     </Box>
                   ))}

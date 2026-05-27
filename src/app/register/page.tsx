@@ -78,15 +78,21 @@ export default function RegisterPage() {
     if (password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); setLoading(false); return }
     if (password !== confirmPassword) { setError("Las contraseñas no coinciden"); setLoading(false); return }
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        data: { full_name: `${name} ${lastName}`.trim() },
-        emailRedirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/login`,
-      },
-    })
-    if (authError) { setError(authError.message || "Error al registrar"); setLoading(false) }
-    else setSuccess(true)
+    try {
+      const { error: authError } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          data: { full_name: `${name} ${lastName}`.trim() },
+          emailRedirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/login`,
+        },
+      })
+      if (authError) { setError(authError.message || "Error al registrar") }
+      else setSuccess(true)
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (success) {

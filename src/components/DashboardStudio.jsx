@@ -155,7 +155,7 @@ export default function DashboardStudio() {
                   src={avatarSrc}
                   sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
                 >
-                  {displayName[0].toUpperCase()}
+                  {displayName?.[0]?.toUpperCase() || "?"}
                 </Avatar>
               </Tooltip>
               {!isMobile && (

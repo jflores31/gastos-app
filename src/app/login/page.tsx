@@ -38,14 +38,19 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError("")
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-    if (authError) {
-      const msg = authError.message?.toLowerCase() ?? ""
-      setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
+    try {
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      if (authError) {
+        const msg = authError.message?.toLowerCase() ?? ""
+        setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
+      } else {
+        window.location.href = "/"
+      }
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
       setLoading(false)
-    } else {
-      window.location.href = "/"
     }
   }
 

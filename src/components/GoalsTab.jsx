@@ -416,7 +416,7 @@ export default function GoalsTab() {
                 <Box sx={{ flex: 1 }}>
                   {debts.map((d) => {
                     const orig = d.original_months || d.remaining || 1;
-                    const paid = orig - d.remaining;
+                    const paid = Math.max(0, orig - d.remaining);
                     const pct = orig > 0 ? paid / orig : 0;
                     return (
                       <Box key={d.id} sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} onClick={() => openEditDebt(d)}>
