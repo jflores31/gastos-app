@@ -288,6 +288,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **OverviewTab — chip delta bilingüe:** El chip "vs ant." en las mini cards del resumen ahora cambia a "vs prev." cuando el idioma está en inglés (`lang === "es" ? "vs ant." : "vs prev."`).
 
+**AddTransactionModal — error toast en fallo de guardado:** El bloque `catch` del `handleSubmit` muestra toast de error "Error al guardar. Intenta de nuevo." cuando `addTx`/`updateTx` lanza excepción (red, RLS). Requiere prop `showToast` pasada desde `DashboardStudio`. Sin esto el spinner desaparecía silenciosamente sin feedback.
+
+**GoalsTab — metas sin fecha límite:** Las metas sin `deadline` ya no muestran "0 días". El cálculo de días retorna `null` cuando `g.deadline` es null, y la línea se oculta completamente en el UI (`{days !== null && <Typography>...`). `new Date(null)` devuelve epoch (1970) que resultaba en 0 días — valor incorrecto.
+
 ## Despliegue
 
 ```bash
