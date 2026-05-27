@@ -248,6 +248,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **BudgetTab — monto en diálogo de gestión:** La lista de presupuestos existentes mostraba `amount × monthCount(period)` con etiqueta "/mes" — doble cálculo incorrecto. Ahora muestra `amount` (valor mensual) directamente.
 
+**BudgetTab — confirmación al borrar presupuesto:** Eliminar un presupuesto desde el diálogo "Gestionar" ahora muestra un Dialog de confirmación antes de ejecutar el borrado (consistente con el resto de eliminaciones).
+
+**GoalsTab — botones Eliminar deshabilitados durante operación:** Los botones de eliminar en los diálogos de metas, cuentas, inversiones, deudas y suscripciones quedan `disabled` mientras la operación async está en curso, evitando doble-click.
+
+**GoalsTab — fecha límite de meta no puede ser en el pasado:** El DatePicker de metas incluye `minDate={dayjs()}` — no permite seleccionar fechas pasadas.
+
+**GoalsTab — categoría de suscripción resuelta:** La tarjeta de suscripción muestra el nombre real de la categoría (nativa o `custom_*`) en vez de la clave cruda.
+
+**ExpensesTab / IncomeTab — delete con try-catch:** El botón de confirmar eliminación de transacción usa `await` con `try/catch/finally`: muestra toast de error si falla y siempre cierra el diálogo.
+
+**DashboardStudio — strings i18n:** Botón de login ("Entrar"/"Sign in") y banner de error ("Reintentar"/"Retry", "Error al cargar datos"/"Error loading data") respetan el idioma seleccionado.
+
+**DataContext — recarga en renovación de token corregida:** El listener `onAuthStateChange` ya no llama a `load()` en el evento `SIGNED_IN` (que Supabase dispara al renovar el JWT automáticamente), evitando que la pestaña de Metas se reiniciara sola cada ~55 minutos. Solo carga en `INITIAL_SESSION`.
+
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado.
