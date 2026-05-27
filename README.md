@@ -248,6 +248,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **BudgetTab — monto en diálogo de gestión:** La lista de presupuestos existentes mostraba `amount × monthCount(period)` con etiqueta "/mes" — doble cálculo incorrecto. Ahora muestra `amount` (valor mensual) directamente.
 
+**DashboardStudio — Avatar seguro contra nombre vacío:** `displayName?.[0]?.toUpperCase() || "?"` reemplaza `displayName[0].toUpperCase()` que lanzaba `TypeError` si el usuario no tenía nombre ni email resuelto.
+
+**Login / Register — try-catch en llamadas a Supabase:** Ambas páginas envuelven `signInWithPassword`/`signUp` en `try/catch/finally`; si Supabase lanza excepción de red, `setLoading(false)` se ejecuta en `finally` y aparece mensaje "Error de conexión" — el botón no queda bloqueado.
+
+**GoalsTab — barra de progreso de deuda no puede ser negativa:** `Math.max(0, orig - d.remaining)` evita valores negativos cuando `remaining > original_months`.
+
+**IncomeTab — leyenda del donut con nombre real:** `incomeDonut` resuelve `label` desde el origen (`CATEGORIES.income[key]?.[lang]` o `customCats.find(...)?.nombre`) en vez de pasar la clave cruda `custom_abc123` y depender de un lookup posterior que fallaba para categorías personalizadas.
+
 **BudgetTab — confirmación al borrar presupuesto:** Eliminar un presupuesto desde el diálogo "Gestionar" ahora muestra un Dialog de confirmación antes de ejecutar el borrado (consistente con el resto de eliminaciones).
 
 **GoalsTab — botones Eliminar deshabilitados durante operación:** Los botones de eliminar en los diálogos de metas, cuentas, inversiones, deudas y suscripciones quedan `disabled` mientras la operación async está en curso, evitando doble-click.
