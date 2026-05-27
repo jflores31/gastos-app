@@ -95,8 +95,16 @@ export default function BudgetTab({ period, showToast }) {
     setEditExisting(null);
   };
 
-  const deleteBudget = (cat) => {
-    deleteBudgetCat(cat);
+  const deleteBudget = async (cat) => {
+    try {
+      await deleteBudgetCat(cat);
+      showToast?.(lang === "es" ? "Presupuesto eliminado" : "Budget deleted");
+    } catch {
+      showToast?.(lang === "es" ? "Error al eliminar presupuesto" : "Error deleting budget", "error");
+    } finally {
+      setDeletingCat(null);
+      setAddDialog(false);
+    }
   };
 
   const healthLabel = score >= 75 ? (lang === "es" ? "Excelente" : "Excellent") : score >= 50 ? (lang === "es" ? "Regular" : "Fair") : (lang === "es" ? "Crítico" : "Critical");
@@ -466,7 +474,7 @@ export default function BudgetTab({ period, showToast }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeletingCat(null)}>{lang === "es" ? "Cancelar" : "Cancel"}</Button>
-          <Button color="error" variant="contained" onClick={() => { deleteBudget(deletingCat); setDeletingCat(null); setAddDialog(false); }}>
+          <Button color="error" variant="contained" onClick={() => deleteBudget(deletingCat)}>
             {lang === "es" ? "Eliminar" : "Delete"}
           </Button>
         </DialogActions>

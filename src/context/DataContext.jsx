@@ -277,7 +277,8 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from("budgets").delete().eq("user_id", user.id).eq("categoria", cat)
-    if (!error) setEditBudgetsState((prev) => {
+    if (error) throw error
+    setEditBudgetsState((prev) => {
       const n = { ...prev }
       delete n[cat]
       return n
