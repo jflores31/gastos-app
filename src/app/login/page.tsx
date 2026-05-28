@@ -18,7 +18,8 @@ const OAUTH_ENABLED = false
 export default function LoginPage() {
   const router = useRouter()
   const theme = useTheme()
-  const isDark = theme.palette.mode === "dark"
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

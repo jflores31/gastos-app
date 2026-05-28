@@ -40,7 +40,8 @@ const Blobs = ({ isDark }: { isDark: boolean }) => (
 
 function ResetPasswordForm() {
   const theme = useTheme()
-  const isDark = theme.palette.mode === "dark"
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -295,7 +296,8 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   const theme = useTheme()
-  const isDark = theme.palette.mode === "dark"
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
 
   return (
     <Box sx={{

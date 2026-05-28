@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
@@ -42,7 +42,8 @@ const Blobs = ({ isDark }: { isDark: boolean }) => (
 
 export default function RegisterPage() {
   const theme = useTheme()
-  const isDark = theme.palette.mode === "dark"
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
 
   const [name, setName] = useState("")
   const [lastName, setLastName] = useState("")

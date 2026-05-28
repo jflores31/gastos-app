@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Box } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { type ReactNode } from "react"
@@ -21,7 +22,8 @@ export function AuthCard({
   sx,
 }: AuthCardProps) {
   const { palette } = useTheme()
-  const isDark = palette.mode === "dark"
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => { setIsDark(palette.mode === "dark") }, [palette.mode])
 
   return (
     <Box
