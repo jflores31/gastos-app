@@ -211,6 +211,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 ## Notas Técnicas
 
+**Error "JWT issued at future":** aparece cuando el reloj del dispositivo está adelantado respecto a los servidores de Supabase (incluso 1 minuto basta). Supabase rechaza el JWT → todas las queries del `Promise.all` fallan → carga lenta + banner de error. Solución: sincronizar el reloj del sistema (`timedatectl set-ntp true` en Linux, "Sincronizar ahora" en Windows). El banner de error detecta este caso específico y muestra un mensaje accionable en lugar del texto técnico crudo.
+
 **`proxy.ts` vs `middleware.ts`:** Next.js 16 usa la convención `proxy.ts`. El nombre `middleware.ts` está deprecado y produce warning en build.
 
 **Supabase redirectTo:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www) pero Supabase solo acepta `https://jeshu.cfd/**`. Siempre aplicar `.replace(/^https:\/\/www\./, "https://")` antes de `redirectTo`.
