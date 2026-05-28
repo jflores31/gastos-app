@@ -26,6 +26,8 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
 - Protección de rutas doble capa: `src/proxy.ts` (server) + `router.replace` en `DashboardStudio` (client)
 - Auto-logout por inactividad a los 2 minutos con aviso a los 30 s
+- Cierre forzado al reabrir el navegador: `UserContext` escribe el flag `gastos_session_alive` en `sessionStorage` al detectar `SIGNED_IN` (cubre email/password y OAuth); `DashboardStudio` lo verifica al montar — si falta (browser cerrado) llama `handleSignOut()` inmediatamente antes de renderizar el dashboard
+- Pestaña abierta >8 h: `checkSessionAge` lee `gastos_last_active` (localStorage) al recuperar visibilidad (`visibilitychange` + `pageshow` para bfcache) y cierra sesión si supera el límite
 
 **Sistema de diseño unificado en todas las páginas de auth — soporta tema claro y oscuro:**
 
@@ -106,6 +108,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Formularios de auth apilados verticalmente en pantallas pequeñas
 - Touch targets mínimo 40×44 px en todos los botones de acción
 - Snackbar posicionado sobre `BottomNavigation` en móvil (`bottom: { xs: 72, sm: 24 }`)
+- Accesibilidad por teclado: `CalendarFilter` (celdas día/mes), sección "Gastos de hoy" (ExpensesTab) y filas de deudas/suscripciones (GoalsTab) tienen `role="button"` + `tabIndex={0}` + `onKeyDown` (Enter/Space)
 
 ## Estructura del Proyecto
 
@@ -205,7 +208,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con `auth.uid() = user_id` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
-| Sesión persistente | `persistSession: true` — sesión sobrevive recargas |
+| Sesión por browser session | `gastos_session_alive` en `sessionStorage` (limpiado por el navegador al cerrar); reabrir el browser fuerza re-login. La sesión sobrevive recargas de página normales |
+| Expiración por inactividad prolongada | `gastos_last_active` en `localStorage` actualizado en cada evento de usuario; si la pestaña lleva >8 h sin actividad se cierra la sesión al recuperar el foco |
 | Límite en montos | Máximo 10,000,000 validado en cliente y con `max` en el input |
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
@@ -316,6 +320,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Presupuestos — carga y borrado:** `DataContext` inicializa `editBudgets` en `{}` y lo llena solo desde Supabase. `deleteBudgetCat(cat)` borra de la BD antes de actualizar el estado.
 
 **AddTransactionModal — prevención de doble submit:** `saving` state deshabilita el botón y muestra `CircularProgress`. `handleSubmit` tiene try-catch para liberar `saving` si la operación lanza excepción.
+
+**Seguridad de sesión — mecanismo de cierre al cerrar el navegador:** `UserContext.onAuthStateChange` escucha el evento `SIGNED_IN` (login explícito — email/password u OAuth) y escribe `sessionStorage.setItem("gastos_session_alive", "1")`. El navegador borra `sessionStorage` automáticamente al cerrarse. Al reabrir, `DashboardStudio` verifica el flag antes de mostrar el dashboard; si falta llama `handleSignOut()` y redirige a `/login`. Recargas de página (F5) preservan `sessionStorage` — la sesión continúa normalmente. Para pestañas dejadas abiertas: `gastos_last_active` en `localStorage` se actualiza en cada evento de usuario (mousedown/keydown/scroll/etc.); `checkSessionAge` verifica al recuperar visibilidad (`visibilitychange` + `pageshow` con `event.persisted` para restauraciones bfcache) y cierra la sesión si el timestamp supera 8 h. Todos los cierres de sesión (manual, inactividad, expiración) llaman `localStorage.removeItem("gastos_last_active")` para evitar el bucle de logout inmediato en el siguiente login.
 
 **CalendarFilter:** En `shared.jsx`. Vista día: grid 7 columnas con `alpha(mainColor, intensidad)`; vista mes: grid 4×3. Rojo para EGRESO, verde para INGRESO. Click en celda activa `onFilter({ type, date })`, click nuevamente limpia. Chips de modo Día/Mes incluyen `aria-label` bilingüe para accesibilidad.
 
