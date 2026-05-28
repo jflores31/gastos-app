@@ -1,10 +1,7 @@
-import Link from "next/link"
-import type { Metadata } from "next"
-import { Box, Typography, Button } from "@mui/material"
+"use client"
 
-export const metadata: Metadata = {
-  title: "Página no encontrada",
-}
+import Link from "next/link"
+import { Box, Typography, Button } from "@mui/material"
 
 export default function NotFound() {
   return (
