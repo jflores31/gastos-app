@@ -203,13 +203,21 @@ export default function DashboardStudio() {
       )}
 
       <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
-        {loadError && (
-          <Alert severity="error" sx={{ mb: 2 }} action={
-            <Button color="inherit" size="small" onClick={() => window.location.reload()}>{lang === "es" ? "Reintentar" : "Retry"}</Button>
-          }>
-            {lang === "es" ? "Error al cargar datos" : "Error loading data"}: {loadError}
-          </Alert>
-        )}
+        {loadError && (() => {
+          const isClockSkew = loadError.toLowerCase().includes("jwt") && loadError.toLowerCase().includes("future");
+          return (
+            <Alert severity="error" sx={{ mb: 2 }} action={
+              <Button color="inherit" size="small" onClick={() => window.location.reload()}>{lang === "es" ? "Reintentar" : "Retry"}</Button>
+            }>
+              {isClockSkew
+                ? (lang === "es"
+                  ? "El reloj de tu dispositivo está adelantado. Sincroniza la hora del sistema e intenta de nuevo."
+                  : "Your device clock is ahead of the server. Sync your system time and try again.")
+                : `${lang === "es" ? "Error al cargar datos" : "Error loading data"}: ${loadError}`
+              }
+            </Alert>
+          );
+        })()}
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
         {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}
