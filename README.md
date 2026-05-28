@@ -273,6 +273,20 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **DataContext — recarga en renovación de token corregida:** El listener `onAuthStateChange` ya no llama a `load()` en el evento `SIGNED_IN` (que Supabase dispara al renovar el JWT automáticamente), evitando que la pestaña de Metas se reiniciara sola cada ~55 minutos. Solo carga en `INITIAL_SESSION`.
 
+**DataContext — `load()` no se llama al montar:** La llamada directa a `load()` en el `useEffect` fue eliminada. `INITIAL_SESSION` siempre dispara al suscribirse a `onAuthStateChange` y es la única fuente de verdad para la carga inicial. Llamar ambas producía 16 queries paralelas a Supabase en cada montaje.
+
+**DataContext — `setEditBudgets` lanza error consistentemente:** El upsert de presupuestos ahora hace `if (error) throw error` + `setEditBudgetsState(newBudgets)`, igual que todas las demás funciones CRUD. Antes usaba `if (!error) setState` — los errores de Supabase se perdían silenciosamente y el caller no podía mostrar feedback.
+
+**Auth páginas — try/catch/finally en todas las llamadas Supabase:** `forgot-password` y `reset-password` envuelven `resetPasswordForEmail` / `updateUser` en `try/catch/finally`. Sin `finally`, un error de red dejaba el botón en estado spinner permanente ya que `setLoading(false)` solo se ejecutaba en el branch de error explícito, no ante excepciones.
+
+**`not-found.tsx` — debe ser Client Component:** La página usa `<Button component={Link}>` que pasa una función a MUI en tiempo de prerender. Next.js rechaza esto en Server Components. Se agregó `"use client"` y se eliminó el export de `metadata` (las páginas 404 no son indexadas por buscadores).
+
+**CSP — `unsafe-eval` solo en desarrollo:** `next.config.mjs` ahora aplica `'unsafe-eval'` únicamente cuando `NODE_ENV !== "production"`. En producción se elimina — Next.js y MUI/Emotion no lo requieren en producción y su presencia debilita la política de seguridad de una app financiera.
+
+**`AddTransactionModal` — sin aliases de iconos:** Los 50 `const XIcon = Y` eliminados. Los íconos de `@mui/icons-material` se usan directamente por su nombre de import en `EXPENSE_ICONS` e `INCOME_ICONS`. Los imports de datos (`CATEGORIES`, contextos) se movieron al bloque de imports del tope del archivo.
+
+**`AuthErrorAlert` — detección de enlace expirado bilingüe:** La condición para mostrar el link de "Solicitar nuevo enlace" ahora comprueba `error.includes("expiró") || error.includes("expired")`. Antes solo detectaba el string en español — si Supabase devolvía el mensaje en inglés el link no aparecía.
+
 **Auth páginas — tema claro/oscuro:** Todas usan `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` y `cardSx` se definen dentro del componente (no en módulo) para leer `isDark` en tiempo de render. `Blobs` acepta prop `{ isDark }` para ajustar opacidad de los gradientes.
 
 **DataContext — `saveCustomCat` / `deleteCustomCat` lanzan error:** Ambas funciones ahora hacen `if (error) throw error` antes de mutar el estado local. Antes usaban `if (!error) setCustomCats(...)` sin throw — el try/catch de `SettingsPanel.handleSaveCat`/`handleDeleteCat` nunca disparaba, los errores de Supabase se perdían silenciosamente.
