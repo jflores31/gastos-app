@@ -50,6 +50,13 @@ export default function BudgetTab({ period, showToast }) {
 
   const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
   const budgetUsed = totalBudget > 0 ? totalOut / totalBudget : 0;
+
+  // Spending restricted to budgeted categories — denominator matches the rows in "Budget vs Actual"
+  const totalSpentBudgeted = useMemo(
+    () => Object.keys(editBudgets).reduce((s, cat) => s + (cats.find((c) => c.categoria === cat)?.total || 0), 0),
+    [editBudgets, cats]
+  );
+  const budgetUsedBudgeted = totalBudget > 0 ? totalSpentBudgeted / totalBudget : 0;
   const gaugeColor = score >= 75 ? "success" : score >= 50 ? "warning" : "error";
   const gaugeIcon = score >= 75 ? <HealthIcon /> : <WarningIcon />;
 
@@ -358,15 +365,15 @@ export default function BudgetTab({ period, showToast }) {
             {/* Summary footer */}
             <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {lang === "es" ? "Total gastado" : "Total spent"}: <strong>{fmtMoney(totalOut, currency, true)}</strong>
+                {lang === "es" ? "Total gastado" : "Total spent"}: <strong>{fmtMoney(totalSpentBudgeted, currency, true)}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
                 {lang === "es" ? "Total presupuestado" : "Total budget"}: <strong>{fmtMoney(totalBudget, currency, true)}</strong>
               </Typography>
               <Chip
                 size="small"
-                label={`${Math.round(budgetUsed * 100)}% ${lang === "es" ? "usado" : "used"}`}
-                color={budgetUsed > 1 ? "error" : budgetUsed >= 0.8 ? "warning" : "success"}
+                label={`${Math.round(budgetUsedBudgeted * 100)}% ${lang === "es" ? "usado" : "used"}`}
+                color={budgetUsedBudgeted > 1 ? "error" : budgetUsedBudgeted >= 0.8 ? "warning" : "success"}
                 variant="outlined"
                 sx={{ fontWeight: 700 }}
               />
