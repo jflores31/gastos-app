@@ -2,13 +2,15 @@
 
 import { useState } from "react"
 import {
-  Dialog, DialogContent, Box, Typography, TextField, Button, Avatar, Divider, Chip, IconButton
+  Dialog, DialogContent, Box, Typography, TextField, Button, Avatar, Divider, Chip, IconButton, CircularProgress
 } from "@mui/material"
 import { Close, Google, GitHub } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../lib/supabase"
+import { useSettings } from "../context/SettingsContext.jsx"
 
 export default function LoginModal({ open, onClose }) {
+  const { lang } = useSettings()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -18,16 +20,19 @@ export default function LoginModal({ open, onClose }) {
     e.preventDefault()
     setLoading(true)
     setError("")
-
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError) {
-      setError("Credenciales inválidas")
+    try {
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      if (authError) {
+        setError(lang === "es" ? "Credenciales inválidas" : "Invalid credentials")
+      } else {
+        onClose()
+        window.location.reload()
+      }
+    } catch {
+      setError(lang === "es" ? "Error de conexión. Intenta de nuevo." : "Connection error. Please try again.")
+    } finally {
       setLoading(false)
-    } else {
-      onClose()
-      window.location.reload()
     }
   }
 
@@ -53,30 +58,30 @@ export default function LoginModal({ open, onClose }) {
               ◈
             </Avatar>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Finanzas</Typography>
-            <Typography variant="body2" color="text.secondary">Bienvenido de vuelta</Typography>
+            <Typography variant="body2" color="text.secondary">{lang === "es" ? "Bienvenido de vuelta" : "Welcome back"}</Typography>
           </Box>
 
           {error && (
             <Chip role="alert" label={error} color="error" variant="outlined" sx={{ width: "100%", mb: 2, justifyContent: "center" }} />
           )}
 
-          <form onSubmit={handleSubmit}>
-            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required sx={{ mb: 2 }} />
-            <TextField fullWidth label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required sx={{ mb: 1 }} />
+          <form onSubmit={handleSubmit} aria-label={lang === "es" ? "Iniciar sesión" : "Sign in"} aria-busy={loading}>
+            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" slotProps={{ htmlInput: { spellCheck: false } }} sx={{ mb: 2 }} />
+            <TextField fullWidth label={lang === "es" ? "Contraseña" : "Password"} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" sx={{ mb: 1 }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
               <Link href="/forgot-password" style={{ textDecoration: "none" }}>
                 <Typography variant="body2" color="primary" sx={{ cursor: "pointer" }}>
-                  ¿Olvidaste tu contraseña?
+                  {lang === "es" ? "¿Olvidaste tu contraseña?" : "Forgot your password?"}
                 </Typography>
               </Link>
             </Box>
             <Button fullWidth variant="contained" type="submit" disabled={loading} sx={{ py: 1.5, borderRadius: 2, fontWeight: 600, fontSize: 16 }}>
-              {loading ? "Ingresando..." : "Ingresar"}
+              {loading ? <CircularProgress size={22} color="inherit" /> : (lang === "es" ? "Ingresar" : "Sign in")}
             </Button>
           </form>
 
           <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">o continuar con</Typography>
+            <Typography variant="body2" color="text.secondary">{lang === "es" ? "o continuar con" : "or continue with"}</Typography>
           </Divider>
 
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 2 }}>
@@ -90,10 +95,10 @@ export default function LoginModal({ open, onClose }) {
 
           <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2" color="text.secondary">
-              ¿No tienes cuenta?{" "}
+              {lang === "es" ? "¿No tienes cuenta?" : "Don't have an account?"}{" "}
               <Link href="/register" style={{ textDecoration: "none" }}>
                 <Typography component="span" variant="body2" color="primary" sx={{ cursor: "pointer", fontWeight: 600 }}>
-                  Regístrate
+                  {lang === "es" ? "Regístrate" : "Sign up"}
                 </Typography>
               </Link>
             </Typography>

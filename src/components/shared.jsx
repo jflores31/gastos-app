@@ -48,7 +48,7 @@ export function StatsCard({ title, subtitle, icon, iconColor = "primary", childr
         border: "1px solid", 
         borderColor: borderColor,
         boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        transition: "all 0.3s",
+        transition: "transform 0.3s, box-shadow 0.3s",
         "&:hover": onClick ? { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-2px)", cursor: "pointer" } : {},
         borderTop: "4px solid",
         borderTopColor: topBorderColor,
@@ -269,7 +269,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                         color: sel ? "#fff" : "text.primary",
                         fontWeight: val > 0 ? 600 : 400,
                         fontSize: 10,
-                        transition: "all 0.12s",
+                        transition: "opacity 0.12s, transform 0.12s, background-color 0.12s",
                         userSelect: "none",
                         "&:hover": { opacity: 0.75, transform: "scale(1.08)" },
                       }}
@@ -307,7 +307,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                       outline: cur && !sel ? `1.5px solid ${mainColor}` : "none",
                       outlineOffset: -1,
                       textAlign: "center",
-                      transition: "all 0.12s",
+                      transition: "opacity 0.12s, background-color 0.12s",
                       userSelect: "none",
                       "&:hover": { opacity: 0.75 },
                     }}

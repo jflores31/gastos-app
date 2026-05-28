@@ -100,7 +100,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <Typography variant="h6" fontWeight={700}>{t.dailyTitle}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
           </Box>
-          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "all 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
+          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
             <AddIcon />
           </IconButton>
         </Box>
@@ -156,7 +156,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     const color = CATEGORIES.expense[c.categoria]?.color || customCats.find((cc) => cc.id === c.categoria?.slice("custom_".length))?.color || "#9e9e9e";
                     const catName = resolveCatName(c.categoria);
                     return (
-                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "all 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                           <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
@@ -198,7 +198,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat)
                         : (CATEGORIES.expense[cat]?.[lang] || cat);
                       return (
-                        <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                        <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                             <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: isOver ? "error.main" : "warning.main", display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                             <Box sx={{ flex: 1 }}>
@@ -241,7 +241,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       : idx === 2 ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : filteredTotal > 0 ? 50 : 0)
                       : (filteredTotal > 0 ? Math.min(100, (maxExpense / filteredTotal) * 100) : 0);
                     return (
-                    <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "all 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                    <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
                         <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
                         <Box sx={{ flex: 1 }}>

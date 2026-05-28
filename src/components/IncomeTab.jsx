@@ -63,7 +63,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
   return (
     <>
     <Stack spacing={3}>
-      <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "all 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
+      <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
         <CardContent sx={{ p: 2.5, color: "text.primary" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box>
@@ -71,7 +71,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: "success.main" }}>{fmtMoney(totalIn, currency)}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "all 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
+              <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
                 <AddIcon />
               </IconButton>
               <Avatar sx={{ width: 48, height: 48, bgcolor: "success.light", color: "success.dark" }}>
@@ -122,7 +122,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                       p: 1.5, borderRadius: 2, border: "1px solid", cursor: "pointer",
                       borderColor: isActive ? resolvedColor : "divider",
                       bgcolor: isActive ? `${resolvedColor}12` : "action.hover",
-                      transition: "all 0.2s",
+                      transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s",
                       "&:hover": { bgcolor: `${resolvedColor}18`, borderColor: resolvedColor },
                     }}
                   >
@@ -156,7 +156,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
 
       <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
@@ -175,7 +175,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   {incomeDonut.map((s) => (
-                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                       <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
                       <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                       <Typography variant="body2" fontWeight={700} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
@@ -187,7 +187,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           </Card>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
+          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ChartIcon /></Avatar>

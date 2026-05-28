@@ -63,8 +63,12 @@ export default function BudgetTab({ period, showToast }) {
   const donutData = useMemo(() => {
     return Object.keys(editBudgets).map((cat) => {
       const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-      const color = getCatColor(cat);
-      const catName = getCatName(cat);
+      const color = cat?.startsWith("custom_")
+        ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e")
+        : (CATEGORIES.expense[cat]?.color || "#9e9e9e");
+      const catName = cat?.startsWith("custom_")
+        ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat)
+        : (CATEGORIES.expense[cat]?.[lang] || cat);
       return { label: catName, value: spent, color };
     }).filter(d => d.value > 0);
   }, [editBudgets, cats, lang, customCats]);
@@ -72,21 +76,28 @@ export default function BudgetTab({ period, showToast }) {
   const donutTotal = donutData.reduce((s, d) => s + d.value, 0);
 
   const startEdit = (cat) => { setEditing(cat); setEditVal(String(editBudgets[cat])); };
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const v = parseFloat(editVal);
-    if (v > 0) {
-      setEditBudgets((b) => ({ ...b, [editing]: v }));
+    if (v <= 0) { setEditing(null); return; }
+    try {
+      await setEditBudgets((b) => ({ ...b, [editing]: v }));
       showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
+    } catch {
+      showToast?.(lang === "es" ? "Error al actualizar presupuesto" : "Error updating budget", "error");
+    } finally {
+      setEditing(null);
     }
-    setEditing(null);
   };
 
-  const handleAddBudget = () => {
-    if (newCat && newBudget > 0) {
-      setEditBudgets((b) => ({ ...b, [newCat]: parseFloat(newBudget) }));
+  const handleAddBudget = async () => {
+    if (!newCat || parseFloat(newBudget) <= 0) return;
+    try {
+      await setEditBudgets((b) => ({ ...b, [newCat]: parseFloat(newBudget) }));
       showToast?.(lang === "es" ? "Presupuesto agregado" : "Budget added");
       setNewCat("");
       setNewBudget("");
+    } catch {
+      showToast?.(lang === "es" ? "Error al agregar presupuesto" : "Error adding budget", "error");
     }
   };
 
@@ -95,13 +106,17 @@ export default function BudgetTab({ period, showToast }) {
     setEditExistingVal(String(editBudgets[cat]));
   };
 
-  const saveEditExisting = () => {
+  const saveEditExisting = async () => {
     const v = parseFloat(editExistingVal);
-    if (v > 0) {
-      setEditBudgets((b) => ({ ...b, [editExisting]: v }));
+    if (v <= 0) { setEditExisting(null); return; }
+    try {
+      await setEditBudgets((b) => ({ ...b, [editExisting]: v }));
       showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
+    } catch {
+      showToast?.(lang === "es" ? "Error al actualizar presupuesto" : "Error updating budget", "error");
+    } finally {
+      setEditExisting(null);
     }
-    setEditExisting(null);
   };
 
   const deleteBudget = async (cat) => {
@@ -185,7 +200,7 @@ export default function BudgetTab({ period, showToast }) {
           const isWarning = pct >= 0.8 && pct <= 1;
           return (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cat}>
-              <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: isOver ? "error.main" : isWarning ? "warning.main" : "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: isOver ? "error.light" : isWarning ? "warning.light" : "background.paper", height: "100%", display: "flex", flexDirection: "column" }}>
+              <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: isOver ? "error.main" : isWarning ? "warning.main" : "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: isOver ? "error.light" : isWarning ? "warning.light" : "background.paper", height: "100%", display: "flex", flexDirection: "column" }}>
                 <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -231,7 +246,7 @@ export default function BudgetTab({ period, showToast }) {
           );
         })}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <Card onClick={() => setAddDialog(true)} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
+          <Card onClick={() => setAddDialog(true)} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s, color 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="body1" fontWeight={600}>{lang === "es" ? "Agregar presupuesto" : "Add budget"}</Typography>

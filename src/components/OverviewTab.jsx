@@ -136,7 +136,7 @@ export default function OverviewTab({ period, setPeriod }) {
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr" }, gap: 2, alignItems: "stretch" }}>
-        <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "all 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: net >= 0 ? "success.main" : "error.main" }}>
+        <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: net >= 0 ? "success.main" : "error.main" }}>
           <CardContent sx={{ p: 2.5, color: "text.primary", "&:last-child": { pb: 2.5 } }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <Box>
@@ -161,7 +161,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
         {miniCards.map((card, idx) => (
-          <Card key={idx} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "all 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: ["success.main", "error.main", "primary.main", "warning.main"][idx], bgcolor: "background.paper" }}>
+          <Card key={idx} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: ["success.main", "error.main", "primary.main", "warning.main"][idx], bgcolor: "background.paper" }}>
             <CardContent sx={{ p: 2, "&:last-child": { pb: 2 }, display: "flex", flexDirection: "column", height: "100%" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
                 <Avatar sx={{ width: 36, height: 36, bgcolor: `${card.color}.light`, color: `${card.color}.dark`, fontSize: 16 }}>{card.icon}</Avatar>
@@ -189,7 +189,7 @@ export default function OverviewTab({ period, setPeriod }) {
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" }, gap: 2.5 }}>
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "all 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
+        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ChartIcon /></Avatar>
@@ -216,7 +216,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "all 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
@@ -235,7 +235,7 @@ export default function OverviewTab({ period, setPeriod }) {
               </Box>
               <Box sx={{ flex: 1 }}>
                 {donut.map((s) => (
-                  <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "all 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                  <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                     <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
@@ -246,7 +246,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "all 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "success.main" }}>
+        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "success.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -260,7 +260,7 @@ export default function OverviewTab({ period, setPeriod }) {
             </Box>
             <Stack spacing={1.5}>
               {insights.map((ins, idx) => (
-                <Box key={ins.title} sx={{ display: "flex", gap: 2, p: 2, bgcolor: idx % 2 === 0 ? "success.light" : "action.hover", borderRadius: 3, border: "1px solid", borderColor: idx % 2 === 0 ? "success.main" : "divider", transition: "all 0.2s", "&:hover": { transform: "translateX(4px)" } }}>
+                <Box key={ins.title} sx={{ display: "flex", gap: 2, p: 2, bgcolor: idx % 2 === 0 ? "success.light" : "action.hover", borderRadius: 3, border: "1px solid", borderColor: idx % 2 === 0 ? "success.main" : "divider", transition: "transform 0.2s, background-color 0.2s", "&:hover": { transform: "translateX(4px)" } }}>
                   <Avatar sx={{ width: 36, height: 36, bgcolor: `${INSIGHT_COLORS[ins.tone]}.light`, color: `${INSIGHT_COLORS[ins.tone]}.dark`, flexShrink: 0 }}>
                     {INSIGHT_ICONS[ins.icon]}
                   </Avatar>
@@ -274,7 +274,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "all 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "error.main" }}>
+        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "error.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: "error.light", color: "error.dark" }}><CalendarIcon /></Avatar>

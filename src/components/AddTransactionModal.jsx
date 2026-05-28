@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress,
   ToggleButton, ToggleButtonGroup, TextField, Autocomplete, InputAdornment,
@@ -108,35 +108,36 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
   const [saving, setSaving] = useState(false);
 
   const favCats = user?.user_metadata?.fav_categories || [];
-  const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
-  const customGroup = lang === "es" ? "🏷️ Personalizadas" : "🏷️ Custom";
 
-  const myOptions = favCats
-    .map((f) => {
-      if (f.tipo === "EGRESO") {
-        const v = CATEGORIES.expense[f.categoria];
-        return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "EGRESO", icon: EXPENSE_ICONS[f.categoria] } : null;
-      }
-      const v = CATEGORIES.income[f.categoria];
-      return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "INGRESO", icon: INCOME_ICONS[f.categoria] } : null;
-    })
-    .filter(Boolean);
-
-  const customOptions = customCats.map((c) => ({
-    value: `custom_${c.id}`,
-    label: c.nombre,
-    group: customGroup,
-    type: c.tipo,
-    icon: <Box sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />,
-    color: c.color,
-  }));
-
-  const categoryOptions = [
-    ...myOptions,
-    ...customOptions,
-    ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
-    ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
-  ];
+  const categoryOptions = useMemo(() => {
+    const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
+    const customGroup = lang === "es" ? "🏷️ Personalizadas" : "🏷️ Custom";
+    const myOptions = favCats
+      .map((f) => {
+        if (f.tipo === "EGRESO") {
+          const v = CATEGORIES.expense[f.categoria];
+          return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "EGRESO", icon: EXPENSE_ICONS[f.categoria] } : null;
+        }
+        const v = CATEGORIES.income[f.categoria];
+        return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "INGRESO", icon: INCOME_ICONS[f.categoria] } : null;
+      })
+      .filter(Boolean);
+    const customOptions = customCats.map((c) => ({
+      value: `custom_${c.id}`,
+      label: c.nombre,
+      group: customGroup,
+      type: c.tipo,
+      icon: <Box sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />,
+      color: c.color,
+    }));
+    return [
+      ...myOptions,
+      ...customOptions,
+      ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
+      ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
+    ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, customCats, t.income, t.expense]);
 
   // When editing, resolve the initial category string to a full option object
   const [categoria, setCategoria] = useState(() => {
@@ -145,10 +146,10 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     return null;
   });
 
-  const filteredOptions = categoryOptions.filter((o) => {
+  const filteredOptions = useMemo(() => categoryOptions.filter((o) => {
     if (mode === "expense") return o.type === "EGRESO";
     return tipo === "INGRESO" ? o.type === "INGRESO" : o.type === "EGRESO";
-  });
+  }), [categoryOptions, mode, tipo]);
 
   const validate = () => {
     const errs = {};

@@ -2,7 +2,7 @@ import { createTheme } from "@mui/material/styles";
 
 const common = {
   typography: {
-    fontFamily: '"Inter", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif',
+    fontFamily: '"IBM Plex Sans", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif',
     h1: { fontWeight: 700, letterSpacing: "-0.02em" },
     h2: { fontWeight: 700, letterSpacing: "-0.02em" },
     h3: { fontWeight: 600 },
@@ -94,10 +94,6 @@ export const paletteMap = {
   green:   { light: { primary: "#3a8f5a" }, dark: { primary: "#5cb87a" } },
   mono:    { light: { primary: "#333" },    dark: { primary: "#e0e0e0" } },
 };
-
-const theme = lightTheme;
-
-export default theme;
 
 export function getTheme(themeMode, palette) {
   const base = themeMode === "dark" ? darkTheme : lightTheme;

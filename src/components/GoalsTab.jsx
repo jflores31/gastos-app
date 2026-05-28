@@ -242,7 +242,7 @@ export default function GoalsTab({ showToast }) {
                 const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000)) : null;
                 return (
                   <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={g.id}>
-                    <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "all 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={() => openEditGoal(g)}>
+                    <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={() => openEditGoal(g)}>
                       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column", "&:last-child": { pb: 2.5 } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
                           <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
@@ -606,7 +606,7 @@ export default function GoalsTab({ showToast }) {
                         <Box key={i} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                           <Typography variant="caption" fontWeight={600}>{fmtMoney(h.value, currency, true)}</Typography>
                           <Box sx={{ width: "100%", height: 100, bgcolor: "action.hover", borderRadius: 1, position: "relative", overflow: "hidden" }}>
-                            <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(Math.abs(h.value) / maxVal) * 100}%`, bgcolor: h.value >= 0 ? (i === history.length - 1 ? "success.main" : "success.light") : "error.light", borderRadius: 1, transition: "all 0.3s" }} />
+                            <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(Math.abs(h.value) / maxVal) * 100}%`, bgcolor: h.value >= 0 ? (i === history.length - 1 ? "success.main" : "success.light") : "error.light", borderRadius: 1, transition: "transform 0.3s, box-shadow 0.3s" }} />
                           </Box>
                           <Typography variant="caption" color="text.secondary">{h.month}</Typography>
                         </Box>
