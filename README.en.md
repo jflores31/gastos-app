@@ -26,6 +26,8 @@ Personal finance application to track income, expenses, budgets, goals, and more
 - Full password recovery flow (forgot → email → reset with expired link detection)
 - Double-layer route protection: `src/proxy.ts` (server) + `router.replace` in `DashboardStudio` (client)
 - Auto-logout on inactivity after 2 minutes with a 30 s warning
+- Forced logout on browser reopen: `UserContext` writes the `gastos_session_alive` flag to `sessionStorage` on `SIGNED_IN` (covers email/password and OAuth); `DashboardStudio` checks it on mount — if missing (browser was closed) it calls `handleSignOut()` immediately before rendering the dashboard
+- Tab left open >8 h: `checkSessionAge` reads `gastos_last_active` (localStorage) on focus recovery (`visibilitychange` + `pageshow` for bfcache) and signs out if the threshold is exceeded
 
 **Unified design system across all auth pages — supports light and dark theme:**
 
@@ -106,6 +108,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - Auth forms stacked vertically on small screens
 - Touch targets minimum 40×44 px on all action buttons
 - Snackbar positioned above `BottomNavigation` on mobile (`bottom: { xs: 72, sm: 24 }`)
+- Keyboard accessibility: `CalendarFilter` (day/month cells), "Today's expenses" section (ExpensesTab), and debt/subscription rows (GoalsTab) have `role="button"` + `tabIndex={0}` + `onKeyDown` (Enter/Space)
 
 ## Project Structure
 
@@ -205,7 +208,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy in `next.config.mjs` |
 | RLS in Supabase | All tables with `auth.uid() = user_id` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |
-| Persistent session | `persistSession: true` — session survives page reloads |
+| Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads |
+| Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
 | Amount limit | Maximum 10,000,000 validated on client and with `max` attribute on the input |
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
@@ -314,6 +318,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Budgets — loading and deletion:** `DataContext` initializes `editBudgets` as `{}` and fills it only from Supabase. `deleteBudgetCat(cat)` deletes from the DB before updating the state.
 
 **AddTransactionModal — double-submit prevention:** `saving` state disables the button and shows `CircularProgress`. `handleSubmit` has try-catch to release `saving` if the operation throws an exception.
+
+**Session security — browser-close detection mechanism:** `UserContext.onAuthStateChange` listens for the `SIGNED_IN` event (explicit login — email/password or OAuth) and writes `sessionStorage.setItem("gastos_session_alive", "1")`. The browser automatically clears `sessionStorage` when it closes. On reopen, `DashboardStudio` checks the flag before rendering the dashboard; if missing it calls `handleSignOut()` and redirects to `/login`. Normal page reloads (F5) preserve `sessionStorage` — the session continues as usual. For tabs left open: `gastos_last_active` in `localStorage` is updated on every user event (mousedown/keydown/scroll/etc.); `checkSessionAge` checks on focus recovery (`visibilitychange` + `pageshow` with `event.persisted` for bfcache restores) and signs out if the timestamp exceeds 8 h. All sign-out paths (manual, inactivity, expiry) call `localStorage.removeItem("gastos_last_active")` to prevent an immediate forced-logout loop on the next login.
 
 **CalendarFilter:** In `shared.jsx`. Day view: 7-column grid with `alpha(mainColor, intensity)`; month view: 4×3 grid. Red for EGRESO, green for INGRESO. Click on a cell activates `onFilter({ type, date })`, clicking again clears it. Day/Month mode chips include bilingual `aria-label` for accessibility.
 
