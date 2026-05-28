@@ -359,6 +359,64 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **SettingsPanel — `inputProps` deprecado en MUI v9:** El `TextField` de nombre de categoría usaba `inputProps={{ maxLength: 40 }}` (prop de MUI v4/v5). Cambiado a `slotProps={{ htmlInput: { maxLength: 40 } }}`, consistente con el resto del proyecto.
 
+## Arquitectura del Codebase (graphify)
+
+Grafo de conocimiento generado con [graphify](https://github.com/ananddtyagi/cc-marketplace) sobre el codebase completo. **289 nodos · 539 edges · 26 comunidades.** Disponible en `graphify-out/graph.html`.
+
+### Comunidades detectadas
+
+| Comunidad | Nodos clave |
+|-----------|-------------|
+| UI Charts & Visualizations | `Donut`, `StudioCashflow`, `SparkArea`, `HeatCalendar`, `CalendarFilter`, `filterByPeriod`, `txByCategory`, `healthScore` |
+| Supabase CRUD & Data Context | `DataProvider`, `mapRow/mapGoal/mapAccount/...`, 8 tablas DB, RLS |
+| Auth Pages | `login`, `register`, `forgot-password`, `reset-password`, `AuthCard`, `AuthErrorAlert` |
+| Goals, Accounts & Finances | `GoalsTab`, `DashboardStudio`, `LoginModal`, `linearRegressionSlope` |
+| App Layout & Fonts | `layout.tsx`, `Providers.tsx`, `SettingsContext`, `UserContext`, `DynamicThemeProvider` |
+| Theme & Dark Mode | `materialTheme.js`, `lightTheme`, `darkTheme`, `getTheme` |
+| Route Protection & Server Lib | `proxy.ts`, `supabase-server.ts`, `createServerSupabaseClient` |
+
+### God Nodes — abstracciones más conectadas
+
+| Nodo | Edges | Rol |
+|------|-------|-----|
+| `OverviewTab` | 33 | Hub visual principal — consume charts + helpers + 3 contextos |
+| `IncomeTab` | 28 | Conecta charts + datos + CalendarFilter |
+| `DashboardStudio.jsx` | 27 | **Puente de todas las comunidades** (betweenness 0.183) |
+| `DataProvider()` | 19 | Fuente de verdad de todos los datos |
+| `createClient()` | 18 | Bridge auth → todas las comunidades (betweenness 0.120) |
+
+### Flujo de datos: Supabase → Tabs
+
+```
+Supabase DB (8 tablas, RLS auth.uid = user_id)
+  └── DataProvider.load() — Promise.all([8 queries]) — DataContext.jsx:L106
+        ├── mapRow()         → txs[]
+        ├── mapGoal()        → goals[]
+        ├── mapAccount()     → accounts[]
+        ├── mapInvestment()  → investments[]
+        ├── mapDebt()        → debts[]
+        ├── mapSubscription()→ subscriptions[]
+        └── raw              → customCats[], editBudgets{}
+              │
+              └── useMemo → useData() hook
+                              │
+        ┌───────────────────┬─┴──────────────────────┐
+   OverviewTab        ExpensesTab/IncomeTab       GoalsTab
+   BudgetTab          txs+editBudgets             goals+accounts
+   txs+editBudgets    +customCats                 +investments
+   +customCats              │                     +debts+subs
+              │             │
+              └── filterByPeriod(txs, period) → helpers → Charts
+```
+
+### Insights arquitectónicos
+
+**`DashboardStudio` es el único puente entre todas las comunidades** porque es el único componente que consume los 3 contextos globales simultáneamente (Settings + User + Data), controla el `period` compartido con todos los tabs, y es el canal exclusivo de `showToast`. Si se eliminara, el grafo se fragmentaría en 6 islas desconectadas.
+
+**`createClient()` conecta 6 comunidades** a pesar de tener solo 9 líneas. Se llama dentro de cada función CRUD (no a nivel de módulo), generando 18+ importaciones en todo el codebase. Internamente `createBrowserClient` es un singleton, por lo que no crea múltiples conexiones a Supabase — pero el patrón de import sí crea los edges que cruzan comunidades.
+
+**Los helpers de `helpers.js` son el eslabón más frágil:** `filterByPeriod`, `txByCategory`, `linearRegressionSlope` y `healthScore` tienen edges hacia los 4 tabs principales. Un bug aquí afecta simultáneamente OverviewTab, ExpensesTab, IncomeTab y BudgetTab. El grafo detectó **cero edges hacia archivos de test**.
+
 ## Despliegue
 
 ```bash
