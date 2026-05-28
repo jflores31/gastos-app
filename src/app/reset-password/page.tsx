@@ -3,11 +3,14 @@
 import { useState, useEffect, Suspense } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
-  Box, Typography, TextField, Button, Chip, CircularProgress, IconButton, InputAdornment,
+  Box, Typography, TextField, Button, CircularProgress, IconButton, InputAdornment,
 } from "@mui/material"
 import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
+import { AuthCard } from "../components/auth/AuthCard"
+import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
+import { darkFieldSx } from "../components/auth/authStyles"
 
 const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
@@ -49,33 +52,7 @@ function ResetPasswordForm() {
   const [ready, setReady] = useState(false)
   const [expired, setExpired] = useState(false)
 
-  const darkField = isDark ? {
-    "& .MuiOutlinedInput-root": {
-      color: "#fff",
-      bgcolor: "rgba(255,255,255,0.03)",
-      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-      "&.Mui-focused fieldset": { borderColor: "#f59e0b", borderWidth: 1.5 },
-    },
-    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#fcd34d" },
-    "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.3)" },
-  } : {}
-
-  const cardSx = {
-    position: "relative" as const, zIndex: 1,
-    width: "100%", maxWidth: 440,
-    bgcolor: isDark ? "transparent" : "background.paper",
-    background: isDark ? "rgba(255,255,255,0.045)" : undefined,
-    border: "1px solid",
-    borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
-    backdropFilter: isDark ? "blur(36px)" : "none",
-    borderRadius: "20px",
-    boxShadow: isDark
-      ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
-      : "0 8px 32px rgba(245,158,11,0.10), 0 2px 8px rgba(0,0,0,0.06)",
-    p: { xs: 3.5, sm: 5.5 },
-  }
+  const darkField = darkFieldSx(isDark, { accent: "#f59e0b", labelAccent: "#fcd34d", helperText: true })
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -103,16 +80,22 @@ function ResetPasswordForm() {
     setError("")
     if (password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); setLoading(false); return }
     if (password !== confirmPassword) { setError("Las contraseñas no coinciden"); setLoading(false); return }
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.updateUser({ password })
-    if (authError) { setError(authError.message || "Error al restablecer"); setLoading(false) }
-    else setSuccess(true)
+    try {
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.updateUser({ password })
+      if (authError) setError(authError.message || "Error al restablecer")
+      else setSuccess(true)
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   /* ── Expired ── */
   if (expired) {
     return (
-      <Box sx={{ ...cardSx, textAlign: "center" }}>
+      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
         <Box sx={{
           width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -135,7 +118,7 @@ function ResetPasswordForm() {
             background: "linear-gradient(90deg, #ef4444, #dc2626)",
             color: "#fff", boxShadow: "0 4px 22px rgba(239,68,68,0.35)",
             "&:hover": { background: "linear-gradient(90deg, #f87171, #ef4444)", boxShadow: "0 6px 30px rgba(239,68,68,0.48)", transform: "translateY(-1px)" },
-            transition: "all 0.2s",
+            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
           }}>
             Solicitar nuevo enlace
           </Button>
@@ -150,14 +133,14 @@ function ResetPasswordForm() {
             <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
           </Typography>
         </Link>
-      </Box>
+      </AuthCard>
     )
   }
 
   /* ── Verifying ── */
   if (!ready) {
     return (
-      <Box sx={{ ...cardSx, textAlign: "center" }}>
+      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
         <CircularProgress size={48} sx={{ color: "#f59e0b", mb: 3 }} />
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1,
           color: isDark ? "#f1f5f9" : "text.primary" }}>
@@ -166,14 +149,14 @@ function ResetPasswordForm() {
         <Typography variant="body2" sx={{ color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
           Esto solo tarda un momento.
         </Typography>
-      </Box>
+      </AuthCard>
     )
   }
 
   /* ── Success ── */
   if (success) {
     return (
-      <Box sx={{ ...cardSx, textAlign: "center" }}>
+      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
         <Box sx={{
           width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -196,18 +179,18 @@ function ResetPasswordForm() {
             background: "linear-gradient(90deg, #22c55e, #16a34a)",
             color: "#fff", boxShadow: "0 4px 22px rgba(34,197,94,0.38)",
             "&:hover": { background: "linear-gradient(90deg, #4ade80, #22c55e)", boxShadow: "0 6px 30px rgba(34,197,94,0.5)", transform: "translateY(-1px)" },
-            transition: "all 0.2s",
+            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
           }}>
             Ir a iniciar sesión
           </Button>
         </Link>
-      </Box>
+      </AuthCard>
     )
   }
 
   /* ── Form ── */
   return (
-    <Box sx={cardSx}>
+    <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)">
       {/* Back link */}
       <Link href="/login" style={{ textDecoration: "none" }}>
         <Typography variant="body2" sx={{
@@ -241,20 +224,10 @@ function ResetPasswordForm() {
       </Box>
 
       {/* Error */}
-      {error && (
-        <Chip
-          role="alert" label={error}
-          sx={{
-            width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
-            bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
-            border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
-            "& .MuiChip-label": { whiteSpace: "normal" },
-          }}
-        />
-      )}
+      <AuthErrorAlert error={error} />
 
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} aria-label="Nueva contraseña" aria-busy={loading}>
         <TextField
           fullWidth label="Nueva contraseña"
           type={showPwd ? "text" : "password"}
@@ -310,13 +283,13 @@ function ResetPasswordForm() {
               transform: "translateY(-1px)",
             },
             "&:disabled": { background: "rgba(245,158,11,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
-            transition: "all 0.2s",
+            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
           }}
         >
           {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Restablecer contraseña"}
         </Button>
       </form>
-    </Box>
+    </AuthCard>
   )
 }
 

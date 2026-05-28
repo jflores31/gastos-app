@@ -2,10 +2,13 @@
 
 import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
-import { Box, Typography, TextField, Button, Chip, CircularProgress } from "@mui/material"
+import { Box, Typography, TextField, Button, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "@mui/icons-material"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
+import { AuthCard } from "../components/auth/AuthCard"
+import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
+import { darkFieldSx } from "../components/auth/authStyles"
 
 export default function ForgotPasswordPage() {
   const theme = useTheme()
@@ -16,42 +19,24 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  const darkField = isDark ? {
-    "& .MuiOutlinedInput-root": {
-      color: "#fff",
-      bgcolor: "rgba(255,255,255,0.03)",
-      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-      "&.Mui-focused fieldset": { borderColor: "#38bdf8", borderWidth: 1.5 },
-    },
-    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#7dd3fc" },
-  } : {}
-
-  const card = {
-    position: "relative" as const, zIndex: 1,
-    width: "100%", maxWidth: 440,
-    bgcolor: isDark ? "transparent" : "background.paper",
-    background: isDark ? "rgba(255,255,255,0.045)" : undefined,
-    border: "1px solid",
-    borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
-    backdropFilter: isDark ? "blur(36px)" : "none",
-    borderRadius: "20px",
-    boxShadow: isDark
-      ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
-      : "0 8px 32px rgba(56,189,248,0.10), 0 2px 8px rgba(0,0,0,0.06)",
-  }
+  const darkField = darkFieldSx(isDark, { accent: "#38bdf8", labelAccent: "#7dd3fc" })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/reset-password`,
-    })
-    if (authError) { setError(authError.message || "Error al enviar email"); setLoading(false) }
-    else setSuccess(true)
+    try {
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/reset-password`,
+      })
+      if (authError) setError(authError.message || "Error al enviar email")
+      else setSuccess(true)
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -90,7 +75,7 @@ export default function ForgotPasswordPage() {
 
       {success ? (
         /* ── Success state ── */
-        <Box sx={{ ...card, p: { xs: 4, sm: 5.5 }, textAlign: "center" }}>
+        <AuthCard maxWidth={440} p={{ xs: 4, sm: 5.5 }} accentColor="rgba(56,189,248,0.10)" sx={{ textAlign: "center" }}>
           <Box sx={{
             width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -126,16 +111,16 @@ export default function ForgotPasswordPage() {
                   bgcolor: "rgba(255,255,255,0.05)",
                   "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
                 } : {}),
-                transition: "all 0.18s",
+                transition: "background-color 0.18s, border-color 0.18s, color 0.18s",
               }}
             >
               Volver al login
             </Button>
           </Link>
-        </Box>
+        </AuthCard>
       ) : (
         /* ── Form state ── */
-        <Box sx={{ ...card, p: { xs: 3.5, sm: 5.5 } }}>
+        <AuthCard maxWidth={440} accentColor="rgba(56,189,248,0.10)">
           {/* Back link */}
           <Link href="/login" style={{ textDecoration: "none" }}>
             <Typography variant="body2" sx={{
@@ -169,24 +154,15 @@ export default function ForgotPasswordPage() {
           </Box>
 
           {/* Error */}
-          {error && (
-            <Chip
-              role="alert" label={error}
-              sx={{
-                width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
-                bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
-                border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
-                "& .MuiChip-label": { whiteSpace: "normal" },
-              }}
-            />
-          )}
+          <AuthErrorAlert error={error} />
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-label="Recuperar contraseña" aria-busy={loading}>
             <TextField
               fullWidth label="Email" type="email"
               value={email} onChange={(e) => setEmail(e.target.value)}
               required autoComplete="email"
+              slotProps={{ htmlInput: { spellCheck: false } }}
               sx={{ mb: 3, ...darkField }}
             />
             <Button
@@ -203,13 +179,13 @@ export default function ForgotPasswordPage() {
                   transform: "translateY(-1px)",
                 },
                 "&:disabled": { background: "rgba(56,189,248,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
-                transition: "all 0.2s",
+                transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
               }}
             >
               {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Enviar enlace"}
             </Button>
           </form>
-        </Box>
+        </AuthCard>
       )}
     </Box>
   )

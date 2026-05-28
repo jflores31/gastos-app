@@ -1,17 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useTheme } from "@mui/material/styles"
 import {
-  Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
+  Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "@mui/icons-material"
-
-const OAUTH_ENABLED = false
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
+import { AuthCard } from "../components/auth/AuthCard"
+import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
+import { darkFieldSx } from "../components/auth/authStyles"
+
+const OAUTH_ENABLED = false
 
 export default function LoginPage() {
+  const router = useRouter()
   const theme = useTheme()
   const isDark = theme.palette.mode === "dark"
 
@@ -19,14 +24,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(() => {
-    if (typeof window === "undefined") return ""
+  const [error, setError] = useState("")
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
     const code = params.get("error_code") || hashParams.get("error_code")
-    if (code === "otp_expired") return "El enlace de recuperación expiró. Solicita uno nuevo."
-    return ""
-  })
+    if (code === "otp_expired") setError("El enlace de recuperación expiró. Solicita uno nuevo.")
+  }, [])
 
   const handleOAuth = (provider: "google" | "github") => {
     const supabase = createClient()
@@ -45,7 +50,7 @@ export default function LoginPage() {
         const msg = authError.message?.toLowerCase() ?? ""
         setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
       } else {
-        window.location.href = "/"
+        router.push("/")
       }
     } catch {
       setError("Error de conexión. Intenta de nuevo.")
@@ -54,17 +59,7 @@ export default function LoginPage() {
     }
   }
 
-  const darkField = isDark ? {
-    "& .MuiOutlinedInput-root": {
-      color: "#fff",
-      bgcolor: "rgba(255,255,255,0.03)",
-      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-      "&.Mui-focused fieldset": { borderColor: "#6366f1", borderWidth: 1.5 },
-    },
-    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#a5b4fc" },
-  } : {}
+  const darkField = darkFieldSx(isDark, { accent: "#6366f1", labelAccent: "#a5b4fc" })
 
   return (
     <Box sx={{
@@ -101,20 +96,7 @@ export default function LoginPage() {
       }} />
 
       {/* Card */}
-      <Box sx={{
-        position: "relative", zIndex: 1,
-        width: "100%", maxWidth: 460,
-        bgcolor: isDark ? "transparent" : "background.paper",
-        background: isDark ? "rgba(255,255,255,0.045)" : undefined,
-        border: "1px solid",
-        borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
-        backdropFilter: isDark ? "blur(36px)" : "none",
-        borderRadius: "20px",
-        p: { xs: 3.5, sm: 5.5 },
-        boxShadow: isDark
-          ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
-          : "0 8px 32px rgba(99,102,241,0.10), 0 2px 8px rgba(0,0,0,0.06)",
-      }}>
+      <AuthCard maxWidth={460} accentColor="rgba(99,102,241,0.10)">
 
         {/* Branding */}
         <Box sx={{ textAlign: "center", mb: 4.5 }}>
@@ -137,26 +119,7 @@ export default function LoginPage() {
         </Box>
 
         {/* Error */}
-        {error && (
-          <Box sx={{ mb: 2.5 }}>
-            <Chip
-              role="alert" label={error}
-              sx={{
-                width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75,
-                bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
-                border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
-                "& .MuiChip-label": { whiteSpace: "normal" },
-              }}
-            />
-            {error.includes("expiró") && (
-              <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-                <Typography variant="body2" sx={{ color: "error.main", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
-                  Solicitar nuevo enlace &rarr;
-                </Typography>
-              </Link>
-            )}
-          </Box>
-        )}
+        <AuthErrorAlert error={error} />
 
         {/* OAuth — activar cuando esté implementado: OAUTH_ENABLED = true */}
         {OAUTH_ENABLED && (
@@ -173,7 +136,7 @@ export default function LoginPage() {
                       bgcolor: "rgba(255,255,255,0.05)",
                       "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
                     } : {}),
-                    transition: "all 0.18s",
+                    transition: "background-color 0.18s, border-color 0.18s, color 0.18s",
                   }}
                 >
                   {p === "google" ? "Google" : "GitHub"}
@@ -190,11 +153,12 @@ export default function LoginPage() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} aria-label="Iniciar sesión" aria-busy={loading}>
           <TextField
             fullWidth label="Email" type="email"
             value={email} onChange={(e) => setEmail(e.target.value)}
             required autoComplete="email"
+            slotProps={{ htmlInput: { spellCheck: false } }}
             sx={{ mb: 2, ...darkField }}
           />
           <TextField
@@ -248,7 +212,7 @@ export default function LoginPage() {
                 transform: "translateY(-1px)",
               },
               "&:disabled": { background: "rgba(99,102,241,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
-              transition: "all 0.2s",
+              transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
             }}
           >
             {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Ingresar"}
@@ -269,7 +233,7 @@ export default function LoginPage() {
             </Typography>
           </Link>
         </Typography>
-      </Box>
+      </AuthCard>
     </Box>
   )
 }

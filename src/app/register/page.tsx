@@ -3,13 +3,16 @@
 import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
-  Box, Typography, TextField, Button, Chip, Divider, IconButton, InputAdornment, CircularProgress,
+  Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material"
-
-const OAUTH_ENABLED = false
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
+import { AuthCard } from "../components/auth/AuthCard"
+import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
+import { darkFieldSx } from "../components/auth/authStyles"
+
+const OAUTH_ENABLED = false
 
 const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
@@ -52,18 +55,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  const darkField = isDark ? {
-    "& .MuiOutlinedInput-root": {
-      color: "#fff",
-      bgcolor: "rgba(255,255,255,0.03)",
-      "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.28)" },
-      "&.Mui-focused fieldset": { borderColor: "#22c55e", borderWidth: 1.5 },
-    },
-    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.38)" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#86efac" },
-    "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.3)" },
-  } : {}
+  const darkField = darkFieldSx(isDark, { accent: "#22c55e", labelAccent: "#86efac", helperText: true })
 
   const handleOAuth = (provider: "google" | "github") => {
     const supabase = createClient()
@@ -104,20 +96,7 @@ export default function RegisterPage() {
         p: 3,
       }}>
         <Blobs isDark={isDark} />
-        <Box sx={{
-          position: "relative", zIndex: 1,
-          width: "100%", maxWidth: 420, textAlign: "center",
-          bgcolor: isDark ? "transparent" : "background.paper",
-          background: isDark ? "rgba(255,255,255,0.045)" : undefined,
-          border: "1px solid",
-          borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
-          backdropFilter: isDark ? "blur(36px)" : "none",
-          borderRadius: "20px",
-          p: { xs: 4, sm: 6 },
-          boxShadow: isDark
-            ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
-            : "0 8px 32px rgba(34,197,94,0.10), 0 2px 8px rgba(0,0,0,0.06)",
-        }}>
+        <AuthCard maxWidth={420} p={{ xs: 4, sm: 6 }} accentColor="rgba(34,197,94,0.10)" sx={{ textAlign: "center" }}>
           <Box sx={{
             width: 80, height: 80, borderRadius: "50%", mx: "auto", mb: 3,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -140,12 +119,12 @@ export default function RegisterPage() {
               background: "linear-gradient(90deg, #22c55e 0%, #16a34a 100%)",
               color: "#fff", boxShadow: "0 4px 22px rgba(34,197,94,0.4)",
               "&:hover": { background: "linear-gradient(90deg, #4ade80 0%, #22c55e 100%)", boxShadow: "0 6px 30px rgba(34,197,94,0.5)", transform: "translateY(-1px)" },
-              transition: "all 0.2s",
+              transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
             }}>
               Ir a iniciar sesión
             </Button>
           </Link>
-        </Box>
+        </AuthCard>
       </Box>
     )
   }
@@ -165,20 +144,7 @@ export default function RegisterPage() {
       <Blobs isDark={isDark} />
 
       {/* Card */}
-      <Box sx={{
-        position: "relative", zIndex: 1,
-        width: "100%", maxWidth: 480,
-        bgcolor: isDark ? "transparent" : "background.paper",
-        background: isDark ? "rgba(255,255,255,0.045)" : undefined,
-        border: "1px solid",
-        borderColor: isDark ? "rgba(255,255,255,0.09)" : "divider",
-        backdropFilter: isDark ? "blur(36px)" : "none",
-        borderRadius: "20px",
-        p: { xs: 3.5, sm: 5 },
-        boxShadow: isDark
-          ? "0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)"
-          : "0 8px 32px rgba(34,197,94,0.10), 0 2px 8px rgba(0,0,0,0.06)",
-      }}>
+      <AuthCard maxWidth={480} p={{ xs: 3.5, sm: 5 }} accentColor="rgba(34,197,94,0.10)">
 
         {/* Branding */}
         <Box sx={{ textAlign: "center", mb: 4 }}>
@@ -201,17 +167,7 @@ export default function RegisterPage() {
         </Box>
 
         {/* Error */}
-        {error && (
-          <Chip
-            role="alert" label={error}
-            sx={{
-              width: "100%", justifyContent: "flex-start", px: 1.5, height: "auto", py: 0.75, mb: 2.5,
-              bgcolor: "rgba(239,68,68,0.1)", color: isDark ? "#fca5a5" : "error.dark",
-              border: "1px solid rgba(239,68,68,0.22)", borderRadius: "10px",
-              "& .MuiChip-label": { whiteSpace: "normal" },
-            }}
-          />
-        )}
+        <AuthErrorAlert error={error} />
 
         {/* OAuth — activar cuando esté implementado: OAUTH_ENABLED = true */}
         {OAUTH_ENABLED && (
@@ -228,7 +184,7 @@ export default function RegisterPage() {
                       bgcolor: "rgba(255,255,255,0.05)",
                       "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
                     } : {}),
-                    transition: "all 0.18s",
+                    transition: "background-color 0.18s, border-color 0.18s, color 0.18s",
                   }}
                 >
                   {p === "google" ? "Google" : "GitHub"}
@@ -245,7 +201,7 @@ export default function RegisterPage() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} aria-label="Crear cuenta" aria-busy={loading}>
           <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, mb: 2 }}>
             <TextField
               fullWidth label="Nombre" value={name}
@@ -265,6 +221,7 @@ export default function RegisterPage() {
             fullWidth label="Email" type="email"
             value={email} onChange={(e) => setEmail(e.target.value)}
             required autoComplete="email"
+            slotProps={{ htmlInput: { spellCheck: false } }}
             sx={{ mb: 2, ...darkField }}
           />
 
@@ -325,7 +282,7 @@ export default function RegisterPage() {
                 transform: "translateY(-1px)",
               },
               "&:disabled": { background: "rgba(34,197,94,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
-              transition: "all 0.2s",
+              transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
             }}
           >
             {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Crear cuenta gratis"}
@@ -346,7 +303,7 @@ export default function RegisterPage() {
             </Typography>
           </Link>
         </Typography>
-      </Box>
+      </AuthCard>
     </Box>
   )
 }

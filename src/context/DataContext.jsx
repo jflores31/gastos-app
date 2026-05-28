@@ -148,8 +148,6 @@ export function DataProvider({ children }) {
       }
     }
 
-    load()
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setTxs([])
@@ -266,7 +264,8 @@ export function DataProvider({ children }) {
       }))
       if (rows.length > 0) {
         const { error } = await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
-        if (!error) setEditBudgetsState(newBudgets)
+        if (error) throw error
+        setEditBudgetsState(newBudgets)
       } else {
         setEditBudgetsState(newBudgets)
       }
