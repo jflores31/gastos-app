@@ -222,21 +222,37 @@ export default function IncomeTab({ period, openModal, showToast }) {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center" }}>
-              {activeCat && (
-                <Chip
-                  size="small"
-                  label={activeCat?.startsWith("custom_")
-                    ? (customCats.find((c) => c.id === activeCat.slice("custom_".length))?.nombre || activeCat)
-                    : (CATEGORIES.income[activeCat]?.[lang] || activeCat)}
-                  onDelete={() => setActiveCat(null)}
-                  color="success"
-                  variant="filled"
-                  sx={{ fontWeight: 600 }}
-                />
-              )}
               <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
             </Box>
           </Box>
+          {incomeCats.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+              <Chip
+                size="small"
+                label={lang === "es" ? "Todos" : "All"}
+                variant={!activeCat ? "filled" : "outlined"}
+                color={!activeCat ? "success" : "default"}
+                onClick={() => setActiveCat(null)}
+                sx={{ fontWeight: 600 }}
+              />
+              {incomeCats.map((c) => {
+                const label = c.categoria?.startsWith("custom_")
+                  ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
+                  : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
+                return (
+                  <Chip
+                    key={c.categoria}
+                    size="small"
+                    label={label}
+                    variant={activeCat === c.categoria ? "filled" : "outlined"}
+                    color={activeCat === c.categoria ? "success" : "default"}
+                    onClick={() => setActiveCat(activeCat === c.categoria ? null : c.categoria)}
+                    sx={{ fontWeight: 500 }}
+                  />
+                );
+              })}
+            </Box>
+          )}
           {incomeTxs.length === 0 ? (
             <NoTransactions lang={lang} type="income" />
           ) : (

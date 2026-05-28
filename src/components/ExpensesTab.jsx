@@ -272,10 +272,32 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-              {activeCat && <Chip size="small" label={resolveCatName(activeCat)} onDelete={() => setActiveCat(null)} color="primary" variant="filled" sx={{ fontWeight: 600 }} />}
               <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
             </Box>
           </Box>
+          {periodCats.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+              <Chip
+                size="small"
+                label={lang === "es" ? "Todos" : "All"}
+                variant={!activeCat ? "filled" : "outlined"}
+                color={!activeCat ? "primary" : "default"}
+                onClick={() => setActiveCat(null)}
+                sx={{ fontWeight: 600 }}
+              />
+              {periodCats.map((c) => (
+                <Chip
+                  key={c.categoria}
+                  size="small"
+                  label={resolveCatName(c.categoria)}
+                  variant={activeCat === c.categoria ? "filled" : "outlined"}
+                  color={activeCat === c.categoria ? "primary" : "default"}
+                  onClick={() => setActiveCat(activeCat === c.categoria ? null : c.categoria)}
+                  sx={{ fontWeight: 500 }}
+                />
+              ))}
+            </Box>
+          )}
           {expenseTxs.length === 0 ? (
             <NoTransactions lang={lang} type="expense" />
           ) : (
