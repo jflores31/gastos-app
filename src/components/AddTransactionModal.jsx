@@ -238,13 +238,12 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           renderInput={(params) => (
             <TextField {...params} label={t.category} error={!!errors.categoria} helperText={errors.categoria}
               slotProps={{
+                ...params.slotProps,
                 input: {
-                  ...params.InputProps,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      {categoria?.icon}
-                    </InputAdornment>
-                  ),
+                  ...params.slotProps?.input,
+                  startAdornment: categoria?.icon ? (
+                    <InputAdornment position="start">{categoria.icon}</InputAdornment>
+                  ) : params.slotProps?.input?.startAdornment,
                 },
               }}
             />
