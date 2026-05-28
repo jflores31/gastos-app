@@ -501,7 +501,7 @@ export default function GoalsTab({ showToast }) {
                     const paid = Math.max(0, orig - d.remaining);
                     const pct = orig > 0 ? paid / orig : 0;
                     return (
-                      <Box key={d.id} sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} onClick={() => openEditDebt(d)}>
+                      <Box key={d.id} sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => openEditDebt(d)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openEditDebt(d)}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                           <Typography variant="body1" fontWeight={600}>{d[lang]}</Typography>
                           <Chip size="small" label={`${d.rate}% TEA`} color="warning" variant="outlined" />
@@ -549,7 +549,7 @@ export default function GoalsTab({ showToast }) {
                   <Box sx={{ flex: 1 }}>
                     <Stack spacing={1.5}>
                       {subscriptions.map((sub) => (
-                        <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} onClick={() => openEditSub(sub)}>
+                        <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => openEditSub(sub)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openEditSub(sub)}>
                           <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: "secondary.light", color: "secondary.dark", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
                             {sub.name.charAt(0).toUpperCase()}
                           </Box>

@@ -254,7 +254,9 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                     <Box
                       key={day}
                       onClick={() => handleDayClick(day)}
+                      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleDayClick(day)}
                       role="button"
+                      tabIndex={0}
                       aria-label={`${day} ${monthNames[navDate.getMonth()]}`}
                       sx={{
                         aspectRatio: "1",
@@ -297,7 +299,9 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                   <Box
                     key={month}
                     onClick={() => handleMonthClick(month)}
+                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleMonthClick(month)}
                     role="button"
+                    tabIndex={0}
                     aria-label={`${name} ${navDate.getFullYear()}`}
                     sx={{
                       py: 1, px: 0.25,

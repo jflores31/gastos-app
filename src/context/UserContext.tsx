@@ -12,8 +12,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === "SIGNED_IN") {
+        sessionStorage.setItem("gastos_session_alive", "1")
+      }
     })
     return () => subscription.unsubscribe()
   }, [])

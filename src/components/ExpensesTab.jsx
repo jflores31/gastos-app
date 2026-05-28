@@ -105,7 +105,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           </IconButton>
         </Box>
         <CardContent sx={{ pb: 2 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, cursor: "pointer" }} onClick={() => toggleSection("today")}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => toggleSection("today")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleSection("today")}>
             <Typography variant="body2" fontWeight={600}>{t.todaysExpenses}</Typography>
             {expandedSection === "today" ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </Box>

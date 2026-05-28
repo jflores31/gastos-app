@@ -61,6 +61,7 @@ export default function DashboardStudio() {
   }, [showToast, lang]);
 
   const handleSignOut = useCallback(async () => {
+    localStorage.removeItem("gastos_last_active");
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace("/login");
@@ -84,6 +85,7 @@ export default function DashboardStudio() {
     let warnTimer;
 
     const resetTimers = () => {
+      localStorage.setItem("gastos_last_active", String(Date.now()));
       clearTimeout(logoutTimer);
       clearTimeout(warnTimer);
 
@@ -98,6 +100,7 @@ export default function DashboardStudio() {
       }, TIMEOUT - WARN_BEFORE);
 
       logoutTimer = setTimeout(async () => {
+        localStorage.removeItem("gastos_last_active");
         const supabase = createClient();
         await supabase.auth.signOut();
         router.replace("/login");
@@ -114,6 +117,42 @@ export default function DashboardStudio() {
       EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
     };
   }, [user, showToast, lang, router]);
+
+  // Session security: force login on browser close (sessionStorage flag) + 8h max-age for open tabs
+  useEffect(() => {
+    if (!user) return;
+
+    // sessionStorage is cleared when the browser closes — if the flag is gone, force re-login
+    if (!sessionStorage.getItem("gastos_session_alive")) {
+      handleSignOut();
+      return;
+    }
+
+    const MAX_AGE = 8 * 60 * 60 * 1000;
+
+    const checkSessionAge = async () => {
+      const raw = localStorage.getItem("gastos_last_active");
+      if (raw && Date.now() - Number(raw) > MAX_AGE) {
+        localStorage.removeItem("gastos_last_active");
+        await handleSignOut();
+      }
+    };
+
+    checkSessionAge().catch(() => {});
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") checkSessionAge().catch(() => {});
+    };
+    const handlePageShow = (e) => {
+      if (e.persisted) checkSessionAge().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [user, handleSignOut]);
 
   const TAB_LABELS = [
     { id: "overview", label: t.overview, icon: <DashboardIcon /> },
