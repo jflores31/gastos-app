@@ -21,130 +21,78 @@ import {
   Album, Theaters, PhotoCamera, Videocam, Campaign, LightbulbCircle,
   CorporateFare, Code, YouTube, OndemandVideo, TrendingUp,
 } from "@mui/icons-material";
-
-const HomeIcon = Home;
-const RestaurantIcon = Restaurant;
-const MovieIcon = Movie;
-const DebtIcon = AccountBalance;
-const PetIcon = Pets;
-const IncomeIcon = AttachMoney;
-const BusinessIcon = Work;
-const LightIcon = Lightbulb;
-const WaterIcon = WaterDrop;
-const WifiIcon = Wifi;
-const PhoneIcon = PhoneAndroid;
-const BusIcon = DirectionsBus;
-const GasIcon = LocalGasStation;
-const CarIcon = DirectionsCar;
-const BikeIcon = TwoWheeler;
-const BuildIcon = Build;
-const TireIcon = TireRepair;
-const OilIcon = OilBarrel;
-const SecurityIcon = Security;
-const ParkingIcon = LocalParking;
-const CoffeeIcon = Coffee;
-const ClothesIcon = Checkroom;
-const HealthIcon = HealthAndSafety;
-const SchoolIcon = School;
-const GiftIcon = CardGiftcard;
-const UnexpectedIcon = Warning;
-const SavingsIcon = Savings;
-const DeliveryIcon = DeliveryDining;
-const GamesIcon = SportsEsports;
-const PartyIcon = Celebration;
-const HygieneIcon = Face;
-const GymIcon = FitnessCenter;
-const TravelIcon = Flight;
-const TaxIcon = Receipt;
-const ShopIcon = ShoppingBag;
-const MusicIcon = MusicNote;
-const EventIcon = Event;
-const SpeakerIcon = Speaker;
-const AlbumIcon = Album;
-const TheaterIcon = Theaters;
-const VideoIcon = Videocam;
-const CampaignIcon = Campaign;
-const LightEqIcon = LightbulbCircle;
-const CorpIcon = CorporateFare;
-const CodeIcon = Code;
-const YouTubeIcon = YouTube;
-const StreamIcon = OndemandVideo;
-const TrendingUpIcon = TrendingUp;
-const AccountBalanceIcon = AccountBalance;
 import { CATEGORIES } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 
-const Transition = Slide;
-
 const EXPENSE_ICONS = {
-  VIVIENDA: <HomeIcon fontSize="small" />,
-  LUZ: <LightIcon fontSize="small" />,
-  AGUA: <WaterIcon fontSize="small" />,
-  INTERNET: <WifiIcon fontSize="small" />,
-  CELULAR: <PhoneIcon fontSize="small" />,
-  COMIDA: <RestaurantIcon fontSize="small" />,
-  TRANSPORTE: <BusIcon fontSize="small" />,
-  GASOLINA: <GasIcon fontSize="small" />,
-  AUTO: <CarIcon fontSize="small" />,
-  MOTO: <BikeIcon fontSize="small" />,
-  REPUESTOS: <BuildIcon fontSize="small" />,
-  LLANTAS: <TireIcon fontSize="small" />,
-  ACEITE: <OilIcon fontSize="small" />,
-  SOAT: <SecurityIcon fontSize="small" />,
-  ESTACIONAMIENTO: <ParkingIcon fontSize="small" />,
-  STREAMING: <MovieIcon fontSize="small" />,
-  CAFES: <CoffeeIcon fontSize="small" />,
-  ROPA: <ClothesIcon fontSize="small" />,
-  SALUD: <HealthIcon fontSize="small" />,
-  DEUDAS: <DebtIcon fontSize="small" />,
-  EDUCACION: <SchoolIcon fontSize="small" />,
-  MASCOTA: <PetIcon fontSize="small" />,
-  REGALOS: <GiftIcon fontSize="small" />,
-  IMPREVISTOS: <UnexpectedIcon fontSize="small" />,
-  AHORRO: <SavingsIcon fontSize="small" />,
-  DELIVERY: <DeliveryIcon fontSize="small" />,
-  JUEGOS: <GamesIcon fontSize="small" />,
-  SALIDAS: <PartyIcon fontSize="small" />,
-  HIGIENE: <HygieneIcon fontSize="small" />,
-  GIMNASIO: <GymIcon fontSize="small" />,
-  VIAJES: <TravelIcon fontSize="small" />,
-  IMPUESTOS: <TaxIcon fontSize="small" />,
-  COMPRAS: <ShopIcon fontSize="small" />,
+  VIVIENDA: <Home fontSize="small" />,
+  LUZ: <Lightbulb fontSize="small" />,
+  AGUA: <WaterDrop fontSize="small" />,
+  INTERNET: <Wifi fontSize="small" />,
+  CELULAR: <PhoneAndroid fontSize="small" />,
+  COMIDA: <Restaurant fontSize="small" />,
+  TRANSPORTE: <DirectionsBus fontSize="small" />,
+  GASOLINA: <LocalGasStation fontSize="small" />,
+  AUTO: <DirectionsCar fontSize="small" />,
+  MOTO: <TwoWheeler fontSize="small" />,
+  REPUESTOS: <Build fontSize="small" />,
+  LLANTAS: <TireRepair fontSize="small" />,
+  ACEITE: <OilBarrel fontSize="small" />,
+  SOAT: <Security fontSize="small" />,
+  ESTACIONAMIENTO: <LocalParking fontSize="small" />,
+  STREAMING: <Movie fontSize="small" />,
+  CAFES: <Coffee fontSize="small" />,
+  ROPA: <Checkroom fontSize="small" />,
+  SALUD: <HealthAndSafety fontSize="small" />,
+  DEUDAS: <AccountBalance fontSize="small" />,
+  EDUCACION: <School fontSize="small" />,
+  MASCOTA: <Pets fontSize="small" />,
+  REGALOS: <CardGiftcard fontSize="small" />,
+  IMPREVISTOS: <Warning fontSize="small" />,
+  AHORRO: <Savings fontSize="small" />,
+  DELIVERY: <DeliveryDining fontSize="small" />,
+  JUEGOS: <SportsEsports fontSize="small" />,
+  SALIDAS: <Celebration fontSize="small" />,
+  HIGIENE: <Face fontSize="small" />,
+  GIMNASIO: <FitnessCenter fontSize="small" />,
+  VIAJES: <Flight fontSize="small" />,
+  IMPUESTOS: <Receipt fontSize="small" />,
+  COMPRAS: <ShoppingBag fontSize="small" />,
 };
 
 const INCOME_ICONS = {
-  SUELDO: <IncomeIcon fontSize="small" />,
-  HONORARIOS: <CodeIcon fontSize="small" />,
-  NEGOCIO: <BusinessIcon fontSize="small" />,
-  INVERSIONES: <TrendingUpIcon fontSize="small" />,
-  INTERESES: <AccountBalanceIcon fontSize="small" />,
-  ALQUILERES: <HomeIcon fontSize="small" />,
-  VENTAS: <ShopIcon fontSize="small" />,
-  CONTENIDO: <YouTubeIcon fontSize="small" />,
-  GAMING: <StreamIcon fontSize="small" />,
-  CLASES: <SchoolIcon fontSize="small" />,
-  ASESORIAS: <BusinessIcon fontSize="small" />,
-  TECNICO: <BuildIcon fontSize="small" />,
-  TELECOM: <WifiIcon fontSize="small" />,
-  MUSICA: <MusicIcon fontSize="small" />,
-  EVENTOS: <EventIcon fontSize="small" />,
-  DJ: <SpeakerIcon fontSize="small" />,
-  TOCADAS: <AlbumIcon fontSize="small" />,
-  PRODUCCION: <TheaterIcon fontSize="small" />,
+  SUELDO: <AttachMoney fontSize="small" />,
+  HONORARIOS: <Code fontSize="small" />,
+  NEGOCIO: <Work fontSize="small" />,
+  INVERSIONES: <TrendingUp fontSize="small" />,
+  INTERESES: <AccountBalance fontSize="small" />,
+  ALQUILERES: <Home fontSize="small" />,
+  VENTAS: <ShoppingBag fontSize="small" />,
+  CONTENIDO: <YouTube fontSize="small" />,
+  GAMING: <OndemandVideo fontSize="small" />,
+  CLASES: <School fontSize="small" />,
+  ASESORIAS: <Work fontSize="small" />,
+  TECNICO: <Build fontSize="small" />,
+  TELECOM: <Wifi fontSize="small" />,
+  MUSICA: <MusicNote fontSize="small" />,
+  EVENTOS: <Event fontSize="small" />,
+  DJ: <Speaker fontSize="small" />,
+  TOCADAS: <Album fontSize="small" />,
+  PRODUCCION: <Theaters fontSize="small" />,
   FOTOGRAFIA: <PhotoCamera fontSize="small" />,
-  EDICION: <VideoIcon fontSize="small" />,
-  ORGANIZACION: <CampaignIcon fontSize="small" />,
-  ALQUILER_SONIDO: <LightEqIcon fontSize="small" />,
-  EVENTOS_CORP: <CorpIcon fontSize="small" />,
-  COMISIONES: <IncomeIcon fontSize="small" />,
-  REGALOS: <GiftIcon fontSize="small" />,
-  CRIPTO: <IncomeIcon fontSize="small" />,
-  DIVIDENDOS: <TrendingUpIcon fontSize="small" />,
-  BONOS: <BusinessIcon fontSize="small" />,
+  EDICION: <Videocam fontSize="small" />,
+  ORGANIZACION: <Campaign fontSize="small" />,
+  ALQUILER_SONIDO: <LightbulbCircle fontSize="small" />,
+  EVENTOS_CORP: <CorporateFare fontSize="small" />,
+  COMISIONES: <AttachMoney fontSize="small" />,
+  REGALOS: <CardGiftcard fontSize="small" />,
+  CRIPTO: <AttachMoney fontSize="small" />,
+  DIVIDENDOS: <TrendingUp fontSize="small" />,
+  BONOS: <Work fontSize="small" />,
   CASHBACK: <ShoppingBag fontSize="small" />,
-  AHORROS: <SavingsIcon fontSize="small" />,
+  AHORROS: <Savings fontSize="small" />,
 };
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
@@ -244,7 +192,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
-      slots={{ transition: Transition }}
+      slots={{ transition: Slide }}
       slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle sx={{ fontWeight: 700 }}>
         {editTx

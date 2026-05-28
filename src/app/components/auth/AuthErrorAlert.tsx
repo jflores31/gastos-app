@@ -26,7 +26,7 @@ export function AuthErrorAlert({ error, id = "auth-error" }: AuthErrorAlertProps
           "& .MuiChip-label": { whiteSpace: "normal" },
         }}
       />
-      {error.includes("expiró") && (
+      {(error.includes("expiró") || error.includes("expired")) && (
         <Link href="/forgot-password" style={{ textDecoration: "none" }}>
           <Typography variant="body2" sx={{ color: "error.main", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
             Solicitar nuevo enlace &rarr;
