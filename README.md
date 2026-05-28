@@ -271,6 +271,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **DashboardStudio — strings i18n:** Botón de login ("Entrar"/"Sign in") y banner de error ("Reintentar"/"Retry", "Error al cargar datos"/"Error loading data") respetan el idioma seleccionado.
 
+**BudgetTab — footer "Presupuesto vs Gasto real" suma solo categorías presupuestadas:** El "Total gastado" del footer usaba `totalOut` (todos los gastos del período), mientras las filas individuales solo muestran el gasto de categorías con presupuesto asignado. Sumar las filas daba un total diferente al del footer. Fix: `totalSpentBudgeted = Σ spent[cat] para cat ∈ editBudgets`. La tarjeta de resumen superior (Health Score, "Gastado") sigue usando `totalOut` — correcto para el contexto de salud financiera global.
+
+**Auth pages — modo oscuro no se aplicaba (hydration mismatch):** `isDark = theme.palette.mode === "dark"` se computaba en el primer render. El servidor siempre genera HTML con light mode (sin localStorage), el cliente quiere dark → React detecta el mismatch de `className` y lo deja sin parchear, quedando el DOM en light mode permanentemente aunque el estado interno fuera dark. Fix: `const [isDark, setIsDark] = useState(false)` + `useEffect(() => setIsDark(theme.palette.mode === "dark"), [theme.palette.mode])` en las 6 unidades afectadas: `login`, `register`, `forgot-password`, `reset-password`, `AuthCard`, `AuthErrorAlert`. El primer render coincide con el HTML del servidor (sin mismatch), y el `useEffect` aplica el tema correcto después de hidratar.
+
 **DataContext — recarga en renovación de token corregida:** El listener `onAuthStateChange` ya no llama a `load()` en el evento `SIGNED_IN` (que Supabase dispara al renovar el JWT automáticamente), evitando que la pestaña de Metas se reiniciara sola cada ~55 minutos. Solo carga en `INITIAL_SESSION`.
 
 **DataContext — `load()` no se llama al montar:** La llamada directa a `load()` en el `useEffect` fue eliminada. `INITIAL_SESSION` siempre dispara al suscribirse a `onAuthStateChange` y es la única fuente de verdad para la carga inicial. Llamar ambas producía 16 queries paralelas a Supabase en cada montaje.
