@@ -147,6 +147,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
   });
 
   const filteredOptions = useMemo(() => categoryOptions.filter((o) => {
+    if (o.value?.startsWith("custom_")) return true;
     if (mode === "expense") return o.type === "EGRESO";
     return tipo === "INGRESO" ? o.type === "INGRESO" : o.type === "EGRESO";
   }), [categoryOptions, mode, tipo]);
