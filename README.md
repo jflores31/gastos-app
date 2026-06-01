@@ -2,6 +2,8 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
+**Versión:** `v1.0.0`
+
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
 <!-- i18n-selector-end -->
@@ -214,6 +216,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Tipo de transacción derivado de la categoría (no del toggle):** En `AddTransactionModal`, el `tipo` (INGRESO/EGRESO) que se guarda proviene de la **categoría seleccionada** (`categoria.type`), no del estado del toggle ni del `mode`. Como las categorías personalizadas se muestran siempre sin importar el toggle, guardar el `tipo` del toggle hacía que una categoría personalizada de ingreso (elegida con el toggle en EGRESO, el default del FAB) se guardara como gasto → el ingreso "no se registraba" y el neto/ahorro/balance descuadraban. El `onChange` del Autocomplete también sincroniza el toggle (`if (v?.type) setTipo(v.type)`). Backfill de datos viejos mal guardados (categorías personalizadas): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
+
+**Carga de datos sin doble refresh:** `DataContext.load()` ya no depende solo de `INITIAL_SESSION` ni hace `getUser()` (round-trip de red) interno. Se carga con el primer evento de `onAuthStateChange` que traiga `session.user` (`INITIAL_SESSION` | `SIGNED_IN` | `TOKEN_REFRESHED` | `USER_UPDATED`), usando la sesión del propio evento. Se deduplica por `session.user.id` (para que los refrescos periódicos de token no re-ejecuten las 8 queries) y se resetea el flag en caso de fallo para permitir reintento. Esto elimina el bug de "hay que refrescar 2 veces": antes, si el primer `INITIAL_SESSION` llegaba sin sesión utilizable (token por refrescar / latencia / clock-skew) no había reintento y los datos no aparecían hasta recargar de nuevo. Las 8 queries usan RLS (`select("*")` sin `.eq("user_id")`), así que `session.user` solo sirve para "hay sesión + dedupe".
 
 **Error "JWT issued at future":** aparece cuando el reloj del dispositivo está adelantado respecto a los servidores de Supabase (incluso 1 minuto basta). Supabase rechaza el JWT → todas las queries del `Promise.all` fallan → carga lenta + banner de error. Solución: sincronizar el reloj del sistema (`timedatectl set-ntp true` en Linux, "Sincronizar ahora" en Windows). El banner de error detecta este caso específico y muestra un mensaje accionable en lugar del texto técnico crudo.
 

@@ -7,6 +7,9 @@ dist/
 tsconfig.tsbuildinfo
 skills-lock.json
 
+# graphify knowledge-graph output (generated locally)
+graphify-out/
+
 # Claude Code skills
 .github/prompts/
 

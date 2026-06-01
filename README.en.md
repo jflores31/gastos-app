@@ -2,6 +2,8 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
+**Version:** `v1.0.0`
+
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
 <!-- i18n-selector-end -->
@@ -214,6 +216,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**Transaction type derived from the category (not the toggle):** In `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) comes from the **selected category** (`categoria.type`), not from the toggle state or `mode`. Since custom categories are always shown regardless of the toggle, saving the toggle's `tipo` caused a custom income category (picked while the toggle was on EGRESO — the FAB default) to be saved as an expense → the income "wasn't registered" and net/savings/balance went out of sync. The Autocomplete `onChange` also syncs the toggle (`if (v?.type) setTipo(v.type)`). Backfill for already mis-saved rows (custom categories): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
+
+**Data loading without a double refresh:** `DataContext.load()` no longer depends solely on `INITIAL_SESSION`, nor does it make an internal `getUser()` network round-trip. It loads on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION` | `SIGNED_IN` | `TOKEN_REFRESHED` | `USER_UPDATED`), using the session from the event itself. It dedupes by `session.user.id` (so periodic token refreshes don't re-run the 8 queries) and resets the flag on failure to allow a retry. This fixes the "have to refresh twice" bug: previously, if the first `INITIAL_SESSION` arrived without a usable session (token pending refresh / latency / clock skew) there was no retry and the data wouldn't appear until another reload. The 8 queries rely on RLS (`select("*")` without `.eq("user_id")`), so `session.user` only serves as "there is a session + dedupe".
 
 **`proxy.ts` vs `middleware.ts`:** Next.js 16 uses the `proxy.ts` convention. The name `middleware.ts` is deprecated and produces a build warning.
 

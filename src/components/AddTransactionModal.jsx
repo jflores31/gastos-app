@@ -167,7 +167,11 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     setSaving(true);
     try {
       const tx = {
-        tipo,
+        // The transaction type must follow the selected category's own type,
+        // not the toggle/mode. Custom categories are shown regardless of the
+        // toggle, so deriving tipo from the category prevents an income
+        // category from being saved as an expense (and vice versa).
+        tipo: categoria?.type || tipo,
         categoria: categoria?.value || categoria,
         concepto: concepto.toUpperCase(),
         dia: fecha.date(),
@@ -219,7 +223,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           options={filteredOptions}
           groupBy={(opt) => opt.group}
           value={categoria}
-          onChange={(_, v) => { setCategoria(v); if (errors.categoria) setErrors((e) => ({ ...e, categoria: null })); }}
+          onChange={(_, v) => { setCategoria(v); if (v?.type) setTipo(v.type); if (errors.categoria) setErrors((e) => ({ ...e, categoria: null })); }}
           getOptionLabel={(opt) => opt?.label || ""}
           isOptionEqualToValue={(a, b) => a?.value === b?.value}
           renderOption={(props, opt) => (

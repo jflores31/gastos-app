@@ -94,13 +94,13 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     const supabase = createClient()
+    // Dedupe: the 8 queries should run once per signed-in user, not on every
+    // auth event (TOKEN_REFRESHED fires periodically). Reset on sign-out and on
+    // a failed load so the next event retries.
+    let loadedForUser = null
 
     async function load() {
       try {
-        const { data: { user }, error: userErr } = await supabase.auth.getUser()
-        if (userErr) console.error("[DataContext] getUser error:", userErr.message)
-        if (!user) { setLoading(false); return }
-
         setLoading(true)
         setLoadError(null)
         const results = await Promise.all([
@@ -127,7 +127,10 @@ export function DataProvider({ children }) {
 
         const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
         errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
-        if (errors.length > 0) setLoadError(errors[0].message)
+        if (errors.length > 0) {
+          setLoadError(errors[0].message)
+          loadedForUser = null // let the next auth event retry
+        }
 
         if (txData) setTxs(txData.map(mapRow))
         if (budgetData) {
@@ -139,17 +142,18 @@ export function DataProvider({ children }) {
         if (debtsData) setDebts(debtsData.map(mapDebt))
         if (subsData) setSubscriptions(subsData.map(mapSubscription))
         if (customCatsData) setCustomCats(customCatsData)
-
-        setLoading(false)
       } catch (err) {
         console.error("[DataContext] load() uncaught error:", err)
         setLoadError(err?.message ?? "Error desconocido")
+        loadedForUser = null // let the next auth event retry
+      } finally {
         setLoading(false)
       }
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
+        loadedForUser = null
         setTxs([])
         setEditBudgetsState({})
         setGoals([])
@@ -160,8 +164,22 @@ export function DataProvider({ children }) {
         setCustomCats([])
         setLoadError(null)
         setLoading(false)
+        return
       }
-      if (event === "INITIAL_SESSION") load()
+      // INITIAL_SESSION, SIGNED_IN, TOKEN_REFRESHED and USER_UPDATED all carry
+      // the session. Load from whichever event first brings a usable session
+      // (not only INITIAL_SESSION, which can arrive empty on the first init and
+      // never retry → the "refresh twice" bug). Dedupe so periodic token
+      // refreshes don't re-run the 8 queries.
+      const sessionUser = session?.user
+      if (sessionUser) {
+        if (loadedForUser !== sessionUser.id) {
+          loadedForUser = sessionUser.id
+          load()
+        }
+      } else if (event === "INITIAL_SESSION") {
+        setLoading(false) // signed-out initial load: stop the spinner
+      }
     })
 
     return () => subscription.unsubscribe()

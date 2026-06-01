@@ -28,7 +28,6 @@ export default function ExpensesTab({ period, openModal, showToast }) {
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
-  const totalOut = useMemo(() => periodTxs.filter((x) => x.tipo === "EGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
 
   const filtered = useMemo(() => {
