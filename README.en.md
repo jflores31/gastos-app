@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.0.0`
+**Version:** `v1.1.0`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -216,6 +216,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**Icon micro-interactions centralized in the theme (v1.1.0):** Icon animations live in `materialTheme.js` `components.styleOverrides` (not scattered per component): `MuiIconButton` (scale 1.12 on hover + 0.92 press), `MuiFab` (lift + scale), `MuiTab`/`MuiBottomNavigationAction` (the icon plays `iconPop` when selected + scales on hover), `MuiCard` (the header avatar pops when the card is hovered) and `MuiSvgIcon` (smooth transform/color transition). The `iconPop` keyframe is in `globals.css`. Spring-like easing `cubic-bezier(0.34,1.56,0.64,1)`, 200-300ms, hover/active-state only (no autoplay). Everything is neutralized by the `@media (prefers-reduced-motion: reduce)` guard in `globals.css` (duration collapses to ~0). The AppBar FABs (`+` and ⚙️) rotate 90° on hover via `sx`.
 
 **Transaction type derived from the category (not the toggle):** In `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) comes from the **selected category** (`categoria.type`), not from the toggle state or `mode`. Since custom categories are always shown regardless of the toggle, saving the toggle's `tipo` caused a custom income category (picked while the toggle was on EGRESO — the FAB default) to be saved as an expense → the income "wasn't registered" and net/savings/balance went out of sync. The Autocomplete `onChange` also syncs the toggle (`if (v?.type) setTipo(v.type)`). Backfill for already mis-saved rows (custom categories): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 

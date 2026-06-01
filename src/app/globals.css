@@ -16,6 +16,13 @@ html, body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grays
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* One-shot pop for icons entering an active/selected state (nav tabs). */
+@keyframes iconPop {
+  0%   { transform: scale(0.55); opacity: 0.4; }
+  55%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .delta { font-family: var(--font-jetbrains-mono), "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: 0.85em; display: inline-flex; gap: 3px; align-items: center; }
 .delta[data-positive="true"]  { color: #4CAF50; }
 .delta[data-positive="false"] { color: #B3261E; }

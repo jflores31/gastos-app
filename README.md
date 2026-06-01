@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.0.0`
+**Versión:** `v1.1.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -216,6 +216,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Microanimaciones de iconos centralizadas en el theme (v1.1.0):** Las animaciones de iconos viven en los `components.styleOverrides` de `materialTheme.js` (no dispersas por componente): `MuiIconButton` (scale 1.12 en hover + press 0.92), `MuiFab` (lift + scale), `MuiTab`/`MuiBottomNavigationAction` (icono hace `iconPop` al seleccionarse + scale en hover), `MuiCard` (el avatar de cabecera hace pop al hacer hover en la tarjeta) y `MuiSvgIcon` (transición suave de transform/color). El keyframe `iconPop` está en `globals.css`. Easing tipo *spring* `cubic-bezier(0.34,1.56,0.64,1)`, 200-300ms, solo hover/estado-activo (sin autoplay). Todo se neutraliza con el guard `@media (prefers-reduced-motion: reduce)` de `globals.css` (la duración colapsa a ~0). Los FAB de la AppBar (`+` y ⚙️) rotan 90° en hover vía `sx`.
 
 **Tipo de transacción derivado de la categoría (no del toggle):** En `AddTransactionModal`, el `tipo` (INGRESO/EGRESO) que se guarda proviene de la **categoría seleccionada** (`categoria.type`), no del estado del toggle ni del `mode`. Como las categorías personalizadas se muestran siempre sin importar el toggle, guardar el `tipo` del toggle hacía que una categoría personalizada de ingreso (elegida con el toggle en EGRESO, el default del FAB) se guardara como gasto → el ingreso "no se registraba" y el neto/ahorro/balance descuadraban. El `onChange` del Autocomplete también sincroniza el toggle (`if (v?.type) setTipo(v.type)`). Backfill de datos viejos mal guardados (categorías personalizadas): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 

@@ -23,7 +23,13 @@ const common = {
     },
     MuiCard: {
       styleOverrides: {
-        root: { borderRadius: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)" },
+        root: {
+          borderRadius: 14,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
+          // Header icon avatars gently pop when their card is hovered.
+          "& .MuiAvatar-root": { transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1)" },
+          "&:hover .MuiAvatar-root": { transform: "scale(1.08)" },
+        },
       },
     },
     MuiDialog: {
@@ -36,14 +42,48 @@ const common = {
         root: { fontWeight: 500 },
       },
     },
+    // Smooth transform/color changes on every icon (snaps instantly under
+    // prefers-reduced-motion via the global guard in globals.css).
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: { transition: "transform 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s ease" },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s ease",
+          "&:hover": { transform: "scale(1.12)" },
+          "&:active": { transform: "scale(0.92)" },
+        },
+      },
+    },
     MuiFab: {
       styleOverrides: {
-        root: { fontWeight: 600 },
+        root: {
+          fontWeight: 600,
+          transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease",
+          "&:hover": { transform: "translateY(-2px) scale(1.06)" },
+          "&:active": { transform: "scale(0.94)" },
+        },
       },
     },
     MuiTab: {
       styleOverrides: {
-        root: { textTransform: "none", fontWeight: 500, fontSize: "0.875rem", minHeight: 40 },
+        root: {
+          textTransform: "none", fontWeight: 500, fontSize: "0.875rem", minHeight: 40,
+          "& .MuiSvgIcon-root": { transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)" },
+          "&:hover .MuiSvgIcon-root": { transform: "scale(1.18)" },
+          "&.Mui-selected .MuiSvgIcon-root": { animation: "iconPop 0.4s ease-out" },
+        },
+      },
+    },
+    MuiBottomNavigationAction: {
+      styleOverrides: {
+        root: {
+          "& .MuiSvgIcon-root": { transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)" },
+          "&.Mui-selected .MuiSvgIcon-root": { transform: "scale(1.18)", animation: "iconPop 0.4s ease-out" },
+        },
       },
     },
     MuiToggleButton: {
