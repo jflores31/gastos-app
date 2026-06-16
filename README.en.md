@@ -379,6 +379,17 @@ vercel --prod
 
 Environment variables are configured in the Vercel Dashboard.
 
+Every push to `main` triggers an automatic Vercel deployment (the GitHub → Vercel integration is active).
+
+## Troubleshooting
+
+**A feature appears "broken" only in production (www.jeshu.cfd) but works locally.**
+This is almost always **browser cache**: after a deployment, the browser can combine stale cached HTML with the new JavaScript chunks, running a mix of versions. The app **does not use a Service Worker or PWA**, so there is no app-level cache to clear — it's the browser's.
+
+- **Fix:** hard refresh with `Ctrl + Shift + R` (Cmd + Shift + R on Mac) or open the site in an **incognito window**.
+- Before hunting for the bug in code, confirm the symptom also reproduces **locally** (`npm run dev`) and in **incognito**. If it only happens in production and your local code matches `origin/main`, it's cache.
+- Real case (2026-06-16): the calendar date filter (Expenses/Income) showed the chip with the selected date but left the list empty, only in production. The code was correct; a hard refresh fixed it.
+
 ## License
 
 MIT

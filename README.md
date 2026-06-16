@@ -439,6 +439,17 @@ vercel --prod
 
 Las variables de entorno se configuran en el Dashboard de Vercel.
 
+Cada push a `main` dispara un despliegue automático en Vercel (la integración GitHub → Vercel está activa).
+
+## Solución de problemas
+
+**Una función parece "rota" solo en producción (www.jeshu.cfd) pero funciona en local.**
+Casi siempre es **caché del navegador**: tras un despliegue, el navegador puede combinar el HTML antiguo en caché con los chunks de JavaScript nuevos, ejecutando una mezcla de versiones. La app **no usa Service Worker ni PWA**, así que no hay caché propia que limpiar — es la del navegador.
+
+- **Solución:** *hard refresh* con `Ctrl + Shift + R` (Cmd + Shift + R en Mac) o abrir el sitio en una **ventana de incógnito**.
+- Antes de buscar el bug en el código, verifica que el síntoma también se reproduce en **local** (`npm run dev`) y en **incógnito**. Si solo ocurre en producción y el código local es idéntico a `origin/main`, es caché.
+- Caso real (2026-06-16): el filtro de fechas del calendario (Gastos/Ingresos) mostraba el chip con la fecha pero dejaba la lista vacía, únicamente en producción. El código era correcto; un *hard refresh* lo resolvió.
+
 ## Licencia
 
 MIT
