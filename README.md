@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.1.0`
+**Versión:** `v1.2.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -216,6 +216,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Set de iconos en variante Rounded centralizado (v1.2.0):** Todos los iconos (`@mui/icons-material`) se importan desde un único módulo `src/theme/icons.js` que los re-exporta en su variante **Rounded** (Material 3 / Material You) con *deep-import* (mejor tree-shaking). Los 14 componentes/páginas importan desde ahí en lugar del *barrel* — cambiar de estilo (p. ej. a Outlined) a futuro = editar solo ese archivo. Casos especiales: los iconos de marca `GitHub`/`Google`/`YouTube` no tienen variante Rounded (quedan Filled) y `ErrorOutlined` mapea a `ErrorRounded`. Las microanimaciones del theme se conservan porque los iconos Rounded siguen siendo `MuiSvgIcon`.
 
 **Microanimaciones de iconos centralizadas en el theme (v1.1.0):** Las animaciones de iconos viven en los `components.styleOverrides` de `materialTheme.js` (no dispersas por componente): `MuiIconButton` (scale 1.12 en hover + press 0.92), `MuiFab` (lift + scale), `MuiTab`/`MuiBottomNavigationAction` (icono hace `iconPop` al seleccionarse + scale en hover), `MuiCard` (el avatar de cabecera hace pop al hacer hover en la tarjeta) y `MuiSvgIcon` (transición suave de transform/color). El keyframe `iconPop` está en `globals.css`. Easing tipo *spring* `cubic-bezier(0.34,1.56,0.64,1)`, 200-300ms, solo hover/estado-activo (sin autoplay). Todo se neutraliza con el guard `@media (prefers-reduced-motion: reduce)` de `globals.css` (la duración colapsa a ~0). Los FAB de la AppBar (`+` y ⚙️) rotan 90° en hover vía `sx`.
 
