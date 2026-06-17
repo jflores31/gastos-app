@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Avatar, Chip, IconButton, Collapse, Paper } from "@mui/material";
-import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@mui/icons-material";
+import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "../theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
 import { CATEGORIES, fmtMoney } from "../data/index.js";
 

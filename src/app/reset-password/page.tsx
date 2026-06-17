@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, CircularProgress, IconButton, InputAdornment,
 } from "@mui/material"
-import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "@mui/icons-material"
+import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "../../theme/icons"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 import { AuthCard } from "../components/auth/AuthCard"

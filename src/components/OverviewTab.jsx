@@ -9,7 +9,7 @@ import {
   Savings as SavingsIcon, Warning as WarningIcon,
   AccountBalanceWallet as WalletIcon, PieChart as PieIcon, Insights as InsightsIcon,
   CalendarMonth as CalendarIcon, ShowChart as ChartIcon, Timeline as ForecastIcon,
-} from "@mui/icons-material";
+} from "../theme/icons";
 
 const INSIGHT_ICONS = {
   trend: <ChartIcon />,

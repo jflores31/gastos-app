@@ -1,0 +1,96 @@
+// Módulo central de iconos — variante Rounded (Material You / Material 3).
+// Punto único de control del set de iconos. Cambiar de estilo (p.ej. Outlined)
+// = editar solo este archivo. Los componentes importan desde aquí, no del barrel.
+//
+// Casos especiales:
+//   GitHub/Google/YouTube -> iconos de marca, sin variante Rounded (quedan Filled).
+//   ErrorOutlined         -> mapea a ErrorRounded (no existe ErrorOutlinedRounded).
+
+export { default as AccountBalance } from "@mui/icons-material/AccountBalanceRounded";
+export { default as AccountBalanceWallet } from "@mui/icons-material/AccountBalanceWalletRounded";
+export { default as Add } from "@mui/icons-material/AddRounded";
+export { default as Album } from "@mui/icons-material/AlbumRounded";
+export { default as ArrowBack } from "@mui/icons-material/ArrowBackRounded";
+export { default as AttachMoney } from "@mui/icons-material/AttachMoneyRounded";
+export { default as Build } from "@mui/icons-material/BuildRounded";
+export { default as CalendarMonth } from "@mui/icons-material/CalendarMonthRounded";
+export { default as Campaign } from "@mui/icons-material/CampaignRounded";
+export { default as CardGiftcard } from "@mui/icons-material/CardGiftcardRounded";
+export { default as Celebration } from "@mui/icons-material/CelebrationRounded";
+export { default as Check } from "@mui/icons-material/CheckRounded";
+export { default as CheckCircle } from "@mui/icons-material/CheckCircleRounded";
+export { default as Checkroom } from "@mui/icons-material/CheckroomRounded";
+export { default as ChevronLeft } from "@mui/icons-material/ChevronLeftRounded";
+export { default as ChevronRight } from "@mui/icons-material/ChevronRightRounded";
+export { default as Close } from "@mui/icons-material/CloseRounded";
+export { default as Code } from "@mui/icons-material/CodeRounded";
+export { default as Coffee } from "@mui/icons-material/CoffeeRounded";
+export { default as CompareArrows } from "@mui/icons-material/CompareArrowsRounded";
+export { default as CorporateFare } from "@mui/icons-material/CorporateFareRounded";
+export { default as CreditCard } from "@mui/icons-material/CreditCardRounded";
+export { default as CreditScore } from "@mui/icons-material/CreditScoreRounded";
+export { default as DarkMode } from "@mui/icons-material/DarkModeRounded";
+export { default as Dashboard } from "@mui/icons-material/DashboardRounded";
+export { default as Delete } from "@mui/icons-material/DeleteRounded";
+export { default as DeliveryDining } from "@mui/icons-material/DeliveryDiningRounded";
+export { default as DirectionsBus } from "@mui/icons-material/DirectionsBusRounded";
+export { default as DirectionsCar } from "@mui/icons-material/DirectionsCarRounded";
+export { default as Edit } from "@mui/icons-material/EditRounded";
+export { default as ErrorOutlined } from "@mui/icons-material/ErrorRounded";
+export { default as Event } from "@mui/icons-material/EventRounded";
+export { default as ExpandLess } from "@mui/icons-material/ExpandLessRounded";
+export { default as ExpandMore } from "@mui/icons-material/ExpandMoreRounded";
+export { default as Face } from "@mui/icons-material/FaceRounded";
+export { default as FitnessCenter } from "@mui/icons-material/FitnessCenterRounded";
+export { default as Flag } from "@mui/icons-material/FlagRounded";
+export { default as Flight } from "@mui/icons-material/FlightRounded";
+export { default as GitHub } from "@mui/icons-material/GitHub";
+export { default as Google } from "@mui/icons-material/Google";
+export { default as HealthAndSafety } from "@mui/icons-material/HealthAndSafetyRounded";
+export { default as History } from "@mui/icons-material/HistoryRounded";
+export { default as Home } from "@mui/icons-material/HomeRounded";
+export { default as Inbox } from "@mui/icons-material/InboxRounded";
+export { default as Insights } from "@mui/icons-material/InsightsRounded";
+export { default as Lightbulb } from "@mui/icons-material/LightbulbRounded";
+export { default as LightbulbCircle } from "@mui/icons-material/LightbulbCircleRounded";
+export { default as LightMode } from "@mui/icons-material/LightModeRounded";
+export { default as LocalGasStation } from "@mui/icons-material/LocalGasStationRounded";
+export { default as LocalParking } from "@mui/icons-material/LocalParkingRounded";
+export { default as LockReset } from "@mui/icons-material/LockResetRounded";
+export { default as Login } from "@mui/icons-material/LoginRounded";
+export { default as Logout } from "@mui/icons-material/LogoutRounded";
+export { default as MarkEmailRead } from "@mui/icons-material/MarkEmailReadRounded";
+export { default as Movie } from "@mui/icons-material/MovieRounded";
+export { default as MusicNote } from "@mui/icons-material/MusicNoteRounded";
+export { default as OilBarrel } from "@mui/icons-material/OilBarrelRounded";
+export { default as OndemandVideo } from "@mui/icons-material/OndemandVideoRounded";
+export { default as Person } from "@mui/icons-material/PersonRounded";
+export { default as Pets } from "@mui/icons-material/PetsRounded";
+export { default as PhoneAndroid } from "@mui/icons-material/PhoneAndroidRounded";
+export { default as PhotoCamera } from "@mui/icons-material/PhotoCameraRounded";
+export { default as PieChart } from "@mui/icons-material/PieChartRounded";
+export { default as Receipt } from "@mui/icons-material/ReceiptRounded";
+export { default as Restaurant } from "@mui/icons-material/RestaurantRounded";
+export { default as Savings } from "@mui/icons-material/SavingsRounded";
+export { default as School } from "@mui/icons-material/SchoolRounded";
+export { default as Security } from "@mui/icons-material/SecurityRounded";
+export { default as Settings } from "@mui/icons-material/SettingsRounded";
+export { default as ShoppingBag } from "@mui/icons-material/ShoppingBagRounded";
+export { default as ShowChart } from "@mui/icons-material/ShowChartRounded";
+export { default as Speaker } from "@mui/icons-material/SpeakerRounded";
+export { default as SportsEsports } from "@mui/icons-material/SportsEsportsRounded";
+export { default as Subscriptions } from "@mui/icons-material/SubscriptionsRounded";
+export { default as Theaters } from "@mui/icons-material/TheatersRounded";
+export { default as Timeline } from "@mui/icons-material/TimelineRounded";
+export { default as TireRepair } from "@mui/icons-material/TireRepairRounded";
+export { default as TrendingDown } from "@mui/icons-material/TrendingDownRounded";
+export { default as TrendingUp } from "@mui/icons-material/TrendingUpRounded";
+export { default as TwoWheeler } from "@mui/icons-material/TwoWheelerRounded";
+export { default as Videocam } from "@mui/icons-material/VideocamRounded";
+export { default as Visibility } from "@mui/icons-material/VisibilityRounded";
+export { default as VisibilityOff } from "@mui/icons-material/VisibilityOffRounded";
+export { default as Warning } from "@mui/icons-material/WarningRounded";
+export { default as WaterDrop } from "@mui/icons-material/WaterDropRounded";
+export { default as Wifi } from "@mui/icons-material/WifiRounded";
+export { default as Work } from "@mui/icons-material/WorkRounded";
+export { default as YouTube } from "@mui/icons-material/YouTube";

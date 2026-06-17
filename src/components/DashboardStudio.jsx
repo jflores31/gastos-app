@@ -17,7 +17,7 @@ import {
   Settings as SettingsIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
-} from "@mui/icons-material";
+} from "../theme/icons";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";

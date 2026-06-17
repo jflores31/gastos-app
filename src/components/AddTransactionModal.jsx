@@ -20,7 +20,7 @@ import {
   Face, FitnessCenter, Flight, Receipt, ShoppingBag, MusicNote, Event, Speaker,
   Album, Theaters, PhotoCamera, Videocam, Campaign, LightbulbCircle,
   CorporateFare, Code, YouTube, OndemandVideo, TrendingUp,
-} from "@mui/icons-material";
+} from "../theme/icons";
 import { CATEGORIES } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";

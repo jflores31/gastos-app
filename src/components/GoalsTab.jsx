@@ -8,7 +8,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "@mui/icons-material";
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "../theme/icons";
 import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
 import { linearRegressionSlope } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";

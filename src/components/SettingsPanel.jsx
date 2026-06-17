@@ -7,7 +7,7 @@ import {
   Autocomplete, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   ToggleButtonGroup, ToggleButton, Snackbar, Alert,
 } from "@mui/material";
-import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";

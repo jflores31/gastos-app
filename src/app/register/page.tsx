@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
 } from "@mui/material"
-import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material"
+import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "../../theme/icons"
 import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 import { AuthCard } from "../components/auth/AuthCard"

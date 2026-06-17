@@ -9,7 +9,7 @@ import {
 import {
   ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
-} from "@mui/icons-material";
+} from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, getTodayExpenses } from "../data/index.js";
 import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers.js";

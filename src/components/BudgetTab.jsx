@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
-import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { CATEGORIES, fmtMoney, txByCategory } from "../data/index.js";
 import { filterByPeriod, monthCount, healthScore, recurringList, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";

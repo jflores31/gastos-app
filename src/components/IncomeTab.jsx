@@ -5,7 +5,7 @@ import {
   Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
-import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
