@@ -1,0 +1,216 @@
+================================================================
+  FINANZAS — GESTIÓN PERSONAL  ·  v1.2.0
+  Estructura del proyecto · Iconos · Propósito
+================================================================
+
+
+1. ¿A QUÉ SE DEDICA EL PROYECTO?
+----------------------------------------------------------------
+Aplicación web de FINANZAS PERSONALES. Permite a un usuario
+rastrear ingresos, gastos, presupuestos y metas de ahorro, con
+dashboard, gráficos, categorías personalizadas y multi-idioma.
+
+  - Registro/seguimiento de INGRESOS y GASTOS por categoría
+  - PRESUPUESTOS mensuales y METAS de ahorro
+  - Dashboard con gráficos (donut, sparkline, cashflow, heatmap)
+  - Categorías personalizadas y favoritas por usuario
+  - Multi-moneda (PEN / USD / EUR) y multi-idioma (ES / EN)
+  - Autenticación email/password con Supabase
+  - Desplegada en: https://www.jeshu.cfd
+
+  STACK:
+    Framework ... Next.js 16.2.6 (App Router)
+    UI .......... Material UI (MUI) v9
+    Auth + DB ... Supabase (email/password)
+    Fechas ...... MUI X Date Pickers + dayjs
+    Estado ...... React Context + localStorage
+    Lenguaje .... TypeScript (rutas/config) + JSX (componentes)
+    Deploy ...... Vercel
+
+
+2. ESTRUCTURA DE ARCHIVOS (src/)
+----------------------------------------------------------------
+src/
+├── app/                          # Next.js App Router (rutas)
+│   ├── components/
+│   │   ├── auth/
+│   │   │   ├── AuthCard.tsx       # Tarjeta glass de auth
+│   │   │   ├── AuthErrorAlert.tsx
+│   │   │   └── authStyles.ts
+│   │   ├── DynamicThemeProvider.tsx
+│   │   └── Providers.tsx
+│   ├── forgot-password/page.tsx
+│   ├── login/page.tsx
+│   ├── register/page.tsx
+│   ├── reset-password/page.tsx
+│   ├── error.tsx
+│   ├── global-error.tsx
+│   ├── not-found.tsx
+│   ├── layout.tsx
+│   ├── page.tsx                   # Home / dashboard principal
+│   └── globals.css
+│
+├── components/                   # Componentes de UI (JSX)
+│   ├── AddTransactionModal.jsx   # *** Mapa categoría → icono ***
+│   ├── OverviewTab.jsx           # Resumen / dashboard
+│   ├── IncomeTab.jsx             # Ingresos
+│   ├── ExpensesTab.jsx           # Gastos
+│   ├── BudgetTab.jsx             # Presupuestos
+│   ├── GoalsTab.jsx              # Metas
+│   ├── DashboardStudio.jsx       # Dashboard configurable
+│   ├── Charts.jsx                # Donut / SparkArea / Cashflow / Heat
+│   ├── SettingsPanel.jsx         # Ajustes + categorías custom
+│   ├── LoginModal.jsx
+│   ├── shared.jsx                # CalendarFilter, TxTable, Delta...
+│   └── ErrorBoundary.jsx
+│
+├── context/                      # Estado global (React Context)
+│   ├── DataContext.jsx           # Transacciones / CRUD
+│   ├── SettingsContext.jsx       # Idioma, moneda, paletas
+│   └── UserContext.tsx           # Usuario Supabase
+│
+├── data/
+│   ├── index.js                  # CATEGORIES, CURRENCIES, I18N, helpers
+│   └── helpers.js                # healthScore, insights, filtros...
+│
+├── hooks/
+│   └── useLocalStorage.js
+│
+├── lib/
+│   ├── supabase.ts               # Cliente browser
+│   └── supabase-server.ts        # Cliente server
+│
+├── theme/
+│   ├── icons.js                  # *** Módulo central: 88 iconos Rounded ***
+│   └── materialTheme.js          # *** Animación centralizada de iconos ***
+│
+└── proxy.ts                      # Middleware / proxy
+
+  Config raíz: package.json · next.config.mjs · tsconfig.json ·
+               eslint.config.js
+
+
+3. ICONOS DEL PROYECTO
+----------------------------------------------------------------
+Librería: @mui/icons-material (MUI v9). SVG, sin emojis ni
+assets propios. 88 iconos únicos. Variante: Rounded
+(Material You / Material 3) desde v1.2.0.
+
+El sistema tiene TRES piezas:
+
+  (A) MÓDULO CENTRAL de iconos ... src/theme/icons.js
+        Re-exporta los 88 iconos en variante Rounded (deep-import,
+        mejor tree-shaking). Los 14 componentes/páginas importan
+        desde aquí, NO del barrel @mui/icons-material. Cambiar de
+        estilo a futuro (p.ej. Outlined) = editar solo este archivo.
+        Casos especiales:
+          GitHub / Google / YouTube -> sin variante Rounded (Filled).
+          ErrorOutlined             -> mapea a ErrorRounded.
+  (B) MAPEO categoría → icono .... src/components/AddTransactionModal.jsx
+  (C) ANIMACIÓN centralizada ..... src/theme/materialTheme.js
+
+
+3.A  MAPA CATEGORÍA → ICONO  (AddTransactionModal.jsx:29-96)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Las categorías (src/data/index.js:74) NO llevan icono; solo
+color/concepts. El icono se asigna aquí.
+
+  EXPENSE_ICONS (gastos)            INCOME_ICONS (ingresos)
+  ----------------------------     -----------------------------
+  VIVIENDA          Home           SUELDO           AttachMoney
+  LUZ               Lightbulb      HONORARIOS       Code
+  AGUA              WaterDrop      NEGOCIO          Work
+  INTERNET          Wifi          INVERSIONES      TrendingUp
+  CELULAR           PhoneAndroid   INTERESES        AccountBalance
+  COMIDA            Restaurant     ALQUILERES       Home
+  TRANSPORTE        DirectionsBus  VENTAS           ShoppingBag
+  GASOLINA          LocalGasStation CONTENIDO       YouTube
+  AUTO              DirectionsCar  GAMING           OndemandVideo
+  MOTO              TwoWheeler     CLASES           School
+  REPUESTOS         Build          ASESORIAS        Work
+  LLANTAS           TireRepair     TECNICO          Build
+  ACEITE            OilBarrel      TELECOM          Wifi
+  SOAT              Security       MUSICA           MusicNote
+  ESTACIONAMIENTO   LocalParking   EVENTOS          Event
+  STREAMING         Movie          DJ               Speaker
+  CAFES             Coffee         TOCADAS          Album
+  ROPA              Checkroom      PRODUCCION       Theaters
+  SALUD             HealthAndSafety FOTOGRAFIA      PhotoCamera
+  DEUDAS            AccountBalance EDICION          Videocam
+  EDUCACION         School         ORGANIZACION     Campaign
+  MASCOTA           Pets           ALQUILER_SONIDO  LightbulbCircle
+  REGALOS           CardGiftcard   EVENTOS_CORP     CorporateFare
+  IMPREVISTOS       Warning        COMISIONES       AttachMoney
+  AHORRO            Savings        REGALOS          CardGiftcard
+  DELIVERY          DeliveryDining CRIPTO           AttachMoney
+  JUEGOS            SportsEsports  DIVIDENDOS       TrendingUp
+  SALIDAS           Celebration    BONOS            Work
+  HIGIENE           Face           CASHBACK         ShoppingBag
+  GIMNASIO          FitnessCenter  AHORROS          Savings
+  VIAJES            Flight
+  IMPUESTOS         Receipt
+  COMPRAS           ShoppingBag
+
+
+3.B  ICONOS DE UI POR ARCHIVO  (no de categoría)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+app/login/page.tsx:
+  AccountBalanceWallet, GitHub, Google, Visibility, VisibilityOff
+app/register/page.tsx:
+  AccountBalanceWallet, CheckCircle, GitHub, Google, Visibility,
+  VisibilityOff
+app/forgot-password/page.tsx:
+  ArrowBack, LockReset, MarkEmailRead
+app/reset-password/page.tsx:
+  ArrowBack, CheckCircle, ErrorOutlined, LockReset, Visibility,
+  VisibilityOff
+
+components/OverviewTab.jsx:
+  AccountBalanceWallet, CalendarMonth, Insights, PieChart, Savings,
+  ShowChart, Timeline, TrendingDown, TrendingUp, Warning
+components/IncomeTab.jsx:
+  AccountBalanceWallet, Add, Delete, Edit, PieChart, ShowChart
+components/ExpensesTab.jsx:
+  Add, Delete, Edit, ExpandLess, ExpandMore
+components/BudgetTab.jsx:
+  AccountBalanceWallet, Add, Check, CheckCircle, CompareArrows,
+  Delete, Edit, Event, PieChart, TrendingDown, TrendingUp, Warning
+components/GoalsTab.jsx:
+  AccountBalance, Add, AttachMoney, CreditCard, CreditScore, Delete,
+  Edit, History, Savings, ShowChart, Subscriptions, Timeline
+components/DashboardStudio.jsx:
+  AccountBalanceWallet, Add, AttachMoney, Dashboard, Flag, Login,
+  Logout, Receipt, Settings
+components/shared.jsx:
+  AttachMoney, CalendarMonth, ChevronLeft, ChevronRight, Inbox,
+  Receipt
+components/SettingsPanel.jsx:
+  Add, Close, DarkMode, Delete, Edit, LightMode, Person
+components/LoginModal.jsx:
+  Close, GitHub, Google
+
+
+3.C  ANIMACIÓN DE ICONOS  (theme/materialTheme.js:45-88)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+El theme MUI centraliza el comportamiento animado (no la lista):
+  - MuiSvgIcon ............ transición suave de transform y color
+  - MuiIconButton ........ hover scale(1.12), click scale(0.92)
+  - MuiFab ............... hover translateY(-2px) scale(1.06)
+  - MuiTab ............... icono scale(1.18) en hover + animación
+                          "iconPop" al seleccionar
+  - MuiBottomNavigationAction ... mismo pop al seleccionar
+  - MuiCard (avatar) ..... "pop" sutil al hover de la tarjeta
+  - Respeta prefers-reduced-motion (guard en globals.css)
+
+
+4. RESUMEN RÁPIDO
+----------------------------------------------------------------
+  - 88 iconos SVG únicos de @mui/icons-material, variante Rounded
+    (Material You), centralizados en src/theme/icons.js.
+  - Categorías -> icono se ASIGNA en AddTransactionModal.jsx
+    (EXPENSE_ICONS / INCOME_ICONS).
+  - Iconos de UI viven en cada componente (tabs, auth, settings).
+  - La ANIMACIÓN de todos los iconos se controla desde el theme.
+  - Proyecto = app de finanzas personales (Next.js + MUI + Supabase).
+
+================================================================
