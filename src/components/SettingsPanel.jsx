@@ -5,9 +5,9 @@ import {
   Drawer, Box, Typography, Divider, Avatar,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
   Autocomplete, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  ToggleButtonGroup, ToggleButton, Snackbar, Alert,
+  ToggleButtonGroup, ToggleButton, Snackbar, Alert, Tabs, Tab,
 } from "@mui/material";
-import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
+import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Settings as SettingsIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
@@ -19,10 +19,12 @@ const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val
 const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
 const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e" };
 
-export default function SettingsPanel({ open, onClose }) {
+export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) {
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
   const user = useSupabaseUser();
   const { customCats, saveCustomCat, deleteCustomCat } = useData();
+  const [tab, setTab] = useState(initialTab);
+  const [wasOpen, setWasOpen] = useState(open);
   const [favInput, setFavInput] = useState(null);
   const [catDialog, setCatDialog] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
@@ -30,6 +32,13 @@ export default function SettingsPanel({ open, onClose }) {
   const [catError, setCatError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [snack, setSnack] = useState(null);
+
+  // Jump to the tab requested by whoever opened the panel (avatar → perfil, gear → ajustes).
+  // Adjust during render on the closed→open transition — no effect needed.
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setTab(initialTab);
+  }
 
   const fullName = user?.user_metadata?.full_name || "";
   const email = user?.email || "";
@@ -103,184 +112,209 @@ export default function SettingsPanel({ open, onClose }) {
     }
   };
 
+  const sectionLabel = (es, en) => (
+    <ListItemText primary={lang === "es" ? es : en} primaryTypographyProps={{ variant: "overline" }} />
+  );
+
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 360 }, p: 0, overflowY: "auto" } }}>
-      <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Perfil y Ajustes" : "Profile & Settings"}</Typography>
+    <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 380 }, p: 0, overflowY: "auto" } }}>
+      {/* Header */}
+      <Box sx={{ p: 2, pb: 1.25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" fontWeight={700}>
+          {tab === "perfil" ? (lang === "es" ? "Perfil" : "Profile") : (lang === "es" ? "Ajustes" : "Settings")}
+        </Typography>
         <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
       </Box>
-      <Divider />
 
-      {user && (
-        <>
-          <Box sx={{ px: 3, py: 2.5, display: "flex", alignItems: "center", gap: 2, bgcolor: "primary.main", color: "primary.contrastText" }}>
-            <Avatar
-              src={avatarSrc}
-              sx={{ width: 56, height: 56, bgcolor: "primary.light", color: "primary.dark", fontWeight: 700, fontSize: 20 }}
-            >
-              {initials || <PersonIcon />}
-            </Avatar>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle1" fontWeight={700} noWrap>{displayName}</Typography>
-              {fullName && <Typography variant="caption" noWrap sx={{ opacity: 0.85 }}>{email}</Typography>}
-            </Box>
-          </Box>
-          <Divider />
-        </>
-      )}
+      {/* Tabs: separa Perfil de Ajustes */}
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        variant="fullWidth"
+        sx={{ position: "sticky", top: 0, zIndex: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", minHeight: 48 }}
+      >
+        <Tab value="perfil" icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start"
+          label={lang === "es" ? "Perfil" : "Profile"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+        <Tab value="ajustes" icon={<SettingsIcon sx={{ fontSize: 18 }} />} iconPosition="start"
+          label={lang === "es" ? "Ajustes" : "Settings"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+      </Tabs>
 
-      <List disablePadding>
-        <ListItem>
-          <ListItemText primary={lang === "es" ? "Tema" : "Theme"} primaryTypographyProps={{ variant: "overline" }} />
-        </ListItem>
-        <ListItem sx={{ pt: 0 }}>
-          <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-            <Chip icon={<LightModeIcon />} label={lang === "es" ? "Claro" : "Light"} variant={theme === "light" ? "filled" : "outlined"} color={theme === "light" ? "primary" : "default"} onClick={() => setTheme("light")} sx={{ flex: 1 }} />
-            <Chip icon={<DarkModeIcon />} label={lang === "es" ? "Oscuro" : "Dark"} variant={theme === "dark" ? "filled" : "outlined"} color={theme === "dark" ? "primary" : "default"} onClick={() => setTheme("dark")} sx={{ flex: 1 }} />
-          </Box>
-        </ListItem>
-
-        <Divider variant="middle" />
-
-        <ListItem>
-          <ListItemText primary={lang === "es" ? "Densidad" : "Density"} primaryTypographyProps={{ variant: "overline" }} />
-        </ListItem>
-        <ListItem sx={{ pt: 0 }}>
-          <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-            <Chip label={lang === "es" ? "Cómoda" : "Comfy"} variant={density === "comfy" ? "filled" : "outlined"} color={density === "comfy" ? "primary" : "default"} onClick={() => setDensity("comfy")} sx={{ flex: 1 }} />
-            <Chip label={lang === "es" ? "Compacta" : "Compact"} variant={density === "compact" ? "filled" : "outlined"} color={density === "compact" ? "primary" : "default"} onClick={() => setDensity("compact")} sx={{ flex: 1 }} />
-          </Box>
-        </ListItem>
-
-        <Divider variant="middle" />
-
-        <ListItem>
-          <ListItemText primary={lang === "es" ? "Color de acento" : "Accent color"} primaryTypographyProps={{ variant: "overline" }} />
-        </ListItem>
-        <ListItem sx={{ pt: 0 }}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-            {PALETTES.map((p) => (
-              <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
+      {/* ===== PERFIL ===== */}
+      {tab === "perfil" && (
+        user ? (
+          <Box>
+            {/* Hero */}
+            <Box sx={{
+              px: 3, pt: 4, pb: 3.5, textAlign: "center", color: "primary.contrastText",
+              background: (t) => `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
+            }}>
+              <Avatar
+                src={avatarSrc}
                 sx={{
-                  width: 40, height: 40, borderRadius: "50%", bgcolor: p.color, cursor: "pointer",
-                  border: palette === p.key ? "3px solid" : "2px solid transparent",
-                  borderColor: palette === p.key ? "text.primary" : "transparent",
-                  transition: "transform 0.15s, border-color 0.15s",
-                  "&:hover": { transform: "scale(1.15)" },
-                }} title={p.label} />
-            ))}
-          </Box>
-        </ListItem>
+                  width: 78, height: 78, mx: "auto", mb: 1.5,
+                  bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontWeight: 800, fontSize: 28,
+                  border: "3px solid rgba(255,255,255,0.55)", boxShadow: "0 8px 26px rgba(0,0,0,0.22)",
+                }}
+              >
+                {initials || <PersonIcon />}
+              </Avatar>
+              <Typography variant="h6" fontWeight={800} noWrap>{displayName}</Typography>
+              {fullName && <Typography variant="body2" noWrap sx={{ opacity: 0.85, mt: 0.25 }}>{email}</Typography>}
+            </Box>
 
-        <Divider variant="middle" />
-
-        <ListItem>
-          <ListItemText primary={lang === "es" ? "Idioma" : "Language"} primaryTypographyProps={{ variant: "overline" }} />
-        </ListItem>
-        <ListItem sx={{ pt: 0 }}>
-          <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-            <Chip label="🇵🇪 Español" variant={lang === "es" ? "filled" : "outlined"} color={lang === "es" ? "primary" : "default"} onClick={() => setLang("es")} sx={{ flex: 1 }} />
-            <Chip label="🇺🇸 English" variant={lang === "en" ? "filled" : "outlined"} color={lang === "en" ? "primary" : "default"} onClick={() => setLang("en")} sx={{ flex: 1 }} />
-          </Box>
-        </ListItem>
-
-        <Divider variant="middle" />
-
-        <ListItem>
-          <ListItemText primary={lang === "es" ? "Moneda" : "Currency"} primaryTypographyProps={{ variant: "overline" }} />
-        </ListItem>
-        <ListItem sx={{ pt: 0 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>{lang === "es" ? "Moneda" : "Currency"}</InputLabel>
-            <Select value={currency} label={lang === "es" ? "Moneda" : "Currency"} onChange={(e) => setCurrency(e.target.value)}>
-              {Object.entries(CURRENCIES).map(([k, c]) => (
-                <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </ListItem>
-
-        {user && (
-          <>
-            <Divider variant="middle" />
-
-            <ListItem>
-              <ListItemText
-                primary={lang === "es" ? "Categorías Favoritas" : "Favorite Categories"}
-                secondary={lang === "es" ? "Aparecen primero en el selector" : "Shown first in the selector"}
-                primaryTypographyProps={{ variant: "overline" }}
-                secondaryTypographyProps={{ variant: "caption" }}
-              />
-            </ListItem>
-            <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
-              {favCats.length > 0 && (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {favCats.map((f) => {
-                    const catData = CATEGORIES[f.tipo === "EGRESO" ? "expense" : "income"][f.categoria];
-                    const label = catData?.[lang] || f.categoria;
-                    return (
-                      <Chip key={f.categoria} label={label} size="small" onDelete={() => handleRemoveFav(f.categoria)}
-                        color={f.tipo === "EGRESO" ? "error" : "success"} variant="outlined" />
-                    );
-                  })}
-                </Box>
-              )}
-              <Autocomplete
-                options={allCatOptions} groupBy={(o) => o.group} value={favInput}
-                onChange={(_, v) => handleAddFav(v)} getOptionLabel={(o) => o?.label || ""}
-                size="small" noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
-                renderInput={(params) => (
-                  <TextField {...params} label={lang === "es" ? "Agregar favorita" : "Add favorite"} size="small" />
-                )}
-              />
-            </ListItem>
-
-            <Divider variant="middle" />
-
-            <ListItem
-              secondaryAction={
-                <Button size="small" startIcon={<AddIcon />} onClick={() => openCatDialog()} variant="outlined" sx={{ borderRadius: 2 }}>
-                  {lang === "es" ? "Nueva" : "New"}
-                </Button>
-              }
-            >
-              <ListItemText
-                primary={lang === "es" ? "Mis Categorías" : "My Categories"}
-                secondary={lang === "es" ? "Categorías propias para tus transacciones" : "Custom categories for your transactions"}
-                primaryTypographyProps={{ variant: "overline" }}
-                secondaryTypographyProps={{ variant: "caption" }}
-              />
-            </ListItem>
-            <ListItem sx={{ pt: 0 }}>
-              <Box sx={{ width: "100%" }}>
-                {customCats.length === 0 ? (
-                  <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
-                    {lang === "es" ? "Ninguna aún. Crea tu primera categoría." : "None yet. Create your first category."}
-                  </Typography>
-                ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                    {customCats.map((c) => (
-                      <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
-                        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />
-                        <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
-                        <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
-                          size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
-                        <IconButton onClick={() => openCatDialog(c)} aria-label={lang === "es" ? "Editar categoría" : "Edit category"} sx={{ minWidth: 40, minHeight: 40 }}>
-                          <EditIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                        <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={lang === "es" ? "Eliminar categoría" : "Delete category"} sx={{ minWidth: 40, minHeight: 40 }}>
-                          <DeleteIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Box>
-                    ))}
+            <List disablePadding>
+              {/* Favoritas */}
+              <ListItem sx={{ pt: 2 }}>
+                <ListItemText
+                  primary={lang === "es" ? "Categorías Favoritas" : "Favorite Categories"}
+                  secondary={lang === "es" ? "Aparecen primero en el selector" : "Shown first in the selector"}
+                  primaryTypographyProps={{ variant: "overline" }}
+                  secondaryTypographyProps={{ variant: "caption" }}
+                />
+              </ListItem>
+              <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
+                {favCats.length > 0 && (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {favCats.map((f) => {
+                      const catData = CATEGORIES[f.tipo === "EGRESO" ? "expense" : "income"][f.categoria];
+                      const label = catData?.[lang] || f.categoria;
+                      return (
+                        <Chip key={f.categoria} label={label} size="small" onDelete={() => handleRemoveFav(f.categoria)}
+                          color={f.tipo === "EGRESO" ? "error" : "success"} variant="outlined" />
+                      );
+                    })}
                   </Box>
                 )}
-              </Box>
-            </ListItem>
-          </>
-        )}
-      </List>
+                <Autocomplete
+                  options={allCatOptions} groupBy={(o) => o.group} value={favInput}
+                  onChange={(_, v) => handleAddFav(v)} getOptionLabel={(o) => o?.label || ""}
+                  size="small" noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
+                  renderInput={(params) => (
+                    <TextField {...params} label={lang === "es" ? "Agregar favorita" : "Add favorite"} size="small" />
+                  )}
+                />
+              </ListItem>
+
+              <Divider variant="middle" />
+
+              {/* Mis categorías */}
+              <ListItem
+                secondaryAction={
+                  <Button size="small" startIcon={<AddIcon />} onClick={() => openCatDialog()} variant="outlined" sx={{ borderRadius: 2 }}>
+                    {lang === "es" ? "Nueva" : "New"}
+                  </Button>
+                }
+              >
+                <ListItemText
+                  primary={lang === "es" ? "Mis Categorías" : "My Categories"}
+                  secondary={lang === "es" ? "Categorías propias para tus transacciones" : "Custom categories for your transactions"}
+                  primaryTypographyProps={{ variant: "overline" }}
+                  secondaryTypographyProps={{ variant: "caption" }}
+                />
+              </ListItem>
+              <ListItem sx={{ pt: 0, pb: 3 }}>
+                <Box sx={{ width: "100%" }}>
+                  {customCats.length === 0 ? (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
+                      {lang === "es" ? "Ninguna aún. Crea tu primera categoría." : "None yet. Create your first category."}
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                      {customCats.map((c) => (
+                        <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
+                          <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />
+                          <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
+                          <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
+                            size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
+                          <IconButton onClick={() => openCatDialog(c)} aria-label={lang === "es" ? "Editar categoría" : "Edit category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                          <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={lang === "es" ? "Eliminar categoría" : "Delete category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                            <DeleteIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </ListItem>
+            </List>
+          </Box>
+        ) : (
+          <Box sx={{ p: 5, textAlign: "center", color: "text.secondary" }}>
+            <PersonIcon sx={{ fontSize: 48, opacity: 0.35, mb: 1.5 }} />
+            <Typography variant="body2">
+              {lang === "es" ? "Inicia sesión para ver tu perfil y categorías." : "Sign in to see your profile and categories."}
+            </Typography>
+          </Box>
+        )
+      )}
+
+      {/* ===== AJUSTES ===== */}
+      {tab === "ajustes" && (
+        <List disablePadding>
+          <ListItem sx={{ pt: 2 }}>{sectionLabel("Tema", "Theme")}</ListItem>
+          <ListItem sx={{ pt: 0 }}>
+            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+              <Chip icon={<LightModeIcon />} label={lang === "es" ? "Claro" : "Light"} variant={theme === "light" ? "filled" : "outlined"} color={theme === "light" ? "primary" : "default"} onClick={() => setTheme("light")} sx={{ flex: 1 }} />
+              <Chip icon={<DarkModeIcon />} label={lang === "es" ? "Oscuro" : "Dark"} variant={theme === "dark" ? "filled" : "outlined"} color={theme === "dark" ? "primary" : "default"} onClick={() => setTheme("dark")} sx={{ flex: 1 }} />
+            </Box>
+          </ListItem>
+
+          <Divider variant="middle" />
+
+          <ListItem>{sectionLabel("Densidad", "Density")}</ListItem>
+          <ListItem sx={{ pt: 0 }}>
+            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+              <Chip label={lang === "es" ? "Cómoda" : "Comfy"} variant={density === "comfy" ? "filled" : "outlined"} color={density === "comfy" ? "primary" : "default"} onClick={() => setDensity("comfy")} sx={{ flex: 1 }} />
+              <Chip label={lang === "es" ? "Compacta" : "Compact"} variant={density === "compact" ? "filled" : "outlined"} color={density === "compact" ? "primary" : "default"} onClick={() => setDensity("compact")} sx={{ flex: 1 }} />
+            </Box>
+          </ListItem>
+
+          <Divider variant="middle" />
+
+          <ListItem>{sectionLabel("Color de acento", "Accent color")}</ListItem>
+          <ListItem sx={{ pt: 0 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+              {PALETTES.map((p) => (
+                <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
+                  sx={{
+                    width: 40, height: 40, borderRadius: "50%", bgcolor: p.color, cursor: "pointer",
+                    border: palette === p.key ? "3px solid" : "2px solid transparent",
+                    borderColor: palette === p.key ? "text.primary" : "transparent",
+                    transition: "transform 0.15s, border-color 0.15s",
+                    "&:hover": { transform: "scale(1.15)" },
+                  }} title={p.label} />
+              ))}
+            </Box>
+          </ListItem>
+
+          <Divider variant="middle" />
+
+          <ListItem>{sectionLabel("Idioma", "Language")}</ListItem>
+          <ListItem sx={{ pt: 0 }}>
+            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+              <Chip label="🇵🇪 Español" variant={lang === "es" ? "filled" : "outlined"} color={lang === "es" ? "primary" : "default"} onClick={() => setLang("es")} sx={{ flex: 1 }} />
+              <Chip label="🇺🇸 English" variant={lang === "en" ? "filled" : "outlined"} color={lang === "en" ? "primary" : "default"} onClick={() => setLang("en")} sx={{ flex: 1 }} />
+            </Box>
+          </ListItem>
+
+          <Divider variant="middle" />
+
+          <ListItem>{sectionLabel("Moneda", "Currency")}</ListItem>
+          <ListItem sx={{ pt: 0, pb: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{lang === "es" ? "Moneda" : "Currency"}</InputLabel>
+              <Select value={currency} label={lang === "es" ? "Moneda" : "Currency"} onChange={(e) => setCurrency(e.target.value)}>
+                {Object.entries(CURRENCIES).map(([k, c]) => (
+                  <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </ListItem>
+        </List>
+      )}
 
       <Dialog open={catDialog} onClose={() => setCatDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 700 }}>

@@ -11,6 +11,7 @@ import Link from "next/link"
 import { createClient } from "../../lib/supabase"
 import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
+import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"
 import { darkFieldSx } from "../components/auth/authStyles"
 
 const OAUTH_ENABLED = false
@@ -73,6 +74,9 @@ export default function LoginPage() {
       bgcolor: isDark ? "#07080f" : "background.default",
       p: { xs: 2, sm: 3 },
     }}>
+      {/* Day / night toggle */}
+      <AuthThemeToggle />
+
       {/* Gradient blobs */}
       <Box sx={{
         position: "absolute", top: "-20%", left: "-12%",

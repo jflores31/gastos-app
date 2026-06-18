@@ -44,6 +44,8 @@ export default function DashboardStudio() {
   const [modalCat, setModalCat] = useState("");
   const [modalMode, setModalMode] = useState("all");
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState("perfil");
+  const openSettings = (tab) => { setSettingsTab(tab); setShowSettings(true); };
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
@@ -184,15 +186,20 @@ export default function DashboardStudio() {
           <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <AddIcon />
           </Fab>
-          <Fab size="small" color="default" aria-label="Settings" onClick={() => setShowSettings(true)} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
+          <Fab size="small" color="default" aria-label="Settings" onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <SettingsIcon fontSize="small" />
           </Fab>
           {user === undefined ? null : user ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Tooltip title={displayName}>
+              <Tooltip title={lang === "es" ? "Ver perfil" : "View profile"}>
                 <Avatar
                   src={avatarSrc}
-                  sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                  onClick={() => openSettings("perfil")}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={lang === "es" ? "Ver perfil" : "View profile"}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSettings("perfil"); } }}
+                  sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer", "&:hover": { boxShadow: "0 0 0 2px var(--accent)" }, transition: "box-shadow 0.15s" }}
                 >
                   {displayName?.[0]?.toUpperCase() || "?"}
                 </Avatar>
@@ -269,7 +276,7 @@ export default function DashboardStudio() {
       </Snackbar>
 
       {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}
-      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
+      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} initialTab={settingsTab} />
       <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </Box>
   );
