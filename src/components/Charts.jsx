@@ -1,3 +1,19 @@
+import { useId } from "react";
+
+// --- Helpers SVG compartidos ---
+
+// Min/max/rango de un dataset con pisos (el rango nunca es 0).
+function extent(data, { minFloor = 0, maxFloor = 1 } = {}) {
+  const min = Math.min(...data, minFloor);
+  const max = Math.max(...data, maxFloor);
+  return { min, max, range: (max - min) || 1 };
+}
+
+// Path de polilínea SVG ("M x,y L x,y ...") a partir de pares [x, y].
+function linePath(points) {
+  return points.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+}
+
 export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   const r = size / 2 - thickness / 2;
@@ -22,58 +38,33 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
   );
 }
 
-export function SparkBar({ data, color = "var(--accent)" }) {
-  if (!data || !data.length) return null;
-  const W = 600, H = 56;
-  const max = Math.max(...data, 1);
-  const slotW = W / data.length;
-  const barW = slotW * 0.65;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: "40px", display: "block" }}>
-      {data.map((v, i) => {
-        const barH = Math.max(2, (v / max) * H);
-        return (
-          <rect
-            key={i}
-            x={i * slotW + (slotW - barW) / 2}
-            y={H - barH}
-            width={barW}
-            height={barH}
-            fill={color}
-            rx={2}
-            opacity={i === data.length - 1 ? 0.9 : 0.4}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
 export function SparkArea({ data }) {
+  const gid = `sg-${useId().replace(/:/g, "")}`;
   if (!data || !data.length) return null;
   const W = 600, H = 64;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
+  const { min, range } = extent(data);
   const stepX = W / Math.max(1, data.length - 1);
   const points = data.map((v, i) => [i * stepX, H - ((v - min) / range) * H * 0.85 - H * 0.1]);
-  const path = points.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+  const path = linePath(points);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="st-spark" style={{ width: '100%', height: 'auto' }}>
       <defs>
-        <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
           <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={path + ` L ${W},${H} L 0,${H} Z`} fill="url(#sg)" />
+      <path d={path + ` L ${W},${H} L 0,${H} Z`} fill={`url(#${gid})`} />
       <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2" />
     </svg>
   );
 }
 
 export function StudioCashflow({ months, t }) {
+  const uid = useId().replace(/:/g, "");
   if (!months.length) return null;
+  const incId = `ginc-${uid}`;
+  const expId = `gexp-${uid}`;
   const W = 720, H = 240, P = 36;
   const max = Math.max(...months.map((m) => Math.max(m.ingreso, m.egreso)), 1);
   const stepX = (W - P * 2) / Math.max(1, months.length - 1);
@@ -81,19 +72,17 @@ export function StudioCashflow({ months, t }) {
   const ins = months.map((m) => m.ingreso);
   const outs = months.map((m) => m.egreso);
   const nets = months.map((m) => m.ingreso - m.egreso);
-  const netMin = Math.min(...nets, 0);
-  const netMax = Math.max(...nets, 0);
-  const netRange = netMax - netMin || 1;
+  const { min: netMin, range: netRange } = extent(nets, { maxFloor: 0 });
   const yForNet = (v) => H - P - ((v - netMin) / netRange) * (H - P * 2);
-  const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + (P + i * stepX) + "," + yFor(v)).join(" ");
+  const line = (arr) => linePath(arr.map((v, i) => [P + i * stepX, yFor(v)]));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg" style={{ width: '100%', height: 'auto' }}>
       <defs>
-        <linearGradient id="ginc" x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={incId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--income)" stopOpacity="0.18" />
           <stop offset="100%" stopColor="var(--income)" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id="gexp" x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={expId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--expense)" stopOpacity="0.18" />
           <stop offset="100%" stopColor="var(--expense)" stopOpacity="0" />
         </linearGradient>
@@ -102,11 +91,11 @@ export function StudioCashflow({ months, t }) {
         <line key={g} x1={P} x2={W - P} y1={H - P - g * (H - P * 2)} y2={H - P - g * (H - P * 2)}
           stroke="currentColor" opacity="0.06" />
       ))}
-      <path d={line(ins) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill="url(#ginc)" />
-      <path d={line(outs) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill="url(#gexp)" />
+      <path d={line(ins) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill={`url(#${incId})`} />
+      <path d={line(outs) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill={`url(#${expId})`} />
       <path d={line(ins)} fill="none" stroke="var(--income)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d={line(outs)} fill="none" stroke="var(--expense)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={nets.map((v, i) => (i ? "L" : "M") + (P + i * stepX) + "," + yForNet(v)).join(" ")} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round" />
+      <path d={linePath(nets.map((v, i) => [P + i * stepX, yForNet(v)]))} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round" />
       {months.map((m, i) => (
         <g key={i}>
           {i === months.length - 1 && (
@@ -155,4 +144,3 @@ export function HeatCalendar({ values, days = 84, color = "currentColor", cellSi
     </svg>
   );
 }
-
