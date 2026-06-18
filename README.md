@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.3.1`
+**Versión:** `v1.3.2`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Salud financiera — score corregido + detección de anomalías (2026-06-18):** El `healthScore` (`helpers.js`) se reescaló para que **100 sea alcanzable** (antes el tope real era 90): el bono por ahorro pasó a `Math.min(40, savingsRate * 2)` → máximo 50 (base) + 40 (ahorro ≥ 20%) + 10 (gasto a la baja) = 100. La etiqueta y el color se centralizaron en `healthLabel(score, lang)` y `healthTone(score)` (umbrales 75/50), eliminando el `healthLabel` muerto y la duplicación de BudgetTab; **OverviewTab ahora colorea el score por nivel** (verde/amarillo/rojo) igual que BudgetTab. Se **activó la detección de gastos inusuales** (antes el campo `anomaly` se guardaba siempre en `false`, así que el penalti, el insight y el flag nunca aparecían): `flagAnomalies(txs)` marca un EGRESO como anómalo si supera **3× la mediana de su categoría** (mínimo 4 muestras; mediana robusta a outliers) y se aplica en `DataContext` vía `useMemo`, de modo que el penalti del score, el insight "Gastos inusuales" y el flag ⚠ de la lista de transacciones ya funcionan.
 
 **Toggle de tema en el login + Perfil/Ajustes separados (v1.3.0):** El login monta `AuthThemeToggle` (botón flotante sol/luna) que llama `setTheme` de `useSettings` y persiste en `localStorage`; `isDark` se deriva de `palette.mode` con `useState+useEffect` (evita el mismatch de hidratación). Como las auth pages ya se adaptan a `palette.mode`, togglear redibuja la pantalla al instante. El `SettingsPanel` se rediseñó como Drawer con pestañas **Perfil** (hero + favoritas + mis categorías) y **Ajustes** (tema, densidad, acento, idioma, moneda); el avatar de la AppBar abre Perfil y el engranaje abre Ajustes vía la prop `initialTab`. El salto de pestaña al abrir usa el patrón "ajustar estado durante el render" con `wasOpen` (no `useEffect` — lo prohíbe la regla `react-hooks/set-state-in-effect`).
 

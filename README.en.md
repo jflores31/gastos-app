@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.3.1`
+**Version:** `v1.3.2`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**Financial health — fixed score + anomaly detection (2026-06-18):** `healthScore` (`helpers.js`) was rescaled so **100 is reachable** (the real cap was 90 before): the savings bonus is now `Math.min(40, savingsRate * 2)` → max 50 (base) + 40 (savings ≥ 20%) + 10 (spending down) = 100. Label and colour were centralized into `healthLabel(score, lang)` and `healthTone(score)` (75/50 thresholds), removing the dead `healthLabel` and BudgetTab's duplication; **OverviewTab now colours the score by level** (green/amber/red) like BudgetTab. **Unusual-expense detection was activated** (the `anomaly` field was always stored as `false`, so the penalty, insight and flag never showed): `flagAnomalies(txs)` flags an EGRESO as anomalous when it exceeds **3× its category median** (min 4 samples; median robust to outliers), applied in `DataContext` via `useMemo`, so the score penalty, the "Unusual expenses" insight and the ⚠ row flag now work.
 
 **Login theme toggle + separated Profile/Settings (v1.3.0):** The login screen mounts `AuthThemeToggle` (a floating sun/moon button) that calls `setTheme` from `useSettings` and persists in `localStorage`; `isDark` derives from `palette.mode` via `useState+useEffect` (avoids the hydration mismatch). Since the auth pages already adapt to `palette.mode`, toggling repaints the screen instantly. `SettingsPanel` was redesigned as a Drawer with **Profile** (hero + favorites + my categories) and **Settings** (theme, density, accent, language, currency) tabs; the AppBar avatar opens Profile and the gear opens Settings via the `initialTab` prop. Jumping to the requested tab on open uses the "adjust state during render" pattern with `wasOpen` (not `useEffect` — forbidden by the `react-hooks/set-state-in-effect` rule).
 
