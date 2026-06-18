@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.3.0`
+**Versión:** `v1.3.1`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -95,7 +95,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 
 ### Perfil y Configuración (SettingsPanel)
 Drawer con **dos pestañas** que separan Perfil de Ajustes:
-- **Perfil:** hero con avatar, nombre y email; **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color — en Supabase)
+- **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color — en Supabase)
 - **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`

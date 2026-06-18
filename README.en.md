@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.3.0`
+**Version:** `v1.3.1`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -95,7 +95,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
-- **Profile:** hero with avatar, name and email; **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color — in Supabase)
+- **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color — in Supabase)
 - **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
