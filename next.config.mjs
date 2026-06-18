@@ -15,6 +15,9 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
       "frame-ancestors 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
     ].join("; "),
   },
 ]

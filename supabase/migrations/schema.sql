@@ -17,7 +17,10 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own transactions" ON transactions FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own transactions" ON transactions
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── BUDGETS ─────────────────────────────────────────────────────────────────
 
@@ -30,7 +33,10 @@ CREATE TABLE IF NOT EXISTS budgets (
 );
 
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own budgets" ON budgets FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own budgets" ON budgets
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── GOALS ───────────────────────────────────────────────────────────────────
 
@@ -48,7 +54,10 @@ CREATE TABLE IF NOT EXISTS goals (
 );
 
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own goals" ON goals FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own goals" ON goals
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── ACCOUNTS ────────────────────────────────────────────────────────────────
 
@@ -64,7 +73,10 @@ CREATE TABLE IF NOT EXISTS accounts (
 );
 
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own accounts" ON accounts FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own accounts" ON accounts
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── INVESTMENTS ─────────────────────────────────────────────────────────────
 
@@ -80,7 +92,10 @@ CREATE TABLE IF NOT EXISTS investments (
 );
 
 ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own investments" ON investments FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own investments" ON investments
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── DEBTS ───────────────────────────────────────────────────────────────────
 
@@ -98,7 +113,10 @@ CREATE TABLE IF NOT EXISTS debts (
 );
 
 ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own debts" ON debts FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own debts" ON debts
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── SUBSCRIPTIONS ───────────────────────────────────────────────────────────
 
@@ -113,7 +131,10 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 );
 
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own subscriptions" ON subscriptions FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "own subscriptions" ON subscriptions
+  FOR ALL TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─── CUSTOM CATEGORIES ───────────────────────────────────────────────────────
 
