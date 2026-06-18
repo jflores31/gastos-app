@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.2.0`
+**Versión:** `v1.3.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -93,14 +93,12 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); 3 estados según historial disponible: "Sin datos" (0 meses), "Se necesitan al menos 2 meses" + promedio actual (1 mes), barras reales con `+trend×i` (2+ meses); nota "Tendencia estable · N meses" si `|trend| < 1`; total proyectado = suma real de los 3 meses
 - **Evolución del patrimonio** reconstruye historial real trabajando hacia atrás desde `netWorth` actual
 
-### Configuración (SettingsPanel)
-- Tema claro/oscuro
-- Paletas de acento (puntos con `flexWrap` para no desbordar en mobile)
-- Densidad Comfy/Compact
-- Idioma Español/Inglés
-- 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
-- **Categorías Favoritas:** aparecen primero en el selector de transacciones
-- **Mis Categorías:** CRUD de categorías propias (nombre, tipo, color) en Supabase
+### Perfil y Configuración (SettingsPanel)
+Drawer con **dos pestañas** que separan Perfil de Ajustes:
+- **Perfil:** hero con avatar, nombre y email; **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color — en Supabase)
+- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
+- **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
 
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
@@ -207,8 +205,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 | Medida | Detalle |
 |---|---|
-| HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
-| RLS en Supabase | Todas las tablas con `auth.uid() = user_id` |
+| HTTP Security Headers | CSP (incluye `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`), X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
+| RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
+| Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
 | Sesión por browser session | `gastos_session_alive` en `sessionStorage` (limpiado por el navegador al cerrar); reabrir el browser fuerza re-login. La sesión sobrevive recargas de página normales |
 | Expiración por inactividad prolongada | `gastos_last_active` en `localStorage` actualizado en cada evento de usuario; si la pestaña lleva >8 h sin actividad se cierra la sesión al recuperar el foco |
@@ -216,6 +215,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Toggle de tema en el login + Perfil/Ajustes separados (v1.3.0):** El login monta `AuthThemeToggle` (botón flotante sol/luna) que llama `setTheme` de `useSettings` y persiste en `localStorage`; `isDark` se deriva de `palette.mode` con `useState+useEffect` (evita el mismatch de hidratación). Como las auth pages ya se adaptan a `palette.mode`, togglear redibuja la pantalla al instante. El `SettingsPanel` se rediseñó como Drawer con pestañas **Perfil** (hero + favoritas + mis categorías) y **Ajustes** (tema, densidad, acento, idioma, moneda); el avatar de la AppBar abre Perfil y el engranaje abre Ajustes vía la prop `initialTab`. El salto de pestaña al abrir usa el patrón "ajustar estado durante el render" con `wasOpen` (no `useEffect` — lo prohíbe la regla `react-hooks/set-state-in-effect`).
+
+**Endurecimiento de seguridad (v1.3.0):** CSP ampliada con `object-src 'none'`, `base-uri 'self'` y `form-action 'self'`. `minimum_password_length` subido a 8 en `config.toml` (alinea con lo que la UI promete). Políticas RLS hechas explícitas (`TO authenticated … WITH CHECK`) en `schema.sql` + migración `20260618120000_rls_explicit_with_check.sql` — equivalente funcional (Postgres ya usaba `USING` como check de INSERT cuando se omitía `WITH CHECK`), solo más explícito y robusto. Auditoría completa: postura buena (RLS owner-only en las 8 tablas, `getUser()` siempre, sin `service_role` ni secretos en cliente).
+
+**Refactor de charts (v1.3.0):** `Charts.jsx` — eliminado `SparkBar` (exportado pero sin uso), IDs de gradiente SVG únicos por instancia con `useId()` (evita la colisión de `url(#id)` cuando se montan varias instancias) y helpers compartidos `extent()` (min/max/rango) y `linePath()` (path `M/L`).
 
 **Set de iconos en variante Rounded centralizado (v1.2.0):** Todos los iconos (`@mui/icons-material`) se importan desde un único módulo `src/theme/icons.js` que los re-exporta en su variante **Rounded** (Material 3 / Material You) con *deep-import* (mejor tree-shaking). Los 14 componentes/páginas importan desde ahí en lugar del *barrel* — cambiar de estilo (p. ej. a Outlined) a futuro = editar solo ese archivo. Casos especiales: los iconos de marca `GitHub`/`Google`/`YouTube` no tienen variante Rounded (quedan Filled) y `ErrorOutlined` mapea a `ErrorRounded`. Las microanimaciones del theme se conservan porque los iconos Rounded siguen siendo `MuiSvgIcon`.
 

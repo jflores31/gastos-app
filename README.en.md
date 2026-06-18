@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.2.0`
+**Version:** `v1.3.0`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -93,14 +93,12 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - **3-month forecast** based on real linear trend (OLS slope of last 6 months of net values); 3 states based on available history: "No data" (0 months), "At least 2 months needed" + current average (1 month), real bars with `+trend×i` (2+ months); "Stable trend · N months" note if `|trend| < 1`; projected total = real sum of the 3 months
 - **Net worth evolution** reconstructs real history working backward from current `netWorth`
 
-### Settings (SettingsPanel)
-- Light/dark theme
-- Accent palettes (dots with `flexWrap` to avoid overflow on mobile)
-- Comfy/Compact density
-- Spanish/English language
-- 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
-- **Favorite Categories:** appear first in the transaction selector
-- **My Categories:** CRUD for custom categories (name, type, color) in Supabase
+### Profile & Settings (SettingsPanel)
+Drawer with **two tabs** that separate Profile from Settings:
+- **Profile:** hero with avatar, name and email; **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color — in Supabase)
+- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
+- **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
 ### Responsive Design
 - Tab navigation on desktop, fixed `BottomNavigation` on mobile
@@ -207,8 +205,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 | Measure | Detail |
 |---|---|
-| HTTP Security Headers | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy in `next.config.mjs` |
-| RLS in Supabase | All tables with `auth.uid() = user_id` |
+| HTTP Security Headers | CSP (includes `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`), X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy in `next.config.mjs` |
+| RLS in Supabase | All tables with owner-only policies `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
+| Password policy | `minimum_password_length = 8` in `supabase/config.toml` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |
 | Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads |
 | Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
@@ -216,6 +215,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**Login theme toggle + separated Profile/Settings (v1.3.0):** The login screen mounts `AuthThemeToggle` (a floating sun/moon button) that calls `setTheme` from `useSettings` and persists in `localStorage`; `isDark` derives from `palette.mode` via `useState+useEffect` (avoids the hydration mismatch). Since the auth pages already adapt to `palette.mode`, toggling repaints the screen instantly. `SettingsPanel` was redesigned as a Drawer with **Profile** (hero + favorites + my categories) and **Settings** (theme, density, accent, language, currency) tabs; the AppBar avatar opens Profile and the gear opens Settings via the `initialTab` prop. Jumping to the requested tab on open uses the "adjust state during render" pattern with `wasOpen` (not `useEffect` — forbidden by the `react-hooks/set-state-in-effect` rule).
+
+**Security hardening (v1.3.0):** CSP extended with `object-src 'none'`, `base-uri 'self'` and `form-action 'self'`. `minimum_password_length` raised to 8 in `config.toml` (matches what the UI promises). RLS policies made explicit (`TO authenticated … WITH CHECK`) in `schema.sql` + migration `20260618120000_rls_explicit_with_check.sql` — functionally equivalent (Postgres already used `USING` as the INSERT check when `WITH CHECK` was omitted), just more explicit and robust. Full audit: posture is good (owner-only RLS on all 8 tables, `getUser()` everywhere, no `service_role` key or secrets in the client).
+
+**Charts refactor (v1.3.0):** `Charts.jsx` — removed `SparkBar` (exported but unused), per-instance unique SVG gradient ids via `useId()` (avoids `url(#id)` collisions when multiple instances mount), and shared helpers `extent()` (min/max/range) and `linePath()` (`M/L` path).
 
 **Centralized Rounded icon set (v1.2.0):** All icons (`@mui/icons-material`) are imported from a single `src/theme/icons.js` module that re-exports them in their **Rounded** variant (Material 3 / Material You) via *deep-import* (better tree-shaking). The 14 components/pages import from there instead of the *barrel* — switching styles (e.g. to Outlined) later = editing just that one file. Special cases: the brand icons `GitHub`/`Google`/`YouTube` have no Rounded variant (they stay Filled) and `ErrorOutlined` maps to `ErrorRounded`. The theme micro-interactions are preserved because Rounded icons are still `MuiSvgIcon`.
 
