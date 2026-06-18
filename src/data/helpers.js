@@ -55,18 +55,55 @@ export function daysCount(period) {
 
 export function healthScore(savingsRate, spendingChange, anomalyCount) {
   let score = 50;
-  score += Math.min(30, savingsRate * 1.5);
+  // Savings: up to +40, reaching the cap at a 20% savings rate.
+  score += Math.min(40, savingsRate * 2);
+  // Spending trend vs previous period: flat bonus if down, graduated penalty if up.
   if (spendingChange < 0) score += 10;
   else score -= Math.min(15, spendingChange * 0.3);
+  // Unusual expenses flagged by flagAnomalies().
   score -= anomalyCount * 5;
+  // Max reachable = 50 + 40 + 10 = 100.
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-export function healthLabel(savingsRate, lang) {
-  if (savingsRate >= 30) return lang === "es" ? "Excelente" : "Excellent";
-  if (savingsRate >= 20) return lang === "es" ? "Buena" : "Good";
-  if (savingsRate >= 10) return lang === "es" ? "Regular" : "Fair";
+// Label/colour for a health score. Single source of truth shared by the tabs;
+// thresholds match (>=75 good, >=50 fair, else critical).
+export function healthLabel(score, lang) {
+  if (score >= 75) return lang === "es" ? "Excelente" : "Excellent";
+  if (score >= 50) return lang === "es" ? "Regular" : "Fair";
   return lang === "es" ? "Crítica" : "Critical";
+}
+
+export function healthTone(score) {
+  return score >= 75 ? "success" : score >= 50 ? "warning" : "error";
+}
+
+// Flags EGRESO transactions whose amount is a strong outlier for their category.
+// Conservative: a category needs >= MIN_SAMPLES expenses to be scored, and a tx is
+// anomalous only if it exceeds OUTLIER_FACTOR x the category median (median is robust
+// to the very outliers we're hunting). Returns a new array; each tx's `anomaly` is
+// recomputed (the DB column is always false — detection lives here, client-side).
+export function flagAnomalies(txs) {
+  const MIN_SAMPLES = 4;
+  const OUTLIER_FACTOR = 3;
+  const byCat = new Map();
+  for (const tx of txs) {
+    if (tx.tipo !== "EGRESO") continue;
+    if (!byCat.has(tx.categoria)) byCat.set(tx.categoria, []);
+    byCat.get(tx.categoria).push(tx.valor);
+  }
+  const thresholds = new Map();
+  for (const [cat, values] of byCat) {
+    if (values.length < MIN_SAMPLES) continue;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    if (median > 0) thresholds.set(cat, median * OUTLIER_FACTOR);
+  }
+  return txs.map((tx) => {
+    const threshold = tx.tipo === "EGRESO" ? thresholds.get(tx.categoria) : undefined;
+    return { ...tx, anomaly: threshold != null && tx.valor > threshold };
+  });
 }
 
 export function recurringList(txs = []) {

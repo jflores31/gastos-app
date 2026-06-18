@@ -3,6 +3,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "../lib/supabase"
+import { flagAnomalies } from "../data/helpers.js"
 
 const DataContext = createContext(null)
 
@@ -482,9 +483,13 @@ export function DataProvider({ children }) {
     setSubscriptions((prev) => prev.filter((x) => x.id !== id))
   }, [])
 
+  // Outlier detection lives client-side (the DB anomaly column is always false).
+  // Recomputed whenever txs change so the score, insights and the ⚠ row flag agree.
+  const flaggedTxs = useMemo(() => flagAnomalies(txs), [txs])
+
   const value = useMemo(
     () => ({
-      txs, addTx, updateTx, deleteTx,
+      txs: flaggedTxs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
@@ -495,7 +500,7 @@ export function DataProvider({ children }) {
       loading, loadError,
     }),
     [
-      txs, addTx, updateTx, deleteTx,
+      flaggedTxs, addTx, updateTx, deleteTx,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,

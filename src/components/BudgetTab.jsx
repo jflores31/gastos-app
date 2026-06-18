@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { CATEGORIES, fmtMoney, txByCategory } from "../data/index.js";
-import { filterByPeriod, monthCount, healthScore, recurringList, periodLabel } from "../data/helpers.js";
+import { filterByPeriod, monthCount, healthScore, healthLabel, healthTone, recurringList, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { Donut } from "./Charts.jsx";
@@ -57,7 +57,7 @@ export default function BudgetTab({ period, showToast }) {
     [editBudgets, cats]
   );
   const budgetUsedBudgeted = totalBudget > 0 ? totalSpentBudgeted / totalBudget : 0;
-  const gaugeColor = score >= 75 ? "success" : score >= 50 ? "warning" : "error";
+  const gaugeColor = healthTone(score);
   const gaugeIcon = score >= 75 ? <HealthIcon /> : <WarningIcon />;
 
   const donutData = useMemo(() => {
@@ -131,8 +131,6 @@ export default function BudgetTab({ period, showToast }) {
     }
   };
 
-  const healthLabel = score >= 75 ? (lang === "es" ? "Excelente" : "Excellent") : score >= 50 ? (lang === "es" ? "Regular" : "Fair") : (lang === "es" ? "Crítico" : "Critical");
-
   const availableCats = [
     ...Object.keys(CATEGORIES.expense).filter((cat) => !editBudgets[cat]),
     ...customCats.filter((cc) => cc.tipo === "EGRESO" && !editBudgets[`custom_${cc.id}`]).map((cc) => `custom_${cc.id}`),
@@ -154,7 +152,7 @@ export default function BudgetTab({ period, showToast }) {
                   <Typography variant="h4" fontWeight={800} sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 20%)", color: gaugeColor + ".main" }}>{score}</Typography>
                 </Box>
                 <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1 }}>{t.healthScore}</Typography>
-                <Chip label={healthLabel} color={gaugeColor} size="small" sx={{ fontWeight: 600, mt: 1 }} />
+                <Chip label={healthLabel(score, lang)} color={gaugeColor} size="small" sx={{ fontWeight: 600, mt: 1 }} />
               </Box>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>

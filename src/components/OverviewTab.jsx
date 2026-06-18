@@ -19,7 +19,7 @@ const INSIGHT_ICONS = {
 };
 const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
 import { CATEGORIES, fmtMoney, txByMonth, txByCategory } from "../data/index.js";
-import { filterByPeriod, periodLabel, healthScore, insightsList } from "../data/helpers.js";
+import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
@@ -69,6 +69,7 @@ export default function OverviewTab({ period, setPeriod }) {
   const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : null;
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null;
   const score = healthScore(savingsRate, dOut ?? 0, anomalies.length);
+  const scoreTone = healthTone(score);
   const donut = useMemo(() => cats.slice(0, 6).map((c) => {
     const isCustom = c.categoria?.startsWith("custom_");
     const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
@@ -152,9 +153,9 @@ export default function OverviewTab({ period, setPeriod }) {
                 <Typography variant="caption" sx={{ color: "success.dark", display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.savings}</Typography>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark" }}>{savingsRate.toFixed(1)}%</Typography>
               </Box>
-              <Box sx={{ px: 2.5, py: 1.5, bgcolor: "primary.light", borderRadius: 2, border: "1px solid", borderColor: "primary.main" }}>
-                <Typography variant="caption" sx={{ color: "primary.dark", display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.healthScore}</Typography>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "primary.dark" }}>{score}/100</Typography>
+              <Box sx={{ px: 2.5, py: 1.5, bgcolor: `${scoreTone}.light`, borderRadius: 2, border: "1px solid", borderColor: `${scoreTone}.main` }}>
+                <Typography variant="caption" sx={{ color: `${scoreTone}.dark`, display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.healthScore}</Typography>
+                <Typography variant="h6" fontWeight={700} sx={{ color: `${scoreTone}.dark` }}>{score}/100</Typography>
               </Box>
             </Box>
             <Box sx={{ mt: 2 }}><SparkArea data={months.map((m) => m.ingreso - m.egreso)} /></Box>
