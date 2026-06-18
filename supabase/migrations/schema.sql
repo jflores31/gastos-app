@@ -1,6 +1,8 @@
--- Schema completo de gastos-app
+-- Schema completo de gastos-app — fuente única de verdad del esquema.
 -- Todas las migraciones aplicadas en Supabase ✓
--- Última actualización: 2026-05-24
+-- Última actualización: 2026-06-18
+--   2026-06-18: políticas RLS explícitas en las 8 tablas
+--               (FOR ALL TO authenticated USING ... WITH CHECK auth.uid() = user_id).
 
 -- ─── TRANSACTIONS ────────────────────────────────────────────────────────────
 
