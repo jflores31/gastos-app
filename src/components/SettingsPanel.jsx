@@ -5,7 +5,7 @@ import {
   Drawer, Box, Typography, Divider, Avatar,
   Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
   Autocomplete, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  ToggleButtonGroup, ToggleButton, Snackbar, Alert, Tabs, Tab,
+  ToggleButtonGroup, ToggleButton, Snackbar, Alert, Tabs, Tab, CircularProgress,
 } from "@mui/material";
 import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Settings as SettingsIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContext.jsx";
@@ -23,8 +23,18 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
   const user = useSupabaseUser();
   const { customCats, saveCustomCat, deleteCustomCat } = useData();
+
+  // Canonical name from metadata. Fallback splits full_name for accounts created
+  // before first_name/last_name were stored separately (register only wrote full_name).
+  const metaFull = user?.user_metadata?.full_name || "";
+  const metaFirst = user?.user_metadata?.first_name ?? (metaFull.split(" ")[0] || "");
+  const metaLast = user?.user_metadata?.last_name ?? metaFull.split(" ").slice(1).join(" ");
+
   const [tab, setTab] = useState(initialTab);
   const [wasOpen, setWasOpen] = useState(open);
+  const [firstName, setFirstName] = useState(metaFirst);
+  const [lastName, setLastName] = useState(metaLast);
+  const [savingName, setSavingName] = useState(false);
   const [favInput, setFavInput] = useState(null);
   const [catDialog, setCatDialog] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
@@ -37,7 +47,11 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
   // Adjust during render on the closed→open transition — no effect needed.
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setTab(initialTab);
+    if (open) {
+      setTab(initialTab);
+      setFirstName(metaFirst);
+      setLastName(metaLast);
+    }
   }
 
   const fullName = user?.user_metadata?.full_name || "";
@@ -78,6 +92,23 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
 
   const handleRemoveFav = async (categoria) => {
     await saveFavCats(favCats.filter((f) => f.categoria !== categoria));
+  };
+
+  const profileDirty =
+    firstName.trim() !== (metaFirst || "").trim() ||
+    lastName.trim() !== (metaLast || "").trim();
+
+  const handleSaveProfile = async () => {
+    setSavingName(true);
+    const supabase = createClient();
+    const full_name = `${firstName.trim()} ${lastName.trim()}`.trim();
+    const { error } = await supabase.auth.updateUser({
+      data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name },
+    });
+    setSavingName(false);
+    setSnack(error
+      ? { msg: lang === "es" ? "Error al guardar tu nombre" : "Error saving your name", severity: "error" }
+      : { msg: lang === "es" ? "Nombre actualizado" : "Name updated", severity: "success" });
   };
 
   const openCatDialog = (cat = null) => {
@@ -163,6 +194,48 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
             </Box>
 
             <List disablePadding>
+              {/* Datos personales */}
+              <ListItem sx={{ pt: 2 }}>
+                <ListItemText
+                  primary={lang === "es" ? "Datos personales" : "Personal info"}
+                  secondary={lang === "es" ? "Tu nombre visible en la app" : "Your name shown across the app"}
+                  primaryTypographyProps={{ variant: "overline" }}
+                  secondaryTypographyProps={{ variant: "caption" }}
+                />
+              </ListItem>
+              <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
+                <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
+                  <TextField
+                    fullWidth size="small"
+                    label={lang === "es" ? "Nombre" : "First name"}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    autoComplete="given-name"
+                    slotProps={{ htmlInput: { maxLength: 40 } }}
+                  />
+                  <TextField
+                    fullWidth size="small"
+                    label={lang === "es" ? "Apellidos" : "Last name"}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    autoComplete="family-name"
+                    slotProps={{ htmlInput: { maxLength: 40 } }}
+                  />
+                </Box>
+                <Button
+                  variant="contained" size="small"
+                  onClick={handleSaveProfile}
+                  disabled={!profileDirty || savingName}
+                  sx={{ alignSelf: "flex-end", borderRadius: 2, textTransform: "none", fontWeight: 600, minWidth: 120 }}
+                >
+                  {savingName
+                    ? <CircularProgress size={18} color="inherit" />
+                    : (lang === "es" ? "Guardar" : "Save")}
+                </Button>
+              </ListItem>
+
+              <Divider variant="middle" />
+
               {/* Favoritas */}
               <ListItem sx={{ pt: 2 }}>
                 <ListItemText
