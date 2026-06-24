@@ -190,9 +190,12 @@ cp .env.example .env.local
 
 # Iniciar servidor de desarrollo
 npm run dev
+
+# Correr los tests unitarios (Vitest)
+npm run test
 ```
 
-The app will be available at `http://localhost:3000`.
+The app will be available at `http://localhost:3000`. Testing details in **[docs/TESTING.md](docs/TESTING.md)**.
 
 ### Environment Variables
 
@@ -213,6 +216,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
 | Amount limit | Maximum 10,000,000 validated on client and with `max` attribute on the input |
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
+
+> Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 
 ## Technical Notes
 
