@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.6.0`
+**Version:** `v1.7.0`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -220,6 +220,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 > Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 
 ## Technical Notes
+
+**Colorful icons + cheerful accent system (v1.7.0):** Icons (still monochrome MUI Rounded) are now painted with **2-stop gradients** and, where it fits, sit in a soft-tinted **squircle bubble**. New wrapper `src/theme/GradientIcon.jsx` (reuses the `icons.js` set, doesn't replace it): applies an SVG `linearGradient` with a unique `id` via `useId()` (same pattern as `Charts.jsx`) and supports both `icon={Component}` and `children` (colors an already-rendered icon via CSS). Tones live in `src/theme/iconTones.js` (semantic per domain: income=green→teal, expense=coral→pink, budget=amber→gold, goals=blue→teal, net worth=indigo→violet) + `toneFromColor()`/`gradientBg()` deriving a vibrant gradient from each category's base color. Applied in `StatsCard` (all tabs), Overview mini-cards, Expenses/Income/Budget category avatars and Goals section headers; the dull/gray `CATEGORIES` colors were refreshed. **Accent:** the flat `amber/indigo/green/mono` set was replaced by **Coral, Mint, Ocean, Grape, Mono**, each with a gradient and light/dark variants (`ACCENTS` + `accentGradient()` in `materialTheme.js`); old accents migrate via aliases (`amber→coral`, `indigo→ocean`, `green→mint`) so `gastos-palette` isn't reset. The selector swatches and the "+" FAB use the accent gradient. Design guided by the `ui-ux-pro-max` skill (fintech/playful palettes, AA contrast).
 
 **Per-request nonce CSP — dropping `'unsafe-inline'` from scripts (v1.6.0):** The Content-Security-Policy moved from the static `next.config.mjs` headers into the middleware (`proxy.ts`), which generates a **unique nonce per request** (`crypto.randomUUID()` in base64) and builds `script-src 'self' 'nonce-…' 'strict-dynamic'` — removing `'unsafe-inline'` from scripts (the highest-severity pending security improvement). The nonce is forwarded on the *request* headers (`x-nonce` + `Content-Security-Policy`) so Next stamps it onto its `<script>` tags; it's rebuilt after every cookie mutation in Supabase's `setAll` callback so we keep both the refresh-cookie forwarding and the header. **Key requirement:** since the nonce is unique per request, pages must render **dynamically** — the root layout calls `await headers()` to force it (without this, static pages would ship nonce-less scripts that `strict-dynamic` blocks, breaking hydration). `style-src` keeps `'unsafe-inline'` (MUI/emotion inject styles at runtime). Verified: every page's 24 scripts carry the nonce matching the header, 0 scripts left unprotected.
 

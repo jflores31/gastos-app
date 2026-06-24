@@ -12,6 +12,7 @@ import {
 } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, getTodayExpenses } from "../data/index.js";
+import { gradientBg } from "../theme/iconTones.js";
 import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -157,7 +158,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     return (
                       <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                          <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
+                          <Box sx={{ width: 40, height: 40, borderRadius: 2, background: gradientBg(color), display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 13, fontWeight: 700 }}>{idx + 1}</Box>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{catName}</Typography>
                             <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} ${lang === "es" ? "transacciones" : "transactions"} · ${pct.toFixed(1)}%`}</Typography>
@@ -242,7 +243,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     return (
                     <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
-                        <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: item.color, display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
+                        <Box sx={{ width: 40, height: 40, borderRadius: 2, background: gradientBg(item.color), display: "flex", alignItems: "center", justifyContent: "center", color: "common.white", fontSize: 14, fontWeight: 700 }}>{idx + 1}</Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
                         </Box>
@@ -321,7 +322,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     }
                   >
                     <ListItemAvatar sx={{ minWidth: 52 }}>
-                      <Avatar sx={{ width: 40, height: 40, bgcolor: expColor || "primary.light", color: expColor ? "#fff" : "primary.dark", fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
+                      <Avatar sx={{ width: 40, height: 40, ...(expColor ? { background: gradientBg(expColor), color: "#fff" } : { bgcolor: "primary.light", color: "primary.dark" }), fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
                     </ListItemAvatar>
                     <ListItemText
                       primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}

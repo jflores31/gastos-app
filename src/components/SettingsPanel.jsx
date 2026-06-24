@@ -353,7 +353,9 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
                 <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
                   onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
                   sx={{
-                    width: 40, height: 40, borderRadius: "50%", bgcolor: p.color, cursor: "pointer",
+                    width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
+                    background: `linear-gradient(135deg, ${p.grad[0]} 0%, ${p.grad[1]} 100%)`,
+                    boxShadow: palette === p.key ? "0 2px 8px rgba(0,0,0,0.25)" : "none",
                     border: palette === p.key ? "3px solid" : "2px solid transparent",
                     borderColor: palette === p.key ? "text.primary" : "transparent",
                     transition: "transform 0.15s, border-color 0.15s",

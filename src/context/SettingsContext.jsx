@@ -1,17 +1,20 @@
 "use client"
 
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { I18N } from "../data/index.js";
+import { ACCENT_ALIASES } from "../theme/materialTheme.js";
 
 const SettingsContext = createContext(null);
 
+// Acentos alegres con gradiente (los swatches del selector usan `grad`).
 const PALETTES = {
-  amber:  { label: "Amber",  color: "#c9874a" },
-  indigo: { label: "Indigo", color: "#5e6ad2" },
-  green:  { label: "Green",  color: "#3a8f5a" },
-  mono:   { label: "Mono",   color: "#9e9e9e" },
+  coral: { label: "Coral",  color: "#FF4D8D", grad: ["#FF7A59", "#FF4D8D"] },
+  mint:  { label: "Menta",  color: "#14B8A6", grad: ["#34D399", "#14B8A6"] },
+  ocean: { label: "Océano", color: "#6366F1", grad: ["#38BDF8", "#6366F1"] },
+  grape: { label: "Uva",    color: "#7C3AED", grad: ["#A78BFA", "#7C3AED"] },
+  mono:  { label: "Mono",   color: "#71717A", grad: ["#71717A", "#3F3F46"] },
 };
 
 export { PALETTES };
@@ -21,7 +24,12 @@ export function SettingsProvider({ children }) {
   const [density,  setDensity]  = useLocalStorage("gastos-density", "comfy");
   const [currency, setCurrency] = useLocalStorage("gastos-currency", "PEN");
   const [lang,     setLang]     = useLocalStorage("gastos-lang", "es");
-  const [palette,  setPalette]  = useLocalStorage("gastos-palette", "amber");
+  const [palette,  setPalette]  = useLocalStorage("gastos-palette", "ocean");
+
+  // Migra acentos viejos (amber/indigo/green) al nuevo set una sola vez.
+  useEffect(() => {
+    if (ACCENT_ALIASES[palette]) setPalette(ACCENT_ALIASES[palette]);
+  }, [palette, setPalette]);
 
   const value = useMemo(() => ({
     theme, setTheme,

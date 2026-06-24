@@ -8,6 +8,7 @@ import {
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
+import { gradientBg } from "../theme/iconTones.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -279,7 +280,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   }
                 >
                   <ListItemAvatar sx={{ minWidth: 52 }}>
-                    <Avatar sx={{ width: 40, height: 40, bgcolor: color, color: "common.white", fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
+                    <Avatar sx={{ width: 40, height: 40, background: gradientBg(color), color: "common.white", fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
                   </ListItemAvatar>
                   <ListItemText
                     primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
