@@ -10,6 +10,8 @@ import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "../theme/icons";
 import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
+import { gradientBg } from "../theme/iconTones.js";
+import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { linearRegressionSlope } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -221,7 +223,7 @@ export default function GoalsTab({ showToast }) {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><GoalIcon /></Avatar>
+              <GradientIcon icon={GoalIcon} tone="income" bubble bubbleSize={40} size={22} />
               <Box>
                 <Typography variant="h6" fontWeight={700}>{t.goals} · {lang === "es" ? "Ahorro" : "Savings"}</Typography>
                 <Typography variant="caption" color="text.secondary">{goals.length} {lang === "es" ? "metas activas" : "active goals"}</Typography>
@@ -282,7 +284,7 @@ export default function GoalsTab({ showToast }) {
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Avatar sx={{ bgcolor: "primary.light", color: "primary.dark" }}><BankIcon /></Avatar>
+                  <GradientIcon icon={BankIcon} tone="networth" bubble bubbleSize={40} size={22} />
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{t.networth}</Typography>
                     <Typography variant="caption" color="text.secondary">{accounts.length} {lang === "es" ? "cuentas" : "accounts"}</Typography>
@@ -314,7 +316,7 @@ export default function GoalsTab({ showToast }) {
                       const utilPct = isDebt && a.limit ? Math.abs(a.balance) / a.limit : 0;
                       return (
                         <Box key={a.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                          <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: a.color, color: "common.white", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Box sx={{ width: 36, height: 36, borderRadius: 2, background: gradientBg(a.color), color: "common.white", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {a.type === "bank" ? <BankIcon fontSize="small" /> : a.type === "card" ? <CardIcon fontSize="small" /> : <CashIcon fontSize="small" />}
                           </Box>
                           <Box sx={{ flex: 1 }}>
@@ -347,7 +349,7 @@ export default function GoalsTab({ showToast }) {
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ForecastIcon /></Avatar>
+                  <GradientIcon icon={ForecastIcon} tone="forecast" bubble bubbleSize={40} size={22} />
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{t.forecast} · {lang === "es" ? "3 meses" : "3 months"}</Typography>
                     <Typography variant="caption" color="text.secondary">{lang === "es" ? "Basado en tendencia" : "Based on trend"}</Typography>
@@ -423,7 +425,7 @@ export default function GoalsTab({ showToast }) {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><InvestIcon /></Avatar>
+              <GradientIcon icon={InvestIcon} tone="budget" bubble bubbleSize={40} size={22} />
               <Box>
                 <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Inversiones" : "Investments"}</Typography>
                 <Typography variant="caption" color="text.secondary">{investments.length} {lang === "es" ? "activos" : "assets"}{investments.length > 0 ? ` · ${fmtMoney(investments.reduce((s, i) => s + i.value, 0), currency)}` : ""}</Typography>
@@ -484,7 +486,7 @@ export default function GoalsTab({ showToast }) {
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Avatar sx={{ bgcolor: "error.light", color: "error.dark" }}><DebtIcon /></Avatar>
+                  <GradientIcon icon={DebtIcon} tone="expense" bubble bubbleSize={40} size={22} />
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Control de deudas" : "Debt control"}</Typography>
                     <Typography variant="caption" color="text.secondary">{debts.length} {lang === "es" ? "préstamos" : "loans"}</Typography>
@@ -534,7 +536,7 @@ export default function GoalsTab({ showToast }) {
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.dark" }}><SubIcon /></Avatar>
+                  <GradientIcon icon={SubIcon} tone="goals" bubble bubbleSize={40} size={22} />
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Suscripciones" : "Subscriptions"}</Typography>
                     <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(subscriptions.reduce((s, s2) => s + (s2.cycle === "yearly" ? s2.price / 12 : s2.price), 0), currency)}${lang === "es" ? "/mes" : "/month"}` : ""}</Typography>

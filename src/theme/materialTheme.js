@@ -128,22 +128,63 @@ export const darkTheme = createTheme({
   },
 });
 
-export const paletteMap = {
-  amber:   { light: { primary: "#c9874a" }, dark: { primary: "#e5a86b" } },
-  indigo:  { light: { primary: "#5e6ad2" }, dark: { primary: "#8b93e0" } },
-  green:   { light: { primary: "#3a8f5a" }, dark: { primary: "#5cb87a" } },
-  mono:    { light: { primary: "#333" },    dark: { primary: "#e0e0e0" } },
+// Set de acentos alegre. Cada uno con main/light/dark por modo + 2 stops de gradiente.
+export const ACCENTS = {
+  coral: {
+    light: { main: "#E94668", light: "#FFD9E1", dark: "#B11E47" },
+    dark:  { main: "#FF8FA8", light: "#5A1730", dark: "#FFC2D0" },
+    grad:  ["#FF7A59", "#FF4D8D"],
+  },
+  mint: {
+    light: { main: "#0E9E8C", light: "#C6F2EB", dark: "#0A6B60" },
+    dark:  { main: "#56DAC6", light: "#0C524A", dark: "#9FEFE3" },
+    grad:  ["#34D399", "#14B8A6"],
+  },
+  ocean: {
+    light: { main: "#3E6FE0", light: "#D6E2FF", dark: "#1E47A8" },
+    dark:  { main: "#86A8FF", light: "#172B66", dark: "#BCD0FF" },
+    grad:  ["#38BDF8", "#6366F1"],
+  },
+  grape: {
+    light: { main: "#7C3AED", light: "#E7DAFF", dark: "#5B21B6" },
+    dark:  { main: "#B39BFB", light: "#3A1D74", dark: "#D2C2FF" },
+    grad:  ["#A78BFA", "#7C3AED"],
+  },
+  mono: {
+    light: { main: "#3F3F46", light: "#E4E4E7", dark: "#18181B" },
+    dark:  { main: "#D4D4D8", light: "#3F3F46", dark: "#F4F4F5" },
+    grad:  ["#71717A", "#3F3F46"],
+  },
 };
+
+// Acentos viejos (v1.6.0 y antes) → nuevos, para no resetear `gastos-palette` guardado.
+export const ACCENT_ALIASES = { amber: "coral", indigo: "ocean", green: "mint" };
 
 export function getTheme(themeMode, palette) {
   const base = themeMode === "dark" ? darkTheme : lightTheme;
-  const accent = paletteMap[palette]?.[themeMode]?.primary;
+  const key = ACCENT_ALIASES[palette] || palette;
+  const accent = ACCENTS[key]?.[themeMode];
   if (!accent) return base;
+  const grad = ACCENTS[key].grad;
   return createTheme({
     ...base,
     palette: {
       ...base.palette,
-      primary: { ...base.palette.primary, main: accent },
+      primary: {
+        ...base.palette.primary,
+        main: accent.main,
+        light: accent.light,
+        dark: accent.dark,
+        gradient: `linear-gradient(135deg, ${grad[0]} 0%, ${grad[1]} 100%)`,
+        gradientStops: grad,
+      },
     },
   });
+}
+
+// Gradiente del acento activo (cae a main→dark si no hay stops guardados).
+export function accentGradient(theme, angle = 135) {
+  const p = theme.palette.primary;
+  const [from, to] = p.gradientStops || [p.main, p.dark];
+  return `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`;
 }

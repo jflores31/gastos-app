@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.6.0`
+**Versión:** `v1.7.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -220,6 +220,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 > Arquitectura del CSP con nonce por request (flujo en `proxy.ts`, render dinámico, cómo verificar): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 
 ## Notas Técnicas
+
+**Iconos coloridos + sistema de acento alegre (v1.7.0):** Los iconos (que seguían siendo MUI Rounded monocromos) ahora se pintan con **gradientes de 2 stops** y, donde corresponde, viven en una **burbuja squircle** de tinte suave. Wrapper nuevo `src/theme/GradientIcon.jsx` (reusa el set de `icons.js`, no lo reemplaza): aplica un `linearGradient` SVG con `id` único por `useId()` (mismo patrón que `Charts.jsx`) y soporta tanto `icon={Componente}` como `children` (colorea por CSS un icono ya renderizado). Los tonos viven en `src/theme/iconTones.js` (semánticos por dominio: ingresos=verde→teal, gastos=coral→rosa, presupuesto=ámbar→dorado, metas=azul→teal, patrimonio=índigo→violeta) + `toneFromColor()`/`gradientBg()` que derivan un gradiente vibrante desde el color base de cada categoría. Se aplicó en `StatsCard` (todos los tabs), mini-cards de Overview, avatares de categoría de Expenses/Income/Budget y cabeceras de sección de Goals; se refrescaron los colores de categoría grises/apagados en `CATEGORIES`. **Acento:** el set plano `amber/indigo/green/mono` se reemplazó por **Coral, Menta, Océano, Uva, Mono**, cada uno con gradiente y variantes light/dark (`ACCENTS` + `accentGradient()` en `materialTheme.js`); los acentos viejos se migran por alias (`amber→coral`, `indigo→ocean`, `green→mint`) para no resetear `gastos-palette`. Los swatches del selector y el FAB "+" usan el gradiente del acento. Diseño guiado por el skill `ui-ux-pro-max` (paletas fintech/playful, contraste AA).
 
 **CSP con nonce por request — adiós `'unsafe-inline'` en scripts (v1.6.0):** El Content-Security-Policy se movió de los headers estáticos de `next.config.mjs` al middleware (`proxy.ts`), que genera un **nonce único por request** (`crypto.randomUUID()` en base64) y arma `script-src 'self' 'nonce-… ' 'strict-dynamic'` — eliminando `'unsafe-inline'` de los scripts (la mejora de seguridad de mayor severidad pendiente). El nonce se reenvía en los headers del *request* (`x-nonce` + `Content-Security-Policy`) para que Next lo estampe en sus `<script>`; se reconstruye tras cada mutación de cookies en el callback `setAll` de Supabase para no perder ni el reenvío de cookies de refresh ni el header. **Requisito clave:** como el nonce es único por request, las páginas deben renderizarse **dinámicamente** — el layout raíz hace `await headers()` para forzarlo (sin esto, las páginas estáticas servirían scripts sin nonce que `strict-dynamic` bloquearía, rompiendo la hidratación). `style-src` mantiene `'unsafe-inline'` (MUI/emotion inyectan estilos en runtime). Verificado: los 24 scripts de cada página llevan el nonce que coincide con el header, 0 scripts sin proteger.
 

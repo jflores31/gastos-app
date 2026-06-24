@@ -24,6 +24,9 @@ import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
+import { GradientIcon } from "../theme/GradientIcon.jsx";
+
+const MINI_TONE = { success: "income", error: "expense", primary: "trend", warning: "warning" };
 
 function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
   if (!data || !data.length) return null;
@@ -165,7 +168,7 @@ export default function OverviewTab({ period, setPeriod }) {
           <Card key={idx} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: ["success.main", "error.main", "primary.main", "warning.main"][idx], bgcolor: "background.paper" }}>
             <CardContent sx={{ p: 2, "&:last-child": { pb: 2 }, display: "flex", flexDirection: "column", height: "100%" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-                <Avatar sx={{ width: 36, height: 36, bgcolor: `${card.color}.light`, color: `${card.color}.dark`, fontSize: 16 }}>{card.icon}</Avatar>
+                <GradientIcon tone={MINI_TONE[card.color] || "neutral"} bubble bubbleSize={36} size={20}>{card.icon}</GradientIcon>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{card.label}</Typography>
               </Box>
               <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{card.value}</Typography>

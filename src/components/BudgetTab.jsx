@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { CATEGORIES, fmtMoney, txByCategory } from "../data/index.js";
+import { gradientBg } from "../theme/iconTones.js";
 import { filterByPeriod, monthCount, healthScore, healthLabel, healthTone, recurringList, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -202,7 +203,7 @@ export default function BudgetTab({ period, showToast }) {
                 <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: color, fontSize: 14, fontWeight: 700, color: "common.white" }}>{catName[0]}</Avatar>
+                      <Avatar sx={{ width: 36, height: 36, background: gradientBg(color), fontSize: 14, fontWeight: 700, color: "common.white" }}>{catName[0]}</Avatar>
                       <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
                     </Box>
                     {isWarning && !isOver && <Chip size="small" label="80%" color="warning" sx={{ height: 20, fontSize: 10 }} />}
@@ -412,7 +413,7 @@ export default function BudgetTab({ period, showToast }) {
               const catName = customCat?.nombre || CATEGORIES.expense[r.categoria]?.[lang] || r.categoria;
               return (
                 <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: color, color: "common.white", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
+                  <Avatar sx={{ width: 36, height: 36, background: gradientBg(color), color: "common.white", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
                     <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName}</Typography>

@@ -3,6 +3,10 @@ import { Box, Card, CardContent, Typography, Avatar, Chip, IconButton, Collapse,
 import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "../theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
 import { CATEGORIES, fmtMoney } from "../data/index.js";
+import { GradientIcon } from "../theme/GradientIcon.jsx";
+
+// Mapea el color semántico de StatsCard al tono de gradiente correspondiente.
+const TONE_BY_COLOR = { primary: "trend", success: "income", error: "expense", warning: "warning", info: "goals", secondary: "networth" };
 
 const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -39,7 +43,7 @@ export function NoTransactions({ lang, type = "expense" }) {
   );
 }
 
-export function StatsCard({ title, subtitle, icon, iconColor = "primary", children, borderColor = "divider", topBorderColor = "primary.main", minHeight = "auto", onClick }) {
+export function StatsCard({ title, subtitle, icon, iconColor = "primary", tone, children, borderColor = "divider", topBorderColor = "primary.main", minHeight = "auto", onClick }) {
   return (
     <Card 
       onClick={onClick}
@@ -62,9 +66,9 @@ export function StatsCard({ title, subtitle, icon, iconColor = "primary", childr
         {(title || icon) && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
             {icon && (
-              <Avatar sx={{ width: 40, height: 40, bgcolor: `${iconColor}.light`, color: `${iconColor}.dark` }}>
+              <GradientIcon tone={tone || TONE_BY_COLOR[iconColor] || "neutral"} bubble bubbleSize={40} size={22}>
                 {icon}
-              </Avatar>
+              </GradientIcon>
             )}
             <Box sx={{ flex: 1 }}>
               {title && <Typography variant="subtitle1" fontWeight={700}>{title}</Typography>}
