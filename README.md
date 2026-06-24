@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.4.0`
+**Versión:** `v1.5.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Scaffold de OAuth — ruta de callback PKCE (v1.5.0):** Se preparó el flujo OAuth (sigue **desactivado** con `OAUTH_ENABLED = false` hasta configurar los providers en Supabase). Nueva ruta `src/app/auth/callback/route.ts` que intercambia el `code` PKCE por sesión (`exchangeCodeForSession`) — indispensable con `@supabase/ssr`, sin ella los botones aterrizarían en `/` con un `?code=` sin canjear. Valida que `next` sea ruta interna (anti open-redirect) y honra `x-forwarded-host` en prod. Los tres `signInWithOAuth` (login, register, `LoginModal`) apuntan ahora a `/auth/callback?next=/`, y `proxy.ts` exime `/auth/callback` del guard de auth (llega sin sesión todavía). **Para activarlo:** crear las apps OAuth en Google/GitHub, pegar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true`.
 
 **Tests unitarios de los helpers (v1.4.0):** Primer set de tests del repo con **Vitest** (`npm run test`). `src/data/helpers.test.js` cubre `src/data/helpers.js` —el eslabón frágil que tocan los 4 tabs— con foco en límites: `flagAnomalies` (frontera 3× exacta, mediana par/impar, mínimo 4 muestras, solo EGRESO, inmutabilidad), `healthScore` (alcanza 100, suelo 0, topes de bono/penalti), `filterByPeriod`, `linearRegressionSlope` y `recurringList`. Config en `vitest.config.mjs` (`environment: node`, sin jsdom — los helpers son ESM puro sin React). Limpieza menor: `mapRow` en `DataContext` ahora siembra `anomaly: false` explícito (la columna de DB siempre es `false`; `flagAnomalies` es la única fuente de verdad).
 

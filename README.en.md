@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.4.0`
+**Version:** `v1.5.0`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**OAuth scaffold — PKCE callback route (v1.5.0):** The OAuth flow was wired up (still **disabled** via `OAUTH_ENABLED = false` until the providers are configured in Supabase). New route `src/app/auth/callback/route.ts` exchanges the PKCE `code` for a session (`exchangeCodeForSession`) — required with `@supabase/ssr`; without it the buttons would land on `/` with an un-exchanged `?code=`. It validates that `next` is an internal path (anti open-redirect) and honours `x-forwarded-host` in prod. The three `signInWithOAuth` calls (login, register, `LoginModal`) now point at `/auth/callback?next=/`, and `proxy.ts` exempts `/auth/callback` from the auth guard (it arrives with no session yet). **To enable:** create the OAuth apps in Google/GitHub, paste client id/secret into Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs, and set `OAUTH_ENABLED = true`.
 
 **Helper unit tests (v1.4.0):** The repo's first test set, with **Vitest** (`npm run test`). `src/data/helpers.test.js` covers `src/data/helpers.js` —the fragile link touched by all 4 tabs— with a focus on edges: `flagAnomalies` (exact 3× boundary, even/odd median, min 4 samples, EGRESO-only, immutability), `healthScore` (reaches 100, floor 0, bonus/penalty caps), `filterByPeriod`, `linearRegressionSlope` and `recurringList`. Config in `vitest.config.mjs` (`environment: node`, no jsdom — the helpers are pure ESM with no React). Minor cleanup: `mapRow` in `DataContext` now seeds an explicit `anomaly: false` (the DB column is always `false`; `flagAnomalies` is the single source of truth).
 

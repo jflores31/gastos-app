@@ -31,8 +31,10 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password")
+  // OAuth lands here with a `code` but no session yet — let it through to exchange it.
+  const isCallback = pathname.startsWith("/auth/callback")
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isCallback) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     return NextResponse.redirect(url)

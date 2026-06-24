@@ -41,7 +41,7 @@ export default function LoginModal({ open, onClose }) {
     const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
     supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${origin}/` },
+      options: { redirectTo: `${origin}/auth/callback?next=/` },
     })
   }
 

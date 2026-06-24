@@ -38,7 +38,7 @@ export default function LoginPage() {
   const handleOAuth = (provider: "google" | "github") => {
     const supabase = createClient()
     const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
-    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/` } })
+    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
