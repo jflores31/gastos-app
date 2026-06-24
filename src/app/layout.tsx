@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import Providers from "./components/Providers"
@@ -26,11 +27,16 @@ export const metadata: Metadata = {
   description: "Aplicación de finanzas personales para rastrear ingresos y gastos",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Reading headers() opts every route into dynamic rendering so Next can stamp the
+  // per-request CSP nonce (set in src/proxy.ts) onto its <script> tags. Static prerender
+  // would ship nonce-less scripts that 'strict-dynamic' then blocks.
+  await headers()
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ibmPlexSans.className} ${jetBrainsMono.variable}`}>

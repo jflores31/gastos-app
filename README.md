@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.5.0`
+**Versión:** `v1.6.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -205,7 +205,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 | Medida | Detalle |
 |---|---|
-| HTTP Security Headers | CSP (incluye `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`), X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy en `next.config.mjs` |
+| HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`) generada en `proxy.ts`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**CSP con nonce por request — adiós `'unsafe-inline'` en scripts (v1.6.0):** El Content-Security-Policy se movió de los headers estáticos de `next.config.mjs` al middleware (`proxy.ts`), que genera un **nonce único por request** (`crypto.randomUUID()` en base64) y arma `script-src 'self' 'nonce-… ' 'strict-dynamic'` — eliminando `'unsafe-inline'` de los scripts (la mejora de seguridad de mayor severidad pendiente). El nonce se reenvía en los headers del *request* (`x-nonce` + `Content-Security-Policy`) para que Next lo estampe en sus `<script>`; se reconstruye tras cada mutación de cookies en el callback `setAll` de Supabase para no perder ni el reenvío de cookies de refresh ni el header. **Requisito clave:** como el nonce es único por request, las páginas deben renderizarse **dinámicamente** — el layout raíz hace `await headers()` para forzarlo (sin esto, las páginas estáticas servirían scripts sin nonce que `strict-dynamic` bloquearía, rompiendo la hidratación). `style-src` mantiene `'unsafe-inline'` (MUI/emotion inyectan estilos en runtime). Verificado: los 24 scripts de cada página llevan el nonce que coincide con el header, 0 scripts sin proteger.
 
 **Scaffold de OAuth — ruta de callback PKCE (v1.5.0):** Se preparó el flujo OAuth (sigue **desactivado** con `OAUTH_ENABLED = false` hasta configurar los providers en Supabase). Nueva ruta `src/app/auth/callback/route.ts` que intercambia el `code` PKCE por sesión (`exchangeCodeForSession`) — indispensable con `@supabase/ssr`, sin ella los botones aterrizarían en `/` con un `?code=` sin canjear. Valida que `next` sea ruta interna (anti open-redirect) y honra `x-forwarded-host` en prod. Los tres `signInWithOAuth` (login, register, `LoginModal`) apuntan ahora a `/auth/callback?next=/`, y `proxy.ts` exime `/auth/callback` del guard de auth (llega sin sesión todavía). **Para activarlo:** crear las apps OAuth en Google/GitHub, pegar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true`.
 
