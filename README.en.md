@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.3.2`
+**Version:** `v1.4.0`
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 ## Technical Notes
+
+**Helper unit tests (v1.4.0):** The repo's first test set, with **Vitest** (`npm run test`). `src/data/helpers.test.js` covers `src/data/helpers.js` —the fragile link touched by all 4 tabs— with a focus on edges: `flagAnomalies` (exact 3× boundary, even/odd median, min 4 samples, EGRESO-only, immutability), `healthScore` (reaches 100, floor 0, bonus/penalty caps), `filterByPeriod`, `linearRegressionSlope` and `recurringList`. Config in `vitest.config.mjs` (`environment: node`, no jsdom — the helpers are pure ESM with no React). Minor cleanup: `mapRow` in `DataContext` now seeds an explicit `anomaly: false` (the DB column is always `false`; `flagAnomalies` is the single source of truth).
 
 **Financial health — fixed score + anomaly detection (2026-06-18):** `healthScore` (`helpers.js`) was rescaled so **100 is reachable** (the real cap was 90 before): the savings bonus is now `Math.min(40, savingsRate * 2)` → max 50 (base) + 40 (savings ≥ 20%) + 10 (spending down) = 100. Label and colour were centralized into `healthLabel(score, lang)` and `healthTone(score)` (75/50 thresholds), removing the dead `healthLabel` and BudgetTab's duplication; **OverviewTab now colours the score by level** (green/amber/red) like BudgetTab. **Unusual-expense detection was activated** (the `anomaly` field was always stored as `false`, so the penalty, insight and flag never showed): `flagAnomalies(txs)` flags an EGRESO as anomalous when it exceeds **3× its category median** (min 4 samples; median robust to outliers), applied in `DataContext` via `useMemo`, so the score penalty, the "Unusual expenses" insight and the ⚠ row flag now work.
 

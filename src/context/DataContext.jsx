@@ -19,7 +19,9 @@ function mapRow(row) {
     dia: d.getDate(),
     mes: d.getMonth(),
     año: d.getFullYear(),
-    anomaly: row.anomaly ?? false,
+    // Detection lives client-side in flagAnomalies() (see flaggedTxs below); the
+    // DB column is always false, so seed false and let flagAnomalies be the source of truth.
+    anomaly: false,
   }
 }
 

@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v1.3.2`
+**Versión:** `v1.4.0`
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
@@ -215,6 +215,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 ## Notas Técnicas
+
+**Tests unitarios de los helpers (v1.4.0):** Primer set de tests del repo con **Vitest** (`npm run test`). `src/data/helpers.test.js` cubre `src/data/helpers.js` —el eslabón frágil que tocan los 4 tabs— con foco en límites: `flagAnomalies` (frontera 3× exacta, mediana par/impar, mínimo 4 muestras, solo EGRESO, inmutabilidad), `healthScore` (alcanza 100, suelo 0, topes de bono/penalti), `filterByPeriod`, `linearRegressionSlope` y `recurringList`. Config en `vitest.config.mjs` (`environment: node`, sin jsdom — los helpers son ESM puro sin React). Limpieza menor: `mapRow` en `DataContext` ahora siembra `anomaly: false` explícito (la columna de DB siempre es `false`; `flagAnomalies` es la única fuente de verdad).
 
 **Salud financiera — score corregido + detección de anomalías (2026-06-18):** El `healthScore` (`helpers.js`) se reescaló para que **100 sea alcanzable** (antes el tope real era 90): el bono por ahorro pasó a `Math.min(40, savingsRate * 2)` → máximo 50 (base) + 40 (ahorro ≥ 20%) + 10 (gasto a la baja) = 100. La etiqueta y el color se centralizaron en `healthLabel(score, lang)` y `healthTone(score)` (umbrales 75/50), eliminando el `healthLabel` muerto y la duplicación de BudgetTab; **OverviewTab ahora colorea el score por nivel** (verde/amarillo/rojo) igual que BudgetTab. Se **activó la detección de gastos inusuales** (antes el campo `anomaly` se guardaba siempre en `false`, así que el penalti, el insight y el flag nunca aparecían): `flagAnomalies(txs)` marca un EGRESO como anómalo si supera **3× la mediana de su categoría** (mínimo 4 muestras; mediana robusta a outliers) y se aplica en `DataContext` vía `useMemo`, de modo que el penalti del score, el insight "Gastos inusuales" y el flag ⚠ de la lista de transacciones ya funcionan.
 
