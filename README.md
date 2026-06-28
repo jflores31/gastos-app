@@ -157,8 +157,10 @@ src/
 │   └── supabase-server.ts          # Cliente server
 └── proxy.ts                        # Protección de rutas (Next.js 16)
 supabase/
-└── migrations/
-    └── schema.sql                  # Esquema completo de DB (todas las tablas aplicadas ✓)
+├── migrations/
+│   └── schema.sql                  # Esquema completo de DB (todas las tablas aplicadas ✓)
+└── seed/
+    └── reset.sql                   # Vacía las 8 tablas (count → TRUNCATE → verificar) — destructivo
 ```
 
 ## Base de Datos (Supabase)
@@ -177,6 +179,8 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `custom_categories` | Categorías propias del usuario (nombre, tipo, color) |
 
 El esquema completo se encuentra en `supabase/migrations/schema.sql`.
+
+> **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
 ## Inicio Rápido
 
