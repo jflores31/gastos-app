@@ -102,10 +102,10 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | 3 | **Tasas de cambio actualizadas** (una vez al día, con caché) | Medio | Medio | ezBookkeeping, Wallos | Route handler `src/app/api/rates/route.ts`; `CURRENCIES.rate` pasa a ser el respaldo; `connect-src` del CSP en `src/proxy.ts` |
 | 4 | **Totales agregados en Postgres** (vistas o RPC por mes y categoría) | Alto | Medio | GeorgeDanicico | `schema.sql` (vistas / `rpc`); `DataContext`; `txByMonth` y `txByCategory` en `src/data/index.js` |
 | 5 | **Recurrentes programados** (próximos pagos, generar la transacción) | Alto | Medio | Firefly, Cashew, BudgetBee | Unificar `subscriptions` y `recurringList`; nueva sección en `BudgetTab` |
-| 6 | **Exportar CSV/JSON** | Medio | Bajo | valiance, Usmansagemode | Botón en `SettingsPanel`; serializar `txs` de `DataContext` |
-| 7 | **Modo privacidad** (ocultar montos) | Medio | Bajo | valiance | Opción en `SettingsContext`; `fmtMoney` devuelve `••••` |
+| 6 | ✅ **Exportar CSV/JSON** | Medio | Bajo | valiance, Usmansagemode | Botón en `SettingsPanel`; serializar `txs` de `DataContext` |
+| 7 | ✅ **Modo privacidad** (ocultar montos) | Medio | Bajo | valiance | Opción en `SettingsContext`; `fmtMoney` devuelve `••••` |
 | 8 | **Reglas de auto-categorización** por concepto | Medio | Medio | Firefly, Fintonic | Reutilizar `CATEGORIES[*].concepts`; sugerir categoría en `AddTransactionModal` |
-| 9 | **App instalable** (manifest + iconos) | Medio | Bajo | ezBookkeeping, Cashew | `src/app/manifest.ts`; reutilizar `public/favicon.svg`; revisar el CSP |
+| 9 | ✅ **App instalable** (manifest + iconos) | Medio | Bajo | ezBookkeeping, Cashew | `src/app/manifest.ts`; reutilizar `public/favicon.svg`; revisar el CSP |
 | 10 | **Presupuestos por período** (semanal/anual) y alerta al 80 % / 100 % | Medio | Medio | JagadishPS, Cashew | `budgets` (columna `periodo`); `BudgetTab`; `monthCount` en `helpers.js` |
 | 11 | **Papelera** (borrado lógico con `deleted_at`) y "deshacer" | Medio | Medio | valiance | `schema.sql`; los `delete*` de `DataContext` pasan a `update` |
 | 12 | **Transferencias entre cuentas** y saldo calculado | Alto | Alto | Firefly, expense-budget-tracker | `accounts` + tipo `TRANSFER`; `GoalsTab` |

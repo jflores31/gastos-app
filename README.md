@@ -102,6 +102,13 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
 
+### Privacidad, exportación y app instalable
+- **Modo privacidad:** el botón del ojo en la barra superior oculta todos los montos ("S/••••"). Se recuerda en el navegador. Los montos se formatean con `fmt()` de `useSettings()`, que ya conoce la moneda y este modo.
+- **Tus datos (Perfil):**
+  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN, celdas protegidas contra fórmulas);
+  - todo se descarga como copia completa en JSON (`src/data/export.js`).
+- **App instalable:** `src/app/manifest.ts` y los iconos de `public/icons/`, generados con `node scripts/generate-icons.mjs`. Chrome, Edge y Android ofrecen "Instalar app"; iOS, "Agregar a pantalla de inicio". No hay Service Worker a propósito (ver "Solución de problemas").
+
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
 - Chips de período con `flexWrap: "wrap"` — no desbordan en iPhone SE (320px)

@@ -33,7 +33,7 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 95 tests en 11 archivos
+### Unitarios y componentes: 104 tests en 13 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
@@ -46,12 +46,14 @@ npm run typecheck    # tsc --noEmit
 | [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 4 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27`; editar precarga el monto en la moneda elegida; el tope se valida en PEN |
 | [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono con su nombre traducido, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
+| [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas, copia JSON con todas las tablas, nombres de archivo |
+| [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 2 | `fmt()` por moneda y **modo privacidad** (enmascara, cambia con la moneda, se guarda) |
 | [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 8 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
 Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
 
-### End-to-end sin sesión: 10 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
+### End-to-end sin sesión: 11 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
 
 - **Sin sesión:** `/` redirige a `/login`.
 - **`/login` en tema claro y oscuro:**
@@ -61,12 +63,16 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la consola queda sin errores.
 - **Otras páginas de auth:** `/register`, `/forgot-password` y `/reset-password` cargan sin errores de consola.
 - **Recursos:** las fuentes se cargan desde la app, sin peticiones a otros dominios, y el favicon existe y está enlazado.
+- **App instalable:**
+  - el manifest es público y sus iconos existen, con su tipo;
+  - hay un icono `maskable`;
+  - Chromium no reporta errores de instalabilidad (`Page.getInstallabilityErrors`).
 - **Reporte de errores:**
   - un error no capturado llega a `/api/client-error` (204), sin la query de la URL;
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 11 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 13 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
 
@@ -84,6 +90,8 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
   - editar el límite desde la tarjeta;
   - en "Gestionar", agregar uno nativo y uno de categoría propia, editar y cancelar, y borrar con confirmación.
 - **Perfil:** el nombre y las favoritas se guardan en `user_metadata`; una categoría propia se edita (nombre, color, tipo) y se borra con confirmación.
+- **Modo privacidad:** no queda ningún "S/<dígitos>" en las 5 pestañas, y se recuerda al recargar.
+- **Tus datos:** descarga el CSV y el JSON y compara su contenido con la base simulada.
 - **Diálogos:** la etiqueta flotante del primer campo queda dentro del contenido (antes MUI la recortaba).
 - **Sesión:**
   - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;

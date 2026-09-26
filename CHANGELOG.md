@@ -24,7 +24,15 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
+### Añadido (producto)
+- **Modo privacidad:** el botón del ojo oculta todos los montos ("S/••••") y se recuerda.
+- **Exportar datos (Perfil → Tus datos):**
+  - las transacciones en CSV, preparadas para Excel y protegidas contra fórmulas;
+  - una copia completa en JSON.
+- **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
+
 ### Corregido
+- **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
 - **Error de hidratación intermitente (React #418):**
   - `/reset-password` fallaba en 1 de cada 20 cargas, más con el servidor cargado.
   - Causa: emotion escribía un `<style>` por componente dentro del `<body>` y los movía al `<head>` al cargar. Los que llegaban después, por el streaming, quedaban como nodos de más.

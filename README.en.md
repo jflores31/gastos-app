@@ -102,6 +102,13 @@ Drawer with **two tabs** that separate Profile from Settings:
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
+### Privacy, export and installable app
+- **Privacy mode:** the eye button in the top bar hides every amount ("S/••••") and is remembered in the browser. Amounts go through `fmt()` from `useSettings()`, which already knows the currency and this mode.
+- **Your data (Profile):**
+  - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN, cells guarded against formulas);
+  - everything downloads as a full JSON backup (`src/data/export.js`).
+- **Installable app:** `src/app/manifest.ts` plus the icons in `public/icons/`, generated with `node scripts/generate-icons.mjs`. Chrome, Edge and Android offer "Install app"; iOS offers "Add to Home Screen". No Service Worker, on purpose (see Troubleshooting).
+
 ### Responsive Design
 - Tab navigation on desktop, fixed `BottomNavigation` on mobile
 - Period chips with `flexWrap: "wrap"` — no overflow on iPhone SE (320px)
