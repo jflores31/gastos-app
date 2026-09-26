@@ -155,7 +155,7 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   await expect.poll(async () => (await db()).accounts.find((a) => a.name === "Interbank")?.balance).toBe(-450)
   await accountRow.getByRole("button", { name: "Eliminar" }).click()
   await expect(page.getByText("Interbank")).toHaveCount(0)
-  expect((await db()).accounts.map((a) => a.name)).toEqual(["BCP"])
+  await expect.poll(async () => (await db()).accounts.map((a) => a.name)).toEqual(["BCP"])
 
   // Investment: create, then open it and delete from the dialog.
   await page.getByRole("button", { name: "Agregar", exact: true }).click()
@@ -194,13 +194,15 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   await dialog(page).getByRole("combobox", { name: /Categoría/ }).click()
   await page.getByRole("option", { name: "Gatos" }).click() // custom category
   await save()
-  const { tables } = await mockDb(request, email)
-  const cat = tables.custom_categories.find((c) => c.nombre === "Gatos")!
-  expect(tables.subscriptions.find((s) => s.name === "Spotify")).toMatchObject({ price: 240, cycle: "yearly", category: `custom_${cat.id}` })
+  const cat = (await db()).custom_categories.find((c) => c.nombre === "Gatos")!
+  await expect.poll(async () => (await db()).subscriptions.find((s) => s.name === "Spotify")).toMatchObject({ price: 240, cycle: "yearly", category: `custom_${cat.id}` })
   await page.getByRole("button", { name: /Spotify/ }).click()
   await dialog(page).getByRole("button", { name: "Eliminar" }).click()
+  // Wait for the dialog to close: while it's open the page behind is aria-hidden, so a
+  // role query would find nothing even before the delete finishes.
+  await expect(dialog(page)).toHaveCount(0)
   await expect(page.getByRole("button", { name: /Spotify/ })).toHaveCount(0)
-  expect((await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
+  await expect.poll(async () => (await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
 })
 
 test("Presupuestos: editar en la tarjeta, agregar (también de una categoría propia) y borrar", async ({ page, request }, info) => {
@@ -232,9 +234,21 @@ test("Presupuestos: editar en la tarjeta, agregar (también de una categoría pr
   const catId = (await mockDb(request, email)).tables.custom_categories[0].id
   await expect.poll(budgets).toEqual({ COMIDA: 700, TRANSPORTE: 200, STREAMING: 50, [`custom_${catId}`]: 80 })
 
-  await manage.getByRole("listitem").filter({ hasText: "Transporte" }).getByRole("button").nth(1).click()
+  // Edit an existing one from the list; cancelling keeps the old amount. (While editing,
+  // the row shows only the amount field and its Save / Cancel buttons.)
+  const streaming = manage.getByRole("listitem").filter({ hasText: "Streaming" })
+  await streaming.getByRole("button", { name: "Editar presupuesto" }).click()
+  await manage.locator("input[type=number]").first().fill("999")
+  await manage.getByRole("button", { name: "Cancelar" }).click()
+  await expect(streaming).toContainText("S/50")
+  await streaming.getByRole("button", { name: "Editar presupuesto" }).click()
+  await manage.locator("input[type=number]").first().fill("60")
+  await manage.getByRole("button", { name: "Guardar" }).click()
+  await expect.poll(budgets).toEqual({ COMIDA: 700, TRANSPORTE: 200, STREAMING: 60, [`custom_${catId}`]: 80 })
+
+  await manage.getByRole("listitem").filter({ hasText: "Transporte" }).getByRole("button", { name: "Eliminar presupuesto" }).click()
   await page.getByRole("dialog").filter({ hasText: "Eliminar presupuesto" }).getByRole("button", { name: "Eliminar" }).click()
-  await expect.poll(budgets).toEqual({ COMIDA: 700, STREAMING: 50, [`custom_${catId}`]: 80 })
+  await expect.poll(budgets).toEqual({ COMIDA: 700, STREAMING: 60, [`custom_${catId}`]: 80 })
 })
 
 test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {

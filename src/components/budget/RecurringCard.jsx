@@ -29,7 +29,8 @@ export function RecurringCard() {
           {(showAll ? recurring : recurring.slice(0, 5)).map((r) => {
             const { label: catName, color, Icon } = resolveCategoryMeta(r.categoria, customCats, lang, "EGRESO");
             return (
-              <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+              // The same concept can recur in two categories (e.g. MANTENIMIENTO for car and bike).
+              <Box key={`${r.categoria}|${r.concepto}`} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                 <CategoryAvatar icon={Icon} color={color} size={36} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>

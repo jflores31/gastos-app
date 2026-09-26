@@ -3,7 +3,7 @@ import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel,
   List, ListItem, ListItemSecondaryAction, ListItemText, MenuItem, Select, TextField, Typography,
 } from "@mui/material";
-import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../../theme/icons";
+import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "../../theme/icons";
 import { CATEGORIES, fmtMoney, toBase, fromBase } from "../../data/index.js";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext.jsx";
@@ -86,15 +86,15 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
                     {editExisting === cat ? (
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
                         <TextField size="small" type="number" value={editExistingVal} onChange={(e) => setEditExistingVal(e.target.value)} sx={{ flex: 1 }} autoFocus />
-                        <IconButton size="small" color="success" onClick={saveEditExisting}><CheckIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => setEditExisting(null)}><DeleteIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" color="success" onClick={saveEditExisting} aria-label={lang === "es" ? "Guardar" : "Save"}><CheckIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => setEditExisting(null)} aria-label={lang === "es" ? "Cancelar" : "Cancel"}><CloseIcon fontSize="small" /></IconButton>
                       </Box>
                     ) : (
                       <>
                         <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount, currency, true) + (lang === "es" ? "/mes" : "/month")} />
                         <ListItemSecondaryAction>
-                          <IconButton size="small" onClick={() => startEditExisting(cat)}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" color="error" onClick={() => setDeletingCat(cat)}><DeleteIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => startEditExisting(cat)} aria-label={lang === "es" ? "Editar presupuesto" : "Edit budget"}><EditIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" color="error" onClick={() => setDeletingCat(cat)} aria-label={lang === "es" ? "Eliminar presupuesto" : "Delete budget"}><DeleteIcon fontSize="small" /></IconButton>
                         </ListItemSecondaryAction>
                       </>
                     )}

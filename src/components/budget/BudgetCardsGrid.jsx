@@ -96,7 +96,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
             {editing ? (
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
                 <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={{ width: 80, "& input": { fontSize: 12, py: 0.5 } }} autoFocus />
-                <IconButton size="small" onClick={saveEdit} color="success"><CheckIcon fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={saveEdit} color="success" aria-label={lang === "es" ? "Guardar" : "Save"}><CheckIcon fontSize="small" /></IconButton>
               </Box>
             ) : (
               <Chip size="small" variant="outlined" label={fmtMoney(limit, currency, true)} onClick={startEdit} sx={{ cursor: "pointer", fontWeight: 600 }} />
