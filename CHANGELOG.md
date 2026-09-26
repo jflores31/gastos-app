@@ -29,6 +29,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Selector de icono (`IconPicker`) para metas (antes, texto libre) y para categorías personalizadas (antes, solo un punto de color).
   - Grupos del selector de categorías con iconos en vez de emojis.
   - Favicon propio: el anterior era el logo de Vite.
+- `docs/INVESTIGACION.md`: comparativa de 12 proyectos open source y 4 apps comerciales, con 14 ideas priorizadas para la hoja de ruta.
 - Columna `custom_categories.icon` en `schema.sql` (⚠ ejecutar el `ALTER TABLE` en Supabase antes de desplegar; sin ella, las categorías se guardan sin icono).
 
 ### Eliminado

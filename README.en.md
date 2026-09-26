@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v0.0.1` · [Changelog](CHANGELOG.md)
+**Version:** `v0.0.1` · [Changelog](CHANGELOG.md) · [Research on similar projects & roadmap (Spanish)](docs/INVESTIGACION.md)
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**

@@ -2,7 +2,7 @@
 
 Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos, metas y más. Desplegada en **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Versión:** `v0.0.1` · [Historial de cambios](CHANGELOG.md)
+**Versión:** `v0.0.1` · [Historial de cambios](CHANGELOG.md) · [Investigación de proyectos similares y hoja de ruta](docs/INVESTIGACION.md)
 
 <!-- i18n-selector-start -->
 🌐 **Español** · [English](README.en.md)
