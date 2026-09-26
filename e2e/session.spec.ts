@@ -381,6 +381,33 @@ test("inactividad: el tiempo se elige en Ajustes, avisa 30 s antes y cierra la s
   await expect(page).toHaveURL(/\/login$/)
 })
 
+test("con el token vencido, el proxy renueva la sesión y la respuesta no se puede cachear", async ({ page, context }, info) => {
+  await login(page, uniqueEmail(info))
+  // The session cookie is "base64-" + base64url(JSON), possibly split in .0/.1 chunks.
+  const chunks = (await context.cookies()).filter((c) => /^sb-.*-auth-token(\.\d+)?$/.test(c.name))
+    .sort((a, b) => a.name.localeCompare(b.name, "en", { numeric: true }))
+  expect(chunks.length).toBeGreaterThan(0)
+  const session = JSON.parse(Buffer.from(chunks.map((c) => c.value).join("").replace(/^base64-/, ""), "base64url").toString())
+  const oldRefresh = session.refresh_token
+  session.expires_at = Math.floor(Date.now() / 1000) - 60
+  await context.clearCookies()
+  await context.addCookies([{ ...chunks[0], name: chunks[0].name.replace(/\.\d+$/, ""), value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url") }])
+
+  // A static route (the manifest) is cacheable by default: when the proxy refreshes the
+  // session on it, the Set-Cookie must go out with no-store, or a CDN could hand one
+  // user's session to another. (Dynamic pages like "/" are already no-store.)
+  const res = await page.request.get("/manifest.webmanifest", { maxRedirects: 0 })
+  expect(res.status()).toBe(200)
+  expect(res.headers()["cache-control"]).toContain("no-store")
+  const setCookies = res.headersArray().filter((h) => h.name.toLowerCase() === "set-cookie").map((h) => h.value)
+  expect(setCookies.some((c) => /^sb-.*-auth-token/.test(c))).toBe(true)
+  const renewed = JSON.parse(Buffer.from(
+    (await context.cookies()).filter((c) => /^sb-.*-auth-token(\.\d+)?$/.test(c.name))
+      .sort((a, b) => a.name.localeCompare(b.name, "en", { numeric: true }))
+      .map((c) => c.value).join("").replace(/^base64-/, ""), "base64url").toString())
+  expect(renewed.refresh_token).not.toBe(oldRefresh)
+})
+
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {
   await login(page, uniqueEmail(info))
 

@@ -51,12 +51,15 @@ export default async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
+        // `headers` (no-store cache headers) arrive with the first cookie write: a CDN
+        // must never cache a response carrying one user's refreshed session.
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request: { headers: forwardHeaders() } })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
+          Object.entries(headers ?? {}).forEach(([key, value]) => supabaseResponse.headers.set(key, value))
         },
       },
     }
