@@ -298,19 +298,22 @@ test("en los diálogos, la etiqueta flotante del primer campo no queda recortada
   await login(page, uniqueEmail(info))
   // The label floats above the field once it has a value; MUI's padding-top: 0 on a
   // DialogContent after a DialogTitle used to clip it (overflow-y: auto).
-  const labelInside = async () => {
+  const expectLabelInside = async () => {
     const content = page.getByRole("dialog").last().locator(".MuiDialogContent-root")
     await content.locator("input").first().fill("Algo")
-    const [box, label] = await Promise.all([content.boundingBox(), content.locator("label").first().boundingBox()])
-    return label!.y >= box!.y
+    // Poll: the dialog zooms in and the label animates up; compare once they settle.
+    await expect.poll(async () => {
+      const [box, label] = await Promise.all([content.boundingBox(), content.locator("label").first().boundingBox()])
+      return label!.y - box!.y
+    }).toBeGreaterThanOrEqual(0)
   }
   await page.getByRole("tab", { name: "Metas" }).click()
   await page.getByRole("button", { name: "Nueva meta" }).click()
-  expect(await labelInside()).toBe(true)
+  await expectLabelInside()
   await page.keyboard.press("Escape")
   await openSettings(page, "Perfil")
   await dialog(page).first().getByRole("button", { name: "Nueva", exact: true }).click()
-  expect(await labelInside()).toBe(true)
+  await expectLabelInside()
 })
 
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {
