@@ -1,11 +1,12 @@
-import { getToday } from "./index.js";
-import { messagesFor } from "../i18n/index.js";
+import { getToday } from "./index";
+import { messagesFor } from "../i18n/index";
+import type { Account, Debt, Investment, Period, Transaction } from "../types";
 
-export function filterByPeriod(txs, period, offset = 0) {
+export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();
   if (period === "all") return txs;
 
-  let start, end;
+  let start: Date, end: Date;
   if (period === "week") {
     const dow = (today.getDay() + 6) % 7;
     start = new Date(today); start.setDate(today.getDate() - dow + offset * 7);
@@ -25,12 +26,14 @@ export function filterByPeriod(txs, period, offset = 0) {
   } else if (period === "year") {
     start = new Date(today.getFullYear() + offset, 0, 1);
     end = new Date(today.getFullYear() + offset, 11, 31);
+  } else {
+    return []; // unknown period (JS callers aren't type-checked)
   }
 
   return txs.filter((t) => t.date >= start && t.date <= end);
 }
 
-export function periodLabel(period, t) {
+export function periodLabel(period: Period, t: Record<"week" | "month" | "quarter" | "year" | "all", string>) {
   if (period === "week") return t.week;
   if (period === "month") return t.month;
   if (period === "quarter") return t.quarter;
@@ -38,7 +41,7 @@ export function periodLabel(period, t) {
   return t.all;
 }
 
-export function monthCount(period) {
+export function monthCount(period: Period) {
   if (period === "year") return 12;
   if (period === "quarter") return 3;
   if (period === "month") return 1;
@@ -46,7 +49,7 @@ export function monthCount(period) {
   return 1;
 }
 
-export function daysCount(period) {
+export function daysCount(period: Period) {
   if (period === "year") return 365;
   if (period === "quarter") return 90;
   if (period === "month") return 30;
@@ -54,7 +57,7 @@ export function daysCount(period) {
   return 30;
 }
 
-export function healthScore(savingsRate, spendingChange, anomalyCount) {
+export function healthScore(savingsRate: number, spendingChange: number, anomalyCount: number) {
   let score = 50;
   // Savings: up to +40, reaching the cap at a 20% savings rate.
   score += Math.min(40, savingsRate * 2);
@@ -69,14 +72,14 @@ export function healthScore(savingsRate, spendingChange, anomalyCount) {
 
 // Label/colour for a health score. Single source of truth shared by the tabs;
 // thresholds match (>=75 good, >=50 fair, else critical).
-export function healthLabel(score, lang) {
+export function healthLabel(score: number, lang: string) {
   const m = messagesFor(lang).healthLevels;
   if (score >= 75) return m.excellent;
   if (score >= 50) return m.fair;
   return m.critical;
 }
 
-export function healthTone(score) {
+export function healthTone(score: number) {
   return score >= 75 ? "success" : score >= 50 ? "warning" : "error";
 }
 
@@ -85,16 +88,16 @@ export function healthTone(score) {
 // anomalous only if it exceeds OUTLIER_FACTOR x the category median (median is robust
 // to the very outliers we're hunting). Returns a new array; each tx's `anomaly` is
 // recomputed (the DB column is always false — detection lives here, client-side).
-export function flagAnomalies(txs) {
+export function flagAnomalies(txs: Transaction[]): Transaction[] {
   const MIN_SAMPLES = 4;
   const OUTLIER_FACTOR = 3;
-  const byCat = new Map();
+  const byCat = new Map<string, number[]>();
   for (const tx of txs) {
     if (tx.tipo !== "EGRESO") continue;
     if (!byCat.has(tx.categoria)) byCat.set(tx.categoria, []);
-    byCat.get(tx.categoria).push(tx.valor);
+    byCat.get(tx.categoria)!.push(tx.valor);
   }
-  const thresholds = new Map();
+  const thresholds = new Map<string, number>();
   for (const [cat, values] of byCat) {
     if (values.length < MIN_SAMPLES) continue;
     const sorted = [...values].sort((a, b) => a - b);
@@ -108,15 +111,18 @@ export function flagAnomalies(txs) {
   });
 }
 
-export function recurringList(txs = []) {
+export type Recurring = { concepto: string; categoria: string; day: number; avg: number };
+
+export function recurringList(txs: Transaction[] = []): Recurring[] {
   if (!txs.length) return [];
 
-  const groups = new Map();
+  type Group = { categoria: string; concepto: string; months: Set<string>; amounts: number[]; days: number[] };
+  const groups = new Map<string, Group>();
   for (const tx of txs) {
     if (tx.tipo !== "EGRESO") continue;
     const key = `${tx.categoria}|${tx.concepto}`;
     if (!groups.has(key)) groups.set(key, { categoria: tx.categoria, concepto: tx.concepto, months: new Set(), amounts: [], days: [] });
-    const g = groups.get(key);
+    const g = groups.get(key)!;
     g.months.add(`${tx.año}-${tx.mes}`);
     g.amounts.push(tx.valor);
     g.days.push(tx.dia);
@@ -133,13 +139,13 @@ export function recurringList(txs = []) {
     .sort((a, b) => a.day - b.day);
 }
 
-export function fmtDate(date) {
+export function fmtDate(date: Date) {
   return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 // Ordinary least-squares slope for an evenly-spaced series [y0, y1, …, yn-1].
 // More stable than (last - first) / (n - 1) because it uses all points.
-export function linearRegressionSlope(values) {
+export function linearRegressionSlope(values: number[]) {
   const n = values.length;
   if (n < 2) return 0;
   const meanX = (n - 1) / 2;
@@ -149,9 +155,16 @@ export function linearRegressionSlope(values) {
   return den === 0 ? 0 : num / den;
 }
 
-export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney, period = "month") {
+export type Insight = { icon: "trend" | "savings" | "warning" | "forecast"; tone: "good" | "warn" | "info"; title: string; desc: string };
+
+export function insightsList(
+  lang: string, totalOut: number, _totalIn: number, savingsRate: number, dOut: number,
+  anomalies: unknown[], currency: string,
+  fmtMoney: (v: number, currency: string, compact: boolean) => string,
+  period: Period = "month",
+): Insight[] {
   const m = messagesFor(lang).insightTexts;
-  const t = [];
+  const t: Insight[] = [];
   t.push({
     icon: "trend", tone: dOut > 0 ? "warn" : "good",
     title: m.spendingTrend,
@@ -180,7 +193,7 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
 // Net worth for the Goals tab. Assets: positive account balances plus the value of every
 // investment. Debt: negative account balances (e.g. a used credit card) plus the
 // outstanding balance of every loan.
-export function netWorthOf(accounts = [], debts = [], investments = []) {
+export function netWorthOf(accounts: Account[] = [], debts: Debt[] = [], investments: Investment[] = []) {
   const assets = accounts.filter((a) => a.balance > 0).reduce((s, a) => s + a.balance, 0)
     + investments.reduce((s, i) => s + (i.value || 0), 0);
   const debt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))

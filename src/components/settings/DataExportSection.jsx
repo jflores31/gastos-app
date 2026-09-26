@@ -3,7 +3,7 @@ import { TableChart as CsvIcon, DataObject as JsonIcon } from "../../theme/icons
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export.js";
+import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export";
 
 // "Tus datos": download the transactions as CSV or everything as a JSON backup.
 export function DataExportSection({ notify }) {

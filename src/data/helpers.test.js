@@ -13,7 +13,7 @@ import {
   fmtDate,
   netWorthOf,
   insightsList,
-} from "./helpers.js"
+} from "./helpers"
 
 // Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
 function tx({ tipo = "EGRESO", categoria = "comida", concepto = "x", valor = 10, date = new Date() } = {}) {

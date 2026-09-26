@@ -3,24 +3,24 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useEffect, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { messagesFor } from "../i18n/index.js";
-import { CURRENCIES, fmtMoney } from "../data/index.js";
+import { messagesFor, type Lang, type Messages } from "../i18n/index";
+import { currencyOf, fmtMoney } from "../data/index";
 import { ACCENT_ALIASES } from "../theme/materialTheme.js";
 
 type Setter<T> = (value: T | ((prev: T) => T)) => void;
-export type Lang = "es" | "en";
+export type { Lang };
 export type ThemeMode = "light" | "dark";
 export type Density = "comfy" | "compact";
 
 export type Settings = {
   theme: ThemeMode; setTheme: Setter<ThemeMode>;
   density: Density; setDensity: Setter<Density>;
-  currency: string; setCurrency: Setter<string>;
+  currency: string; setCurrency: Setter<string>; // a CurrencyCode, or an unknown old value (→ PEN)
   lang: Lang; setLang: Setter<Lang>;
   palette: string; setPalette: Setter<string>;
   privacy: boolean; setPrivacy: Setter<boolean>;
   idleMinutes: number; setIdleMinutes: Setter<number>;
-  t: ReturnType<typeof messagesFor>;
+  t: Messages;
   fmt: (v: number, compact?: boolean) => string;
   palettes: typeof PALETTES;
 };
@@ -69,7 +69,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     // Money in the chosen currency and the language's number format; in privacy
     // mode only the symbol is shown.
     fmt: privacy
-      ? () => `${(CURRENCIES[currency as keyof typeof CURRENCIES] || CURRENCIES.PEN).symbol}••••`
+      ? () => `${currencyOf(currency).symbol}••••`
       : (v: number, compact = false) => fmtMoney(v, currency, compact, messagesFor(lang).common.locale),
     palettes: PALETTES,
   // eslint-disable-next-line react-hooks/exhaustive-deps

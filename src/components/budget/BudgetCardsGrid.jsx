@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Box, Button, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon } from "../../theme/icons";
-import { toBase, fromBase } from "../../data/index.js";
-import { monthCount } from "../../data/helpers.js";
+import { toBase, fromBase } from "../../data/index";
+import { monthCount } from "../../data/helpers";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";

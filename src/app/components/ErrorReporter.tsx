@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { reportError } from "../../lib/reportError.js"
+import { reportError } from "../../lib/reportError"
 
 // Reports errors that escape React's error boundaries (event handlers, timers, promise
 // rejections nobody awaited). Boundary errors are reported by src/app/error.tsx and

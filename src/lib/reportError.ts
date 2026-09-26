@@ -8,10 +8,14 @@
 
 const ENDPOINT = "/api/client-error"
 const MAX_REPORTS = 10
-const sent = new Set()
+const sent = new Set<string>()
 
-export function buildReport(error, context = {}) {
-  const message = String(error?.message ?? error ?? "Unknown error").slice(0, 500)
+type ReportableError = { message?: unknown; name?: unknown; stack?: unknown; digest?: unknown }
+type Context = Record<string, unknown>
+
+export function buildReport(input: unknown, context: Context = {}) {
+  const error = (input && typeof input === "object" ? input : undefined) as ReportableError | undefined
+  const message = String(error?.message ?? input ?? "Unknown error").slice(0, 500)
   return {
     message,
     name: error?.name ? String(error.name).slice(0, 100) : undefined,
@@ -25,7 +29,7 @@ export function buildReport(error, context = {}) {
   }
 }
 
-export function reportError(error, context = {}) {
+export function reportError(error: unknown, context: Context = {}) {
   try {
     const report = buildReport(error, context)
     const key = `${report.message}|${report.context.where ?? ""}`

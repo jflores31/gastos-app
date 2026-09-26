@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Savings as GoalIcon } from "../../theme/icons";
-import { toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { IconPicker } from "../../theme/IconPicker.jsx";
 import { iconByName } from "../../theme/categoryIcons.js";

@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Subscriptions as SubIcon } from "../../theme/icons";
-import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
+import { CATEGORIES, toBase, fromBase } from "../../data/index";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";

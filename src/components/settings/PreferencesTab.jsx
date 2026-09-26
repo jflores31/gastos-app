@@ -1,7 +1,7 @@
 import { Box, Chip, Divider, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "../../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "../../context/SettingsContext";
-import { CURRENCIES } from "../../data/index.js";
+import { CURRENCIES } from "../../data/index";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
 

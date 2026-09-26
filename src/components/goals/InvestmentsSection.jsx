@@ -1,6 +1,6 @@
 import { Box, Button, Card, CardContent, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, ShowChart as InvestIcon } from "../../theme/icons";
-import { toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";

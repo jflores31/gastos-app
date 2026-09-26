@@ -7,10 +7,10 @@ import {
 } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { txByCategory, txByMonth } from "../data/index.js";
+import { txByCategory, txByMonth } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
-import { filterByPeriod, periodLabel } from "../data/helpers.js";
+import { filterByPeriod, periodLabel } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";

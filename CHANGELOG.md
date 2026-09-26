@@ -19,6 +19,11 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - `SettingsPanel` (500 → 77): pestañas en `src/components/settings/`.
   - `BudgetTab` (488 → 56): una tarjeta por archivo en `src/components/budget/`.
   - Sin cambios visibles: capturas de pantalla idénticas píxel a píxel antes y después, y tests end-to-end escritos antes de dividir.
+- **TypeScript estricto (T8):**
+  - `strict: true`, y ESLint revisa también los `.ts`/`.tsx` con `typescript-eslint`.
+  - `src/data`, `src/i18n`, `src/lib`, `SettingsContext` y `useLocalStorage` pasaron a TypeScript, con los tipos del dominio en `src/types.ts` (`Transaction`, `Goal`, `Period`…).
+  - El diccionario en inglés está tipado como `typeof es`: una clave faltante o una función con otros parámetros no compila.
+  - Lo que encontró el lint: 8 pantallas de auth copiaban el tema a un estado desde un efecto (un render de más); ahora lo leen directo.
 - **CSP:** `connect-src` incluye el origen de `NEXT_PUBLIC_SUPABASE_URL`, además de `*.supabase.co`. Así funciona con un dominio propio de Supabase y con el simulado de los tests.
 - **CI:** el build apunta al Supabase simulado (`http://127.0.0.1:54321`) para que los tests end-to-end puedan iniciar sesión.
 - **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).

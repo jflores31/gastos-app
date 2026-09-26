@@ -13,7 +13,7 @@ import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"
 import { darkFieldSx } from "../components/auth/authStyles"
-import { OAUTH_ENABLED } from "../../lib/featureFlags.js"
+import { OAUTH_ENABLED } from "../../lib/featureFlags"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -126,7 +126,7 @@ export default function LoginPage() {
         {/* Error */}
         <AuthErrorAlert error={error} />
 
-        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.js */}
+        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.ts */}
         {OAUTH_ENABLED && (
           <>
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>

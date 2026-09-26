@@ -37,7 +37,7 @@ npm run typecheck    # tsc --noEmit
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
-| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las pestañas (detalle abajo) |
+| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo) |
 | [`src/data/currency.test.js`](../src/data/currency.test.js) | 16 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
@@ -146,7 +146,7 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 4. **Código que habla con Supabase:**
    - para una función suelta, pasar un objeto con la forma del query builder (ver `fakeTable()` en `fetchAllRows.test.js`);
    - para `DataContext`, usar el cliente simulado de `DataContext.test.jsx`: un builder encadenable y `await`-able que registra las llamadas, más `fake.respond(tabla, llamadas)` para decidir qué devuelve cada consulta.
-5. **Textos nuevos:** van en `src/i18n/ui.js`, en los dos idiomas. `messages.test.js` falla si falta uno o si se escribe `lang === "es" ? …` en un componente.
+5. **Textos nuevos:** van en `src/i18n/ui.ts`, en los dos idiomas. TypeScript (`en: typeof es`) y `messages.test.js` fallan si falta uno o si se escribe `lang === "es" ? …` en un componente.
 6. **End-to-end:** agregar casos en `e2e/`.
    - Para flujos con sesión, usar `login(page, uniqueEmail(info))` y `mockDb(request, email)` de [`e2e/helpers.ts`](../e2e/helpers.ts).
    - Una columna nueva en la base va en su migración SQL: el Supabase simulado la lee de ahí.

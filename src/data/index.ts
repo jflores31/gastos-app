@@ -1,4 +1,9 @@
-export const CATEGORIES = {
+import type { Transaction, TxType } from "../types";
+
+// A built-in category: labels in both languages, colour, and concept suggestions.
+export type CategoryDef = { es: string; en: string; color: string; concepts: string[] };
+
+export const CATEGORIES: { income: Record<string, CategoryDef>; expense: Record<string, CategoryDef> } = {
   income: {
     SUELDO:          { es: "Sueldo",                    en: "Salary",              color: "#5a9bc9", concepts: ["SUELDO POR PLANILLA", "SUELDO BASE"] },
     HONORARIOS:      { es: "Honorarios / freelance",     en: "Freelance",           color: "#7b68ee", concepts: ["FREELANCE", "CONSULTORIA"] },
@@ -69,7 +74,10 @@ export const CATEGORIES = {
 };
 
 
-export const CURRENCIES = {
+export type CurrencyCode = "PEN" | "USD" | "EUR" | "MXN" | "COP" | "ARS" | "CLP" | "BRL";
+export type Currency = { symbol: string; code: CurrencyCode; name: string; rate: number };
+
+export const CURRENCIES: Record<CurrencyCode, Currency> = {
   PEN: { symbol: "S/", code: "PEN", name: "Sol Peruano", rate: 1 },
   USD: { symbol: "$",  code: "USD", name: "US Dollar",   rate: 0.27 },
   EUR: { symbol: "€",  code: "EUR", name: "Euro",        rate: 0.25 },
@@ -83,26 +91,27 @@ export const CURRENCIES = {
 // Los montos se guardan siempre en la moneda base (PEN, rate 1); `fmtMoney` los
 // multiplica por `rate` al mostrar. Los formularios trabajan en la moneda elegida,
 // así que convierten con toBase() al guardar y con fromBase() al precargar una edición.
-const round2 = (n) => Math.round(n * 100) / 100;
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export function toBase(v, curr = "PEN") {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
-  return round2(Number(v) / c.rate);
+// Unknown codes (e.g. an old value in localStorage) fall back to PEN.
+export const currencyOf = (code: string): Currency => CURRENCIES[code as CurrencyCode] || CURRENCIES.PEN;
+
+export function toBase(v: number | string, curr = "PEN") {
+  return round2(Number(v) / currencyOf(curr).rate);
 }
 
-export function fromBase(v, curr = "PEN") {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
-  return round2(Number(v) * c.rate);
+export function fromBase(v: number | string, curr = "PEN") {
+  return round2(Number(v) * currencyOf(curr).rate);
 }
 
 // `locale` fixes the digit grouping (t.common.locale). Without it, toLocaleString used
 // the browser's locale: a German browser showed "S/3.500" in an app set to Spanish,
 // and the server (Node's default locale) could render different text than the client.
-export function fmtMoney(v, curr = "PEN", compact = false, locale = "es-PE") {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
+export function fmtMoney(v: number, curr = "PEN", compact = false, locale = "es-PE") {
+  const c = currencyOf(curr);
   const n = v * c.rate;
   if (compact) {
-    const short = (x) => x.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const short = (x: number) => x.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     if (Math.abs(n) >= 1e6) return c.symbol + short(n / 1e6) + "M";
     if (Math.abs(n) >= 1e3) return c.symbol + short(n / 1e3) + "k";
   }
@@ -113,12 +122,14 @@ export function getToday() {
   return new Date();
 }
 
-export function txByMonth(txs) {
-  const m = new Map();
+export type MonthSummary = { key: string; año: number; mes: number; ingreso: number; egreso: number; txs: Transaction[] };
+
+export function txByMonth(txs: Transaction[]) {
+  const m = new Map<string, MonthSummary>();
   for (const t of txs) {
     const k = `${t.año}-${String(t.mes).padStart(2, "0")}`;
     if (!m.has(k)) m.set(k, { key: k, año: t.año, mes: t.mes, ingreso: 0, egreso: 0, txs: [] });
-    const e = m.get(k);
+    const e = m.get(k)!;
     if (t.tipo === "INGRESO") e.ingreso += t.valor;
     else e.egreso += t.valor;
     e.txs.push(t);
@@ -126,37 +137,40 @@ export function txByMonth(txs) {
   return [...m.values()].sort((a, b) => a.año - b.año || a.mes - b.mes);
 }
 
-export function txByCategory(txs, tipo = "EGRESO") {
-  const m = new Map();
+export type CategorySummary = { categoria: string; total: number; count: number; txs: Transaction[] };
+
+export function txByCategory(txs: Transaction[], tipo: TxType = "EGRESO") {
+  const m = new Map<string, CategorySummary>();
   for (const t of txs) if (t.tipo === tipo) {
     if (!m.has(t.categoria)) m.set(t.categoria, { categoria: t.categoria, total: 0, count: 0, txs: [] });
-    const e = m.get(t.categoria);
+    const e = m.get(t.categoria)!;
     e.total += t.valor; e.count++; e.txs.push(t);
   }
   return [...m.values()].sort((a, b) => b.total - a.total);
 }
 
-export function txByCategoryToday(txs) {
+export function txByCategoryToday(txs: Transaction[]) {
   const today = getToday();
   const todayTx = txs.filter((t) => t.date.toDateString() === today.toDateString());
-  const m = new Map();
+  type Concept = { concepto: string; total: number };
+  const m = new Map<string, CategorySummary & { concepts: Map<string, Concept> }>();
   for (const t of todayTx) if (t.tipo === "EGRESO") {
     if (!m.has(t.categoria)) m.set(t.categoria, { categoria: t.categoria, total: 0, count: 0, concepts: new Map(), txs: [] });
-    const cat = m.get(t.categoria);
+    const cat = m.get(t.categoria)!;
     cat.total += t.valor; cat.count++; cat.txs.push(t);
     if (!cat.concepts.has(t.concepto)) cat.concepts.set(t.concepto, { concepto: t.concepto, total: 0 });
-    cat.concepts.get(t.concepto).total += t.valor;
+    cat.concepts.get(t.concepto)!.total += t.valor;
   }
   return [...m.values()].map((cat) => ({
     ...cat,
     concepts: [...cat.concepts.values()].sort((a, b) => b.total - a.total),
-    txs: cat.txs.sort((a, b) => a.date - b.date),
+    txs: cat.txs.sort((a, b) => a.date.getTime() - b.date.getTime()),
   })).sort((a, b) => b.total - a.total);
 }
 
-export function getTodayExpenses(txs) {
+export function getTodayExpenses(txs: Transaction[]) {
   const today = getToday();
   return txs.filter((t) => t.tipo === "EGRESO" && t.date.toDateString() === today.toDateString())
-    .sort((a, b) => b.date - a.date);
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 

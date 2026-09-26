@@ -3,7 +3,7 @@ import { Autocomplete, Avatar, Box, Button, Chip, CircularProgress, Divider, Lis
 import { Person as PersonIcon } from "../../theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
-import { CATEGORIES } from "../../data/index.js";
+import { CATEGORIES } from "../../data/index";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { createClient } from "../../lib/supabase";
 import { CustomCategoriesSection } from "./CustomCategoriesSection.jsx";

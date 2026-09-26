@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { csvCell, transactionsToCsv, backupToJson, exportFileName, localDateTime } from "./export.js"
+import { csvCell, transactionsToCsv, backupToJson, exportFileName, localDateTime } from "./export"
 
 const tx = (over) => ({ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 12.5, date: new Date(2026, 8, 3, 14, 5), ...over })
 

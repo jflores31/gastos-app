@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
-// Receives errors reported from the browser (src/lib/reportError.js) and writes them to the
+// Receives errors reported from the browser (src/lib/reportError.ts) and writes them to the
 // server logs, where Vercel shows them under Logs. Reachable without a session (exempted in
 // src/proxy.ts) so errors on the auth pages are reported too; the body is size-capped and
 // only known string fields are kept, so the endpoint can't be used to write arbitrary data.

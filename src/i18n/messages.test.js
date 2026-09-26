@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest"
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { MESSAGES, messagesFor } from "./index.js"
+import { MESSAGES, messagesFor } from "./index"
 import { ICON_CHOICES } from "../theme/categoryIcons.js"
 import { PALETTES } from "../context/SettingsContext"
 

@@ -17,7 +17,7 @@ Personal finance application to track income, expenses, budgets, goals, and more
 | Auth + DB | Supabase with `@supabase/ssr` 0.12 (email/password; OAuth wired up but disabled) |
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
-| Language | TypeScript (routes/config) + JSX (components) |
+| Language | TypeScript `strict` (routes, data, texts, settings and user contexts) + JSX (components) |
 | Tests | Vitest 5 (unit and jsdom component tests) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests and build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
@@ -98,7 +98,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
 - **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color and icon — in Supabase)
-- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN: forms convert with `toBase()` on save and `fromBase()` on edit (`src/data/index.js`), using fixed rates
+- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN: forms convert with `toBase()` on save and `fromBase()` on edit (`src/data/index.ts`), using fixed rates
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
@@ -106,7 +106,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 - **Privacy mode:** the eye button in the top bar hides every amount ("S/••••") and is remembered in the browser. Amounts go through `fmt()` from `useSettings()`, which already knows the currency and this mode.
 - **Your data (Profile):**
   - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN, cells guarded against formulas);
-  - everything downloads as a full JSON backup (`src/data/export.js`).
+  - everything downloads as a full JSON backup (`src/data/export.ts`).
 - **Installable app:** `src/app/manifest.ts` plus the icons in `public/icons/`, generated with `node scripts/generate-icons.mjs`. Chrome, Edge and Android offer "Install app"; iOS offers "Add to Home Screen". No Service Worker, on purpose (see Troubleshooting).
 
 ### Responsive Design
@@ -179,18 +179,19 @@ src/
 ├── context/
 │   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
-│   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES
+│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
-│   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
+│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
+│   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
-│   ├── fetchAllRows.js             # Pagination with .range() (Supabase caps responses at 1000 rows)
+│   ├── fetchAllRows.ts             # Pagination with .range() (Supabase caps responses at 1000 rows)
+│   ├── export.ts                   # CSV and JSON backup for "Tus datos"
 │   └── *.test.js                   # helpers, currency, fetchAllRows (components: *.test.jsx next to each)
 ├── i18n/
-│   ├── base.js                     # Short shared texts (t.income, t.save, t.months…)
-│   ├── ui.js                       # Texts by area (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
-│   ├── index.js                    # MESSAGES and messagesFor(lang)
+│   ├── base.ts                     # Short shared texts (t.income, t.save, t.months…)
+│   ├── ui.ts                       # Texts by area (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
+│   ├── index.ts                    # MESSAGES and messagesFor(lang)
 │   └── messages.test.js            # Same keys in es/en; no language ternaries outside i18n/
 ├── theme/
 │   ├── materialTheme.js            # Light/dark themes, accents and icon animation
@@ -199,11 +200,12 @@ src/
 │   ├── iconTones.js                # Gradients per tone (TONES, TONE_BY_PALETTE)
 │   ├── GradientIcon.jsx            # GradientIcon + CategoryAvatar
 │   └── IconPicker.jsx              # Icon picker (goals and custom categories)
+├── types.ts                        # Domain types: Transaction, Goal, Account, Period…
 ├── hooks/
-│   └── useLocalStorage.js          # Default value on first render; stored value applied after mount
+│   └── useLocalStorage.ts          # Default value on first render; stored value applied after mount
 ├── lib/
-│   ├── featureFlags.js             # OAUTH_ENABLED (login, register and LoginModal)
-│   ├── reportError.js              # Sends browser errors to /api/client-error
+│   ├── featureFlags.ts             # OAUTH_ENABLED (login, register and LoginModal)
+│   ├── reportError.ts              # Sends browser errors to /api/client-error
 │   ├── supabase.ts                 # Browser client (createBrowserClient)
 │   └── supabase-server.ts          # Server client
 └── proxy.ts                        # Auth guard + per-request nonce CSP (Next.js 16)
@@ -294,7 +296,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 **Data loading:** `DataContext.load()` runs on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` or `USER_UPDATED`) and is deduplicated by `session.user.id`, so periodic token refreshes don't re-run the 8 queries. It isn't called on mount (that duplicated the queries). On failure the flag is reset so the next event retries. This removed the "you have to refresh twice" bug, where an `INITIAL_SESSION` without a usable session was never retried. The queries rely on RLS (`select("*")` with no `.eq("user_id")`).
 
-**More than 1000 transactions:** PostgREST caps every response at `max_rows` (1000). `transactions` is fetched with `fetchAllRows()` (`src/data/fetchAllRows.js`), which pages with `.range()` ordered by `fecha` + `id`. It's all or nothing: if a page fails, no partial result is shown.
+**More than 1000 transactions:** PostgREST caps every response at `max_rows` (1000). `transactions` is fetched with `fetchAllRows()` (`src/data/fetchAllRows.ts`), which pages with `.range()` ordered by `fecha` + `id`. It's all or nothing: if a page fails, no partial result is shown.
 
 **Currency:** amounts are always stored in PEN. `fmtMoney(v, currency)` multiplies by the fixed `rate` from `CURRENCIES` for display, and forms convert with `toBase()` on save and `fromBase()` when pre-filling an edit (transactions, budgets, goals, accounts, investments, debts and subscriptions; % rates and months are not converted). The 10,000,000 cap is validated in PEN. Known limit: rounding to 2 PEN decimals can move a COP amount by up to about 5 units.
 
@@ -326,7 +328,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 - Tab left open for more than 8 h: checked when visibility returns (`visibilitychange`, plus `pageshow` for bfcache).
 - Automatic sign-outs use `signOut({ scope: "local" })`, which doesn't revoke the user's sessions on other devices; the "Sign out" button keeps the global scope. All of them clear `gastos_last_active` to avoid a logout loop on the next login.
 
-**OAuth (disabled):** `src/app/auth/callback/route.ts` exchanges the PKCE code and checks that `next` is an internal path. To enable it: create the OAuth apps in Google/GitHub, add client id/secret in Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs and set `OAUTH_ENABLED = true` in `src/lib/featureFlags.js` (used by the login and register pages and `LoginModal`). ⚠ Check the session flag first: the exchange happens on the server, so the client never gets `SIGNED_IN` and `gastos_session_alive` wouldn't be written.
+**OAuth (disabled):** `src/app/auth/callback/route.ts` exchanges the PKCE code and checks that `next` is an internal path. To enable it: create the OAuth apps in Google/GitHub, add client id/secret in Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs and set `OAUTH_ENABLED = true` in `src/lib/featureFlags.ts` (used by the login and register pages and `LoginModal`). ⚠ Check the session flag first: the exchange happens on the server, so the client never gets `SIGNED_IN` and `gastos_session_alive` wouldn't be written.
 
 **Supabase `redirectTo`:** `window.location.origin` may return `https://www.jeshu.cfd` (with www), but Supabase only accepts `https://jeshu.cfd/**`. Apply `.replace(/^https:\/\/www\./, "https://")` before `redirectTo`.
 
@@ -387,10 +389,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 - **Every text lives in `src/i18n/`**, in Spanish and English. Components get them as `t` from `useSettings()`: `t.save`, `t.goalsTab.newGoal`, `t.common.delete`.
 - **Texts with data are functions,** so plurals and word order stay in the dictionary. For example, `t.overviewTab.expenseRecords(n)` gives "1 expense" or "3 expenses", and `t.common.vsPreviousPeriod(period)` gives "vs previous quarter".
-- **Outside React** (e.g. `healthLabel` and `insightsList` in `helpers.js`): `messagesFor(lang)`.
+- **Outside React** (e.g. `healthLabel` and `insightsList` in `helpers.ts`): `messagesFor(lang)`.
 - **Accessible names are translated too:** `aria-label`s, the 43 icon names in the picker (`t.iconNames`) and the palettes (`t.palettes`).
 - **Rule:** no `lang === "es" ? … : …`. `messages.test.js` fails if one appears outside `src/i18n/`, or if a key is missing in one language.
-- **Category names** stay in `CATEGORIES` (`src/data/index.js`), with `es` and `en` on each.
+- **Category names** stay in `CATEGORIES` (`src/data/index.ts`), with `es` and `en` on each.
 
 ### Forms and UI
 
@@ -431,7 +433,7 @@ Supabase DB (8 tables, RLS auth.uid() = user_id)
                     ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
                     └── GoalsTab  (goals + accounts + investments + debts + subscriptions)
 
-Each tab: filterByPeriod(txs, period) → helpers.js → Charts.jsx
+Each tab: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Category label / color / icon: resolveCategoryMeta()  (theme/categoryIcons.js)
 Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase() in forms
 ```
@@ -442,7 +444,7 @@ Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase(
 |---|---|
 | `DashboardStudio.jsx` | App shell: the only component that consumes all 3 contexts (Settings, User, Data), owns the shared `period`, is the `showToast` channel and enforces session security |
 | `DataContext.jsx` | The single source of data and of mutations against Supabase |
-| `data/helpers.js` | Pure calculations used by the tabs (periods, financial health, anomalies, recurring, trends, net worth); a bug here hits all of them, which is why it has tests |
+| `data/helpers.ts` | Pure calculations used by the tabs (periods, financial health, anomalies, recurring, trends, net worth); a bug here hits all of them, which is why it has tests |
 | `components/goals/useEntityDialog.js` | State and handlers of the Goals tab's create/edit/delete dialogs (goals, accounts, investments, debts, subscriptions) |
 | `theme/categoryIcons.js` | Label, color and icon for any category |
 | `proxy.ts` | Route guard + per-request nonce CSP |

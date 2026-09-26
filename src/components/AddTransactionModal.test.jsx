@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react"
-import { MESSAGES } from "../i18n/index.js"
+import { MESSAGES } from "../i18n/index"
 import AddTransactionModal from "./AddTransactionModal.jsx"
 
 // The modal reads settings, data and the user from contexts: replace them with stubs so the

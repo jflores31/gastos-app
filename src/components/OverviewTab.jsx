@@ -18,8 +18,8 @@ const INSIGHT_ICONS = {
   forecast: <ForecastIcon />,
 };
 const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
-import { txByMonth, txByCategory } from "../data/index.js";
-import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers.js";
+import { txByMonth, txByCategory } from "../data/index";
+import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";

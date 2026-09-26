@@ -4,7 +4,7 @@ import {
   List, ListItem, ListItemSecondaryAction, ListItemText, MenuItem, Select, TextField, Typography,
 } from "@mui/material";
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "../../theme/icons";
-import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
+import { CATEGORIES, toBase, fromBase } from "../../data/index";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";

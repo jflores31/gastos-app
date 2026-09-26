@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest"
 import { render, screen, fireEvent, cleanup } from "@testing-library/react"
 import { IconPicker } from "./IconPicker.jsx"
 import { ICON_CHOICES } from "./categoryIcons.js"
-import { MESSAGES } from "../i18n/index.js"
+import { MESSAGES } from "../i18n/index"
 
 vi.mock("../context/SettingsContext", () => ({ useSettings: () => ({ t: MESSAGES.es }) }))
 
