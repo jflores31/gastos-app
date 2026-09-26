@@ -18,7 +18,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
 | Lenguaje | TypeScript (rutas/config) + JSX (componentes) |
-| Tests | Vitest (unitarios) |
+| Tests | Vitest (unitarios y componentes con jsdom) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests y build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
 
@@ -116,7 +116,8 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 
 ```
 .
-├── .github/workflows/ci.yml        # CI: lint, typecheck, tests y build en cada PR y push a main
+├── .github/workflows/ci.yml        # CI: lint, typecheck, tests, build y e2e en cada PR y push a main
+├── e2e/                            # Tests end-to-end (Playwright) + playwright.config.ts
 ├── .env.example                    # Variables de entorno (copiar a .env.local)
 ├── CHANGELOG.md                    # Historial de cambios
 ├── ICONOS_Y_ESTRUCTURA.txt         # Mapa de iconos y estructura en texto plano
@@ -171,7 +172,7 @@ src/
 │   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.js             # Paginación con .range() (Supabase corta en 1000 filas)
-│   └── *.test.js                   # helpers, currency, fetchAllRows
+│   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
 ├── theme/
 │   ├── materialTheme.js            # Temas light/dark, acentos y animación de iconos
 │   ├── icons.js                    # Set central de iconos MUI Rounded
@@ -227,15 +228,18 @@ cp .env.example .env.local
 # Iniciar servidor de desarrollo
 npm run dev
 
-# Correr los tests unitarios (Vitest)
+# Tests unitarios y de componentes (Vitest)
 npm run test
+
+# Tests end-to-end (Playwright) sobre el build de producción
+npm run build && npm run test:e2e
 
 # Lint (ESLint) y chequeo de tipos (tsc)
 npm run lint
 npm run typecheck
 ```
 
-La CI (`.github/workflows/ci.yml`) corre lint, typecheck, tests y build en cada push a `main` y en cada PR.
+La CI (`.github/workflows/ci.yml`) corre lint, typecheck, tests, build y tests end-to-end en cada push a `main` y en cada PR.
 
 La app estará disponible en `http://localhost:3000`. Detalles de testing en **[docs/TESTING.md](docs/TESTING.md)**.
 

@@ -1,0 +1,105 @@
+import { test, expect, type Page } from "@playwright/test"
+
+// Collects everything that would show up red in the browser console.
+function watchConsole(page: Page) {
+  const problems: string[] = []
+  page.on("console", (m) => { if (m.type() === "error") problems.push(m.text()) })
+  page.on("pageerror", (e) => problems.push(String(e)))
+  return problems
+}
+
+const setTheme = (page: Page, theme: "light" | "dark") =>
+  page.addInitScript((t) => localStorage.setItem("gastos-theme", JSON.stringify(t)), theme)
+
+test("sin sesión, el dashboard redirige a /login", async ({ page }) => {
+  await page.goto("/")
+  await expect(page).toHaveURL(/\/login$/)
+})
+
+for (const theme of ["light", "dark"] as const) {
+  test(`login en tema ${theme}: CSP con nonce, interactivo, sin errores de consola`, async ({ page }) => {
+    await setTheme(page, theme)
+    const problems = watchConsole(page)
+    const res = await page.goto("/login", { waitUntil: "networkidle" })
+
+    const csp = res!.headers()["content-security-policy"]
+    expect(csp).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/)
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/)
+
+    // Every <script> carries the per-request nonce; strict-dynamic would block any that doesn't.
+    const withoutNonce = await page.$$eval("script", (els) => els.filter((s) => !(s as HTMLScriptElement).nonce).length)
+    expect(withoutNonce).toBe(0)
+
+    // Hydrated: the form is interactive.
+    const email = page.getByLabel(/correo|email/i).first()
+    await email.fill("alguien@example.com")
+    await expect(email).toHaveValue("alguien@example.com")
+
+    // The stored theme is applied. (Production React doesn't log attribute hydration
+    // mismatches; that regression is covered by src/hooks/useLocalStorage.test.jsx.)
+    const [r, g, b] = (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).match(/\d+/g)!.map(Number)
+    if (theme === "dark") expect(r + g + b).toBeLessThan(200)
+    else expect(r + g + b).toBeGreaterThan(600)
+    expect(problems).toEqual([])
+  })
+}
+
+for (const path of ["/register", "/forgot-password", "/reset-password"]) {
+  test(`${path} carga sin errores de consola`, async ({ page }) => {
+    const problems = watchConsole(page)
+    const res = await page.goto(path, { waitUntil: "networkidle" })
+    expect(res!.status()).toBe(200)
+    expect(problems).toEqual([])
+  })
+}
+
+test("fuentes servidas desde la app, sin peticiones a otros dominios", async ({ page, baseURL }) => {
+  const external: string[] = []
+  page.on("request", (req) => { if (!req.url().startsWith(baseURL!) && !req.url().startsWith("data:")) external.push(req.url()) })
+  await page.goto("/login", { waitUntil: "networkidle" })
+  const loadedFonts = await page.evaluate(async () => {
+    await document.fonts.ready
+    return [...document.fonts].filter((f) => f.status === "loaded").length
+  })
+  expect(loadedFonts).toBeGreaterThan(0)
+  expect(external).toEqual([])
+})
+
+test("el favicon de la app existe y está enlazado", async ({ page, request }) => {
+  await page.goto("/login")
+  await expect(page.locator('link[rel="icon"][href*="favicon.svg"]')).toHaveCount(1)
+  const res = await request.get("/favicon.svg")
+  expect(res.status()).toBe(200)
+  expect(await res.text()).toContain("<svg")
+})
+
+test("un error no capturado en el navegador llega a /api/client-error (sin la query)", async ({ page }) => {
+  // Playwright doesn't expose sendBeacon bodies: wrap it to record the payload, then let the
+  // real beacon go out so the route's response is checked too.
+  await page.addInitScript(() => {
+    const original = navigator.sendBeacon.bind(navigator)
+    const w = window as unknown as { __beacons: Promise<string>[] }
+    w.__beacons = []
+    navigator.sendBeacon = (url, data) => {
+      if (String(url).endsWith("/api/client-error") && data instanceof Blob) w.__beacons.push(data.text())
+      return original(url, data)
+    }
+  })
+  await page.goto("/login?code=secreto", { waitUntil: "networkidle" })
+  const response = page.waitForResponse((res) => res.url().endsWith("/api/client-error"))
+  await page.evaluate(() => { setTimeout(() => { throw new Error("e2e: error de prueba") }, 0) })
+  expect((await response).status()).toBe(204)
+
+  const sent = await page.evaluate(() => Promise.all((window as unknown as { __beacons: Promise<string>[] }).__beacons))
+  expect(sent).toHaveLength(1)
+  expect(JSON.parse(sent[0])).toMatchObject({ message: "e2e: error de prueba", path: "/login", context: { where: "window.onerror" } })
+  expect(sent[0]).not.toContain("secreto")
+})
+
+test("/api/client-error rechaza cuerpos inválidos y otras rutas /api siguen protegidas", async ({ request }) => {
+  expect((await request.post("/api/client-error", { data: "no es json", headers: { "content-type": "application/json" } })).status()).toBe(400)
+  expect((await request.post("/api/client-error", { data: { message: "x".repeat(9000) } })).status()).toBe(413)
+  const other = await request.post("/api/otra-cosa", { maxRedirects: 0 })
+  expect(other.status()).toBe(307)
+  expect(other.headers()["location"]).toMatch(/\/login$/)
+})

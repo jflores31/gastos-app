@@ -28,7 +28,10 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - La ruta los escribe como una línea JSON `[client-error]` en los logs del servidor (Vercel → Logs).
   - Antes, `removeConsole` borraba también los `console.error` en producción; ahora se conservan `error` y `warn`.
 - CI en GitHub Actions: lint, typecheck, tests y build en cada push a `main` y en cada PR.
-- Tests de conversión de moneda, de paginación y del mapa de iconos.
+- **Tests:** conversión de moneda, paginación, mapa de iconos y reporte de errores.
+  - Tests de componentes (jsdom + Testing Library): moneda en `AddTransactionModal`, `IconPicker` e hidratación de `useLocalStorage`; se verificó que fallan con los bugs originales.
+  - 10 tests end-to-end con Playwright sobre el build de producción: redirección sin sesión, CSP con nonce, temas, páginas de auth, fuentes locales, favicon y reporte de errores.
+  - En total: 76 tests unitarios y de componentes más 10 end-to-end, todos en la CI.
 - **Iconos:**
   - Mapa único categoría → icono (`src/theme/categoryIcons.js`) con `resolveCategoryMeta()`, que reemplaza la lógica `custom_` duplicada en Gastos, Ingresos y Presupuestos.
   - Las listas, chips de filtro, presupuestos y recurrentes muestran el icono de la categoría (`CategoryAvatar`) en vez de iniciales o números.

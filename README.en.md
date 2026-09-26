@@ -18,7 +18,7 @@ Personal finance application to track income, expenses, budgets, goals, and more
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
 | Language | TypeScript (routes/config) + JSX (components) |
-| Tests | Vitest (unit) |
+| Tests | Vitest (unit and jsdom component tests) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests and build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
 
@@ -116,7 +116,8 @@ Drawer with **two tabs** that separate Profile from Settings:
 
 ```
 .
-├── .github/workflows/ci.yml        # CI: lint, typecheck, tests and build on every PR and push to main
+├── .github/workflows/ci.yml        # CI: lint, typecheck, tests, build and e2e on every PR and push to main
+├── e2e/                            # End-to-end tests (Playwright) + playwright.config.ts
 ├── .env.example                    # Environment variables (copy to .env.local)
 ├── CHANGELOG.md                    # Changelog
 ├── ICONOS_Y_ESTRUCTURA.txt         # Plain-text icon map and structure (Spanish)
@@ -171,7 +172,7 @@ src/
 │   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.js             # Pagination with .range() (Supabase caps responses at 1000 rows)
-│   └── *.test.js                   # helpers, currency, fetchAllRows
+│   └── *.test.js                   # helpers, currency, fetchAllRows (components: *.test.jsx next to each)
 ├── theme/
 │   ├── materialTheme.js            # Light/dark themes, accents and icon animation
 │   ├── icons.js                    # Central MUI Rounded icon set
@@ -227,15 +228,18 @@ cp .env.example .env.local
 # Start the dev server
 npm run dev
 
-# Run the unit tests (Vitest)
+# Unit and component tests (Vitest)
 npm run test
+
+# End-to-end tests (Playwright) against the production build
+npm run build && npm run test:e2e
 
 # Lint (ESLint) and type check (tsc)
 npm run lint
 npm run typecheck
 ```
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build on every push to `main` and on every PR.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build and end-to-end tests on every push to `main` and on every PR.
 
 The app will be available at `http://localhost:3000`. Testing details in **[docs/TESTING.md](docs/TESTING.md)**.
 
