@@ -203,6 +203,40 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   expect((await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
 })
 
+test("Presupuestos: editar en la tarjeta, agregar (también de una categoría propia) y borrar", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const budgets = async () => Object.fromEntries((await mockDb(request, email)).tables.budgets.map((b) => [b.categoria, b.monto]))
+  await page.getByRole("tab", { name: "Presupuesto" }).click()
+  await expect(page.getByText("S/800").first()).toBeVisible() // 600 + 200
+
+  // Inline edit from the card's limit chip.
+  await page.getByRole("button", { name: "S/600" }).click()
+  const inline = page.locator("input[type=number]").first()
+  await inline.fill("700")
+  await inline.press("Enter")
+  await expect.poll(budgets).toEqual({ COMIDA: 700, TRANSPORTE: 200 })
+
+  // "Gestionar": add a native and a custom category, then delete one.
+  await page.getByRole("button", { name: "Gestionar" }).click()
+  const manage = page.getByRole("dialog").filter({ hasText: "Gestionar Presupuestos" })
+  const add = async (cat: string, amount: string) => {
+    await manage.getByRole("combobox", { name: /Categoría/ }).click()
+    await page.getByRole("option", { name: cat, exact: true }).click()
+    await manage.getByLabel("Monto mensual").fill(amount)
+    await manage.getByRole("button", { name: "Agregar" }).click()
+    await expect(manage.getByText(cat, { exact: true })).toBeVisible()
+  }
+  await add("Streaming", "50")
+  await add("Gatos", "80")
+  const catId = (await mockDb(request, email)).tables.custom_categories[0].id
+  await expect.poll(budgets).toEqual({ COMIDA: 700, TRANSPORTE: 200, STREAMING: 50, [`custom_${catId}`]: 80 })
+
+  await manage.getByRole("listitem").filter({ hasText: "Transporte" }).getByRole("button").nth(1).click()
+  await page.getByRole("dialog").filter({ hasText: "Eliminar presupuesto" }).getByRole("button", { name: "Eliminar" }).click()
+  await expect.poll(budgets).toEqual({ COMIDA: 700, STREAMING: 50, [`custom_${catId}`]: 80 })
+})
+
 test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)

@@ -1,0 +1,40 @@
+import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
+import { CompareArrows as CompareIcon } from "../../theme/icons";
+import { fmtMoney } from "../../data/index.js";
+import { periodLabel } from "../../data/helpers.js";
+import { GradientIcon } from "../../theme/GradientIcon.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
+
+const PERIOD_NAME = {
+  es: { week: "semana", month: "mes", quarter: "trimestre", year: "año" },
+  en: { week: "week", month: "month", quarter: "quarter", year: "year" },
+};
+
+// Spending of the previous period and the % change against this one.
+export function PeriodComparisonCard({ period, prevOut, dOut }) {
+  const { t, lang, currency } = useSettings();
+  const name = PERIOD_NAME[lang === "es" ? "es" : "en"][period] ?? PERIOD_NAME[lang === "es" ? "es" : "en"].year;
+  return (
+    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "info.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
+      <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+          <GradientIcon icon={CompareIcon} tone="goals" bubble />
+          <Box>
+            <Typography variant="h6" fontWeight={700}>{lang === "es" ? `vs ${name} anterior` : `vs previous ${name}`}</Typography>
+            <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: "flex", flex: 1, gap: 2, alignItems: "center" }}>
+          <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <Typography variant="caption" color="text.secondary">{lang === "es" ? "Gasto anterior" : "Previous"}</Typography>
+            <Typography variant="h5" fontWeight={700}>{fmtMoney(prevOut, currency, true)}</Typography>
+          </Box>
+          <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <Typography variant="caption" color="text.secondary">{lang === "es" ? "Cambio" : "Change"}</Typography>
+            <Chip label={`${dOut > 0 ? "+" : ""}${dOut.toFixed(1)}%`} color={dOut > 0 ? "error" : "success"} size="medium" sx={{ fontWeight: 600, mt: 0.5 }} />
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
