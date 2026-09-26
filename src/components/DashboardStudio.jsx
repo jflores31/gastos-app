@@ -32,6 +32,10 @@ import AddTransactionModal from "./AddTransactionModal.jsx";
 import SettingsPanel from "./SettingsPanel.jsx";
 import LoginModal from "./LoginModal.jsx";
 
+const SESSION_ALIVE_KEY = "gastos_session_alive";
+const LAST_ACTIVE_KEY = "gastos_last_active";
+const SESSION_CHANNEL = "gastos-session";
+
 export default function DashboardStudio() {
   const { t, lang } = useSettings();
   const muiTheme = useTheme();
@@ -64,9 +68,19 @@ export default function DashboardStudio() {
   }, [showToast, lang]);
 
   const handleSignOut = useCallback(async () => {
-    localStorage.removeItem("gastos_last_active");
+    localStorage.removeItem(LAST_ACTIVE_KEY);
     const supabase = createClient();
     await supabase.auth.signOut();
+    router.replace("/login");
+  }, [router]);
+
+  // Automatic logouts (inactivity, 8h max age, reopened browser) only end the session
+  // in this browser. signOut()'s default scope is "global", which would also revoke the
+  // user's sessions on every other device.
+  const autoSignOut = useCallback(async () => {
+    localStorage.removeItem(LAST_ACTIVE_KEY);
+    const supabase = createClient();
+    await supabase.auth.signOut({ scope: "local" });
     router.replace("/login");
   }, [router]);
 
@@ -77,7 +91,10 @@ export default function DashboardStudio() {
     }
   }, [user, router]);
 
-  // Inactivity auto-logout: 2 minutes with 30s warning
+  // Inactivity auto-logout: 2 minutes with 30s warning.
+  // LAST_ACTIVE_KEY lives in localStorage, shared by every tab: before warning or
+  // logging out, re-read it so an idle tab doesn't end a session the user is
+  // actively using in another tab.
   useEffect(() => {
     if (!user) return;
 
@@ -87,27 +104,41 @@ export default function DashboardStudio() {
     let logoutTimer;
     let warnTimer;
 
-    const resetTimers = () => {
-      localStorage.setItem("gastos_last_active", String(Date.now()));
+    const msLeft = () => {
+      const last = Number(localStorage.getItem(LAST_ACTIVE_KEY)) || Date.now();
+      return TIMEOUT - (Date.now() - last);
+    };
+
+    const schedule = () => {
       clearTimeout(logoutTimer);
       clearTimeout(warnTimer);
+      const left = msLeft();
+      if (left <= 0) {
+        autoSignOut();
+        return;
+      }
+      if (left > WARN_BEFORE) warnTimer = setTimeout(warn, left - WARN_BEFORE);
+      logoutTimer = setTimeout(schedule, left);
+    };
 
-      warnTimer = setTimeout(() => {
-        showToast(
-          lang === "es"
-            ? "La sesión se cerrará en 30 segundos por inactividad"
-            : "Session will close in 30 seconds due to inactivity",
-          "warning",
-          WARN_BEFORE
-        );
-      }, TIMEOUT - WARN_BEFORE);
+    const warn = () => {
+      // Activity in another tab pushed the deadline back: reschedule instead.
+      if (msLeft() > WARN_BEFORE + 1000) {
+        schedule();
+        return;
+      }
+      showToast(
+        lang === "es"
+          ? "La sesión se cerrará en 30 segundos por inactividad"
+          : "Session will close in 30 seconds due to inactivity",
+        "warning",
+        WARN_BEFORE
+      );
+    };
 
-      logoutTimer = setTimeout(async () => {
-        localStorage.removeItem("gastos_last_active");
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        router.replace("/login");
-      }, TIMEOUT);
+    const resetTimers = () => {
+      localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+      schedule();
     };
 
     const EVENTS = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
@@ -119,29 +150,66 @@ export default function DashboardStudio() {
       clearTimeout(warnTimer);
       EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
     };
-  }, [user, showToast, lang, router]);
+  }, [user, showToast, lang, autoSignOut]);
 
-  // Session security: force login on browser close (sessionStorage flag) + 8h max-age for open tabs
+  // Session security: force login on browser close (sessionStorage flag) + 8h max-age for open tabs.
+  // sessionStorage is per tab, so a tab opened by hand (bookmark, typed URL) starts without
+  // the flag even while other tabs are open. Before treating that as a reopened browser,
+  // ask the other tabs over a BroadcastChannel; if one answers, inherit its flag.
   useEffect(() => {
     if (!user) return;
 
-    // sessionStorage is cleared when the browser closes — if the flag is gone, force re-login
-    if (!sessionStorage.getItem("gastos_session_alive")) {
-      handleSignOut();
-      return;
+    let cancelled = false;
+    let channel = null;
+    try {
+      channel = new BroadcastChannel(SESSION_CHANNEL);
+      channel.onmessage = (e) => {
+        if (e.data === "ping" && sessionStorage.getItem(SESSION_ALIVE_KEY)) channel.postMessage("pong");
+      };
+    } catch {
+      channel = null; // BroadcastChannel unsupported: fall back to per-tab behaviour
     }
+
+    const askOtherTabs = () => new Promise((resolve) => {
+      if (!channel) return resolve(false);
+      const onPong = (e) => {
+        if (e.data !== "pong") return;
+        clearTimeout(timer);
+        channel.removeEventListener("message", onPong);
+        resolve(true);
+      };
+      const timer = setTimeout(() => {
+        channel.removeEventListener("message", onPong);
+        resolve(false);
+      }, 300);
+      channel.addEventListener("message", onPong);
+      channel.postMessage("ping");
+    });
 
     const MAX_AGE = 8 * 60 * 60 * 1000;
 
     const checkSessionAge = async () => {
-      const raw = localStorage.getItem("gastos_last_active");
+      const raw = localStorage.getItem(LAST_ACTIVE_KEY);
       if (raw && Date.now() - Number(raw) > MAX_AGE) {
-        localStorage.removeItem("gastos_last_active");
-        await handleSignOut();
+        await autoSignOut();
       }
     };
 
-    checkSessionAge().catch(() => {});
+    const start = async () => {
+      if (!sessionStorage.getItem(SESSION_ALIVE_KEY)) {
+        const alive = await askOtherTabs();
+        if (cancelled) return;
+        if (!alive) {
+          // No other tab of this browser session answered: the browser was reopened.
+          await autoSignOut();
+          return;
+        }
+        sessionStorage.setItem(SESSION_ALIVE_KEY, "1");
+      }
+      await checkSessionAge();
+    };
+
+    start().catch(() => {});
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") checkSessionAge().catch(() => {});
@@ -152,10 +220,12 @@ export default function DashboardStudio() {
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pageshow", handlePageShow);
     return () => {
+      cancelled = true;
+      channel?.close();
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pageshow", handlePageShow);
     };
-  }, [user, handleSignOut]);
+  }, [user, autoSignOut]);
 
   const TAB_LABELS = [
     { id: "overview", label: t.overview, icon: <DashboardIcon /> },

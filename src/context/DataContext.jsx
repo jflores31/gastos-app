@@ -4,6 +4,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "../lib/supabase"
 import { flagAnomalies } from "../data/helpers.js"
+import { fetchAllRows } from "../data/fetchAllRows.js"
 
 const DataContext = createContext(null)
 
@@ -107,7 +108,9 @@ export function DataProvider({ children }) {
         setLoading(true)
         setLoadError(null)
         const results = await Promise.all([
-          supabase.from("transactions").select("*").order("fecha", { ascending: true }),
+          fetchAllRows(() =>
+            supabase.from("transactions").select("*").order("fecha", { ascending: true }).order("id", { ascending: true })
+          ),
           supabase.from("budgets").select("*"),
           supabase.from("goals").select("*").order("created_at"),
           supabase.from("accounts").select("*").order("created_at"),

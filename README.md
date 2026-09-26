@@ -96,7 +96,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Perfil y Configuración (SettingsPanel)
 Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color — en Supabase)
-- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN: los formularios convierten con `toBase()` al guardar y `fromBase()` al editar (`src/data/index.js`), con tasas fijas
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
 
@@ -136,8 +136,7 @@ src/
 │   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
 │   ├── SettingsPanel.jsx           # Drawer de ajustes + categorías personalizadas
-│   ├── LoginModal.jsx              # Modal de login in-app
-│   └── ErrorBoundary.jsx
+│   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
 │   ├── DataContext.jsx             # CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
@@ -197,7 +196,13 @@ npm run dev
 
 # Correr los tests unitarios (Vitest)
 npm run test
+
+# Lint (ESLint) y chequeo de tipos (tsc)
+npm run lint
+npm run typecheck
 ```
+
+La CI (`.github/workflows/ci.yml`) corre lint, typecheck, tests y build en cada push a `main` y en cada PR.
 
 La app estará disponible en `http://localhost:3000`. Detalles de testing en **[docs/TESTING.md](docs/TESTING.md)**.
 
@@ -216,9 +221,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
-| Sesión por browser session | `gastos_session_alive` en `sessionStorage` (limpiado por el navegador al cerrar); reabrir el browser fuerza re-login. La sesión sobrevive recargas de página normales |
+| Sesión por browser session | `gastos_session_alive` en `sessionStorage` (limpiado por el navegador al cerrar); reabrir el browser fuerza re-login. La sesión sobrevive recargas de página normales. Una pestaña nueva abierta a mano pregunta por `BroadcastChannel("gastos-session")` si hay otra pestaña viva y, si responde, hereda la sesión en vez de cerrarla |
+| Cierres automáticos acotados | Inactividad, 8 h y navegador reabierto usan `signOut({ scope: "local" })` (no revocan sesiones de otros dispositivos). Antes de cerrar por inactividad se relee `gastos_last_active` (compartido entre pestañas) para no cerrar la sesión si el usuario está activo en otra pestaña |
 | Expiración por inactividad prolongada | `gastos_last_active` en `localStorage` actualizado en cada evento de usuario; si la pestaña lleva >8 h sin actividad se cierra la sesión al recuperar el foco |
-| Límite en montos | Máximo 10,000,000 validado en cliente y con `max` en el input |
+| Límite en montos | Máximo 10,000,000 (en PEN, la moneda base) validado en cliente y con `max` en el input |
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
 
 > Arquitectura del CSP con nonce por request (flujo en `proxy.ts`, render dinámico, cómo verificar): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.

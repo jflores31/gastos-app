@@ -61,8 +61,7 @@ src/
 │   ├── Charts.jsx                # Donut / SparkArea / Cashflow / Heat
 │   ├── SettingsPanel.jsx         # Ajustes + categorías custom
 │   ├── LoginModal.jsx
-│   ├── shared.jsx                # CalendarFilter, TxTable, Delta...
-│   └── ErrorBoundary.jsx
+│   └── shared.jsx                # CalendarFilter, TxTable, Delta...
 │
 ├── context/                      # Estado global (React Context)
 │   ├── DataContext.jsx           # Transacciones / CRUD

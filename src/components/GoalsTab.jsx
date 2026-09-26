@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "../theme/icons";
-import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
+import { fmtMoney, txByMonth, CATEGORIES, toBase, fromBase } from "../data/index.js";
 import { gradientBg } from "../theme/iconTones.js";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { linearRegressionSlope } from "../data/helpers.js";
@@ -79,12 +79,12 @@ export default function GoalsTab({ showToast }) {
 
   // Goals handlers
   const openNewGoal = () => { setEditingGoal(null); setGoalForm(EMPTY_GOAL); setGoalsDialog(true); };
-  const openEditGoal = (g) => { setEditingGoal(g); setGoalForm({ ...g }); setGoalsDialog(true); };
+  const openEditGoal = (g) => { setEditingGoal(g); setGoalForm({ ...g, target: String(fromBase(g.target, currency)), current: String(fromBase(g.current, currency)) }); setGoalsDialog(true); };
   const closeGoalDialog = () => { setGoalsDialog(false); setEditingGoal(null); };
   const handleSaveGoal = async () => {
     setSavingGoal(true);
     try {
-      await saveGoal({ ...goalForm, target: parseFloat(goalForm.target), current: parseFloat(goalForm.current) || 0 });
+      await saveGoal({ ...goalForm, target: toBase(parseFloat(goalForm.target), currency), current: toBase(parseFloat(goalForm.current) || 0, currency) });
       showToast?.(lang === "es" ? "Meta guardada" : "Goal saved", "success");
       closeGoalDialog();
     } catch {
@@ -105,12 +105,12 @@ export default function GoalsTab({ showToast }) {
 
   // Account handlers
   const openNewAccount = () => { setEditingAccount(null); setAccountForm(EMPTY_ACCOUNT); setAccountsDialog(true); };
-  const openEditAccount = (a) => { setEditingAccount(a); setAccountForm({ ...a, limit: a.limit ?? "" }); setAccountsDialog(true); };
+  const openEditAccount = (a) => { setEditingAccount(a); setAccountForm({ ...a, balance: String(fromBase(a.balance, currency)), limit: a.limit != null ? String(fromBase(a.limit, currency)) : "" }); setAccountsDialog(true); };
   const closeAccountDialog = () => { setAccountsDialog(false); setEditingAccount(null); };
   const handleSaveAccount = async () => {
     setSavingAccount(true);
     try {
-      await saveAccount({ ...accountForm, balance: parseFloat(accountForm.balance), limit: accountForm.limit ? parseFloat(accountForm.limit) : undefined });
+      await saveAccount({ ...accountForm, balance: toBase(parseFloat(accountForm.balance), currency), limit: accountForm.limit ? toBase(parseFloat(accountForm.limit), currency) : undefined });
       showToast?.(lang === "es" ? "Cuenta guardada" : "Account saved", "success");
       closeAccountDialog();
     } catch {
@@ -131,12 +131,12 @@ export default function GoalsTab({ showToast }) {
 
   // Investment handlers
   const openNewInvest = () => { setEditingInvest(null); setInvestForm(EMPTY_INVESTMENT); setInvestDialog(true); };
-  const openEditInvest = (inv) => { setEditingInvest(inv); setInvestForm({ ...inv, value: String(inv.value), return: String(inv.return) }); setInvestDialog(true); };
+  const openEditInvest = (inv) => { setEditingInvest(inv); setInvestForm({ ...inv, value: String(fromBase(inv.value, currency)), return: String(inv.return) }); setInvestDialog(true); };
   const closeInvestDialog = () => { setInvestDialog(false); setEditingInvest(null); };
   const handleSaveInvest = async () => {
     setSavingInvest(true);
     try {
-      await saveInvestment({ ...investForm, value: parseFloat(investForm.value), return: parseFloat(investForm.return) || 0 });
+      await saveInvestment({ ...investForm, value: toBase(parseFloat(investForm.value), currency), return: parseFloat(investForm.return) || 0 });
       showToast?.(lang === "es" ? "Inversión guardada" : "Investment saved", "success");
       closeInvestDialog();
     } catch {
@@ -157,12 +157,12 @@ export default function GoalsTab({ showToast }) {
 
   // Debt handlers
   const openNewDebt = () => { setEditingDebt(null); setDebtForm(EMPTY_DEBT); setDebtDialog(true); };
-  const openEditDebt = (d) => { setEditingDebt(d); setDebtForm({ ...d, balance: String(d.balance), rate: String(d.rate), monthly: String(d.monthly), remaining: String(d.remaining), original_months: String(d.original_months) }); setDebtDialog(true); };
+  const openEditDebt = (d) => { setEditingDebt(d); setDebtForm({ ...d, balance: String(fromBase(d.balance, currency)), rate: String(d.rate), monthly: String(fromBase(d.monthly, currency)), remaining: String(d.remaining), original_months: String(d.original_months) }); setDebtDialog(true); };
   const closeDebtDialog = () => { setDebtDialog(false); setEditingDebt(null); };
   const handleSaveDebt = async () => {
     setSavingDebt(true);
     try {
-      await saveDebt({ ...debtForm, balance: parseFloat(debtForm.balance), rate: parseFloat(debtForm.rate) || 0, monthly: parseFloat(debtForm.monthly) || 0, remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
+      await saveDebt({ ...debtForm, balance: toBase(parseFloat(debtForm.balance), currency), rate: parseFloat(debtForm.rate) || 0, monthly: toBase(parseFloat(debtForm.monthly) || 0, currency), remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
       showToast?.(lang === "es" ? "Préstamo guardado" : "Loan saved", "success");
       closeDebtDialog();
     } catch {
@@ -183,12 +183,12 @@ export default function GoalsTab({ showToast }) {
 
   // Subscription handlers
   const openNewSub = () => { setEditingSub(null); setSubForm(EMPTY_SUB); setSubDialog(true); };
-  const openEditSub = (s) => { setEditingSub(s); setSubForm({ ...s, price: String(s.price) }); setSubDialog(true); };
+  const openEditSub = (s) => { setEditingSub(s); setSubForm({ ...s, price: String(fromBase(s.price, currency)) }); setSubDialog(true); };
   const closeSubDialog = () => { setSubDialog(false); setEditingSub(null); };
   const handleSaveSub = async () => {
     setSavingSub(true);
     try {
-      await saveSubscription({ ...subForm, price: parseFloat(subForm.price) });
+      await saveSubscription({ ...subForm, price: toBase(parseFloat(subForm.price), currency) });
       showToast?.(lang === "es" ? "Suscripción guardada" : "Subscription saved", "success");
       closeSubDialog();
     } catch {

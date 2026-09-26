@@ -21,7 +21,7 @@ import {
   Album, Theaters, PhotoCamera, Videocam, Campaign, LightbulbCircle,
   CorporateFare, Code, YouTube, OndemandVideo, TrendingUp,
 } from "../theme/icons";
-import { CATEGORIES } from "../data/index.js";
+import { CATEGORIES, CURRENCIES, toBase, fromBase, fmtMoney } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
@@ -95,6 +95,9 @@ const INCOME_ICONS = {
   AHORROS: <Savings fontSize="small" />,
 };
 
+// Per-transaction cap, in the base currency (PEN).
+const MAX_AMOUNT_BASE = 10_000_000;
+
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency } = useSettings();
   const { addTx, updateTx, customCats } = useData();
@@ -102,7 +105,8 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
   const [concepto, setConcepto] = useState(editTx?.concepto || "");
-  const [valor, setValor] = useState(editTx?.valor?.toString() || "");
+  // Stored amounts are in PEN; the form works in the selected currency.
+  const [valor, setValor] = useState(editTx?.valor != null ? String(fromBase(editTx.valor, currency)) : "");
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -156,8 +160,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     const errs = {};
     if (!categoria) errs.categoria = lang === "es" ? "Selecciona una categoría" : "Select a category";
     if (!concepto.trim()) errs.concepto = lang === "es" ? "Ingresa un concepto" : "Enter a concept";
-    if (!valor || parseFloat(valor) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
-    else if (parseFloat(valor) > 10_000_000) errs.valor = lang === "es" ? "El monto máximo es 10,000,000" : "Maximum amount is 10,000,000";
+    // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
+    if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
+    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = lang === "es" ? `El monto máximo es ${fmtMoney(MAX_AMOUNT_BASE, currency)}` : `Maximum amount is ${fmtMoney(MAX_AMOUNT_BASE, currency)}`;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -178,7 +183,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
         mes: fecha.month(),
         año: fecha.year(),
         date: fecha.toDate(),
-        valor: parseFloat(valor),
+        valor: toBase(parseFloat(valor), currency),
         anomaly: false,
       };
       if (editTx) {
@@ -194,7 +199,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     }
   };
 
-  const currSymbol = { PEN: "S/", USD: "$", EUR: "€", MXN: "$", COP: "$", ARS: "$", CLP: "$", BRL: "R$" }[currency] || "$";
+  const currSymbol = (CURRENCIES[currency] || CURRENCIES.PEN).symbol;
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
@@ -260,7 +265,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
         <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
-          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: 10_000_000, step: "any" } } }} />
+          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, currency), step: "any" } } }} />
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? "es" : "en"}>
           <DatePicker

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
-import { CATEGORIES, fmtMoney, txByCategory } from "../data/index.js";
+import { CATEGORIES, fmtMoney, txByCategory, toBase, fromBase } from "../data/index.js";
 import { gradientBg } from "../theme/iconTones.js";
 import { filterByPeriod, monthCount, healthScore, healthLabel, healthTone, recurringList, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -76,10 +76,10 @@ export default function BudgetTab({ period, showToast }) {
 
   const donutTotal = donutData.reduce((s, d) => s + d.value, 0);
 
-  const startEdit = (cat) => { setEditing(cat); setEditVal(String(editBudgets[cat])); };
+  const startEdit = (cat) => { setEditing(cat); setEditVal(String(fromBase(editBudgets[cat], currency))); };
   const saveEdit = async () => {
-    const v = parseFloat(editVal);
-    if (v <= 0) { setEditing(null); return; }
+    const v = toBase(parseFloat(editVal), currency);
+    if (!(v > 0)) { setEditing(null); return; }
     try {
       await setEditBudgets((b) => ({ ...b, [editing]: v }));
       showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
@@ -91,9 +91,10 @@ export default function BudgetTab({ period, showToast }) {
   };
 
   const handleAddBudget = async () => {
-    if (!newCat || parseFloat(newBudget) <= 0) return;
+    const v = toBase(parseFloat(newBudget), currency);
+    if (!newCat || !(v > 0)) return;
     try {
-      await setEditBudgets((b) => ({ ...b, [newCat]: parseFloat(newBudget) }));
+      await setEditBudgets((b) => ({ ...b, [newCat]: v }));
       showToast?.(lang === "es" ? "Presupuesto agregado" : "Budget added");
       setNewCat("");
       setNewBudget("");
@@ -104,12 +105,12 @@ export default function BudgetTab({ period, showToast }) {
 
   const startEditExisting = (cat) => {
     setEditExisting(cat);
-    setEditExistingVal(String(editBudgets[cat]));
+    setEditExistingVal(String(fromBase(editBudgets[cat], currency)));
   };
 
   const saveEditExisting = async () => {
-    const v = parseFloat(editExistingVal);
-    if (v <= 0) { setEditExisting(null); return; }
+    const v = toBase(parseFloat(editExistingVal), currency);
+    if (!(v > 0)) { setEditExisting(null); return; }
     try {
       await setEditBudgets((b) => ({ ...b, [editExisting]: v }));
       showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");

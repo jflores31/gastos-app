@@ -96,7 +96,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
 - **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color — in Supabase)
-- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN: forms convert with `toBase()` on save and `fromBase()` on edit (`src/data/index.js`), using fixed rates
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
@@ -136,8 +136,7 @@ src/
 │   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
 │   ├── SettingsPanel.jsx           # Drawer de ajustes + categorías personalizadas
-│   ├── LoginModal.jsx              # Modal de login in-app
-│   └── ErrorBoundary.jsx
+│   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
 │   ├── DataContext.jsx             # CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
@@ -195,9 +194,15 @@ cp .env.example .env.local
 # Iniciar servidor de desarrollo
 npm run dev
 
-# Correr los tests unitarios (Vitest)
+# Run the unit tests (Vitest)
 npm run test
+
+# Lint (ESLint) and type check (tsc)
+npm run lint
+npm run typecheck
 ```
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build on every push to `main` and on every PR.
 
 The app will be available at `http://localhost:3000`. Testing details in **[docs/TESTING.md](docs/TESTING.md)**.
 
@@ -216,9 +221,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | RLS in Supabase | All tables with owner-only policies `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Password policy | `minimum_password_length = 8` in `supabase/config.toml` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |
-| Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads |
+| Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads. A tab opened by hand asks over `BroadcastChannel("gastos-session")` whether another tab is alive and, if one answers, inherits the session instead of signing out |
+| Scoped automatic sign-outs | Inactivity, 8 h max age and reopened browser use `signOut({ scope: "local" })` (other devices' sessions are not revoked). Before an inactivity logout the shared `gastos_last_active` is re-read so an idle tab doesn't sign out a user who is active in another tab |
 | Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
-| Amount limit | Maximum 10,000,000 validated on client and with `max` attribute on the input |
+| Amount limit | Maximum 10,000,000 (in PEN, the base currency) validated on client and with `max` attribute on the input |
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
 
 > Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
