@@ -102,8 +102,8 @@ function AccountRow({ account: a, onEdit, onDelete }) {
         </Typography>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-        <IconButton size="small" aria-label="Editar" onClick={onEdit}><EditIcon fontSize="small" /></IconButton>
-        <IconButton size="small" color="error" aria-label="Eliminar" onClick={onDelete}><DeleteIcon fontSize="small" /></IconButton>
+        <IconButton size="small" aria-label={t.common.edit} onClick={onEdit}><EditIcon fontSize="small" /></IconButton>
+        <IconButton size="small" color="error" aria-label={t.common.delete} onClick={onDelete}><DeleteIcon fontSize="small" /></IconButton>
         <Typography variant="body2" fontWeight={700} color={isDebt ? "error.main" : "success.main"} sx={{ minWidth: 80, textAlign: "right" }}>
           {isDebt ? "−" : "+"}{fmtMoney(Math.abs(a.balance), currency, true)}
         </Typography>

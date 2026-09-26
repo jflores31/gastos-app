@@ -47,7 +47,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
         <Typography variant="h6" fontWeight={700}>
           {tab === "perfil" ? (t.settingsPanel.profile) : (t.settingsPanel.settings)}
         </Typography>
-        <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
+        <IconButton onClick={onClose} aria-label={t.common.close}><CloseIcon /></IconButton>
       </Box>
 
       {/* Tabs: separa Perfil de Ajustes */}

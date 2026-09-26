@@ -126,7 +126,7 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={close}>{t.budgetTab.close}</Button>
+          <Button onClick={close}>{t.common.close}</Button>
         </DialogActions>
       </Dialog>
 

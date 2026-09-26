@@ -50,7 +50,7 @@ export default function LoginModal({ open, onClose }) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogContent sx={{ p: 0 }}>
         <Box sx={{ position: "relative", p: 4 }}>
-          <IconButton onClick={onClose} aria-label="Cerrar" sx={{ position: "absolute", top: 16, right: 16 }}>
+          <IconButton onClick={onClose} aria-label={t.common.close} sx={{ position: "absolute", top: 16, right: 16 }}>
             <Close />
           </IconButton>
 

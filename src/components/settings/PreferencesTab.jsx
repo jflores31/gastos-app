@@ -38,7 +38,7 @@ export function PreferencesTab() {
       <ListItem sx={{ pt: 0 }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
           {PALETTES.map((p) => (
-            <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
+            <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={t.palettes[p.key]} tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
               sx={{
                 width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
@@ -48,7 +48,7 @@ export function PreferencesTab() {
                 borderColor: palette === p.key ? "text.primary" : "transparent",
                 transition: "transform 0.15s, border-color 0.15s",
                 "&:hover": { transform: "scale(1.15)" },
-              }} title={p.label} />
+              }} title={t.palettes[p.key]} />
           ))}
         </Box>
       </ListItem>

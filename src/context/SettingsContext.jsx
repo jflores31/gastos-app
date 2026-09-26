@@ -8,13 +8,13 @@ import { ACCENT_ALIASES } from "../theme/materialTheme.js";
 
 const SettingsContext = createContext(null);
 
-// Acentos alegres con gradiente (los swatches del selector usan `grad`).
+// Acentos alegres con gradiente (los swatches del selector usan `grad`). Nombres: t.palettes.
 const PALETTES = {
-  coral: { label: "Coral",  color: "#FF4D8D", grad: ["#FF7A59", "#FF4D8D"] },
-  mint:  { label: "Menta",  color: "#14B8A6", grad: ["#34D399", "#14B8A6"] },
-  ocean: { label: "Océano", color: "#6366F1", grad: ["#38BDF8", "#6366F1"] },
-  grape: { label: "Uva",    color: "#7C3AED", grad: ["#A78BFA", "#7C3AED"] },
-  mono:  { label: "Mono",   color: "#71717A", grad: ["#71717A", "#3F3F46"] },
+  coral: { color: "#FF4D8D", grad: ["#FF7A59", "#FF4D8D"] },
+  mint:  { color: "#14B8A6", grad: ["#34D399", "#14B8A6"] },
+  ocean: { color: "#6366F1", grad: ["#38BDF8", "#6366F1"] },
+  grape: { color: "#7C3AED", grad: ["#A78BFA", "#7C3AED"] },
+  mono:  { color: "#71717A", grad: ["#71717A", "#3F3F46"] },
 };
 
 export { PALETTES };

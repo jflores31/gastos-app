@@ -3,6 +3,8 @@ import { readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { MESSAGES, messagesFor } from "./index.js"
+import { ICON_CHOICES } from "../theme/categoryIcons.js"
+import { PALETTES } from "../context/SettingsContext.jsx"
 
 // Every key path with the kind of value it holds, e.g. "goalsTab.newGoal: string",
 // "overviewTab.greeting: function/2", "months: array/12".
@@ -50,6 +52,13 @@ describe("i18n", () => {
         .map((line, i) => (/lang\s*===?\s*["']es["']/.test(line) ? `${path.relative(src, f)}:${i + 1}` : null))
         .filter(Boolean))
     expect(offenders).toEqual([])
+  })
+
+  it("cada icono elegible y cada paleta tienen nombre en ambos idiomas", () => {
+    for (const lang of ["es", "en"]) {
+      expect(Object.keys(MESSAGES[lang].iconNames).sort()).toEqual(Object.keys(ICON_CHOICES).sort())
+      expect(Object.keys(MESSAGES[lang].palettes).sort()).toEqual(Object.keys(PALETTES).sort())
+    }
   })
 
   it("messagesFor cae en español con un idioma desconocido", () => {

@@ -251,7 +251,7 @@ export default function DashboardStudio() {
           <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44, background: (th) => accentGradient(th), color: "#fff", "&:hover": { background: (th) => accentGradient(th, 145), filter: "brightness(1.05)" }, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <AddIcon />
           </Fab>
-          <Fab size="small" color="default" aria-label="Settings" onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
+          <Fab size="small" color="default" aria-label={t.settingsPanel.settings} onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <SettingsIcon fontSize="small" />
           </Fab>
           {user === undefined ? null : user ? (

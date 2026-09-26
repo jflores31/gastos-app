@@ -7,7 +7,7 @@ const dialog = (page: Page) => page.getByRole("dialog")
 const toast = (page: Page, text: string | RegExp) => page.getByRole("alert").filter({ hasText: text })
 
 async function openSettings(page: Page, tab: "Perfil" | "Ajustes") {
-  await page.getByRole("button", { name: "Settings" }).click()
+  await page.getByRole("button", { name: "Ajustes" }).click()
   await page.getByRole("tab", { name: tab }).click()
 }
 
@@ -91,7 +91,7 @@ test("en USD los montos se muestran convertidos y se guardan en PEN", async ({ p
   await openSettings(page, "Ajustes")
   await dialog(page).getByRole("combobox", { name: /Moneda/ }).click()
   await page.getByRole("option", { name: /USD/ }).click()
-  await page.getByRole("button", { name: "Close" }).click()
+  await page.getByRole("button", { name: "Cerrar" }).click()
   await expect(page.getByText("$945").first()).toBeVisible() // S/3,500 × 0.27
 
   await page.getByRole("button", { name: "Nueva transacción" }).click()
@@ -113,7 +113,7 @@ test("una meta nueva y una categoría personalizada se guardan con su icono", as
   await page.getByRole("button", { name: "Nueva meta" }).click()
   await dialog(page).getByLabel("Nombre").fill("Viaje a Cusco")
   await dialog(page).getByLabel("Monto objetivo").fill("2000")
-  await dialog(page).getByRole("radio", { name: "Flight" }).click()
+  await dialog(page).getByRole("radio", { name: "Avión" }).click()
   await dialog(page).getByRole("button", { name: "Guardar" }).click()
   await expect(page.getByText("Viaje a Cusco")).toBeVisible()
 
