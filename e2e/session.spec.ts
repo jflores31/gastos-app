@@ -203,6 +203,49 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   expect((await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
 })
 
+test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const meta = async () => (await mockDb(request, email)).user.user_metadata
+  await openSettings(page, "Perfil")
+  const panel = dialog(page).first()
+
+  // Name → auth user_metadata.
+  await panel.getByLabel("Nombre", { exact: true }).fill("Ana")
+  await panel.getByLabel("Apellidos").fill("Quispe Flores")
+  await panel.getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Nombre actualizado")).toBeVisible()
+  expect(await meta()).toMatchObject({ first_name: "Ana", last_name: "Quispe Flores", full_name: "Ana Quispe Flores" })
+  await expect(panel.getByText("Ana Quispe Flores")).toBeVisible()
+
+  // Favourites: add two, remove one.
+  for (const cat of ["Comida", "Sueldo"]) {
+    await panel.getByLabel("Agregar favorita").fill(cat)
+    await page.getByRole("option", { name: cat, exact: true }).click()
+    await expect(panel.getByRole("button", { name: cat })).toBeVisible()
+  }
+  expect((await meta()).fav_categories).toEqual([{ categoria: "COMIDA", tipo: "EGRESO" }, { categoria: "SUELDO", tipo: "INGRESO" }])
+  await panel.getByRole("button", { name: "Comida" }).locator(".MuiChip-deleteIcon").click()
+  await expect.poll(async () => (await meta()).fav_categories).toEqual([{ categoria: "SUELDO", tipo: "INGRESO" }])
+
+  // Custom category: rename + recolour the seeded one, then delete it (with confirmation).
+  await panel.getByRole("button", { name: "Editar categoría" }).click()
+  const catDialog = page.getByRole("dialog").filter({ hasText: "Editar Categoría" })
+  await catDialog.getByLabel("Nombre").fill("Michis")
+  await catDialog.getByRole("radio", { name: "#3498db" }).click()
+  await catDialog.getByRole("button", { name: "Ingreso" }).click()
+  await catDialog.getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Categoría actualizada")).toBeVisible()
+  expect((await mockDb(request, email)).tables.custom_categories).toEqual([expect.objectContaining({ nombre: "Michis", color: "#3498db", tipo: "INGRESO", icon: "Pets" })])
+
+  await panel.getByRole("button", { name: "Eliminar categoría" }).click()
+  const confirm = page.getByRole("dialog").filter({ hasText: "¿Eliminar \"Michis\"?" })
+  await confirm.getByRole("button", { name: "Eliminar" }).click()
+  await expect(toast(page, "Categoría eliminada")).toBeVisible()
+  expect((await mockDb(request, email)).tables.custom_categories).toEqual([])
+  await expect(panel.getByText("Ninguna aún. Crea tu primera categoría.")).toBeVisible()
+})
+
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {
   await login(page, uniqueEmail(info))
 
