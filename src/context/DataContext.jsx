@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { createClient } from "../lib/supabase"
 import { flagAnomalies } from "../data/helpers.js"
 import { fetchAllRows } from "../data/fetchAllRows.js"
+import { reportError } from "../lib/reportError.js"
 
 const DataContext = createContext(null)
 
@@ -133,6 +134,7 @@ export function DataProvider({ children }) {
 
         const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
         errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
+        if (errors.length > 0) reportError(errors[0], { where: "DataContext.load", failedQueries: errors.length })
         if (errors.length > 0) {
           setLoadError(errors[0].message)
           loadedForUser = null // let the next auth event retry
@@ -150,6 +152,7 @@ export function DataProvider({ children }) {
         if (customCatsData) setCustomCats(customCatsData)
       } catch (err) {
         console.error("[DataContext] load() uncaught error:", err)
+        reportError(err, { where: "DataContext.load" })
         setLoadError(err?.message ?? "Error desconocido")
         loadedForUser = null // let the next auth event retry
       } finally {

@@ -143,9 +143,11 @@ src/
 │   ├── error.tsx · global-error.tsx · not-found.tsx
 │   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx for each auth screen
 │   ├── auth/callback/route.ts      # OAuth PKCE code exchange (OAuth disabled for now)
+│   ├── api/client-error/route.ts   # Receives browser errors and writes them to the server logs
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
+│       ├── ErrorReporter.tsx       # Reports uncaught errors (window.onerror, unhandledrejection)
 │       └── auth/                   # AuthCard, AuthErrorAlert, AuthThemeToggle, authStyles
 ├── components/
 │   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, period, toasts, session security
@@ -180,6 +182,7 @@ src/
 ├── hooks/
 │   └── useLocalStorage.js          # Default value on first render; stored value applied after mount
 ├── lib/
+│   ├── reportError.js              # Sends browser errors to /api/client-error
 │   ├── supabase.ts                 # Browser client (createBrowserClient)
 │   └── supabase-server.ts          # Server client
 └── proxy.ts                        # Auth guard + per-request nonce CSP (Next.js 16)
@@ -256,6 +259,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 | Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
 | Amount limit | Maximum 10,000,000 (in PEN, the base currency) validated on client and with `max` attribute on the input |
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
+| Errors visible in production | Browser errors (Next error boundaries, data-loading failures, uncaught errors) are sent by `reportError()` to `/api/client-error`, which writes them as one `[client-error]` JSON line in the server logs (Vercel → Logs). Only the pathname is sent (no query string), with a size cap and at most 10 reports per page. The route accepts reports without a session so the auth pages are covered. Production keeps `console.error` and `console.warn` |
 
 > Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 

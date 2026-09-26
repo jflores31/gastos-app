@@ -66,8 +66,10 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/reset-password")
   // OAuth lands here with a `code` but no session yet — let it through to exchange it.
   const isCallback = pathname.startsWith("/auth/callback")
+  // Browser error reports must get through without a session (errors on the auth pages).
+  const isErrorReport = pathname === "/api/client-error"
 
-  if (!user && !isAuthPage && !isCallback) {
+  if (!user && !isAuthPage && !isCallback && !isErrorReport) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     const redirect = NextResponse.redirect(url)

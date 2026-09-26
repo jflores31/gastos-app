@@ -143,9 +143,11 @@ src/
 │   ├── error.tsx · global-error.tsx · not-found.tsx
 │   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx de cada pantalla de auth
 │   ├── auth/callback/route.ts      # Canje del código PKCE de OAuth (OAuth desactivado por ahora)
+│   ├── api/client-error/route.ts   # Recibe errores del navegador y los escribe en los logs del servidor
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
+│       ├── ErrorReporter.tsx       # Reporta errores no capturados (window.onerror, unhandledrejection)
 │       └── auth/                   # AuthCard, AuthErrorAlert, AuthThemeToggle, authStyles
 ├── components/
 │   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, período, toasts, seguridad de sesión
@@ -180,6 +182,7 @@ src/
 ├── hooks/
 │   └── useLocalStorage.js          # Valor por defecto en el primer render; el guardado, tras montar
 ├── lib/
+│   ├── reportError.js              # Envía errores del navegador a /api/client-error
 │   ├── supabase.ts                 # Cliente browser (createBrowserClient)
 │   └── supabase-server.ts          # Cliente server
 └── proxy.ts                        # Guard de auth + CSP con nonce por request (Next.js 16)
@@ -256,6 +259,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Expiración por inactividad prolongada | `gastos_last_active` en `localStorage` actualizado en cada evento de usuario; si la pestaña lleva >8 h sin actividad se cierra la sesión al recuperar el foco |
 | Límite en montos | Máximo 10,000,000 (en PEN, la moneda base) validado en cliente y con `max` en el input |
 | Error feedback | `loadError` en `DataContext` — banner con botón Reintentar si la carga falla |
+| Errores visibles en producción | Los errores del navegador (límites de error de Next, fallos de carga de datos, errores no capturados) se envían con `reportError()` a `/api/client-error`, que los escribe como una línea JSON `[client-error]` en los logs del servidor (Vercel → Logs). Se envía solo el pathname (sin query), con tope de tamaño y de 10 reportes por página. La ruta acepta reportes sin sesión para cubrir las páginas de auth. En producción se conservan `console.error` y `console.warn` |
 
 > Arquitectura del CSP con nonce por request (flujo en `proxy.ts`, render dinámico, cómo verificar): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { Box, Typography, Button } from "@mui/material"
+import { reportError } from "../lib/reportError.js"
 
 export default function Error({
   error,
@@ -12,6 +13,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error(error)
+    reportError(error, { where: "app/error.tsx" })
   }, [error])
 
   return (

@@ -23,6 +23,10 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **"Resumen del periodo" (Gastos):** los cuadros pasaban `"error.main"`/`"info.main"` a `gradientBg()`, que espera un hex, y salían casi negros. Ahora usan iconos con tono semántico.
 
 ### Añadido
+- **Errores visibles en producción:**
+  - `reportError()` (`src/lib/reportError.js`) envía a `/api/client-error` los errores de los límites de error de Next, los fallos de carga de `DataContext` y los errores no capturados del navegador (`ErrorReporter`).
+  - La ruta los escribe como una línea JSON `[client-error]` en los logs del servidor (Vercel → Logs).
+  - Antes, `removeConsole` borraba también los `console.error` en producción; ahora se conservan `error` y `warn`.
 - CI en GitHub Actions: lint, typecheck, tests y build en cada push a `main` y en cada PR.
 - Tests de conversión de moneda, de paginación y del mapa de iconos.
 - **Iconos:**
