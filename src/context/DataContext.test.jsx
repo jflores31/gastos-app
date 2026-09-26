@@ -1,0 +1,156 @@
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { renderHook, act, waitFor, cleanup } from "@testing-library/react"
+import { DataProvider, useData } from "./DataContext.jsx"
+
+// Stand-in for the supabase-js client. `from(table)` returns a chainable, awaitable builder
+// that records its calls; `fake.respond(table, calls)` decides what each query resolves to.
+const fake = vi.hoisted(() => {
+  const state = {
+    authCallback: null,
+    getUser: null, // set in beforeEach (vi isn't available inside vi.hoisted's return value yet)
+    queries: [],
+    respond: () => ({ data: [], error: null }),
+  }
+  const methods = ["select", "order", "range", "insert", "update", "delete", "upsert", "eq", "single"]
+  state.client = {
+    auth: {
+      onAuthStateChange: (cb) => {
+        state.authCallback = cb
+        return { data: { subscription: { unsubscribe() {} } } }
+      },
+      getUser: (...args) => state.getUser(...args),
+    },
+    from: (table) => {
+      const q = { table, calls: [] }
+      for (const m of methods) q[m] = (...args) => { q.calls.push([m, ...args]); return q }
+      q.then = (resolve, reject) => Promise.resolve().then(() => state.respond(table, q.calls)).then(resolve, reject)
+      state.queries.push(q)
+      return q
+    },
+  }
+  return state
+})
+vi.mock("../lib/supabase", () => ({ createClient: () => fake.client }))
+
+const has = (calls, name) => calls.find((c) => c[0] === name)
+const writes = () => fake.queries.filter((q) => q.calls.some((c) => ["insert", "update", "delete", "upsert"].includes(c[0])))
+
+async function mountSignedIn(userId = "u1") {
+  const hook = renderHook(() => useData(), { wrapper: DataProvider })
+  await act(async () => { fake.authCallback("INITIAL_SESSION", userId ? { user: { id: userId } } : null) })
+  await waitFor(() => expect(hook.result.current.loading).toBe(false))
+  fake.queries = [] // forget the load queries; tests look at writes
+  return hook
+}
+
+describe("DataContext", () => {
+  beforeEach(() => {
+    fake.queries = []
+    fake.getUser = vi.fn(async () => ({ data: { user: { id: "u1" } } }))
+    fake.respond = (table, calls) => {
+      if (has(calls, "single")) {
+        const insert = has(calls, "insert")
+        const update = has(calls, "update")
+        const id = insert ? `${table}-new` : has(calls, "eq")?.[2]
+        return { data: { id, ...(insert?.[1] ?? update?.[1]) }, error: null }
+      }
+      return { data: [], error: null }
+    }
+    vi.spyOn(console, "error").mockImplementation(() => {})
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+  })
+
+  it("con sesión carga las 8 tablas y mapea las transacciones", async () => {
+    const loaded = []
+    fake.respond = (table, calls) => {
+      loaded.push(table)
+      if (table === "transactions" && has(calls, "range")) {
+        return { data: [{ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "12.50", fecha: "2026-09-01T12:00:00Z" }], error: null }
+      }
+      return { data: [], error: null }
+    }
+    const { result } = renderHook(() => useData(), { wrapper: DataProvider })
+    await act(async () => { fake.authCallback("INITIAL_SESSION", { user: { id: "u1" } }) })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(new Set(loaded)).toEqual(new Set(["transactions", "budgets", "goals", "accounts", "investments", "debts", "subscriptions", "custom_categories"]))
+    expect(result.current.txs).toHaveLength(1)
+    expect(result.current.txs[0]).toMatchObject({ id: "t1", valor: 12.5, categoria: "COMIDA" })
+  })
+
+  it("guardar una meta nueva inserta con el user_id de la sesión, sin llamar a auth.getUser()", async () => {
+    const { result } = await mountSignedIn("u1")
+    await act(() => result.current.saveGoal({ es: "Viaje", en: "Viaje", target: 1000, current: 0, deadline: null, color: "#38BDF8", icon: "Flight" }))
+
+    const [q] = writes()
+    expect(q.table).toBe("goals")
+    expect(has(q.calls, "insert")[1]).toMatchObject({ user_id: "u1", label_es: "Viaje", target: 1000, icon: "Flight", deadline: null })
+    expect(result.current.goals).toEqual([expect.objectContaining({ id: "goals-new", es: "Viaje", target: 1000, icon: "Flight" })])
+    expect(fake.getUser).not.toHaveBeenCalled()
+  })
+
+  it("editar hace update por id y reemplaza el elemento", async () => {
+    const { result } = await mountSignedIn()
+    await act(() => result.current.saveAccount({ name: "BCP", type: "bank", balance: 10, color: "#000" }))
+    await act(() => result.current.saveAccount({ id: "accounts-new", name: "BCP Ahorro", type: "bank", balance: 20, color: "#000" }))
+
+    const update = writes().find((q) => has(q.calls, "update"))
+    expect(has(update.calls, "eq")).toEqual(["eq", "id", "accounts-new"])
+    expect(result.current.accounts).toEqual([expect.objectContaining({ id: "accounts-new", name: "BCP Ahorro", balance: 20 })])
+  })
+
+  it("borrar filtra por id y por user_id", async () => {
+    const { result } = await mountSignedIn("u1")
+    await act(() => result.current.saveDebt({ es: "Auto", en: "Auto", balance: 500, rate: 10, monthly: 50, remaining: 10, original_months: 12 }))
+    await act(() => result.current.deleteDebt("debts-new"))
+
+    const del = writes().find((q) => has(q.calls, "delete"))
+    expect(del.calls.filter((c) => c[0] === "eq")).toEqual([["eq", "id", "debts-new"], ["eq", "user_id", "u1"]])
+    expect(result.current.debts).toEqual([])
+  })
+
+  it("si Supabase devuelve error, lanza y no cambia el estado", async () => {
+    const { result } = await mountSignedIn()
+    fake.respond = () => ({ data: null, error: { message: "RLS", code: "42501" } })
+    await expect(act(() => result.current.saveSubscription({ name: "Netflix", price: 40, cycle: "monthly", category: "STREAMING" })))
+      .rejects.toMatchObject({ message: "RLS" })
+    expect(result.current.subscriptions).toEqual([])
+  })
+
+  it("sin sesión, las mutaciones lanzan en vez de no hacer nada", async () => {
+    const { result } = await mountSignedIn()
+    await act(async () => { fake.authCallback("SIGNED_OUT", null) })
+    await expect(act(() => result.current.saveGoal({ es: "X", en: "X", target: 1, current: 0 }))).rejects.toThrow(/sesión/)
+    await expect(act(() => result.current.addTx({ tipo: "EGRESO", categoria: "COMIDA", concepto: "X", valor: 1, date: new Date() }))).rejects.toThrow(/sesión/)
+    expect(writes()).toEqual([])
+  })
+
+  it("categoría personalizada: si falta la columna icon (PGRST204) reintenta sin ella", async () => {
+    const { result } = await mountSignedIn("u1")
+    let attempt = 0
+    fake.respond = (table, calls) => {
+      attempt++
+      const row = has(calls, "insert")[1]
+      if ("icon" in row) return { data: null, error: { code: "PGRST204", message: "Could not find the 'icon' column" } }
+      return { data: { id: "cc1", ...row }, error: null }
+    }
+    await act(() => result.current.saveCustomCat({ nombre: "Gatos", tipo: "EGRESO", color: "#123456", icon: "Pets" }))
+    expect(attempt).toBe(2)
+    expect(result.current.customCats).toEqual([{ id: "cc1", user_id: "u1", nombre: "Gatos", tipo: "EGRESO", color: "#123456" }])
+  })
+
+  it("transacciones y presupuestos también usan el usuario de la sesión", async () => {
+    const { result } = await mountSignedIn("u1")
+    await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 15, date: new Date("2026-09-02T12:00:00Z") }))
+    await act(() => result.current.setEditBudgets({ COMIDA: 500 }))
+
+    const [insertTx, upsert] = writes()
+    expect(has(insertTx.calls, "insert")[1]).toMatchObject({ user_id: "u1", valor: 15, fecha: "2026-09-02T12:00:00.000Z" })
+    expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500 }])
+    expect(result.current.editBudgets).toEqual({ COMIDA: 500 })
+    expect(fake.getUser).not.toHaveBeenCalled()
+  })
+})
