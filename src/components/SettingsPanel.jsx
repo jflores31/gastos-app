@@ -25,7 +25,9 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
   const [firstName, setFirstName] = useState(metaFirst);
   const [lastName, setLastName] = useState(metaLast);
   const [snack, setSnack] = useState(null);
-  const notify = (msg, severity) => setSnack({ msg, severity });
+  // A new id per notification remounts the Snackbar, so each one gets its full 3 s even
+  // when the previous one is still showing (MUI only restarts the timer on open).
+  const notify = (msg, severity) => setSnack({ msg, severity, id: Date.now() });
 
   // Jump to the tab requested by whoever opened the panel (avatar → perfil, gear → ajustes).
   // Adjust during render on the closed→open transition — no effect needed.
@@ -66,7 +68,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
       {tab === "perfil" && <ProfileTab user={user} name={name} notify={notify} />}
       {tab === "ajustes" && <PreferencesTab />}
 
-      <Snackbar open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
+      <Snackbar key={snack?.id} open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity={snack?.severity ?? "success"} onClose={() => setSnack(null)} sx={{ width: "100%" }}>
           {snack?.msg}
