@@ -34,7 +34,12 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Grupos del selector de categorías con iconos en vez de emojis.
   - Favicon propio: el anterior era el logo de Vite.
 - `docs/INVESTIGACION.md`: comparativa de 12 proyectos open source y 4 apps comerciales, con 14 ideas priorizadas para la hoja de ruta.
-- Columna `custom_categories.icon` en `schema.sql` (⚠ ejecutar el `ALTER TABLE` en Supabase antes de desplegar; sin ella, las categorías se guardan sin icono).
+- **Base de datos:** `supabase/migrations/upgrade_0.0.1.sql`, un script idempotente para una DB existente (⚠ ejecutarlo en Supabase antes de desplegar). Incluye:
+  - la columna `custom_categories.icon`; sin ella, las categorías se guardan sin icono;
+  - índices `(user_id, …)` en las tablas;
+  - políticas RLS con `(select auth.uid())`, que Postgres evalúa una vez por consulta.
+  - `schema.sql` refleja lo mismo para instalaciones nuevas.
+  - Con 200.000 transacciones, cargar las de un usuario pasó de ~120 ms a ~1,4 ms.
 
 ### Documentación
 - READMEs (es/en):

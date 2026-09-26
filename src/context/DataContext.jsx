@@ -257,7 +257,7 @@ export function DataProvider({ children }) {
       : supabase.from("custom_categories").insert(r).select().single()
 
     let { data, error } = await write(row)
-    // PGRST204 = unknown column: the `icon` migration (schema.sql) hasn't been run
+    // PGRST204 = unknown column: supabase/migrations/upgrade_0.0.1.sql hasn't been run
     // on this database yet. Save without the icon rather than failing the whole write.
     if (error?.code === "PGRST204") {
       const withoutIcon = { ...row }
