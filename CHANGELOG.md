@@ -32,5 +32,18 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - `docs/INVESTIGACION.md`: comparativa de 12 proyectos open source y 4 apps comerciales, con 14 ideas priorizadas para la hoja de ruta.
 - Columna `custom_categories.icon` en `schema.sql` (⚠ ejecutar el `ALTER TABLE` en Supabase antes de desplegar; sin ella, las categorías se guardan sin icono).
 
+### Documentación
+- READMEs (es/en):
+  - Stack al día y estructura completa del repo.
+  - Mecanismo de sesión entre pestañas.
+  - Esquema con iconos y el paso de migración.
+  - "Notas Técnicas" reagrupadas por tema, sin las notas obsoletas o contradictorias (CSP en `next.config.mjs`, iconos en `AddTransactionModal`, carga solo en `INITIAL_SESSION`).
+  - Sección de arquitectura sin las métricas viejas de graphify.
+  - Despliegue con la CI y las migraciones.
+- `docs/TESTING.md`: 53 tests en 4 archivos, qué cubre cada uno y gotchas nuevos (locale de `fmtMoney`, redondeo de moneda).
+- `docs/SECURITY-CSP.md`: estado de la verificación en navegador y cómo quitar `'unsafe-inline'` de `style-src`.
+- `docs/INVESTIGACION.md`: 15 mejoras técnicas priorizadas (índices, observabilidad, tests end-to-end, i18n, tipado…).
+- `ICONOS_Y_ESTRUCTURA.txt`: stack, monedas y árbol de `app/` actualizados.
+
 ### Eliminado
 - Restos de la plantilla de Vite (`index.html`, `src/assets/hero.png`, `public/icons.svg`) y `ErrorBoundary.jsx`, que no se usaba.

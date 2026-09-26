@@ -13,18 +13,20 @@ dashboard, gráficos, categorías personalizadas y multi-idioma.
   - Registro/seguimiento de INGRESOS y GASTOS por categoría
   - PRESUPUESTOS mensuales y METAS de ahorro
   - Dashboard con gráficos (donut, sparkline, cashflow, heatmap)
-  - Categorías personalizadas y favoritas por usuario
-  - Multi-moneda (PEN / USD / EUR) y multi-idioma (ES / EN)
+  - Categorías personalizadas (con icono) y favoritas por usuario
+  - Multi-moneda (8 monedas; se guarda en PEN con tasas fijas) y
+    multi-idioma (ES / EN)
   - Autenticación email/password con Supabase
   - Desplegada en: https://www.jeshu.cfd
 
   STACK:
-    Framework ... Next.js 16.2.6 (App Router)
+    Framework ... Next.js 16.3 (App Router)
     UI .......... Material UI (MUI) v9
     Auth + DB ... Supabase (email/password)
     Fechas ...... MUI X Date Pickers + dayjs
     Estado ...... React Context + localStorage
     Lenguaje .... TypeScript (rutas/config) + JSX (componentes)
+    Tests ....... Vitest (unitarios) · CI en GitHub Actions
     Deploy ...... Vercel
 
 
@@ -32,10 +34,12 @@ dashboard, gráficos, categorías personalizadas y multi-idioma.
 ----------------------------------------------------------------
 src/
 ├── app/                          # Next.js App Router (rutas)
+│   ├── auth/callback/route.ts    # Canje PKCE de OAuth (desactivado)
 │   ├── components/
 │   │   ├── auth/
 │   │   │   ├── AuthCard.tsx       # Tarjeta glass de auth
 │   │   │   ├── AuthErrorAlert.tsx
+│   │   │   ├── AuthThemeToggle.tsx # Botón sol/luna del login
 │   │   │   └── authStyles.ts
 │   │   ├── DynamicThemeProvider.tsx
 │   │   └── Providers.tsx
@@ -51,7 +55,7 @@ src/
 │   └── globals.css
 │
 ├── components/                   # Componentes de UI (JSX)
-│   ├── AddTransactionModal.jsx   # *** Mapa categoría → icono ***
+│   ├── AddTransactionModal.jsx   # Modal nueva/editar transacción
 │   ├── OverviewTab.jsx           # Resumen / dashboard
 │   ├── IncomeTab.jsx             # Ingresos
 │   ├── ExpensesTab.jsx           # Gastos

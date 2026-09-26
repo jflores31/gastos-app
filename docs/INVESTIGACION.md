@@ -12,6 +12,7 @@
   - reglas de categorización.
 - **Mismo stack (Next.js + Supabase):** son proyectos chicos (0–7 ★), útiles como referencia técnica, no de producto. Uno de ellos agrega los totales en la base de datos en vez de traer todas las filas al cliente, que es el siguiente paso natural tras la paginación de la `0.0.1`.
 - **Iconografía:** el enfoque de gastos-app (icono + color por categoría, elegible en las personalizadas) coincide con lo que hacen Cashew, ezBookkeeping y los trackers del mismo stack. Material You con color de acento, como Cashew, sigue siendo una buena base; no hace falta cambiar de librería.
+- **Mejoras técnicas:** además de las ideas de producto, la revisión del código deja 15 mejoras técnicas priorizadas (sección [Mejoras técnicas](#mejoras-técnicas)). Las más urgentes son índices en la DB, no perder los errores en producción y tests end-to-end.
 - **Licencias:** gastos-app es MIT. Firefly III y Sure (AGPL-3.0), Wallos y Cashew (GPL-3.0) sirven **solo como fuente de ideas**, no se copia su código. Actual Budget, ezBookkeeping, BudgetBee y los proyectos del mismo stack son MIT.
 
 ## Alcance y método
@@ -113,18 +114,29 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 
 **Orden sugerido** (máximo valor por esfuerzo): 6 → 7 → 9 → 1 → 4 → 5 → 3 → 2.
 
-## Pendientes técnicos que quedaron fuera de la 0.0.1
+## Mejoras técnicas
 
-- `supabase/migrations/schema.sql`:
-  - no lleva timestamp en el nombre, así que el CLI de Supabase no lo aplica como migración;
-  - sus `CREATE POLICY` fallan si se ejecuta dos veces;
-  - conviene separar en migraciones fechadas e idempotentes (`DROP POLICY IF EXISTS`).
-- **Dependencias:**
-  - `@supabase/ssr` 0.5 → 0.12 (revisar cambios de la API de cookies);
-  - `vitest` 3 → 5 (salto de versión mayor; su aviso de seguridad solo afecta a dev);
-  - `@types/react` 19 con `react` 18: alinear, o subir a React 19 (MUI v9 y Next 16 ya lo soportan).
-- **ESLint** solo revisa `.js`/`.jsx`; añadir `typescript-eslint` para los `.ts`/`.tsx`.
-- **Tests de componentes:** no hay; harían falta `jsdom` y `@testing-library/react`.
+Revisión del código de la versión `0.0.1`, complementaria a las ideas de producto. Prioridad Alta / Media / Baja.
+
+| # | Prioridad | Área | Mejora | Por qué | Dónde |
+|---|---|---|---|---|---|
+| T1 | Alta | Base de datos | **Índices** en `user_id` de las 8 tablas (en `transactions`, compuesto `(user_id, fecha)`), y políticas RLS con `(select auth.uid())` en vez de `auth.uid()` | Cada query filtra por `auth.uid() = user_id` vía RLS y no hay índices aparte de las PK: con muchos usuarios, cada carga recorre la tabla entera. Envolver `auth.uid()` en `select` hace que Postgres lo evalúe una vez por consulta y no por fila (recomendación de Supabase) | `supabase/migrations/schema.sql` |
+| T2 | Alta | Observabilidad | Conservar `console.error` en producción (`removeConsole: { exclude: ["error"] }`) y sumar reporte de errores (p. ej. Sentry) | `removeConsole: true` borra **todos** los `console.*` en producción, incluidos los `console.error` de `DataContext`: hoy un fallo en producción no deja rastro | `next.config.mjs`, `DataContext.jsx`, `error.tsx` |
+| T3 | Alta | Tests | Tests **end-to-end** con Playwright contra un proyecto de Supabase de pruebas, y tests de componentes (jsdom + Testing Library) | Solo hay tests unitarios. Los bugs corregidos en `0.0.1` (moneda, sesión entre pestañas, hidratación, colores del resumen) estaban en componentes, fuera del alcance de esos tests | nuevo `e2e/`, `vitest.config.mjs`, CI |
+| T4 | Media | Rendimiento | Dejar de llamar a `supabase.auth.getUser()` en cada mutación: usar el usuario de la sesión, o `DEFAULT auth.uid()` en `user_id` e insertar sin él | Hay 17 llamadas en `DataContext`, y cada una es una petición de red al servidor de Auth antes de la escritura real | `DataContext.jsx`, `schema.sql` |
+| T5 | Media | Código | Factory genérica para el CRUD (`makeCrud(tabla, mapRow, toRow)`) | Las 17 funciones CRUD de `DataContext` (~300 líneas) repiten el mismo patrón: obtener el usuario, escribir, lanzar el error y actualizar el estado | `DataContext.jsx` |
+| T6 | Media | i18n | Mover los textos a `I18N` (o a una librería como `next-intl`) | Hay 339 ternarios `lang === "es" ? … : …` repartidos en los componentes, aunque `I18N` ya existe en `data/index.js`. `IconPicker` usa claves en inglés como `aria-label` | `src/components/*`, `src/data/index.js`, `IconPicker.jsx` |
+| T7 | Media | Código | Dividir los componentes grandes | `GoalsTab.jsx` tiene 821 líneas (5 secciones + 5 diálogos), `SettingsPanel.jsx` 500 y `BudgetTab.jsx` 488 | `src/components/` |
+| T8 | Media | Tipado | Activar `strict` de forma gradual, añadir `typescript-eslint` y migrar `data/` y `context/` a TypeScript | `tsconfig.json` tiene `strict: false`, los componentes son JSX sin tipos y ESLint solo revisa `.js`/`.jsx` | `tsconfig.json`, `eslint.config.js` |
+| T9 | Media | Base de datos | Restricciones e higiene del esquema: `CHECK (tipo IN ('INGRESO','EGRESO'))` y `CHECK (valor > 0)` en `transactions`, quitar o usar la columna `anomaly` (siempre `false`), añadir `updated_at` | Solo `custom_categories` y `accounts` validan valores en la DB; el resto confía en el cliente | `schema.sql` |
+| T10 | Media | Base de datos | Migraciones fechadas e idempotentes (`DROP POLICY IF EXISTS`) | `schema.sql` no lleva timestamp en el nombre, así que el CLI de Supabase no lo aplica como migración, y sus `CREATE POLICY` fallan si se ejecuta dos veces | `supabase/migrations/` |
+| T11 | Media | Auth | Condicionar a `OAUTH_ENABLED` (o eliminar) `LoginModal` | Muestra los botones de Google/GitHub aunque OAuth está desactivado (login y registro sí respetan el flag). Solo se abre sin usuario, un caso que el proxy ya redirige a `/login` | `LoginModal.jsx`, `DashboardStudio.jsx` |
+| T12 | Baja | UI | Terminar la migración a iconos | Quedan 3 puntos de color en lugar del icono de la categoría: los dos del selector de categoría de suscripciones (`GoalsTab`) y `CategoryBars` (`OverviewTab`) | `GoalsTab.jsx`, `OverviewTab.jsx` |
+| T13 | Baja | UX | Formatear montos con el idioma elegido (`es-PE` / `en-US`) en vez del locale del navegador; hacer configurable el cierre por inactividad | `fmtMoney` usa `toLocaleString(undefined)`. Los 2 minutos de inactividad son agresivos para una app de consulta | `data/index.js`, `DashboardStudio.jsx`, `SettingsContext.jsx` |
+| T14 | Baja | Seguridad | Quitar `'unsafe-inline'` de `style-src` (nonce en el cache de emotion) y reportar violaciones del CSP | Detalle en [SECURITY-CSP.md](SECURITY-CSP.md#próximas-mejoras-posibles) | `proxy.ts`, `Providers.tsx` |
+| T15 | Baja | Dependencias | `@supabase/ssr` 0.5 → 0.12 (revisar la API de cookies), `vitest` 3 → 5 (su aviso de seguridad solo afecta a dev), alinear React 18 con `@types/react` 19 o subir a React 19 | Versiones atrasadas o desalineadas | `package.json` |
+
+**Orden sugerido:** T1 y T2 primero (bajo esfuerzo, alto impacto), después T3 para frenar regresiones, y luego T4–T6.
 
 ## Próximos pasos de la investigación
 
