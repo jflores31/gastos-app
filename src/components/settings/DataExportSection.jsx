@@ -1,6 +1,6 @@
 import { Box, Button, ListItem, ListItemText } from "@mui/material";
 import { TableChart as CsvIcon, DataObject as JsonIcon } from "../../theme/icons";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export.js";

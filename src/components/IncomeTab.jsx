@@ -11,7 +11,7 @@ import { txByCategory, txByMonth } from "../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";

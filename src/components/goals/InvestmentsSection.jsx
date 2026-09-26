@@ -2,7 +2,7 @@ import { Box, Button, Card, CardContent, Chip, FormControl, Grid, InputLabel, Me
 import { Add as AddIcon, ShowChart as InvestIcon } from "../../theme/icons";
 import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";
 import { EntityDialog } from "./EntityDialog.jsx";

@@ -8,7 +8,7 @@ import AddTransactionModal from "./AddTransactionModal.jsx"
 // test controls the selected currency and can inspect what gets saved.
 const settings = { current: { t: MESSAGES.es, lang: "es", currency: "PEN" } }
 const data = { addTx: vi.fn(), updateTx: vi.fn(), customCats: [] }
-vi.mock("../context/SettingsContext.jsx", () => ({ useSettings: () => settings.current }))
+vi.mock("../context/SettingsContext", () => ({ useSettings: () => settings.current }))
 vi.mock("../context/DataContext.jsx", () => ({ useData: () => data }))
 vi.mock("../context/UserContext", () => ({ useSupabaseUser: () => null }))
 

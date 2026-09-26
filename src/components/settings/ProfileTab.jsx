@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Autocomplete, Avatar, Box, Button, Chip, CircularProgress, Divider, List, ListItem, ListItemText, TextField, Typography } from "@mui/material";
 import { Person as PersonIcon } from "../../theme/icons";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { CATEGORIES } from "../../data/index.js";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";

@@ -2,7 +2,7 @@ import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { Timeline as ForecastIcon } from "../../theme/icons";
 import { linearRegressionSlope } from "../../data/helpers.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 
 // Next 3 months' net, from the average of the last 6 months plus their linear trend.
 // `months` is txByMonth(txs).slice(-12).

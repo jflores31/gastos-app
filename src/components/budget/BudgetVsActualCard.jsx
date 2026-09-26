@@ -3,7 +3,7 @@ import { CompareArrows as CompareIcon } from "../../theme/icons";
 import { monthCount, periodLabel } from "../../data/helpers.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 
 // One bar per budgeted category, plus totals restricted to budgeted categories.

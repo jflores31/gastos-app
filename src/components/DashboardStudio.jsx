@@ -21,7 +21,7 @@ import {
   VisibilityOff as HideAmountsIcon,
 } from "../theme/icons";
 import { accentGradient } from "../theme/materialTheme.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { createClient } from "../lib/supabase";

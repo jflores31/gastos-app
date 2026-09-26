@@ -334,7 +334,7 @@ test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON",
 
   const csv = await read("Transacciones (CSV)")
   expect(csv.name).toMatch(/^finanzas-transacciones-\d{4}-\d{2}-\d{2}\.csv$/)
-  const lines = csv.text.replace(/^﻿/, "").trim().split("\r\n")
+  const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n")
   expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen")
   expect(lines).toHaveLength(tables.transactions.length + 1)
   expect(lines).toContain(lines.find((l) => l.includes(",SUPERMERCADO,900")))

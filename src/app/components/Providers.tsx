@@ -1,6 +1,6 @@
 "use client"
 
-import { SettingsProvider } from "../../context/SettingsContext.jsx"
+import { SettingsProvider } from "../../context/SettingsContext"
 import { DataProvider } from "../../context/DataContext.jsx"
 import { UserProvider } from "../../context/UserContext"
 import DynamicThemeProvider from "./DynamicThemeProvider"

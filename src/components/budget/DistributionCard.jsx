@@ -3,7 +3,7 @@ import { Box, Card, CardContent, Tooltip, Typography } from "@mui/material";
 import { PieChart as PieIcon } from "../../theme/icons";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { Donut } from "../Charts.jsx";
 

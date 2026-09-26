@@ -3,7 +3,7 @@ import { Add as AddIcon, Subscriptions as SubIcon } from "../../theme/icons";
 import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";
 import { EntityDialog } from "./EntityDialog.jsx";

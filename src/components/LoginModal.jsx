@@ -8,7 +8,7 @@ import { Close, Google, GitHub } from "../theme/icons"
 import { OAUTH_ENABLED } from "../lib/featureFlags.js"
 import Link from "next/link"
 import { createClient } from "../lib/supabase"
-import { useSettings } from "../context/SettingsContext.jsx"
+import { useSettings } from "../context/SettingsContext"
 
 export default function LoginModal({ open, onClose }) {
   const { t } = useSettings()

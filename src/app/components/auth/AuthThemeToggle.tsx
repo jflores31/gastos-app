@@ -1,19 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { IconButton, Tooltip } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { LightMode, DarkMode } from "../../../theme/icons"
-import { useSettings } from "../../../context/SettingsContext.jsx"
+import { useSettings } from "../../../context/SettingsContext"
 
 // Floating sun/moon toggle for the auth screens — lets a user pick light/dark
 // before signing in. Persists through useSettings (gastos-theme in localStorage).
 export function AuthThemeToggle() {
   const { setTheme } = useSettings()
   const theme = useTheme()
-  // Derive from palette.mode (not localStorage) to avoid hydration mismatch.
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  // From palette.mode, not localStorage: the first render is "light" on the server and
+  // the client (settings load after mount), so this doesn't cause a hydration mismatch.
+  const isDark = theme.palette.mode === "dark"
 
   const label = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
 

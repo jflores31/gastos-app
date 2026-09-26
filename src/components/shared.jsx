@@ -4,7 +4,7 @@ import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, C
 import { useTheme, alpha } from "@mui/material/styles";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 
 
 export function EmptyState({ icon, title, subtitle, action }) {

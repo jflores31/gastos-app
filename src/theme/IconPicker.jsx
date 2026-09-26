@@ -3,7 +3,7 @@
 import { Box, IconButton, Typography } from "@mui/material";
 import { ICON_CHOICES } from "./categoryIcons.js";
 import { tint } from "./iconTones.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 
 // Rejilla de iconos elegibles (ICON_CHOICES) para metas y categorías personalizadas.
 // `value` es la clave que se guarda en DB (p. ej. "Flight"); un valor que no está en

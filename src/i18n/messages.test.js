@@ -4,7 +4,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { MESSAGES, messagesFor } from "./index.js"
 import { ICON_CHOICES } from "../theme/categoryIcons.js"
-import { PALETTES } from "../context/SettingsContext.jsx"
+import { PALETTES } from "../context/SettingsContext"
 
 // Every key path with the kind of value it holds, e.g. "goalsTab.newGoal: string",
 // "overviewTab.greeting: function/2", "months: array/12".

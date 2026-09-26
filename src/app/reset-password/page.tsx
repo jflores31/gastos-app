@@ -40,8 +40,7 @@ const Blobs = ({ isDark }: { isDark: boolean }) => (
 
 function ResetPasswordForm() {
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -61,6 +60,8 @@ function ResetPasswordForm() {
     const errorCode = params.get("error_code") || hashParams.get("error_code")
 
     if (errorCode === "otp_expired" || params.get("error") === "access_denied") {
+      // Reads the URL once after hydration (the server can't see the hash).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpired(true)
       return
     }
@@ -296,8 +297,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   return (
     <Box sx={{

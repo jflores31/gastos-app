@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Box, Chip, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import Link from "next/link"
@@ -12,8 +11,7 @@ interface AuthErrorAlertProps {
 
 export function AuthErrorAlert({ error, id = "auth-error" }: AuthErrorAlertProps) {
   const { palette } = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(palette.mode === "dark") }, [palette.mode])
+  const isDark = palette.mode === "dark"
 
   if (!error) return null
 

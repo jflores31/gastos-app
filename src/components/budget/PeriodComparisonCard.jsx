@@ -2,7 +2,7 @@ import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "../../theme/icons";
 import { periodLabel } from "../../data/helpers.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 
 // Spending of the previous period and the % change against this one.
 export function PeriodComparisonCard({ period, prevOut, dOut }) {

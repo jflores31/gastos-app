@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 
 // Frame shared by the dialogs of the Goals tab: title, fields, and Delete (when editing) /
 // Cancel / Save. `dialog` is the object returned by useEntityDialog().

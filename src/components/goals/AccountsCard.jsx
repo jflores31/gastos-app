@@ -2,7 +2,7 @@ import { Box, Card, CardContent, FormControl, Grid, IconButton, InputLabel, Menu
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon } from "../../theme/icons";
 import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";
 import { EntityDialog } from "./EntityDialog.jsx";

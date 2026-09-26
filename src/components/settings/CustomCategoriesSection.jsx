@@ -4,7 +4,7 @@ import {
   TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from "@mui/material";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../../theme/icons";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { IconPicker } from "../../theme/IconPicker.jsx";

@@ -10,7 +10,7 @@ import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { IconPicker } from "../../theme/IconPicker.jsx";
 import { iconByName } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";
 import { EntityDialog } from "./EntityDialog.jsx";

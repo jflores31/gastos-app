@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest"
 import { renderHook, act, cleanup } from "@testing-library/react"
-import { SettingsProvider, useSettings } from "./SettingsContext.jsx"
+import { SettingsProvider, useSettings } from "./SettingsContext"
 
 const setup = () => renderHook(() => useSettings(), { wrapper: SettingsProvider })
 

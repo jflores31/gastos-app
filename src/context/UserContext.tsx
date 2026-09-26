@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "../lib/supabase"

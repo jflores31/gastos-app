@@ -16,7 +16,7 @@ import { CATEGORIES, txByCategory, getTodayExpenses } from "../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 

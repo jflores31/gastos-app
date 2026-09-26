@@ -6,7 +6,7 @@ import {
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "../../theme/icons";
 import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 
 // "Gestionar presupuestos": edit or delete existing monthly budgets and add new ones

@@ -5,7 +5,7 @@ import { toBase, fromBase } from "../../data/index.js";
 import { monthCount } from "../../data/helpers.js";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { useSettings } from "../../context/SettingsContext.jsx";
+import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 
 // "Presupuestos": one card per budgeted category (spent vs limit, limit editable inline)

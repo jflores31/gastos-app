@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import { Box, Typography, TextField, Button, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "../../theme/icons"
@@ -12,8 +12,7 @@ import { darkFieldSx } from "../components/auth/authStyles"
 
 export default function ForgotPasswordPage() {
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)

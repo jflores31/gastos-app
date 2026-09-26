@@ -18,8 +18,7 @@ import { OAUTH_ENABLED } from "../../lib/featureFlags.js"
 export default function LoginPage() {
   const router = useRouter()
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,6 +30,8 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search)
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
     const code = params.get("error_code") || hashParams.get("error_code")
+    // Reads the URL once after hydration (the server can't see the hash).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (code === "otp_expired") setError("El enlace de recuperación expiró. Solicita uno nuevo.")
   }, [])
 

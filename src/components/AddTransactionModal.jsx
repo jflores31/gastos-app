@@ -14,7 +14,7 @@ import "dayjs/locale/es";
 import { Star, Label } from "../theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
 import { CATEGORIES, CURRENCIES, toBase, fromBase } from "../data/index.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 
