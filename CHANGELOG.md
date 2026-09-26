@@ -15,6 +15,10 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 ### Añadido
 - `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.
 
+### Documentación
+- `README.en.md`: secciones "How to merge a PR" y "Versions and releases", como en el README en español, y la CI que también corre los tests end-to-end.
+- `docs/TESTING.md`: el build de los tests end-to-end necesita las variables `NEXT_PUBLIC_SUPABASE_*`.
+
 ## [0.0.1]
 
 ### Cambiado
@@ -67,7 +71,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Esquema con iconos y el paso de migración.
   - "Notas Técnicas" reagrupadas por tema, sin las notas obsoletas o contradictorias (CSP en `next.config.mjs`, iconos en `AddTransactionModal`, carga solo en `INITIAL_SESSION`).
   - Sección de arquitectura sin las métricas viejas de graphify.
-  - Despliegue con la CI y las migraciones, cómo mergear un PR y cómo publicar o borrar una versión (solo en el README en español por ahora).
+  - Despliegue con la CI y las migraciones, cómo mergear un PR y cómo publicar o borrar una versión (solo en el README en español).
 - `docs/TESTING.md`: los tres niveles de tests (unitarios, componentes y end-to-end), qué cubre cada archivo y gotchas nuevos (locale de `fmtMoney`, redondeo de moneda, `sendBeacon` en Playwright).
 - `docs/SECURITY-CSP.md`: estado de la verificación en navegador y cómo quitar `'unsafe-inline'` de `style-src`.
 - `docs/INVESTIGACION.md`: 15 mejoras técnicas priorizadas (índices, observabilidad, tests end-to-end, i18n, tipado…).
