@@ -1,5 +1,5 @@
 ================================================================
-  FINANZAS — GESTIÓN PERSONAL  ·  v1.2.0
+  FINANZAS — GESTIÓN PERSONAL  ·  v0.0.1
   Estructura del proyecto · Iconos · Propósito
 ================================================================
 
@@ -94,7 +94,7 @@ src/
 ----------------------------------------------------------------
 Librería: @mui/icons-material (MUI v9). SVG, sin emojis ni
 assets propios. 88 iconos únicos. Variante: Rounded
-(Material You / Material 3) desde v1.2.0.
+(Material You / Material 3).
 
 El sistema tiene TRES piezas:
 

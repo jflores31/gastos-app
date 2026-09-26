@@ -157,7 +157,7 @@ export const ACCENTS = {
   },
 };
 
-// Acentos viejos (v1.6.0 y antes) → nuevos, para no resetear `gastos-palette` guardado.
+// Set de acentos anterior → nuevos, para no resetear `gastos-palette` guardado.
 export const ACCENT_ALIASES = { amber: "coral", indigo: "ocean", green: "mint" };
 
 export function getTheme(themeMode, palette) {

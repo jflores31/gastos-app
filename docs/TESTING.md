@@ -1,6 +1,6 @@
 # Testing
 
-> Tests unitarios del repo. Introducidos en **v1.4.0**.
+> Tests unitarios del repo.
 
 ## Stack
 

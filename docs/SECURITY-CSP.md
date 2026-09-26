@@ -1,6 +1,6 @@
 # Content-Security-Policy con nonce por request
 
-> Endurecimiento introducido en **v1.6.0**. Elimina `'unsafe-inline'` de `script-src`
+> Endurecimiento de seguridad: elimina `'unsafe-inline'` de `script-src`
 > — la mejora de seguridad de mayor severidad que quedaba pendiente.
 
 ## Qué cambió y por qué
