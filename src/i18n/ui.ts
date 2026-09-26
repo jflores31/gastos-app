@@ -353,6 +353,8 @@ const es = {
     registerIncome: "Registrar Ingreso",
     date: "Fecha",
     update: "Actualizar",
+    suggestedFromHistory: "Sugerida: la usaste antes con este concepto",
+    suggestedFromConcept: "Sugerida por el concepto",
   },
 };
 
@@ -709,6 +711,8 @@ const en: typeof es = {
     registerIncome: "Register Income",
     date: "Date",
     update: "Update",
+    suggestedFromHistory: "Suggested: you used it before with this concept",
+    suggestedFromConcept: "Suggested from the concept",
   },
 };
 

@@ -109,6 +109,13 @@ Drawer with **two tabs** that separate Profile from Settings:
   - everything downloads as a full JSON backup (`src/data/export.ts`).
 - **Installable app:** `src/app/manifest.ts` plus the icons in `public/icons/`, generated with `node scripts/generate-icons.mjs`. Chrome, Edge and Android offer "Install app"; iOS offers "Add to Home Screen". No Service Worker, on purpose (see Troubleshooting).
 
+### Faster entry
+- **Category suggested from the concept:** when typing the concept of a new transaction with no category chosen yet, it fills in by itself (`suggestCategory()` in `src/data/suggest.ts`):
+  - first with the category you used most with that same concept (case and accents don't matter);
+  - with no history, with the catalog category whose name or concepts appear in the text ("pago netflix" → Streaming);
+  - if two categories tie, nothing is suggested;
+  - a category picked by hand is never replaced, and a note under the field says where the suggestion came from.
+
 ### Responsive Design
 - Tab navigation on desktop, fixed `BottomNavigation` on mobile
 - Period chips with `flexWrap: "wrap"` — no overflow on iPhone SE (320px)
@@ -187,6 +194,7 @@ src/
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Pagination with .range() (Supabase caps responses at 1000 rows)
 │   ├── export.ts                   # CSV and JSON backup for "Tus datos"
+│   ├── suggest.ts                  # Category suggested from the concept (history and catalog)
 │   └── *.test.js                   # helpers, currency, fetchAllRows (components: *.test.jsx next to each)
 ├── i18n/
 │   ├── base.ts                     # Short shared texts (t.income, t.save, t.months…)

@@ -14,6 +14,7 @@ import "dayjs/locale/es";
 import { Star, Label } from "../theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
 import { CATEGORIES, CURRENCIES, toBase, fromBase } from "../data/index";
+import { suggestCategory } from "../data/suggest";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
@@ -26,7 +27,7 @@ const MAX_AMOUNT_BASE = 10_000_000;
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency, fmt } = useSettings();
-  const { addTx, updateTx, customCats } = useData();
+  const { txs, addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
@@ -81,6 +82,26 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     if (initialCategory) return categoryOptions.find((o) => o.value === initialCategory) || null;
     return null;
   });
+
+  // Category filled in from the concept (suggestCategory): "history" | "catalog" | null.
+  // A category the user picks by hand is never replaced.
+  const [suggested, setSuggested] = useState(null);
+
+  const handleConceptChange = (value) => {
+    setConcepto(value);
+    if (errors.concepto) setErrors((er) => ({ ...er, concepto: null }));
+    if (editTx || (categoria && !suggested)) return;
+    const s = suggestCategory(value, txs, mode === "expense" ? "EGRESO" : mode === "income" ? "INGRESO" : tipo);
+    const opt = s && categoryOptions.find((o) => o.value === s.categoria);
+    if (opt) {
+      setCategoria(opt);
+      setSuggested(s.source);
+      if (errors.categoria) setErrors((e) => ({ ...e, categoria: null }));
+    } else if (suggested) {
+      setCategoria(null);
+      setSuggested(null);
+    }
+  };
 
   const filteredOptions = useMemo(() => categoryOptions.filter((o) => {
     if (o.value?.startsWith("custom_")) return true;
@@ -146,7 +167,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } }}>
         {mode === "all" && (
-          <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); } }} fullWidth size="small">
+          <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); setSuggested(null); } }} fullWidth size="small">
             <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
               {t.income}
             </ToggleButton>
@@ -160,7 +181,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           options={filteredOptions}
           groupBy={(opt) => opt.group}
           value={categoria}
-          onChange={(_, v) => { setCategoria(v); if (v?.type) setTipo(v.type); if (errors.categoria) setErrors((e) => ({ ...e, categoria: null })); }}
+          onChange={(_, v) => { setCategoria(v); setSuggested(null); if (v?.type) setTipo(v.type); if (errors.categoria) setErrors((e) => ({ ...e, categoria: null })); }}
           getOptionLabel={(opt) => opt?.label || ""}
           isOptionEqualToValue={(a, b) => a?.value === b?.value}
           renderOption={(props, opt) => (
@@ -182,7 +203,8 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
             );
           }}
           renderInput={(params) => (
-            <TextField {...params} label={t.category} error={!!errors.categoria} helperText={errors.categoria}
+            <TextField {...params} label={t.category} error={!!errors.categoria}
+              helperText={errors.categoria || (suggested === "history" ? t.txModal.suggestedFromHistory : suggested === "catalog" ? t.txModal.suggestedFromConcept : undefined)}
               slotProps={{
                 ...params.slotProps,
                 input: {
@@ -196,7 +218,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           )}
         />
 
-        <TextField label={t.concept} value={concepto} onChange={(e) => { setConcepto(e.target.value); if (errors.concepto) setErrors((er) => ({ ...er, concepto: null })); }}
+        <TextField label={t.concept} value={concepto} onChange={(e) => handleConceptChange(e.target.value)}
           error={!!errors.concepto} helperText={errors.concepto} fullWidth slotProps={{ htmlInput: { maxLength: 100 } }} />
 
         <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}

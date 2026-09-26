@@ -95,6 +95,40 @@ test("alta, edición y borrado de un gasto llegan a la base", async ({ page, req
   expect(await pan()).toEqual([])
 })
 
+test("el concepto sugiere la categoría (historial y catálogo) sin pisar una elegida a mano", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  const category = dialog(page).getByLabel("Categoría")
+  const concept = dialog(page).getByLabel("Concepto")
+
+  // Seed: NETFLIX is always STREAMING.
+  await concept.fill("netflix")
+  await expect(category).toHaveValue("Streaming")
+  await expect(dialog(page).getByText("Sugerida: la usaste antes con este concepto")).toBeVisible()
+  await concept.fill("xyz")
+  await expect(category).toHaveValue("")
+  await concept.fill("gasolina grifo")
+  await expect(category).toHaveValue("Gasolina")
+  await expect(dialog(page).getByText("Sugerida por el concepto")).toBeVisible()
+  // A category picked by hand stays.
+  await pickCategory(page, "Comida")
+  await concept.fill("netflix")
+  await expect(category).toHaveValue("Comida")
+  await expect(dialog(page).getByText(/^Sugerida/)).toHaveCount(0)
+  await dialog(page).getByRole("button", { name: "Cancelar" }).click()
+
+  // Saved with the suggested category.
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await concept.fill("Netflix")
+  await dialog(page).getByLabel("Monto").fill("45")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  const netflix = (await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "NETFLIX")
+  expect(netflix).toHaveLength(5)
+  expect(new Set(netflix.map((t) => t.categoria))).toEqual(new Set(["STREAMING"]))
+})
+
 test("en USD los montos se muestran convertidos y se guardan en PEN", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)

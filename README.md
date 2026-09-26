@@ -109,6 +109,13 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
   - todo se descarga como copia completa en JSON (`src/data/export.ts`).
 - **App instalable:** `src/app/manifest.ts` y los iconos de `public/icons/`, generados con `node scripts/generate-icons.mjs`. Chrome, Edge y Android ofrecen "Instalar app"; iOS, "Agregar a pantalla de inicio". No hay Service Worker a propósito (ver "Solución de problemas").
 
+### Registrar más rápido
+- **Categoría sugerida por el concepto:** al escribir el concepto de una transacción nueva, si todavía no elegiste categoría, se completa sola (`suggestCategory()` en `src/data/suggest.ts`):
+  - primero con la categoría que más usaste con ese mismo concepto (sin importar mayúsculas ni tildes);
+  - si no hay historial, con la categoría del catálogo cuyo nombre o conceptos aparecen en el texto ("pago netflix" → Streaming);
+  - si dos categorías empatan, no sugiere nada;
+  - una categoría elegida a mano nunca se reemplaza, y debajo del campo se indica de dónde salió la sugerencia.
+
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
 - Chips de período con `flexWrap: "wrap"` — no desbordan en iPhone SE (320px)
@@ -187,6 +194,7 @@ src/
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
 │   ├── export.ts                   # CSV y copia JSON de "Tus datos"
+│   ├── suggest.ts                  # Categoría sugerida por el concepto (historial y catálogo)
 │   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
 ├── i18n/
 │   ├── base.ts                     # Textos cortos compartidos (t.income, t.save, t.months…)
