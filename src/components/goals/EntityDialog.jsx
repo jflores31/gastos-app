@@ -1,0 +1,30 @@
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useSettings } from "../../context/SettingsContext.jsx";
+
+// Frame shared by the dialogs of the Goals tab: title, fields, and Delete (when editing) /
+// Cancel / Save. `dialog` is the object returned by useEntityDialog().
+export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", children }) {
+  const { t, lang } = useSettings();
+  return (
+    <Dialog open={dialog.open} onClose={dialog.close} maxWidth={maxWidth} fullWidth>
+      <DialogTitle sx={{ fontWeight: 700, borderBottom: 1, borderColor: "divider", py: 2 }}>
+        {title}
+      </DialogTitle>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
+        {children}
+      </DialogContent>
+      <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+        {dialog.editing && (
+          <Button color="error" disabled={dialog.saving} onClick={() => dialog.destroy(dialog.editing.id)}>
+            {lang === "es" ? "Eliminar" : "Delete"}
+          </Button>
+        )}
+        <Box sx={{ flex: 1 }} />
+        <Button onClick={dialog.close}>{t.cancel}</Button>
+        <Button variant="contained" onClick={onSave} disabled={dialog.saving || !canSave}>
+          {dialog.saving ? <CircularProgress size={18} /> : t.save}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

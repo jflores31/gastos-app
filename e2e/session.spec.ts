@@ -130,6 +130,79 @@ test("una meta nueva y una categoría personalizada se guardan con su icono", as
   expect(tables.custom_categories.find((c) => c.nombre === "Plantas")).toMatchObject({ tipo: "EGRESO", icon: "Spa" })
 })
 
+test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y borran", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("tab", { name: "Metas" }).click()
+  const save = () => dialog(page).getByRole("button", { name: "Guardar" }).click()
+  const db = async () => (await mockDb(request, email)).tables
+
+  // Account: create, edit from the list, delete from the list.
+  await page.getByRole("button", { name: "Nueva cuenta" }).click()
+  await dialog(page).getByLabel("Nombre").fill("Interbank")
+  await dialog(page).getByRole("combobox", { name: /Tipo/ }).click()
+  await page.getByRole("option", { name: "Tarjeta" }).click()
+  await dialog(page).getByLabel("Saldo").fill("-300")
+  await dialog(page).getByLabel("Límite").fill("1000")
+  await save()
+  await expect(page.getByText("Interbank")).toBeVisible()
+  expect((await db()).accounts.find((a) => a.name === "Interbank")).toMatchObject({ type: "card", balance: -300, account_limit: 1000 })
+  // Innermost element holding both the name and its buttons: the account's row.
+  const accountRow = page.locator("div").filter({ hasText: "Interbank" }).filter({ has: page.getByRole("button", { name: "Editar" }) }).last()
+  await accountRow.getByRole("button", { name: "Editar" }).click()
+  await dialog(page).getByLabel("Saldo").fill("-450")
+  await save()
+  await expect.poll(async () => (await db()).accounts.find((a) => a.name === "Interbank")?.balance).toBe(-450)
+  await accountRow.getByRole("button", { name: "Eliminar" }).click()
+  await expect(page.getByText("Interbank")).toHaveCount(0)
+  expect((await db()).accounts.map((a) => a.name)).toEqual(["BCP"])
+
+  // Investment: create, then open it and delete from the dialog.
+  await page.getByRole("button", { name: "Agregar", exact: true }).click()
+  await dialog(page).getByLabel("Nombre").fill("Fondo mutuo")
+  await dialog(page).getByLabel("Valor").fill("1200")
+  await dialog(page).getByLabel("Rendimiento %").fill("8")
+  await dialog(page).getByRole("combobox", { name: /Tipo/ }).click()
+  await page.getByRole("option", { name: "Acciones" }).click()
+  await save()
+  await expect(page.getByText("Fondo mutuo")).toBeVisible()
+  expect((await db()).investments.find((i) => i.label_es === "Fondo mutuo")).toMatchObject({ value: 1200, return_rate: 8, type: "stocks" })
+  await page.getByText("Fondo mutuo").click()
+  await dialog(page).getByRole("button", { name: "Eliminar" }).click()
+  await expect(page.getByText("Fondo mutuo")).toHaveCount(0)
+
+  // Debt: create and edit.
+  await page.getByRole("button", { name: "Agregar deuda" }).click()
+  await dialog(page).getByLabel("Nombre").fill("Tarjeta Visa")
+  await dialog(page).getByLabel("Saldo pendiente").fill("2400")
+  await dialog(page).getByLabel("Tasa % TEA").fill("40")
+  await dialog(page).getByLabel("Cuota/mes").fill("200")
+  await dialog(page).getByLabel("Cuotas restantes").fill("12")
+  await dialog(page).getByLabel("Total cuotas").fill("12")
+  await save()
+  await page.getByRole("button", { name: /Tarjeta Visa/ }).click()
+  await dialog(page).getByLabel("Cuotas restantes").fill("11")
+  await save()
+  await expect.poll(async () => (await db()).debts.find((d) => d.label_es === "Tarjeta Visa")).toMatchObject({ balance: 2400, rate: 40, monthly: 200, remaining: 11, original_months: 12 })
+
+  // Subscription: create with a category, then delete.
+  await page.getByRole("button", { name: "Agregar suscripción" }).click()
+  await dialog(page).getByLabel("Nombre").fill("Spotify")
+  await dialog(page).getByLabel("Precio").fill("240")
+  await dialog(page).getByRole("combobox", { name: /Ciclo/ }).click()
+  await page.getByRole("option", { name: "Anual" }).click()
+  await dialog(page).getByRole("combobox", { name: /Categoría/ }).click()
+  await page.getByRole("option", { name: "Gatos" }).click() // custom category
+  await save()
+  const { tables } = await mockDb(request, email)
+  const cat = tables.custom_categories.find((c) => c.nombre === "Gatos")!
+  expect(tables.subscriptions.find((s) => s.name === "Spotify")).toMatchObject({ price: 240, cycle: "yearly", category: `custom_${cat.id}` })
+  await page.getByRole("button", { name: /Spotify/ }).click()
+  await dialog(page).getByRole("button", { name: "Eliminar" }).click()
+  await expect(page.getByRole("button", { name: /Spotify/ })).toHaveCount(0)
+  expect((await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
+})
+
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {
   await login(page, uniqueEmail(info))
 

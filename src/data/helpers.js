@@ -182,3 +182,12 @@ export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomali
   });
   return t;
 }
+
+// Net worth for the Goals tab. Assets: positive account balances. Debt: negative account
+// balances (e.g. a used credit card) plus the outstanding balance of every loan.
+export function netWorthOf(accounts = [], debts = []) {
+  const assets = accounts.filter((a) => a.balance > 0).reduce((s, a) => s + a.balance, 0);
+  const debt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))
+    + debts.reduce((s, d) => s + (d.balance || 0), 0);
+  return { assets, debt, net: assets - debt };
+}
