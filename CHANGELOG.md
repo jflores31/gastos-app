@@ -15,10 +15,21 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Transacciones > 1000:** Supabase corta cada respuesta en 1000 filas y, al ordenar ascendente, se perdían las más recientes. Ahora se paginan con `fetchAllRows()`.
 - **Sesión entre pestañas:** abrir la app en una pestaña nueva cerraba la sesión en todas (y, con `signOut()` global, en otros dispositivos); una pestaña inactiva cerraba la sesión aunque el usuario estuviera activo en otra. Ahora la pestaña nueva consulta a las demás por `BroadcastChannel`, la inactividad se mide con la marca compartida y los cierres automáticos usan `scope: "local"`.
 - `.env.example` que el README pedía copiar y no existía.
+- **Tema oscuro e hidratación:** `useLocalStorage` leía `localStorage` en el primer render, así que un tema oscuro guardado generaba clases distintas a las del HTML del servidor (desajuste de hidratación que React no corrige). Ahora aplica el valor guardado después de montar.
+- **"Resumen del periodo" (Gastos):** los cuadros pasaban `"error.main"`/`"info.main"` a `gradientBg()`, que espera un hex, y salían casi negros. Ahora usan iconos con tono semántico.
 
 ### Añadido
 - CI en GitHub Actions: lint, typecheck, tests y build en cada push a `main` y en cada PR.
-- Tests de conversión de moneda y de paginación.
+- Tests de conversión de moneda, de paginación y del mapa de iconos.
+- **Iconos:**
+  - Mapa único categoría → icono (`src/theme/categoryIcons.js`) con `resolveCategoryMeta()`, que reemplaza la lógica `custom_` duplicada en Gastos, Ingresos y Presupuestos.
+  - Las listas, chips de filtro, presupuestos y recurrentes muestran el icono de la categoría (`CategoryAvatar`) en vez de iniciales o números.
+  - Encabezados unificados con `GradientIcon` (antes convivían dos estilos); `TONE_BY_PALETTE` reemplaza dos mapas de tonos duplicados.
+  - 16 categorías con icono repetido o poco claro ahora tienen uno propio (p. ej. Cripto → `CurrencyBitcoin`, Comisiones → `Percent`, Impuestos → `Gavel`, Contenido → `SmartDisplay` en vez del logo de YouTube).
+  - Selector de icono (`IconPicker`) para metas (antes, texto libre) y para categorías personalizadas (antes, solo un punto de color).
+  - Grupos del selector de categorías con iconos en vez de emojis.
+  - Favicon propio: el anterior era el logo de Vite.
+- Columna `custom_categories.icon` en `schema.sql` (⚠ ejecutar el `ALTER TABLE` en Supabase antes de desplegar; sin ella, las categorías se guardan sin icono).
 
 ### Eliminado
 - Restos de la plantilla de Vite (`index.html`, `src/assets/hero.png`, `public/icons.svg`) y `ErrorBoundary.jsx`, que no se usaba.

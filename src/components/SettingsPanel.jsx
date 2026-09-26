@@ -12,12 +12,15 @@ import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContex
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { CURRENCIES, CATEGORIES } from "../data/index.js";
+import { CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { IconPicker } from "../theme/IconPicker.jsx";
+import { DEFAULT_ICON, iconByName, resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { createClient } from "../lib/supabase";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
 
 const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
-const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e" };
+const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e", icon: "Category" };
 
 export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) {
   const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
@@ -113,7 +116,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
 
   const openCatDialog = (cat = null) => {
     setEditingCat(cat);
-    setCatForm(cat ? { nombre: cat.nombre, tipo: cat.tipo, color: cat.color } : EMPTY_CAT);
+    setCatForm(cat ? { nombre: cat.nombre, tipo: cat.tipo, color: cat.color, icon: cat.icon || "Category" } : EMPTY_CAT);
     setCatError("");
     setCatDialog(true);
   };
@@ -249,10 +252,9 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
                 {favCats.length > 0 && (
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                     {favCats.map((f) => {
-                      const catData = CATEGORIES[f.tipo === "EGRESO" ? "expense" : "income"][f.categoria];
-                      const label = catData?.[lang] || f.categoria;
+                      const { label, Icon } = resolveCategoryMeta(f.categoria, customCats, lang, f.tipo);
                       return (
-                        <Chip key={f.categoria} label={label} size="small" onDelete={() => handleRemoveFav(f.categoria)}
+                        <Chip key={f.categoria} icon={<Icon />} label={label} size="small" onDelete={() => handleRemoveFav(f.categoria)}
                           color={f.tipo === "EGRESO" ? "error" : "success"} variant="outlined" />
                       );
                     })}
@@ -295,7 +297,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                       {customCats.map((c) => (
                         <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
-                          <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />
+                          <CategoryAvatar icon={iconByName(c.icon) || DEFAULT_ICON} color={c.color} size={28} />
                           <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
                           <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
                             size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
@@ -449,6 +451,12 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
               ))}
             </Box>
           </Box>
+          <IconPicker
+            label={lang === "es" ? "Icono" : "Icon"}
+            value={catForm.icon}
+            color={catForm.color}
+            onChange={(icon) => setCatForm((f) => ({ ...f, icon }))}
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setCatDialog(false)} color="inherit">

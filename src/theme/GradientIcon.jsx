@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { resolveTone, tint } from "./iconTones.js";
+import { gradientBg, resolveTone, tint } from "./iconTones.js";
 
 // Pinta cualquier icono de icons.js con un gradiente alegre (relleno SVG) y,
 // opcionalmente, lo monta en una burbuja squircle de tinte suave (light/dark aware).
@@ -64,6 +64,31 @@ export function GradientIcon({
       }}
     >
       {glyph}
+    </Box>
+  );
+}
+
+// Avatar de categoría: squircle con el gradiente del color de la categoría y su
+// icono en blanco. Reemplaza las iniciales/números que mostraban las listas.
+// `icon` y `color` vienen de resolveCategoryMeta() (categoryIcons.js).
+export function CategoryAvatar({ icon: Icon, color, size = 40, sx }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        width: size,
+        height: size,
+        borderRadius: "30%",
+        flexShrink: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: gradientBg(color),
+        color: "common.white",
+        ...sx,
+      }}
+    >
+      <Icon sx={{ fontSize: Math.round(size * 0.55) }} />
     </Box>
   );
 }

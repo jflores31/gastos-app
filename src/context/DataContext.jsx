@@ -251,16 +251,22 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const row = { user_id: user.id, nombre: cat.nombre, tipo: cat.tipo, color: cat.color }
+    const row = { user_id: user.id, nombre: cat.nombre, tipo: cat.tipo, color: cat.color, icon: cat.icon ?? null }
+    const write = (r) => cat.id
+      ? supabase.from("custom_categories").update(r).eq("id", cat.id).select().single()
+      : supabase.from("custom_categories").insert(r).select().single()
 
-    if (cat.id) {
-      const { data, error } = await supabase.from("custom_categories").update(row).eq("id", cat.id).select().single()
-      if (error) throw error
-      if (data) setCustomCats((prev) => prev.map((x) => x.id === cat.id ? data : x))
-    } else {
-      const { data, error } = await supabase.from("custom_categories").insert(row).select().single()
-      if (error) throw error
-      if (data) setCustomCats((prev) => [...prev, data])
+    let { data, error } = await write(row)
+    // PGRST204 = unknown column: the `icon` migration (schema.sql) hasn't been run
+    // on this database yet. Save without the icon rather than failing the whole write.
+    if (error?.code === "PGRST204") {
+      const withoutIcon = { ...row }
+      delete withoutIcon.icon
+      ;({ data, error } = await write(withoutIcon))
+    }
+    if (error) throw error
+    if (data) {
+      setCustomCats((prev) => cat.id ? prev.map((x) => x.id === cat.id ? data : x) : [...prev, data])
     }
   }, [])
 

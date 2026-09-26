@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useMemo } from "react";
-import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Avatar, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
+import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, IconButton, TextField, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, ListItemSecondaryAction, Tooltip } from "@mui/material";
 import { Check as CheckIcon, AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon, PieChart as PieIcon, CompareArrows as CompareIcon, Event as EventIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import { CATEGORIES, fmtMoney, txByCategory, toBase, fromBase } from "../data/index.js";
-import { gradientBg } from "../theme/iconTones.js";
+import { TONE_BY_PALETTE } from "../theme/iconTones.js";
+import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, monthCount, healthScore, healthLabel, healthTone, recurringList, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -36,18 +38,8 @@ export default function BudgetTab({ period, showToast }) {
   const score = healthScore(savingsRate, dOut, anomalies.length);
   const recurring = useMemo(() => recurringList(txs), [txs]);
 
-  const getCatName = (cat) => {
-    if (cat?.startsWith("custom_")) {
-      return customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat;
-    }
-    return CATEGORIES.expense[cat]?.[lang] || cat;
-  };
-  const getCatColor = (cat) => {
-    if (cat?.startsWith("custom_")) {
-      return customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e";
-    }
-    return CATEGORIES.expense[cat]?.color || "#9e9e9e";
-  };
+  const catMeta = (cat) => resolveCategoryMeta(cat, customCats, lang, "EGRESO");
+  const getCatName = (cat) => catMeta(cat).label;
 
   const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
   const budgetUsed = totalBudget > 0 ? totalOut / totalBudget : 0;
@@ -59,18 +51,13 @@ export default function BudgetTab({ period, showToast }) {
   );
   const budgetUsedBudgeted = totalBudget > 0 ? totalSpentBudgeted / totalBudget : 0;
   const gaugeColor = healthTone(score);
-  const gaugeIcon = score >= 75 ? <HealthIcon /> : <WarningIcon />;
+  const GaugeIcon = score >= 75 ? HealthIcon : WarningIcon;
 
   const donutData = useMemo(() => {
     return Object.keys(editBudgets).map((cat) => {
       const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-      const color = cat?.startsWith("custom_")
-        ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.color || "#9e9e9e")
-        : (CATEGORIES.expense[cat]?.color || "#9e9e9e");
-      const catName = cat?.startsWith("custom_")
-        ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat)
-        : (CATEGORIES.expense[cat]?.[lang] || cat);
-      return { label: catName, value: spent, color };
+      const { label, color } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
+      return { label, value: spent, color };
     }).filter(d => d.value > 0);
   }, [editBudgets, cats, lang, customCats]);
 
@@ -145,7 +132,9 @@ export default function BudgetTab({ period, showToast }) {
           <Grid container spacing={3} alignItems="center">
             <Grid size={{ xs: 12, md: 4 }}>
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
-                <Avatar sx={{ width: 64, height: 64, bgcolor: gaugeColor + ".light", color: gaugeColor + ".dark", mb: 1 }}>{gaugeIcon}</Avatar>
+                <Box sx={{ mb: 1 }}>
+                  <GradientIcon icon={GaugeIcon} tone={TONE_BY_PALETTE[gaugeColor]} bubble bubbleSize={64} size={34} />
+                </Box>
                 <Box sx={{ position: "relative", width: 120, height: 72 }}>
                   <svg viewBox="0 0 120 72" style={{ width: "100%", height: "100%" }}>
                     <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" opacity={0.15} strokeWidth="10" strokeLinecap="round" />
@@ -193,8 +182,7 @@ export default function BudgetTab({ period, showToast }) {
           const spent = cats.find((c) => c.categoria === cat)?.total || 0;
           const limit = editBudgets[cat] * monthCount(period);
           const pct = limit ? spent / limit : 0;
-          const color = getCatColor(cat);
-          const catName = getCatName(cat);
+          const { label: catName, color, Icon } = catMeta(cat);
           const isEd = editing === cat;
           const isOver = pct > 1;
           const isWarning = pct >= 0.8 && pct <= 1;
@@ -204,7 +192,7 @@ export default function BudgetTab({ period, showToast }) {
                 <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Avatar sx={{ width: 36, height: 36, background: gradientBg(color), fontSize: 14, fontWeight: 700, color: "common.white" }}>{catName[0]}</Avatar>
+                      <CategoryAvatar icon={Icon} color={color} size={36} />
                       <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
                     </Box>
                     {isWarning && !isOver && <Chip size="small" label="80%" color="warning" sx={{ height: 20, fontSize: 10 }} />}
@@ -260,7 +248,7 @@ export default function BudgetTab({ period, showToast }) {
           <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "warning.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
+                <GradientIcon icon={PieIcon} tone="warning" bubble />
                 <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Distribución" : "Distribution"}</Typography>
               </Box>
               <Box sx={{ display: "flex", flex: 1, gap: 3, alignItems: "center", flexDirection: { xs: "column", sm: "row" } }}>
@@ -290,7 +278,7 @@ export default function BudgetTab({ period, showToast }) {
           <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "info.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
             <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><CompareIcon /></Avatar>
+                <GradientIcon icon={CompareIcon} tone="goals" bubble />
                 <Box>
                   <Typography variant="h6" fontWeight={700}>{lang === "es" ? `vs ${period === "week" ? "semana" : period === "month" ? "mes" : period === "quarter" ? "trimestre" : "año"} anterior` : `vs previous ${period === "week" ? "week" : period === "month" ? "month" : period === "quarter" ? "quarter" : "year"}`}</Typography>
                   <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
@@ -315,7 +303,7 @@ export default function BudgetTab({ period, showToast }) {
         <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "primary.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-              <Avatar sx={{ bgcolor: "primary.light", color: "primary.dark" }}><CompareIcon /></Avatar>
+              <GradientIcon icon={CompareIcon} tone="trend" bubble />
               <Box>
                 <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Presupuesto vs Gasto real" : "Budget vs Actual"}</Typography>
                 <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
@@ -327,8 +315,7 @@ export default function BudgetTab({ period, showToast }) {
                 const limit = editBudgets[cat] * monthCount(period);
                 const pct = limit > 0 ? Math.min(spent / limit, 1) : 0;
                 const rawPct = limit > 0 ? (spent / limit) * 100 : 0;
-                const color = getCatColor(cat);
-                const catName = getCatName(cat);
+                const { label: catName, color, Icon } = catMeta(cat);
                 const isOver = rawPct > 100;
                 const isWarn = rawPct >= 80 && rawPct <= 100;
                 const barColor = isOver ? "error.main" : isWarn ? "warning.main" : "success.main";
@@ -336,7 +323,7 @@ export default function BudgetTab({ period, showToast }) {
                   <Box key={cat}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.75 }}>
                       <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-                        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: color, flexShrink: 0, mt: 0.5 }} />
+                        <CategoryAvatar icon={Icon} color={color} size={24} />
                         <Box>
                           <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 140, sm: 220 } }}>{catName}</Typography>
                           <Typography variant="caption" color="text.secondary">
@@ -400,7 +387,7 @@ export default function BudgetTab({ period, showToast }) {
       <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "success.main" }}>
         <CardContent sx={{ p: 2.5 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><EventIcon /></Avatar>
+            <GradientIcon icon={EventIcon} tone="income" bubble />
             <Box>
               <Typography variant="h6" fontWeight={700}>{t.recurring}</Typography>
               <Typography variant="body2" color="text.secondary">{recurring.length} {lang === "es" ? "pagos" : "payments"}</Typography>
@@ -408,16 +395,13 @@ export default function BudgetTab({ period, showToast }) {
           </Box>
           <Stack spacing={1}>
             {(showAllRecurring ? recurring : recurring.slice(0, 5)).map((r) => {
-              const isCustom = r.categoria?.startsWith("custom_");
-              const customCat = isCustom ? customCats.find((cc) => cc.id === r.categoria.slice("custom_".length)) : null;
-              const color = customCat?.color || CATEGORIES.expense[r.categoria]?.color || "#9e9e9e";
-              const catName = customCat?.nombre || CATEGORIES.expense[r.categoria]?.[lang] || r.categoria;
+              const { label: catName, color, Icon } = catMeta(r.categoria);
               return (
                 <Box key={r.concepto} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                  <Avatar sx={{ width: 36, height: 36, background: gradientBg(color), color: "common.white", fontSize: 13, fontWeight: 700 }}>{r.day}</Avatar>
+                  <CategoryAvatar icon={Icon} color={color} size={36} />
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
-                    <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName}</Typography>
+                    <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName} · {lang === "es" ? `día ${r.day}` : `day ${r.day}`}</Typography>
                   </Box>
                   <Typography variant="body1" fontWeight={700}>{fmtMoney(r.avg, currency, true)}</Typography>
                 </Box>
@@ -465,14 +449,17 @@ export default function BudgetTab({ period, showToast }) {
           <FormControl fullWidth>
             <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
             <Select value={newCat} onChange={(e) => setNewCat(e.target.value)} label={lang === "es" ? "Categoría" : "Category"}>
-              {availableCats.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: getCatColor(cat), flexShrink: 0 }} />
-                    {getCatName(cat)}
-                  </Box>
-                </MenuItem>
-              ))}
+              {availableCats.map((cat) => {
+                const { label, color, Icon } = catMeta(cat);
+                return (
+                  <MenuItem key={cat} value={cat}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Icon fontSize="small" sx={{ color }} />
+                      {label}
+                    </Box>
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
           <TextField label={lang === "es" ? "Monto mensual" : "Monthly amount"} type="number" value={newBudget} onChange={(e) => setNewBudget(e.target.value)} fullWidth />

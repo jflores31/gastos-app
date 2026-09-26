@@ -25,6 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: { default: "Finanzas", template: "%s | Finanzas" },
   description: "Aplicación de finanzas personales para rastrear ingresos y gastos",
+  icons: { icon: "/favicon.svg" },
 }
 
 export default async function RootLayout({

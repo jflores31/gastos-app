@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import {
-  Box, Card, CardContent, Typography, Chip, Avatar, Stack,
+  Box, Card, CardContent, Typography, Chip, Stack,
 } from "@mui/material";
 import {
   TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon,
@@ -25,8 +25,7 @@ import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
-
-const MINI_TONE = { success: "income", error: "expense", primary: "trend", warning: "warning" };
+import { TONE_BY_PALETTE } from "../theme/iconTones.js";
 
 function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
   if (!data || !data.length) return null;
@@ -147,9 +146,7 @@ export default function OverviewTab({ period, setPeriod }) {
                 <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.balance.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
                 <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmtMoney(net, currency)}</Typography>
               </Box>
-              <Avatar sx={{ width: 48, height: 48, bgcolor: net >= 0 ? "success.light" : "error.light", color: net >= 0 ? "success.dark" : "error.dark" }}>
-                <WalletIcon sx={{ fontSize: 24 }} />
-              </Avatar>
+              <GradientIcon icon={WalletIcon} tone={net >= 0 ? "income" : "expense"} bubble bubbleSize={48} size={26} />
             </Box>
             <Box sx={{ display: "flex", gap: 2, mt: 1.5, flexWrap: "wrap" }}>
               <Box sx={{ px: 2.5, py: 1.5, bgcolor: "success.light", borderRadius: 2, border: "1px solid", borderColor: "success.main" }}>
@@ -168,7 +165,7 @@ export default function OverviewTab({ period, setPeriod }) {
           <Card key={idx} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: ["success.main", "error.main", "primary.main", "warning.main"][idx], bgcolor: "background.paper" }}>
             <CardContent sx={{ p: 2, "&:last-child": { pb: 2 }, display: "flex", flexDirection: "column", height: "100%" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-                <GradientIcon tone={MINI_TONE[card.color] || "neutral"} bubble bubbleSize={36} size={20}>{card.icon}</GradientIcon>
+                <GradientIcon tone={TONE_BY_PALETTE[card.color] || "neutral"} bubble bubbleSize={36} size={20}>{card.icon}</GradientIcon>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{card.label}</Typography>
               </Box>
               <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{card.value}</Typography>
@@ -196,7 +193,7 @@ export default function OverviewTab({ period, setPeriod }) {
         <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-              <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ChartIcon /></Avatar>
+              <GradientIcon icon={ChartIcon} tone="goals" bubble />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.cashflow}</Typography>
                 <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
@@ -223,7 +220,7 @@ export default function OverviewTab({ period, setPeriod }) {
         <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-              <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
+              <GradientIcon icon={PieIcon} tone="warning" bubble />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.breakdown}</Typography>
                 <Typography variant="body2" color="text.secondary">{t.expense} · {periodLabel(period, t)}</Typography>
@@ -254,7 +251,7 @@ export default function OverviewTab({ period, setPeriod }) {
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><InsightsIcon /></Avatar>
+                <GradientIcon icon={InsightsIcon} tone="income" bubble />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.insights}</Typography>
                   <Typography variant="body2" color="text.secondary">{lang === "es" ? "Análisis automático" : "Auto analysis"}</Typography>
@@ -265,9 +262,9 @@ export default function OverviewTab({ period, setPeriod }) {
             <Stack spacing={1.5}>
               {insights.map((ins, idx) => (
                 <Box key={ins.title} sx={{ display: "flex", gap: 2, p: 2, bgcolor: idx % 2 === 0 ? "success.light" : "action.hover", borderRadius: 3, border: "1px solid", borderColor: idx % 2 === 0 ? "success.main" : "divider", transition: "transform 0.2s, background-color 0.2s", "&:hover": { transform: "translateX(4px)" } }}>
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: `${INSIGHT_COLORS[ins.tone]}.light`, color: `${INSIGHT_COLORS[ins.tone]}.dark`, flexShrink: 0 }}>
+                  <GradientIcon tone={TONE_BY_PALETTE[INSIGHT_COLORS[ins.tone]]} bubble bubbleSize={36} size={20}>
                     {INSIGHT_ICONS[ins.icon]}
-                  </Avatar>
+                  </GradientIcon>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5 }}>{ins.title}</Typography>
                     <Typography variant="body2" color="text.secondary">{ins.desc}</Typography>
@@ -281,7 +278,7 @@ export default function OverviewTab({ period, setPeriod }) {
         <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "error.main" }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-              <Avatar sx={{ bgcolor: "error.light", color: "error.dark" }}><CalendarIcon /></Avatar>
+              <GradientIcon icon={CalendarIcon} tone="expense" bubble />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.heatmap}</Typography>
                 <Typography variant="body2" color="text.secondary">{lang === "es" ? "Gastos diarios · 12 semanas" : "Daily spending · 12 weeks"}</Typography>

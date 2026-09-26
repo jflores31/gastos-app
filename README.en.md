@@ -143,12 +143,18 @@ src/
 │   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES export
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N (sin datos mock)
-│   └── helpers.js                  # filterByPeriod, periodLabel, monthCount, daysCount,
-│                                   #   healthScore, recurringList, insightsList,
-│                                   #   linearRegressionSlope (OLS slope para series temporales)
+│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N, toBase/fromBase (sin datos mock)
+│   ├── helpers.js                  # filterByPeriod, periodLabel, monthCount, daysCount,
+│   │                               #   healthScore, recurringList, insightsList,
+│   │                               #   linearRegressionSlope (OLS slope para series temporales)
+│   └── fetchAllRows.js             # Paginación con .range() (Supabase corta en 1000 filas)
 ├── theme/
-│   └── materialTheme.js            # Temas light/dark + paletas de acento
+│   ├── materialTheme.js            # Temas light/dark + paletas de acento
+│   ├── icons.js                    # Set central de iconos MUI Rounded
+│   ├── categoryIcons.js            # Categoría → icono, ICON_CHOICES, resolveCategoryMeta()
+│   ├── iconTones.js                # Gradientes por tono (TONES, TONE_BY_PALETTE)
+│   ├── GradientIcon.jsx            # GradientIcon + CategoryAvatar
+│   └── IconPicker.jsx              # Selector de icono (metas y categorías personalizadas)
 ├── hooks/
 │   └── useLocalStorage.js
 ├── lib/
@@ -230,6 +236,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 > Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 
 ## Technical Notes
+
+**Icon system:** category icons come from a single map (`src/theme/categoryIcons.js`); `resolveCategoryMeta(categoria, customCats, lang, tipo)` returns label, color and icon for both built-in and custom (`custom_<id>`) categories and is used by the transaction picker, lists, filter chips and budgets. Lists render `CategoryAvatar` (a squircle with the category color's gradient) and headers use `GradientIcon` with a semantic tone (`TONE_BY_PALETTE`). Goals and custom categories pick an icon with `IconPicker` and store its key (e.g. `"Flight"`); older goals with a text glyph still render. **Migration:** the `custom_categories.icon` column is added by the `ALTER TABLE ... ADD COLUMN IF NOT EXISTS icon text` in `supabase/migrations/schema.sql` (run it in the SQL Editor before deploying; until it exists, `saveCustomCat` saves without the icon).
+
+**Theme without hydration mismatch:** `useLocalStorage` uses the default value on the first render (server and hydration) and applies the stored one right after mount. Reading it in the `useState` initializer made a stored dark theme produce different classNames on the client than in the server HTML, which React does not patch up.
 
 **Transaction type derived from the category (not the toggle):** In `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) comes from the **selected category** (`categoria.type`), not from the toggle state or `mode`. Since custom categories are always shown regardless of the toggle, saving the toggle's `tipo` caused a custom income category (picked while the toggle was on EGRESO — the FAB default) to be saved as an expense → the income "wasn't registered" and net/savings/balance went out of sync. The Autocomplete `onChange` also syncs the toggle (`if (v?.type) setTipo(v.type)`). Backfill for already mis-saved rows (custom categories): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 

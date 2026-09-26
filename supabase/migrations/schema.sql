@@ -1,8 +1,11 @@
 -- Schema completo de gastos-app — fuente única de verdad del esquema.
 -- Todas las migraciones aplicadas en Supabase ✓
--- Última actualización: 2026-06-18
+-- Última actualización: 2026-09-26
 --   2026-06-18: políticas RLS explícitas en las 8 tablas
 --               (FOR ALL TO authenticated USING ... WITH CHECK auth.uid() = user_id).
+--   2026-09-26: columna `icon` en custom_categories (clave de ICON_CHOICES,
+--               src/theme/categoryIcons.js). ⚠ En una DB existente ejecutar el
+--               ALTER TABLE de esa sección en el SQL Editor antes de desplegar.
 
 -- ─── TRANSACTIONS ────────────────────────────────────────────────────────────
 
@@ -146,8 +149,12 @@ CREATE TABLE IF NOT EXISTS custom_categories (
   nombre     text        NOT NULL,
   tipo       text        NOT NULL CHECK (tipo IN ('INGRESO', 'EGRESO')),
   color      text        NOT NULL DEFAULT '#9e9e9e',
+  icon       text,
   created_at timestamptz DEFAULT now()
 );
+
+-- Idempotente: añade la columna en DBs creadas antes del 2026-09-26.
+ALTER TABLE custom_categories ADD COLUMN IF NOT EXISTS icon text;
 
 ALTER TABLE custom_categories ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "custom_categories_policy" ON custom_categories

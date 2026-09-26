@@ -69,8 +69,9 @@ src/
 │   └── UserContext.tsx           # Usuario Supabase
 │
 ├── data/
-│   ├── index.js                  # CATEGORIES, CURRENCIES, I18N, helpers
-│   └── helpers.js                # healthScore, insights, filtros...
+│   ├── index.js                  # CATEGORIES, CURRENCIES, I18N, toBase/fromBase
+│   ├── helpers.js                # healthScore, insights, filtros...
+│   └── fetchAllRows.js           # Paginación de Supabase (> 1000 filas)
 │
 ├── hooks/
 │   └── useLocalStorage.js
@@ -80,7 +81,11 @@ src/
 │   └── supabase-server.ts        # Cliente server
 │
 ├── theme/
-│   ├── icons.js                  # *** Módulo central: 88 iconos Rounded ***
+│   ├── icons.js                  # *** Módulo central: iconos Rounded ***
+│   ├── categoryIcons.js          # *** Categoría → icono + ICON_CHOICES ***
+│   ├── iconTones.js              # Gradientes (TONES, TONE_BY_PALETTE)
+│   ├── GradientIcon.jsx          # GradientIcon + CategoryAvatar
+│   ├── IconPicker.jsx            # Selector de icono (metas, categorías)
 │   └── materialTheme.js          # *** Animación centralizada de iconos ***
 │
 └── proxy.ts                      # Middleware / proxy
@@ -92,101 +97,125 @@ src/
 3. ICONOS DEL PROYECTO
 ----------------------------------------------------------------
 Librería: @mui/icons-material (MUI v9). SVG, sin emojis ni
-assets propios. 88 iconos únicos. Variante: Rounded
-(Material You / Material 3).
+assets propios. 115 iconos únicos. Variante: Rounded
+(Material You / Material 3). Favicon: public/favicon.svg
+(alcancía blanca sobre el gradiente del acento Océano).
 
-El sistema tiene TRES piezas:
+El sistema tiene CUATRO piezas:
 
   (A) MÓDULO CENTRAL de iconos ... src/theme/icons.js
-        Re-exporta los 88 iconos en variante Rounded (deep-import,
-        mejor tree-shaking). Los 14 componentes/páginas importan
+        Re-exporta los 115 iconos en variante Rounded (deep-import,
+        mejor tree-shaking). Los componentes/páginas importan
         desde aquí, NO del barrel @mui/icons-material. Cambiar de
         estilo a futuro (p.ej. Outlined) = editar solo este archivo.
         Casos especiales:
-          GitHub / Google / YouTube -> sin variante Rounded (Filled).
-          ErrorOutlined             -> mapea a ErrorRounded.
-  (B) MAPEO categoría → icono .... src/components/AddTransactionModal.jsx
-  (C) ANIMACIÓN centralizada ..... src/theme/materialTheme.js
+          GitHub / Google -> sin variante Rounded (Filled).
+          ErrorOutlined   -> mapea a ErrorRounded.
+  (B) MAPEO categoría → icono .... src/theme/categoryIcons.js
+        EXPENSE_ICONS / INCOME_ICONS + resolveCategoryMeta()
+        (nombre, color e icono de categorías de fábrica y
+        personalizadas) + ICON_CHOICES (iconos elegibles).
+  (C) PINTADO ................... src/theme/GradientIcon.jsx
+        GradientIcon (burbuja con gradiente por tono) y
+        CategoryAvatar (squircle con el color de la categoría).
+  (D) ANIMACIÓN centralizada ..... src/theme/materialTheme.js
 
 
-3.A  MAPA CATEGORÍA → ICONO  (AddTransactionModal.jsx:29-96)
+3.A  MAPA CATEGORÍA → ICONO  (src/theme/categoryIcons.js)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Las categorías (src/data/index.js:74) NO llevan icono; solo
-color/concepts. El icono se asigna aquí.
+Las categorías (src/data/index.js) NO llevan icono; solo
+color/concepts. El icono se asigna en categoryIcons.js y se usa
+en el selector de transacciones, las listas, los chips de filtro
+y los presupuestos. Un test verifica que ninguna categoría quede
+sin icono.
 
-  EXPENSE_ICONS (gastos)            INCOME_ICONS (ingresos)
-  ----------------------------     -----------------------------
-  VIVIENDA          Home           SUELDO           AttachMoney
-  LUZ               Lightbulb      HONORARIOS       Code
-  AGUA              WaterDrop      NEGOCIO          Work
-  INTERNET          Wifi          INVERSIONES      TrendingUp
-  CELULAR           PhoneAndroid   INTERESES        AccountBalance
-  COMIDA            Restaurant     ALQUILERES       Home
-  TRANSPORTE        DirectionsBus  VENTAS           ShoppingBag
-  GASOLINA          LocalGasStation CONTENIDO       YouTube
-  AUTO              DirectionsCar  GAMING           OndemandVideo
-  MOTO              TwoWheeler     CLASES           School
-  REPUESTOS         Build          ASESORIAS        Work
-  LLANTAS           TireRepair     TECNICO          Build
-  ACEITE            OilBarrel      TELECOM          Wifi
-  SOAT              Security       MUSICA           MusicNote
-  ESTACIONAMIENTO   LocalParking   EVENTOS          Event
-  STREAMING         Movie          DJ               Speaker
-  CAFES             Coffee         TOCADAS          Album
-  ROPA              Checkroom      PRODUCCION       Theaters
-  SALUD             HealthAndSafety FOTOGRAFIA      PhotoCamera
-  DEUDAS            AccountBalance EDICION          Videocam
-  EDUCACION         School         ORGANIZACION     Campaign
-  MASCOTA           Pets           ALQUILER_SONIDO  LightbulbCircle
-  REGALOS           CardGiftcard   EVENTOS_CORP     CorporateFare
-  IMPREVISTOS       Warning        COMISIONES       AttachMoney
-  AHORRO            Savings        REGALOS          CardGiftcard
-  DELIVERY          DeliveryDining CRIPTO           AttachMoney
-  JUEGOS            SportsEsports  DIVIDENDOS       TrendingUp
-  SALIDAS           Celebration    BONOS            Work
-  HIGIENE           Face           CASHBACK         ShoppingBag
-  GIMNASIO          FitnessCenter  AHORROS          Savings
+  EXPENSE_ICONS (gastos)              INCOME_ICONS (ingresos)
+  -------------------------------     -----------------------------
+  VIVIENDA          Home              SUELDO           Payments
+  LUZ               Lightbulb         HONORARIOS       Code
+  AGUA              WaterDrop         NEGOCIO          Work
+  INTERNET          Wifi              INVERSIONES      TrendingUp
+  CELULAR           PhoneAndroid      INTERESES        AccountBalance
+  COMIDA            Restaurant        ALQUILERES       Apartment
+  TRANSPORTE        DirectionsBus     VENTAS           Storefront
+  GASOLINA          LocalGasStation   CONTENIDO        SmartDisplay
+  AUTO              DirectionsCar     GAMING           LiveTv
+  MOTO              TwoWheeler        CLASES           School
+  REPUESTOS         Build             ASESORIAS        SupportAgent
+  LLANTAS           TireRepair        TECNICO          Handyman
+  ACEITE            OilBarrel         TELECOM          CellTower
+  SOAT              Security          MUSICA           MusicNote
+  ESTACIONAMIENTO   LocalParking      EVENTOS          Event
+  STREAMING         Movie             DJ               Speaker
+  CAFES             Coffee            TOCADAS          Album
+  ROPA              Checkroom         PRODUCCION       Theaters
+  SALUD             HealthAndSafety   FOTOGRAFIA       PhotoCamera
+  DEUDAS            RequestQuote      EDICION          Videocam
+  EDUCACION         School            ORGANIZACION     Campaign
+  MASCOTA           Pets              ALQUILER_SONIDO  Highlight
+  REGALOS           CardGiftcard      EVENTOS_CORP     CorporateFare
+  IMPREVISTOS       Warning           COMISIONES       Percent
+  AHORRO            Savings           REGALOS          CardGiftcard
+  DELIVERY          DeliveryDining    CRIPTO           CurrencyBitcoin
+  JUEGOS            SportsEsports     DIVIDENDOS       TrendingUp
+  SALIDAS           Celebration       BONOS            EmojiEvents
+  HIGIENE           Face              CASHBACK         Loyalty
+  GIMNASIO          FitnessCenter     AHORROS          LocalAtm
   VIAJES            Flight
-  IMPUESTOS         Receipt
+  IMPUESTOS         Gavel
   COMPRAS           ShoppingBag
+
+  Metas y categorías personalizadas guardan en DB la CLAVE de un
+  icono de ICON_CHOICES (p. ej. "Flight"); IconPicker.jsx las
+  muestra en rejilla. Metas viejas con glifo de texto ("◉") se
+  siguen mostrando tal cual.
 
 
 3.B  ICONOS DE UI POR ARCHIVO  (no de categoría)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+app/components/auth/AuthThemeToggle.tsx:
+  DarkMode, LightMode
+app/forgot-password/page.tsx:
+  ArrowBack, LockReset, MarkEmailRead
 app/login/page.tsx:
-  AccountBalanceWallet, GitHub, Google, Visibility, VisibilityOff
+  AccountBalanceWallet, GitHub, Google, Visibility,
+  VisibilityOff
 app/register/page.tsx:
   AccountBalanceWallet, CheckCircle, GitHub, Google, Visibility,
   VisibilityOff
-app/forgot-password/page.tsx:
-  ArrowBack, LockReset, MarkEmailRead
 app/reset-password/page.tsx:
   ArrowBack, CheckCircle, ErrorOutlined, LockReset, Visibility,
   VisibilityOff
-
-components/OverviewTab.jsx:
-  AccountBalanceWallet, CalendarMonth, Insights, PieChart, Savings,
-  ShowChart, Timeline, TrendingDown, TrendingUp, Warning
-components/IncomeTab.jsx:
-  AccountBalanceWallet, Add, Delete, Edit, PieChart, ShowChart
-components/ExpensesTab.jsx:
-  Add, Delete, Edit, ExpandLess, ExpandMore
+components/AddTransactionModal.jsx:
+  Label, Star
 components/BudgetTab.jsx:
   AccountBalanceWallet, Add, Check, CheckCircle, CompareArrows,
-  Delete, Edit, Event, PieChart, TrendingDown, TrendingUp, Warning
-components/GoalsTab.jsx:
-  AccountBalance, Add, AttachMoney, CreditCard, CreditScore, Delete,
-  Edit, History, Savings, ShowChart, Subscriptions, Timeline
+  Delete, Edit, Event, PieChart, TrendingDown, TrendingUp,
+  Warning
 components/DashboardStudio.jsx:
-  AccountBalanceWallet, Add, AttachMoney, Dashboard, Flag, Login,
-  Logout, Receipt, Settings
+  AccountBalanceWallet, Add, AttachMoney, Dashboard, Flag,
+  Login, Logout, Receipt, Settings
+components/ExpensesTab.jsx:
+  Add, CalendarMonth, Delete, Edit, ExpandLess, ExpandMore,
+  Receipt, TrendingDown, Warning
+components/GoalsTab.jsx:
+  AccountBalance, Add, AttachMoney, CreditCard, CreditScore,
+  Delete, Edit, History, Savings, ShowChart, Subscriptions,
+  Timeline
+components/IncomeTab.jsx:
+  AccountBalanceWallet, Add, Delete, Edit, PieChart, ShowChart
+components/LoginModal.jsx:
+  Close, GitHub, Google
+components/OverviewTab.jsx:
+  AccountBalanceWallet, CalendarMonth, Insights, PieChart,
+  Savings, ShowChart, Timeline, TrendingDown, TrendingUp,
+  Warning
+components/SettingsPanel.jsx:
+  Add, Close, DarkMode, Delete, Edit, LightMode, Person,
+  Settings
 components/shared.jsx:
   AttachMoney, CalendarMonth, ChevronLeft, ChevronRight, Inbox,
   Receipt
-components/SettingsPanel.jsx:
-  Add, Close, DarkMode, Delete, Edit, LightMode, Person
-components/LoginModal.jsx:
-  Close, GitHub, Google
 
 
 3.C  ANIMACIÓN DE ICONOS  (theme/materialTheme.js:45-88)
@@ -204,11 +233,12 @@ El theme MUI centraliza el comportamiento animado (no la lista):
 
 4. RESUMEN RÁPIDO
 ----------------------------------------------------------------
-  - 88 iconos SVG únicos de @mui/icons-material, variante Rounded
+  - 115 iconos SVG únicos de @mui/icons-material, variante Rounded
     (Material You), centralizados en src/theme/icons.js.
-  - Categorías -> icono se ASIGNA en AddTransactionModal.jsx
-    (EXPENSE_ICONS / INCOME_ICONS).
-  - Iconos de UI viven en cada componente (tabs, auth, settings).
+  - Categorías -> icono se ASIGNA en src/theme/categoryIcons.js
+    (EXPENSE_ICONS / INCOME_ICONS, resolveCategoryMeta).
+  - Listas y encabezados usan CategoryAvatar / GradientIcon (un
+    solo estilo, claro y oscuro).
   - La ANIMACIÓN de todos los iconos se controla desde el theme.
   - Proyecto = app de finanzas personales (Next.js + MUI + Supabase).
 

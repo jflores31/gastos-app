@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import {
-  Box, Card, CardContent, Typography, Grid, Chip, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText,
+  Box, Card, CardContent, Typography, Grid, Chip, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { CATEGORIES, fmtMoney, txByCategory, txByMonth } from "../data/index.js";
-import { gradientBg } from "../theme/iconTones.js";
+import { fmtMoney, txByCategory, txByMonth } from "../data/index.js";
+import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -50,15 +51,10 @@ export default function IncomeTab({ period, openModal, showToast }) {
     return base;
   }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
   const filteredTotal = useMemo(() => incomeTxs.reduce((s, x) => s + x.valor, 0), [incomeTxs]);
+  const catMeta = (categoria) => resolveCategoryMeta(categoria, customCats, lang, "INGRESO");
   const incomeDonut = useMemo(() => incomeCats.map((c) => {
-    const isCustom = c.categoria?.startsWith("custom_");
-    const color = isCustom
-      ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.color || "#9e9e9e")
-      : (CATEGORIES.income[c.categoria]?.color || "#9e9e9e");
-    const label = isCustom
-      ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
-      : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
-    return { label, value: c.total, color };
+    const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "INGRESO");
+    return { label, value: c.total, color, Icon };
   }), [incomeCats, customCats, lang]);
 
   return (
@@ -75,9 +71,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
                 <AddIcon />
               </IconButton>
-              <Avatar sx={{ width: 48, height: 48, bgcolor: "success.light", color: "success.dark" }}>
-                <WalletIcon sx={{ fontSize: 24 }} />
-              </Avatar>
+              <GradientIcon icon={WalletIcon} tone="income" bubble bubbleSize={48} size={26} />
             </Box>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1 }}>
@@ -97,7 +91,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>{lang === "es" ? "Fuentes de ingreso" : "Income sources"}</Typography>
               <Typography variant="body2" color="text.secondary">{periodLabel(period, t)} · {incomeCats.length} {lang === "es" ? "categorías" : "categories"}</Typography>
             </Box>
-            <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><PieIcon /></Avatar>
+            <GradientIcon icon={PieIcon} tone="income" bubble />
           </Box>
           {incomeCats.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3, fontStyle: "italic" }}>
@@ -106,13 +100,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {[...incomeCats].sort((a, b) => b.total - a.total).map((c) => {
-                const isCustom = c.categoria?.startsWith("custom_");
-                const resolvedColor = (isCustom
-                  ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.color
-                  : CATEGORIES.income[c.categoria]?.color) || "#9e9e9e";
-                const catLabel = isCustom
-                  ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
-                  : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
+                const { label: catLabel, color: resolvedColor, Icon } = catMeta(c.categoria);
                 const pct = totalIn > 0 ? (c.total / totalIn) * 100 : 0;
                 const isActive = activeCat === c.categoria;
                 return (
@@ -128,7 +116,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     }}
                   >
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: resolvedColor, flexShrink: 0 }} />
+                      <CategoryAvatar icon={Icon} color={resolvedColor} size={28} />
                       <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }} noWrap>{catLabel}</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>{fmtMoney(c.total, currency, true)}</Typography>
                       <Chip size="small" label={`${Math.round(pct)}%`} sx={{ bgcolor: resolvedColor, color: "#fff", fontWeight: 700, fontSize: 10, height: 20 }} />
@@ -160,7 +148,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                <Avatar sx={{ bgcolor: "warning.light", color: "warning.dark" }}><PieIcon /></Avatar>
+                <GradientIcon icon={PieIcon} tone="warning" bubble />
                 <Box>
                   <Typography variant="h6" fontWeight={700}>{t.breakdown}</Typography>
                   <Typography variant="body2" color="text.secondary">{t.income} · {periodLabel(period, t)}</Typography>
@@ -177,7 +165,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 <Box sx={{ flex: 1 }}>
                   {incomeDonut.map((s) => (
                     <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
-                      <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
+                      <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                       <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                       <Typography variant="body2" fontWeight={700} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
                     </Box>
@@ -191,7 +179,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                <Avatar sx={{ bgcolor: "info.light", color: "info.dark" }}><ChartIcon /></Avatar>
+                <GradientIcon icon={ChartIcon} tone="goals" bubble />
                 <Box>
                   <Typography variant="h6" fontWeight={700}>{t.trend}</Typography>
                   <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
@@ -237,13 +225,12 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 sx={{ fontWeight: 600 }}
               />
               {incomeCats.map((c) => {
-                const label = c.categoria?.startsWith("custom_")
-                  ? (customCats.find((cc) => cc.id === c.categoria.slice("custom_".length))?.nombre || c.categoria)
-                  : (CATEGORIES.income[c.categoria]?.[lang] || c.categoria);
+                const { label, Icon } = catMeta(c.categoria);
                 return (
                   <Chip
                     key={c.categoria}
                     size="small"
+                    icon={<Icon />}
                     label={label}
                     variant={activeCat === c.categoria ? "filled" : "outlined"}
                     color={activeCat === c.categoria ? "success" : "default"}
@@ -259,10 +246,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
               {incomeTxs.map((x) => {
-              const color = (x.categoria?.startsWith("custom_")
-                ? customCats.find((c) => c.id === x.categoria.slice("custom_".length))?.color
-                : CATEGORIES.income[x.categoria]?.color) || "#9e9e9e";
-              const catName = CATEGORIES.income[x.categoria]?.[lang] || (x.categoria?.startsWith("custom_") ? customCats.find((c) => c.id === x.categoria.slice("custom_".length))?.nombre : null) || x.categoria;
+              const { label: catName, color, Icon } = catMeta(x.categoria);
               return (
                 <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
                   secondaryAction={
@@ -280,7 +264,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   }
                 >
                   <ListItemAvatar sx={{ minWidth: 52 }}>
-                    <Avatar sx={{ width: 40, height: 40, background: gradientBg(color), color: "common.white", fontSize: 15, fontWeight: 700 }}>{catName[0]}</Avatar>
+                    <CategoryAvatar icon={Icon} color={color} />
                   </ListItemAvatar>
                   <ListItemText
                     primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
