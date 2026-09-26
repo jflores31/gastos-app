@@ -29,7 +29,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Registro con nombre, apellidos y email — confirmación por email
 - Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
 - Protección de rutas doble capa: `src/proxy.ts` (server) + `router.replace` en `DashboardStudio` (client)
-- Auto-logout por inactividad a los 2 minutos con aviso a los 30 s, medido entre todas las pestañas (una pestaña inactiva no cierra la sesión si estás activo en otra)
+- Auto-logout por inactividad (2, 5, 15 o 30 minutos, se elige en Ajustes; 2 por defecto) con aviso 30 s antes, medido entre todas las pestañas (una pestaña inactiva no cierra la sesión si estás activo en otra)
 - Cierre forzado al reabrir el navegador: `UserContext` escribe el flag `gastos_session_alive` en `sessionStorage` al detectar `SIGNED_IN`; `DashboardStudio` lo verifica al montar. Si falta, pregunta por `BroadcastChannel` a las otras pestañas: si alguna responde (pestaña nueva con el navegador abierto) hereda el flag; si no (navegador reabierto) cierra la sesión solo en este navegador (`scope: "local"`)
 - Pestaña abierta >8 h: `checkSessionAge` lee `gastos_last_active` (localStorage) al recuperar visibilidad (`visibilitychange` + `pageshow` para bfcache) y cierra sesión si supera el límite
 
@@ -321,7 +321,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Seguridad de sesión:**
 - `UserContext` escribe `gastos_session_alive` en `sessionStorage` al recibir `SIGNED_IN`; el navegador la borra al cerrarse y las recargas (F5) la conservan.
 - Al montar, `DashboardStudio` la verifica. Si falta, pregunta por `BroadcastChannel("gastos-session")` si hay otra pestaña viva (espera unos 300 ms): si alguna responde, es una pestaña nueva con el navegador abierto y hereda la marca; si no, el navegador se reabrió y cierra sesión.
-- Inactividad: 2 min con aviso a los 30 s. `gastos_last_active` (localStorage, compartido entre pestañas) se actualiza con cada evento del usuario y se relee antes de avisar o cerrar, así una pestaña inactiva no cierra la sesión si estás activo en otra.
+- Inactividad: 2 min por defecto (configurable en Ajustes: 2, 5, 15 o 30, en `gastos-idle-minutes`), con aviso 30 s antes. El valor se sincroniza entre pestañas con el evento `storage`, así una pestaña con el valor viejo no cierra la sesión antes de tiempo. `gastos_last_active` (localStorage, compartido entre pestañas) se actualiza con cada evento del usuario y se relee antes de avisar o cerrar, así una pestaña inactiva no cierra la sesión si estás activo en otra.
 - Pestaña abierta más de 8 h: se revisa al recuperar visibilidad (`visibilitychange` y `pageshow` para bfcache).
 - Los cierres automáticos usan `signOut({ scope: "local" })`, que no revoca las sesiones de otros dispositivos; el botón "Cerrar sesión" mantiene el alcance global. Todos borran `gastos_last_active` para no entrar en un bucle de logout en el siguiente login.
 

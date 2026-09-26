@@ -29,7 +29,7 @@ Personal finance application to track income, expenses, budgets, goals, and more
 - Registration with first name, last name, and email — email confirmation required
 - Full password recovery flow (forgot → email → reset with expired link detection)
 - Double-layer route protection: `src/proxy.ts` (server) + `router.replace` in `DashboardStudio` (client)
-- Auto-logout on inactivity after 2 minutes with a 30 s warning, measured across all tabs (an idle tab doesn't sign you out while you're active in another one)
+- Auto-logout on inactivity (2, 5, 15 or 30 minutes, chosen in Settings; 2 by default) with a warning 30 s before, measured across all tabs (an idle tab doesn't sign you out while you're active in another one)
 - Forced logout on browser reopen: `UserContext` writes the `gastos_session_alive` flag to `sessionStorage` on `SIGNED_IN`; `DashboardStudio` checks it on mount. If it's missing, it asks the other tabs over a `BroadcastChannel`: if one answers (new tab while the browser is open) it inherits the flag; if none does (browser reopened) it signs out in this browser only (`scope: "local"`)
 - Tab left open >8 h: `checkSessionAge` reads `gastos_last_active` (localStorage) on focus recovery (`visibilitychange` + `pageshow` for bfcache) and signs out if the threshold is exceeded
 
@@ -321,7 +321,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 **Session security:**
 - `UserContext` writes `gastos_session_alive` to `sessionStorage` on `SIGNED_IN`; the browser clears it on close and reloads (F5) keep it.
 - On mount, `DashboardStudio` checks for it. If it's missing, it asks over `BroadcastChannel("gastos-session")` whether another tab is alive (waiting about 300 ms): if one answers, this is a new tab with the browser still open and it inherits the flag; if not, the browser was reopened and it signs out.
-- Inactivity: 2 min with a warning at 30 s. `gastos_last_active` (localStorage, shared across tabs) is updated on every user event and re-read before warning or signing out, so an idle tab doesn't sign out a user who is active in another tab.
+- Inactivity: 2 min by default (configurable in Settings: 2, 5, 15 or 30, stored in `gastos-idle-minutes`), with a warning 30 s before. The value is synced across tabs through the `storage` event, so a tab still holding the old value doesn't sign out early. `gastos_last_active` (localStorage, shared across tabs) is updated on every user event and re-read before warning or signing out, so an idle tab doesn't sign out a user who is active in another tab.
 - Tab left open for more than 8 h: checked when visibility returns (`visibilitychange`, plus `pageshow` for bfcache).
 - Automatic sign-outs use `signOut({ scope: "local" })`, which doesn't revoke the user's sessions on other devices; the "Sign out" button keeps the global scope. All of them clear `gastos_last_active` to avoid a logout loop on the next login.
 

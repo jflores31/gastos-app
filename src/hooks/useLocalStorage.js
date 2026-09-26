@@ -16,6 +16,19 @@ export function useLocalStorage(key, initialValue) {
     } catch {
       // private mode / blocked storage / invalid JSON: keep initialValue
     }
+    // Other tabs of the app see the change too (the "storage" event only fires in
+    // the tabs that didn't write). The inactivity timeout relies on it: a tab still
+    // on the old value would sign every tab out early.
+    const onStorage = (e) => {
+      if (e.storageArea !== window.localStorage || e.key !== key || e.newValue === null) return;
+      try {
+        setStoredValue(JSON.parse(e.newValue));
+      } catch {
+        // invalid JSON written by someone else: ignore
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, [key]);
 
   const setValue = useCallback(

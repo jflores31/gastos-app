@@ -360,6 +360,27 @@ test("en los diálogos, la etiqueta flotante del primer campo no queda recortada
   await expectLabelInside()
 })
 
+test("inactividad: el tiempo se elige en Ajustes, avisa 30 s antes y cierra la sesión", async ({ page }, info) => {
+  await page.clock.install()
+  await login(page, uniqueEmail(info))
+  await openSettings(page, "Ajustes")
+  const five = dialog(page).getByRole("radio", { name: "5 min", exact: true })
+  await expect(dialog(page).getByRole("radio", { name: "2 min", exact: true })).toHaveAttribute("aria-checked", "true")
+  await five.click()
+  await expect(five).toHaveAttribute("aria-checked", "true")
+  await page.getByRole("button", { name: "Cerrar" }).click()
+  await expect(dialog(page)).toHaveCount(0)
+
+  // No mouse or keyboard from here on. With the old fixed 2 minutes this already signed out.
+  await page.clock.fastForward("04:20")
+  await expect(page).toHaveURL(/\/$/)
+  await expect(toast(page, "La sesión se cerrará")).toHaveCount(0)
+  await page.clock.fastForward("00:15")
+  await expect(toast(page, "La sesión se cerrará en 30 segundos")).toBeVisible()
+  await page.clock.fastForward("00:30")
+  await expect(page).toHaveURL(/\/login$/)
+})
+
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {
   await login(page, uniqueEmail(info))
 

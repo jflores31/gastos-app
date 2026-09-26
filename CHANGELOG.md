@@ -25,6 +25,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Cierre por inactividad configurable:** en Ajustes se elige 2, 5, 15 o 30 minutos (antes, 2 fijos). El aviso sigue llegando 30 s antes, y el valor se sincroniza entre pestañas.
 - **Modo privacidad:** el botón del ojo oculta todos los montos ("S/••••") y se recuerda.
 - **Exportar datos (Perfil → Tus datos):**
   - las transacciones en CSV, preparadas para Excel y protegidas contra fórmulas;
@@ -32,6 +33,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Corregido
+- **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
 - **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
 - **Error de hidratación intermitente (React #418):**
   - `/reset-password` fallaba en 1 de cada 20 cargas, más con el servidor cargado.

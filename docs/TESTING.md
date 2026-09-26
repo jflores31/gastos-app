@@ -33,12 +33,12 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 104 tests en 13 archivos
+### Unitarios y componentes: 111 tests en 13 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
 | [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las pestañas (detalle abajo) |
-| [`src/data/currency.test.js`](../src/data/currency.test.js) | 13 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos |
+| [`src/data/currency.test.js`](../src/data/currency.test.js) | 16 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
 | [`src/lib/reportError.test.js`](../src/lib/reportError.test.js) | 8 | Reporte de errores del navegador: recorte de campos, solo el pathname (sin query), sin repetidos, tope de 10, `fetch` si no hay `sendBeacon`, nunca lanza |
@@ -47,7 +47,7 @@ npm run typecheck    # tsc --noEmit
 | [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono con su nombre traducido, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
 | [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas, copia JSON con todas las tablas, nombres de archivo |
-| [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 2 | `fmt()` por moneda y **modo privacidad** (enmascara, cambia con la moneda, se guarda) |
+| [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 6 | `fmt()` por moneda e idioma, **modo privacidad** (enmascara, cambia con la moneda, se guarda) e **inactividad** (2 min por defecto, valor inválido → 2, un cambio en otra pestaña llega a esta) |
 | [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 8 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
@@ -72,7 +72,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 13 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 14 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
 
@@ -93,6 +93,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Modo privacidad:** no queda ningún "S/<dígitos>" en las 5 pestañas, y se recuerda al recargar.
 - **Tus datos:** descarga el CSV y el JSON y compara su contenido con la base simulada.
 - **Diálogos:** la etiqueta flotante del primer campo queda dentro del contenido (antes MUI la recortaba).
+- **Inactividad:** con el reloj simulado de Playwright (`page.clock`), eligiendo 5 minutos en Ajustes: a los 4:20 sigue la sesión, a los 4:35 aparece el aviso y a los 5:05 vuelve a `/login`.
 - **Sesión:**
   - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;
   - al reabrir el navegador sin otra pestaña abierta, pide iniciar sesión de nuevo.

@@ -95,14 +95,18 @@ export function fromBase(v, curr = "PEN") {
   return round2(Number(v) * c.rate);
 }
 
-export function fmtMoney(v, curr = "PEN", compact = false) {
+// `locale` fixes the digit grouping (t.common.locale). Without it, toLocaleString used
+// the browser's locale: a German browser showed "S/3.500" in an app set to Spanish,
+// and the server (Node's default locale) could render different text than the client.
+export function fmtMoney(v, curr = "PEN", compact = false, locale = "es-PE") {
   const c = CURRENCIES[curr] || CURRENCIES.PEN;
   const n = v * c.rate;
   if (compact) {
-    if (Math.abs(n) >= 1e6) return c.symbol + (n / 1e6).toFixed(1) + "M";
-    if (Math.abs(n) >= 1e3) return c.symbol + (n / 1e3).toFixed(1) + "k";
+    const short = (x) => x.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    if (Math.abs(n) >= 1e6) return c.symbol + short(n / 1e6) + "M";
+    if (Math.abs(n) >= 1e3) return c.symbol + short(n / 1e3) + "k";
   }
-  return c.symbol + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: n >= 100 ? 0 : 2 });
+  return c.symbol + n.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: Math.abs(n) >= 100 ? 0 : 2 });
 }
 
 export function getToday() {

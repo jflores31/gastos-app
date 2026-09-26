@@ -39,7 +39,7 @@ const LAST_ACTIVE_KEY = "gastos_last_active";
 const SESSION_CHANNEL = "gastos-session";
 
 export default function DashboardStudio() {
-  const { t, privacy, setPrivacy } = useSettings();
+  const { t, privacy, setPrivacy, idleMinutes } = useSettings();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const user = useSupabaseUser();
@@ -93,14 +93,14 @@ export default function DashboardStudio() {
     }
   }, [user, router]);
 
-  // Inactivity auto-logout: 2 minutes with 30s warning.
+  // Inactivity auto-logout after `idleMinutes` (Ajustes, 2 by default) with a 30s warning.
   // LAST_ACTIVE_KEY lives in localStorage, shared by every tab: before warning or
   // logging out, re-read it so an idle tab doesn't end a session the user is
   // actively using in another tab.
   useEffect(() => {
     if (!user) return;
 
-    const TIMEOUT = 120_000;
+    const TIMEOUT = idleMinutes * 60_000;
     const WARN_BEFORE = 30_000;
 
     let logoutTimer;
@@ -146,7 +146,7 @@ export default function DashboardStudio() {
       clearTimeout(warnTimer);
       EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
     };
-  }, [user, showToast, t, autoSignOut]);
+  }, [user, showToast, t, autoSignOut, idleMinutes]);
 
   // Session security: force login on browser close (sessionStorage flag) + 8h max-age for open tabs.
   // sessionStorage is per tab, so a tab opened by hand (bookmark, typed URL) starts without

@@ -27,4 +27,40 @@ describe("SettingsContext — fmt y modo privacidad", () => {
     act(() => result.current.setPrivacy(false))
     expect(result.current.fmt(3500)).toBe("€875")
   })
+
+  it("en inglés también formatea con el locale del idioma", () => {
+    const { result } = setup()
+    act(() => result.current.setLang("en"))
+    expect(result.current.t.common.locale).toBe("en-US")
+    expect(result.current.fmt(1234.5)).toBe("S/1,235")
+  })
+})
+
+describe("SettingsContext — cierre por inactividad", () => {
+  afterEach(() => { cleanup(); localStorage.clear() })
+
+  it("por defecto 2 minutos; se guarda al cambiarlo", () => {
+    const { result } = setup()
+    expect(result.current.idleMinutes).toBe(2)
+    act(() => result.current.setIdleMinutes(15))
+    expect(result.current.idleMinutes).toBe(15)
+    expect(localStorage.getItem("gastos-idle-minutes")).toBe("15")
+  })
+
+  it("un valor guardado que no es una opción vuelve a 2", () => {
+    localStorage.setItem("gastos-idle-minutes", "0")
+    const { result } = setup()
+    expect(result.current.idleMinutes).toBe(2)
+  })
+
+  it("un cambio hecho en otra pestaña llega a esta", () => {
+    const { result } = setup()
+    localStorage.setItem("gastos-idle-minutes", "30")
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: "gastos-idle-minutes", newValue: "30", storageArea: localStorage,
+      }))
+    })
+    expect(result.current.idleMinutes).toBe(30)
+  })
 })

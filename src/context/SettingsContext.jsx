@@ -20,6 +20,9 @@ const PALETTES = {
 
 export { PALETTES };
 
+// Minutes of inactivity before DashboardStudio signs the user out (Ajustes).
+export const IDLE_OPTIONS = [2, 5, 15, 30];
+
 export function SettingsProvider({ children }) {
   const [theme,    setTheme]    = useLocalStorage("gastos-theme", "light");
   const [density,  setDensity]  = useLocalStorage("gastos-density", "comfy");
@@ -27,6 +30,8 @@ export function SettingsProvider({ children }) {
   const [lang,     setLang]     = useLocalStorage("gastos-lang", "es");
   const [palette,  setPalette]  = useLocalStorage("gastos-palette", "ocean");
   const [privacy,  setPrivacy]  = useLocalStorage("gastos-privacy", false);
+  const [idleRaw,  setIdleMinutes] = useLocalStorage("gastos-idle-minutes", IDLE_OPTIONS[0]);
+  const idleMinutes = IDLE_OPTIONS.includes(idleRaw) ? idleRaw : IDLE_OPTIONS[0];
 
   // Migra acentos viejos (amber/indigo/green) al nuevo set una sola vez.
   useEffect(() => {
@@ -40,14 +45,16 @@ export function SettingsProvider({ children }) {
     lang, setLang,
     palette, setPalette,
     privacy, setPrivacy,
+    idleMinutes, setIdleMinutes,
     t: messagesFor(lang),
-    // Money in the chosen currency; in privacy mode only the symbol is shown.
+    // Money in the chosen currency and the language's number format; in privacy
+    // mode only the symbol is shown.
     fmt: privacy
       ? () => `${(CURRENCIES[currency] || CURRENCIES.PEN).symbol}••••`
-      : (v, compact = false) => fmtMoney(v, currency, compact),
+      : (v, compact = false) => fmtMoney(v, currency, compact, messagesFor(lang).common.locale),
     palettes: PALETTES,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [theme, density, currency, lang, palette, privacy]);
+  }), [theme, density, currency, lang, palette, privacy, idleMinutes]);
 
   return (
     <SettingsContext.Provider value={value}>
