@@ -183,6 +183,7 @@ src/
 ├── hooks/
 │   └── useLocalStorage.js          # Valor por defecto en el primer render; el guardado, tras montar
 ├── lib/
+│   ├── featureFlags.js             # OAUTH_ENABLED (login, registro y LoginModal)
 │   ├── reportError.js              # Envía errores del navegador a /api/client-error
 │   ├── supabase.ts                 # Cliente browser (createBrowserClient)
 │   └── supabase-server.ts          # Cliente server
@@ -279,7 +280,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Tipo de transacción derivado de la categoría (no del toggle):** en `AddTransactionModal`, el `tipo` (INGRESO/EGRESO) que se guarda es el de la **categoría seleccionada** (`categoria.type`). Las categorías personalizadas se muestran sin importar el toggle, y guardar el `tipo` del toggle hacía que un ingreso personalizado se registrara como gasto. El `onChange` del Autocomplete también sincroniza el toggle. Backfill de datos viejos: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 
-**Mutaciones con error explícito:** todas las funciones CRUD de `DataContext` (transacciones, presupuestos, categorías personalizadas, metas, cuentas, inversiones, deudas, suscripciones) hacen `if (error) throw error` antes de tocar el estado local. Los handlers de los componentes usan `try/catch/finally` y muestran un toast de éxito o error; por eso `DashboardStudio` pasa `showToast` a las pestañas y a `AddTransactionModal`.
+**Mutaciones con error explícito:**
+- Todas las funciones CRUD de `DataContext` hacen `if (error) throw error` antes de tocar el estado local.
+- **Usuario de la sesión:** usan el id del usuario de la sesión, guardado en un ref desde `onAuthStateChange` y leído con `requireUserId()`, en vez de llamar a `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. RLS sigue validando el JWT en el servidor.
+- **Sin sesión:** `requireUserId()` lanza "No hay sesión activa", así que la UI muestra un error en vez de un "guardado" falso.
+- **CRUD común:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas usan `useTableCrud()`, que hace update por `id` o insert, y borra por `id` + `user_id`. `optionalColumns` reintenta sin una columna nueva si la DB todavía no la tiene (`PGRST204`). Transacciones y presupuestos tienen funciones propias.
+- **En los componentes:** los handlers usan `try/catch/finally` y muestran un toast de éxito o error; por eso `DashboardStudio` pasa `showToast` a las pestañas y a `AddTransactionModal`.
 
 **Presupuestos:** `editBudgets` empieza en `{}` y se llena solo desde Supabase; `deleteBudgetCat(cat)` borra en la DB antes de actualizar el estado. El monto guardado es mensual; las vistas lo multiplican por `monthCount(period)`.
 
@@ -300,7 +306,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 - Pestaña abierta más de 8 h: se revisa al recuperar visibilidad (`visibilitychange` y `pageshow` para bfcache).
 - Los cierres automáticos usan `signOut({ scope: "local" })`, que no revoca las sesiones de otros dispositivos; el botón "Cerrar sesión" mantiene el alcance global. Todos borran `gastos_last_active` para no entrar en un bucle de logout en el siguiente login.
 
-**OAuth (desactivado):** `src/app/auth/callback/route.ts` canjea el código PKCE y valida que `next` sea una ruta interna. Para activarlo: crear las apps OAuth en Google/GitHub, cargar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true` en login y registro. ⚠ Antes, revisar la marca de sesión: el canje ocurre en el servidor, así que el cliente no recibe `SIGNED_IN` y no se escribiría `gastos_session_alive`.
+**OAuth (desactivado):** `src/app/auth/callback/route.ts` canjea el código PKCE y valida que `next` sea una ruta interna. Para activarlo: crear las apps OAuth en Google/GitHub, cargar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true` en `src/lib/featureFlags.js` (lo usan el login, el registro y `LoginModal`). ⚠ Antes, revisar la marca de sesión: el canje ocurre en el servidor, así que el cliente no recibe `SIGNED_IN` y no se escribiría `gastos_session_alive`.
 
 **Supabase `redirectTo`:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www), pero Supabase solo acepta `https://jeshu.cfd/**`. Aplicar `.replace(/^https:\/\/www\./, "https://")` antes de `redirectTo`.
 

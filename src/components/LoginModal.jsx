@@ -5,6 +5,7 @@ import {
   Dialog, DialogContent, Box, Typography, TextField, Button, Avatar, Divider, Chip, IconButton, CircularProgress
 } from "@mui/material"
 import { Close, Google, GitHub } from "../theme/icons"
+import { OAUTH_ENABLED } from "../lib/featureFlags.js"
 import Link from "next/link"
 import { createClient } from "../lib/supabase"
 import { useSettings } from "../context/SettingsContext.jsx"
@@ -80,18 +81,23 @@ export default function LoginModal({ open, onClose }) {
             </Button>
           </form>
 
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">{lang === "es" ? "o continuar con" : "or continue with"}</Typography>
-          </Divider>
+          {/* Same flag as the login and register pages: hidden until the providers are set up. */}
+          {OAUTH_ENABLED && (
+            <>
+              <Divider sx={{ my: 3 }}>
+                <Typography variant="body2" color="text.secondary">{lang === "es" ? "o continuar con" : "or continue with"}</Typography>
+              </Divider>
 
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 2 }}>
-            <Button variant="outlined" startIcon={<Google />} onClick={() => handleSocialLogin("google")} sx={{ flex: 1, borderRadius: 2 }}>
-              Google
-            </Button>
-            <Button variant="outlined" startIcon={<GitHub />} onClick={() => handleSocialLogin("github")} sx={{ flex: 1, borderRadius: 2 }}>
-              GitHub
-            </Button>
-          </Box>
+              <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 2 }}>
+                <Button variant="outlined" startIcon={<Google />} onClick={() => handleSocialLogin("google")} sx={{ flex: 1, borderRadius: 2 }}>
+                  Google
+                </Button>
+                <Button variant="outlined" startIcon={<GitHub />} onClick={() => handleSocialLogin("github")} sx={{ flex: 1, borderRadius: 2 }}>
+                  GitHub
+                </Button>
+              </Box>
+            </>
+          )}
 
           <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2" color="text.secondary">

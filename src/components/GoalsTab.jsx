@@ -12,7 +12,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance 
 import { fmtMoney, txByMonth, CATEGORIES, toBase, fromBase } from "../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { IconPicker } from "../theme/IconPicker.jsx";
-import { iconByName } from "../theme/categoryIcons.js";
+import { iconByName, resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { linearRegressionSlope } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
@@ -790,22 +790,17 @@ export default function GoalsTab({ showToast }) {
           <FormControl fullWidth>
             <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
             <Select value={subForm.category} onChange={(e) => setSubForm({ ...subForm, category: e.target.value })} label={lang === "es" ? "Categoría" : "Category"}>
-              {Object.keys(CATEGORIES.expense).map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: CATEGORIES.expense[cat]?.color || "#9e9e9e", flexShrink: 0 }} />
-                    {CATEGORIES.expense[cat]?.[lang] || cat}
-                  </Box>
-                </MenuItem>
-              ))}
-              {customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => (
-                <MenuItem key={`custom_${cc.id}`} value={`custom_${cc.id}`}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: cc.color || "#9e9e9e", flexShrink: 0 }} />
-                    {cc.nombre}
-                  </Box>
-                </MenuItem>
-              ))}
+              {[...Object.keys(CATEGORIES.expense), ...customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => `custom_${cc.id}`)].map((cat) => {
+                const { label, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
+                return (
+                  <MenuItem key={cat} value={cat}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Icon fontSize="small" sx={{ color }} />
+                      {label}
+                    </Box>
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
         </DialogContent>

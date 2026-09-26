@@ -183,6 +183,7 @@ src/
 ├── hooks/
 │   └── useLocalStorage.js          # Default value on first render; stored value applied after mount
 ├── lib/
+│   ├── featureFlags.js             # OAUTH_ENABLED (login, register and LoginModal)
 │   ├── reportError.js              # Sends browser errors to /api/client-error
 │   ├── supabase.ts                 # Browser client (createBrowserClient)
 │   └── supabase-server.ts          # Server client
@@ -279,7 +280,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 **Transaction type derived from the category (not the toggle):** in `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) is the **selected category's** type (`categoria.type`). Custom categories are shown regardless of the toggle, and saving the toggle's `tipo` recorded a custom income as an expense. The Autocomplete's `onChange` also syncs the toggle. Backfill for old data: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 
-**Mutations throw on error:** every CRUD function in `DataContext` (transactions, budgets, custom categories, goals, accounts, investments, debts, subscriptions) does `if (error) throw error` before touching local state. Component handlers use `try/catch/finally` and show a success or error toast, which is why `DashboardStudio` passes `showToast` to the tabs and to `AddTransactionModal`.
+**Mutations throw on error:**
+- Every CRUD function in `DataContext` does `if (error) throw error` before touching local state.
+- **Session user:** they use the session user's id, kept in a ref from `onAuthStateChange` and read with `requireUserId()`, instead of calling `supabase.auth.getUser()` (a request to the Auth server) before every write. RLS still validates the JWT on the server.
+- **No session:** `requireUserId()` throws "No hay sesión activa", so the UI shows an error instead of a false "saved".
+- **Shared CRUD:** goals, accounts, investments, debts, subscriptions and custom categories use `useTableCrud()`, which updates by `id` or inserts, and deletes by `id` + `user_id`. `optionalColumns` retries without a new column if the DB doesn't have it yet (`PGRST204`). Transactions and budgets have their own functions.
+- **In the components:** handlers use `try/catch/finally` and show a success or error toast, which is why `DashboardStudio` passes `showToast` to the tabs and to `AddTransactionModal`.
 
 **Budgets:** `editBudgets` starts as `{}` and is filled only from Supabase; `deleteBudgetCat(cat)` deletes in the DB before updating state. The stored amount is monthly; views multiply it by `monthCount(period)`.
 
@@ -300,7 +306,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 - Tab left open for more than 8 h: checked when visibility returns (`visibilitychange`, plus `pageshow` for bfcache).
 - Automatic sign-outs use `signOut({ scope: "local" })`, which doesn't revoke the user's sessions on other devices; the "Sign out" button keeps the global scope. All of them clear `gastos_last_active` to avoid a logout loop on the next login.
 
-**OAuth (disabled):** `src/app/auth/callback/route.ts` exchanges the PKCE code and checks that `next` is an internal path. To enable it: create the OAuth apps in Google/GitHub, add client id/secret in Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs and set `OAUTH_ENABLED = true` on the login and register pages. ⚠ Check the session flag first: the exchange happens on the server, so the client never gets `SIGNED_IN` and `gastos_session_alive` wouldn't be written.
+**OAuth (disabled):** `src/app/auth/callback/route.ts` exchanges the PKCE code and checks that `next` is an internal path. To enable it: create the OAuth apps in Google/GitHub, add client id/secret in Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs and set `OAUTH_ENABLED = true` in `src/lib/featureFlags.js` (used by the login and register pages and `LoginModal`). ⚠ Check the session flag first: the exchange happens on the server, so the client never gets `SIGNED_IN` and `gastos_session_alive` wouldn't be written.
 
 **Supabase `redirectTo`:** `window.location.origin` may return `https://www.jeshu.cfd` (with www), but Supabase only accepts `https://jeshu.cfd/**`. Apply `.replace(/^https:\/\/www\./, "https://")` before `redirectTo`.
 

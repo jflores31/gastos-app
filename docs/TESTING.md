@@ -23,10 +23,14 @@ npm run typecheck    # tsc --noEmit
 
 - Ningún test necesita un Supabase real.
 - Para correr los tests end-to-end en otra máquina, instalar antes el navegador con `npx playwright install chromium` (la CI lo hace sola).
+- **El build de los end-to-end necesita las variables `NEXT_PUBLIC_SUPABASE_*`.**
+  - Next las incrusta al compilar, así que Playwright no puede ponerlas después.
+  - Sin `.env.local`, compilar con las falsas de la CI: `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=x npm run build`.
+  - Si faltan, las páginas de auth caen en el error global y fallan 7 de los 10 tests.
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 76 tests en 9 archivos
+### Unitarios y componentes: 84 tests en 10 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
@@ -38,9 +42,10 @@ npm run typecheck    # tsc --noEmit
 | [`src/app/api/client-error/route.test.js`](../src/app/api/client-error/route.test.js) | 4 | La ruta escribe una línea JSON y responde 204. Descarta campos desconocidos, 400 si el JSON es inválido, 413 si pasa de 8 KB |
 | [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 4 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27`; editar precarga el monto en la moneda elegida; el tope se valida en PEN |
 | [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
+| [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 8 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
-Los tests de moneda y de `useLocalStorage` se verificaron **reintroduciendo los bugs originales**: con el código viejo fallan (3 de 4 y 1 de 4, respectivamente).
+Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
 
 ### End-to-end: 10 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
 
@@ -77,7 +82,9 @@ Los tests de moneda y de `useLocalStorage` se verificaron **reintroduciendo los 
    - reemplazar los contextos con `vi.mock` (ver `AddTransactionModal.test.jsx`, que simula `useSettings`, `useData` y `useSupabaseUser`);
    - llamar a `cleanup` en `afterEach`.
 3. **Transacciones:** usar un factory mínimo con la forma de `mapRow` (ver `tx()` en `helpers.test.js`).
-4. **Código que habla con Supabase:** pasar un objeto con la forma del query builder (ver `fakeTable()` en `fetchAllRows.test.js`).
+4. **Código que habla con Supabase:**
+   - para una función suelta, pasar un objeto con la forma del query builder (ver `fakeTable()` en `fetchAllRows.test.js`);
+   - para `DataContext`, usar el cliente simulado de `DataContext.test.jsx`: un builder encadenable y `await`-able que registra las llamadas, más `fake.respond(tabla, llamadas)` para decidir qué devuelve cada consulta.
 5. **End-to-end:** agregar casos en `e2e/`. Sin un Supabase de pruebas solo se puede cubrir lo que funciona sin sesión.
 
 ## Gotchas
@@ -98,4 +105,3 @@ Los tests de moneda y de `useLocalStorage` se verificaron **reintroduciendo los 
 
 - **Flujos con sesión:** login real, alta y edición de transacciones, moneda en el dashboard y sesión entre pestañas. Necesitan un proyecto de Supabase de pruebas, con sus credenciales como secretos de la CI.
 - **Más componentes:** pestañas con datos simulados (p. ej. que "Resumen del periodo" use tonos válidos).
-- **`DataContext`:** carga y mutaciones con un cliente de Supabase simulado.
