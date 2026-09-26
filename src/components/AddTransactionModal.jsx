@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { Star, Label } from "../theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
-import { CATEGORIES, CURRENCIES, toBase, fromBase, fmtMoney } from "../data/index.js";
+import { CATEGORIES, CURRENCIES, toBase, fromBase } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
@@ -25,7 +25,7 @@ const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;
 const MAX_AMOUNT_BASE = 10_000_000;
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
 
@@ -94,7 +94,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     if (!concepto.trim()) errs.concepto = t.txModal.enterAConcept;
     // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
     if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = t.txModal.enterAValidAmount;
-    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = t.txModal.maximumAmountIs(fmtMoney(MAX_AMOUNT_BASE, currency));
+    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = t.txModal.maximumAmountIs(fmt(MAX_AMOUNT_BASE));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };

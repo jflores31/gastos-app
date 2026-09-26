@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Subscriptions as SubIcon } from "../../theme/icons";
-import { fmtMoney, CATEGORIES, toBase, fromBase } from "../../data/index.js";
+import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext.jsx";
@@ -15,7 +15,7 @@ const EMPTY_SUB = { name: "", price: "", cycle: "monthly", category: "" };
 const monthlyTotal = (subs) => subs.reduce((s, sub) => s + (sub.cycle === "yearly" ? sub.price / 12 : sub.price), 0);
 
 export function SubscriptionsCard({ showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { subscriptions, saveSubscription, deleteSubscription, customCats } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_SUB,
@@ -38,7 +38,7 @@ export function SubscriptionsCard({ showToast }) {
             <GradientIcon icon={SubIcon} tone="goals" bubble bubbleSize={40} size={22} />
             <Box>
               <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.subscriptions}</Typography>
-              <Typography variant="caption" color="text.secondary">{subscriptions.length} {t.goalsTab.active}{subscriptions.length > 0 ? ` · ${fmtMoney(monthlyTotal(subscriptions), currency)}${t.common.perMonth}` : ""}</Typography>
+              <Typography variant="caption" color="text.secondary">{subscriptions.length} {t.goalsTab.active}{subscriptions.length > 0 ? ` · ${fmt(monthlyTotal(subscriptions))}${t.common.perMonth}` : ""}</Typography>
             </Box>
           </Box>
           <IconButton size="small" aria-label={t.goalsTab.addSubscription} onClick={dialog.openNew} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
@@ -58,14 +58,14 @@ export function SubscriptionsCard({ showToast }) {
                       <Typography variant="body2" fontWeight={600}>{sub.name}</Typography>
                       <Typography variant="caption" color="text.secondary">{categoryName(sub.category)}</Typography>
                     </Box>
-                    <Typography variant="body2" fontWeight={700}>{fmtMoney(sub.price, currency, true)}</Typography>
+                    <Typography variant="body2" fontWeight={700}>{fmt(sub.price, true)}</Typography>
                   </Box>
                 ))}
               </Stack>
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
               <Typography variant="body2" color="secondary.dark" fontWeight={600}>
-                {t.goalsTab.monthlyTotal} {fmtMoney(monthlyTotal(subscriptions), currency)}
+                {t.goalsTab.monthlyTotal} {fmt(monthlyTotal(subscriptions))}
               </Typography>
             </Box>
           </>

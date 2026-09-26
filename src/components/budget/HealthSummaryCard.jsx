@@ -1,6 +1,5 @@
 import { Box, Card, CardContent, Chip, Grid, Typography } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon } from "../../theme/icons";
-import { fmtMoney } from "../../data/index.js";
 import { healthLabel, healthTone } from "../../data/helpers.js";
 import { TONE_BY_PALETTE } from "../../theme/iconTones.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
@@ -8,14 +7,14 @@ import { useSettings } from "../../context/SettingsContext.jsx";
 
 // Financial health gauge + budget, spent, usage and income for the period.
 export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budgetUsed }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const gaugeColor = healthTone(score);
   const GaugeIcon = score >= 75 ? HealthIcon : WarningIcon;
   const stats = [
-    { lbl: t.budgetTab.budget, val: fmtMoney(totalBudget, currency, true), c: "primary.main", icon: <WalletIcon fontSize="small" /> },
-    { lbl: t.spent, val: fmtMoney(totalOut, currency, true), c: budgetUsed > 1 ? "error.main" : "success.main", icon: <TrendDownIcon fontSize="small" /> },
+    { lbl: t.budgetTab.budget, val: fmt(totalBudget, true), c: "primary.main", icon: <WalletIcon fontSize="small" /> },
+    { lbl: t.spent, val: fmt(totalOut, true), c: budgetUsed > 1 ? "error.main" : "success.main", icon: <TrendDownIcon fontSize="small" /> },
     { lbl: t.budgetTab.usage, val: Math.round(budgetUsed * 100) + "%", c: budgetUsed > 1 ? "error.main" : "primary.main", icon: null },
-    { lbl: t.income, val: fmtMoney(totalIn, currency, true), c: "success.main", icon: <TrendUpIcon fontSize="small" /> },
+    { lbl: t.income, val: fmt(totalIn, true), c: "success.main", icon: <TrendUpIcon fontSize="small" /> },
   ];
 
   return (

@@ -4,6 +4,7 @@
 import { createContext, useContext, useMemo, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { messagesFor } from "../i18n/index.js";
+import { CURRENCIES, fmtMoney } from "../data/index.js";
 import { ACCENT_ALIASES } from "../theme/materialTheme.js";
 
 const SettingsContext = createContext(null);
@@ -25,6 +26,7 @@ export function SettingsProvider({ children }) {
   const [currency, setCurrency] = useLocalStorage("gastos-currency", "PEN");
   const [lang,     setLang]     = useLocalStorage("gastos-lang", "es");
   const [palette,  setPalette]  = useLocalStorage("gastos-palette", "ocean");
+  const [privacy,  setPrivacy]  = useLocalStorage("gastos-privacy", false);
 
   // Migra acentos viejos (amber/indigo/green) al nuevo set una sola vez.
   useEffect(() => {
@@ -37,10 +39,15 @@ export function SettingsProvider({ children }) {
     currency, setCurrency,
     lang, setLang,
     palette, setPalette,
+    privacy, setPrivacy,
     t: messagesFor(lang),
+    // Money in the chosen currency; in privacy mode only the symbol is shown.
+    fmt: privacy
+      ? () => `${(CURRENCIES[currency] || CURRENCIES.PEN).symbol}••••`
+      : (v, compact = false) => fmtMoney(v, currency, compact),
     palettes: PALETTES,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [theme, density, currency, lang, palette]);
+  }), [theme, density, currency, lang, palette, privacy]);
 
   return (
     <SettingsContext.Provider value={value}>

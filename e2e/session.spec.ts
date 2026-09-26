@@ -294,6 +294,24 @@ test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)",
   await expect(panel.getByText("Ninguna aún. Crea tu primera categoría.")).toBeVisible()
 })
 
+test("modo privacidad: oculta los montos en todas las pestañas y se recuerda al recargar", async ({ page }, info) => {
+  await login(page, uniqueEmail(info))
+  const toggle = page.getByRole("button", { name: "Ocultar montos" })
+  await expect(toggle).toHaveAttribute("aria-pressed", "false")
+  await toggle.click()
+  await expect(toggle).toHaveAttribute("aria-pressed", "true")
+  const noDigitsAfterSymbol = async () => expect(await page.locator("body").innerText()).not.toMatch(/S\/[\d.,]+\d/)
+  for (const tab of ["Resumen", "Gastos", "Ingresos", "Presupuesto", "Metas"]) {
+    await page.getByRole("tab", { name: tab }).click()
+    await expect(page.getByText("S/••••").first()).toBeVisible()
+    await noDigitsAfterSymbol()
+  }
+  await page.reload()
+  await expect(page.getByText("S/••••").first()).toBeVisible()
+  await page.getByRole("button", { name: "Ocultar montos" }).click()
+  await expect(page.getByText("S/3,500").first()).toBeVisible()
+})
+
 test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)

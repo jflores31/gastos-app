@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
 import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "../theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
-import { CATEGORIES, fmtMoney } from "../data/index.js";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -105,8 +104,8 @@ export function SummaryCard({ label, value, delta, sub, invert, color, icon }) {
   );
 }
 
-export function CalendarFilter({ txs, tipo, onFilter, currency }) {
-  const { t } = useSettings();
+export function CalendarFilter({ txs, tipo, onFilter }) {
+  const { t, fmt } = useSettings();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState("day");
@@ -323,7 +322,7 @@ export function CalendarFilter({ txs, tipo, onFilter, currency }) {
                     <Typography variant="caption" sx={{ fontWeight: 600, display: "block", color: sel ? "#fff" : "text.primary", fontSize: 10 }}>{name}</Typography>
                     {val > 0 && (
                       <Typography variant="caption" sx={{ display: "block", color: sel ? "rgba(255,255,255,0.8)" : mainColor, fontWeight: 600, fontSize: 8, lineHeight: 1.2, mt: 0.25 }}>
-                        {sign}{fmtMoney(val, currency, true)}
+                        {sign}{fmt(val, true)}
                       </Typography>
                     )}
                   </Box>
@@ -334,42 +333,5 @@ export function CalendarFilter({ txs, tipo, onFilter, currency }) {
         </Paper>
       </Collapse>
     </Box>
-  );
-}
-
-export function TxTable({ txs, lang, currency, t }) {
-  if (!txs.length) return <div className="st-tx-empty">{t.sharedUi.noTransactionsToShow}</div>;
-  return (
-    <div className="st-tx-table">
-      <div className="st-tx-head">
-        <span>{t.date}</span><span>{t.category}</span><span>{t.concept}</span>
-        <span style={{ textAlign: "right" }}>{t.amount}</span>
-      </div>
-      <div className="st-tx-body">
-        {txs.map((x) => {
-          const expColor = CATEGORIES.expense[x.categoria]?.color;
-          const color    = expColor || "var(--income)";
-          const catName  = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
-          return (
-            <div key={x.id} className="st-tx-row" data-anom={x.anomaly}>
-              <div className="st-tx-date"><div className="st-tx-d">{x.dia}</div><div className="st-tx-m">{t.months[x.mes]}</div></div>
-              <div className="st-tx-cat">
-                <i style={{ background: `color-mix(in oklch, ${expColor || "#9e9e9e"} 18%, transparent)`, color }}>
-                  {catName.slice(0, 1)}
-                </i>
-                <div className="st-tx-con">
-                  <span>{catName}</span>
-                  {x.anomaly && <span className="st-tx-flag">⚠ {t.unusual}</span>}
-                </div>
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{x.concepto}</div>
-              <div className="st-tx-amt" data-tipo={x.tipo}>
-                {x.tipo === "INGRESO" ? "+" : "−"}{fmtMoney(x.valor, currency, true)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { fmtMoney, txByCategory, txByMonth } from "../data/index.js";
+import { txByCategory, txByMonth } from "../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel } from "../data/helpers.js";
@@ -18,7 +18,7 @@ import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const { txs, deleteTx, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -65,7 +65,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box>
               <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.income.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-              <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: "success.main" }}>{fmtMoney(totalIn, currency)}</Typography>
+              <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: "success.main" }}>{fmt(totalIn)}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
@@ -118,7 +118,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                       <CategoryAvatar icon={Icon} color={resolvedColor} size={28} />
                       <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }} noWrap>{catLabel}</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>{fmtMoney(c.total, currency, true)}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>{fmt(c.total, true)}</Typography>
                       <Chip size="small" label={`${Math.round(pct)}%`} sx={{ bgcolor: resolvedColor, color: "#fff", fontWeight: 700, fontSize: 10, height: 20 }} />
                       <IconButton
                         size="small"
@@ -158,7 +158,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                   <Donut slices={incomeDonut} size={160} thickness={20} />
                   <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <Typography variant="h6" fontWeight={700} color="success.main">{fmtMoney(totalIn, currency, true)}</Typography>
+                    <Typography variant="h6" fontWeight={700} color="success.main">{fmt(totalIn, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.income}</Typography>
                   </Box>
                 </Box>
@@ -211,7 +211,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center" }}>
-              <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} currency={currency} />
+              <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} />
             </Box>
           </Box>
           {incomeCats.length > 0 && (
@@ -252,7 +252,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   secondaryAction={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body1" fontWeight={700} color="success.main" sx={{ display: { xs: "none", sm: "block" } }}>
-                        +{fmtMoney(x.valor, currency, true)}
+                        +{fmt(x.valor, true)}
                       </Typography>
                       <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                         <EditIcon fontSize="small" />
@@ -272,7 +272,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                       <Typography variant="caption" color="text.secondary" component="span">
                         {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                         <Typography variant="caption" fontWeight={700} color="success.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
-                          +{fmtMoney(x.valor, currency, true)}
+                          +{fmt(x.valor, true)}
                         </Typography>
                       </Typography>
                     }
@@ -285,7 +285,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{t.incomeTab.totalIncome}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
-            <Typography variant="h5" fontWeight={700}>+{fmtMoney(filteredTotal, currency, true)}</Typography>
+            <Typography variant="h5" fontWeight={700}>+{fmt(filteredTotal, true)}</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -303,7 +303,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
       <DialogTitle sx={{ fontWeight: 700 }}>{t.common.deleteTransaction}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">
-          {deleteTarget?.concepto} · {deleteTarget ? fmtMoney(deleteTarget.valor, currency) : ""}
+          {deleteTarget?.concepto} · {deleteTarget ? fmt(deleteTarget.valor) : ""}
         </Typography>
         <Typography variant="caption" color="text.secondary">
           {t.common.thisActionCannotBeUndone}

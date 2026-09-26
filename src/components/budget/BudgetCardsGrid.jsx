@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Button, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon } from "../../theme/icons";
-import { fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index.js";
 import { monthCount } from "../../data/helpers.js";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
@@ -41,7 +41,7 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
 }
 
 function BudgetCard({ cat, spent, period, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { editBudgets, setEditBudgets, customCats } = useData();
   const [editing, setEditing] = useState(false);
   const [editVal, setEditVal] = useState("");
@@ -92,19 +92,19 @@ function BudgetCard({ cat, spent, period, showToast }) {
             }}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "text.primary"}>{fmtMoney(spent, currency, true)}</Typography>
+            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "text.primary"}>{fmt(spent, true)}</Typography>
             {editing ? (
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
                 <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={{ width: 80, "& input": { fontSize: 12, py: 0.5 } }} autoFocus />
                 <IconButton size="small" onClick={saveEdit} color="success" aria-label={t.common.save}><CheckIcon fontSize="small" /></IconButton>
               </Box>
             ) : (
-              <Chip size="small" variant="outlined" label={fmtMoney(limit, currency, true)} onClick={startEdit} sx={{ cursor: "pointer", fontWeight: 600 }} />
+              <Chip size="small" variant="outlined" label={fmt(limit, true)} onClick={startEdit} sx={{ cursor: "pointer", fontWeight: 600 }} />
             )}
           </Box>
           <Box sx={{ p: 1, bgcolor: isOver ? "error.main" : isWarning ? "warning.main" : "action.hover", borderRadius: 1 }}>
             <Typography variant="caption" sx={{ color: isOver || isWarning ? "#fff" : "text.secondary", fontWeight: 500 }}>
-              {isOver ? `+${fmtMoney(spent - limit, currency, true)} ${t.overspent.toLowerCase()}` : `${fmtMoney(limit - spent, currency, true)} ${t.remaining.toLowerCase()}`}
+              {isOver ? `+${fmt(spent - limit, true)} ${t.overspent.toLowerCase()}` : `${fmt(limit - spent, true)} ${t.remaining.toLowerCase()}`}
             </Typography>
           </Box>
         </CardContent>

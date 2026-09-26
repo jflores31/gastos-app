@@ -141,6 +141,8 @@ export const UI = {
       errorLoadingData: "Error al cargar datos",
       sessionClosingSoon: "La sesión se cerrará en 30 segundos por inactividad",
       clockAhead: "El reloj de tu dispositivo está adelantado. Sincroniza la hora del sistema e intenta de nuevo.",
+      hideAmounts: "Ocultar montos",
+      showAmounts: "Mostrar montos",
     },
     expensesTab: {
       totalToday: "Total hoy",
@@ -491,6 +493,8 @@ export const UI = {
       errorLoadingData: "Error loading data",
       sessionClosingSoon: "Session will close in 30 seconds due to inactivity",
       clockAhead: "Your device clock is ahead of the server. Sync your system time and try again.",
+      hideAmounts: "Hide amounts",
+      showAmounts: "Show amounts",
     },
     expensesTab: {
       totalToday: "Total today",

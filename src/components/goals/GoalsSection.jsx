@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Savings as GoalIcon } from "../../theme/icons";
-import { fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { IconPicker } from "../../theme/IconPicker.jsx";
 import { iconByName } from "../../theme/categoryIcons.js";
@@ -82,7 +82,7 @@ export function GoalsSection({ showToast }) {
 }
 
 function GoalCard({ goal: g, onOpen }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const pct = g.target > 0 ? g.current / g.target : 0;
   const left = Math.max(0, g.target - g.current);
   const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - new Date()) / 86400000)) : null;
@@ -109,12 +109,12 @@ function GoalCard({ goal: g, onOpen }) {
               <Typography variant="body2" fontWeight={600} color={pct >= 1 ? "success.main" : "text.secondary"}>
                 {pct >= 1
                   ? (t.goalsTab.goalReached)
-                  : `${fmtMoney(left, currency, true)} ${t.goalsTab.toGo}`}
+                  : `${fmt(left, true)} ${t.goalsTab.toGo}`}
               </Typography>
             </Box>
             <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} sx={{ height: 8, borderRadius: 4, mb: 1.5, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: g.color, borderRadius: 4 } }} />
             <Typography variant="caption" color="text.secondary">
-              <strong>{fmtMoney(g.current, currency, true)}</strong> / {fmtMoney(g.target, currency, true)}
+              <strong>{fmt(g.current, true)}</strong> / {fmt(g.target, true)}
             </Typography>
           </Box>
         </CardContent>

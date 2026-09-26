@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, CreditScore as DebtIcon } from "../../theme/icons";
-import { fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext.jsx";
 import { useData } from "../../context/DataContext.jsx";
@@ -11,7 +11,7 @@ import { EmptySection } from "./EmptySection.jsx";
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 
 export function DebtsCard({ showToast }) {
-  const { t, currency } = useSettings();
+  const { t, currency, fmt } = useSettings();
   const { debts, saveDebt, deleteDebt } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_DEBT,
@@ -47,7 +47,7 @@ export function DebtsCard({ showToast }) {
         {debts.length > 0 && (
           <Box sx={{ mt: 2, p: 2, bgcolor: "error.light", borderRadius: 2 }}>
             <Typography variant="body2" color="error.dark" fontWeight={600}>
-              {t.goalsTab.totalDebt} {fmtMoney(debts.reduce((s, d) => s + d.balance, 0), currency)}
+              {t.goalsTab.totalDebt} {fmt(debts.reduce((s, d) => s + d.balance, 0))}
             </Typography>
           </Box>
         )}
@@ -85,7 +85,7 @@ export function DebtsCard({ showToast }) {
 }
 
 function DebtRow({ debt: d, onOpen }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const orig = d.original_months || d.remaining || 1;
   const paid = Math.max(0, orig - d.remaining);
   const pct = orig > 0 ? paid / orig : 0;
@@ -96,8 +96,8 @@ function DebtRow({ debt: d, onOpen }) {
         <Chip size="small" label={`${d.rate}% TEA`} color="warning" variant="outlined" />
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-        <Typography variant="body2" color="text.secondary">{fmtMoney(d.balance, currency, true)}</Typography>
-        <Typography variant="body2" fontWeight={600}>{fmtMoney(d.monthly, currency, true)} {t.common.perMonth}</Typography>
+        <Typography variant="body2" color="text.secondary">{fmt(d.balance, true)}</Typography>
+        <Typography variant="body2" fontWeight={600}>{fmt(d.monthly, true)} {t.common.perMonth}</Typography>
       </Box>
       <LinearProgress variant="determinate" value={pct * 100} sx={{ height: 6, borderRadius: 3, mb: 0.5, bgcolor: "action.selected", "& .MuiLinearProgress-bar": { bgcolor: "error.main" } }} />
       <Typography variant="caption" color="text.secondary">{d.remaining} {t.goalsTab.installmentsLeft}</Typography>

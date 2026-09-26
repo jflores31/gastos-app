@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Box, Button, Card, CardContent, Stack, Typography } from "@mui/material";
 import { Event as EventIcon } from "../../theme/icons";
-import { fmtMoney } from "../../data/index.js";
 import { recurringList } from "../../data/helpers.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
@@ -10,7 +9,7 @@ import { useData } from "../../context/DataContext.jsx";
 
 // Payments that repeat in 3+ months (recurringList), first 5 with "show more".
 export function RecurringCard() {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const { txs, customCats } = useData();
   const [showAll, setShowAll] = useState(false);
   const recurring = useMemo(() => recurringList(txs), [txs]);
@@ -36,7 +35,7 @@ export function RecurringCard() {
                   <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
                   <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName} · {t.budgetTab.day(r.day)}</Typography>
                 </Box>
-                <Typography variant="body1" fontWeight={700}>{fmtMoney(r.avg, currency, true)}</Typography>
+                <Typography variant="body1" fontWeight={700}>{fmt(r.avg, true)}</Typography>
               </Box>
             );
           })}

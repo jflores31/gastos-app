@@ -17,6 +17,8 @@ import {
   Settings as SettingsIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
+  Visibility as ShowAmountsIcon,
+  VisibilityOff as HideAmountsIcon,
 } from "../theme/icons";
 import { accentGradient } from "../theme/materialTheme.js";
 import { useSettings } from "../context/SettingsContext.jsx";
@@ -37,7 +39,7 @@ const LAST_ACTIVE_KEY = "gastos_last_active";
 const SESSION_CHANNEL = "gastos-session";
 
 export default function DashboardStudio() {
-  const { t } = useSettings();
+  const { t, privacy, setPrivacy } = useSettings();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const user = useSupabaseUser();
@@ -251,6 +253,11 @@ export default function DashboardStudio() {
           <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44, background: (th) => accentGradient(th), color: "#fff", "&:hover": { background: (th) => accentGradient(th, 145), filter: "brightness(1.05)" }, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <AddIcon />
           </Fab>
+          <Tooltip title={privacy ? t.dashboard.showAmounts : t.dashboard.hideAmounts}>
+            <Fab size="small" color="default" aria-label={t.dashboard.hideAmounts} aria-pressed={privacy} onClick={() => setPrivacy(!privacy)} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44 }}>
+              {privacy ? <HideAmountsIcon fontSize="small" /> : <ShowAmountsIcon fontSize="small" />}
+            </Fab>
+          </Tooltip>
           <Fab size="small" color="default" aria-label={t.settingsPanel.settings} onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <SettingsIcon fontSize="small" />
           </Fab>

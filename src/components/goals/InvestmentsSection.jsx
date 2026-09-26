@@ -1,6 +1,6 @@
 import { Box, Button, Card, CardContent, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, ShowChart as InvestIcon } from "../../theme/icons";
-import { fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext.jsx";
 import { useData } from "../../context/DataContext.jsx";
@@ -14,7 +14,7 @@ const typeChip = (type, t) =>
   ?? t.goalsTab.savings;
 
 export function InvestmentsSection({ showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { investments, saveInvestment, deleteInvestment } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_INVESTMENT,
@@ -36,7 +36,7 @@ export function InvestmentsSection({ showToast }) {
             <GradientIcon icon={InvestIcon} tone="budget" bubble bubbleSize={40} size={22} />
             <Box>
               <Typography variant="h6" fontWeight={700}>{t.goalsTab.investments}</Typography>
-              <Typography variant="caption" color="text.secondary">{investments.length} {t.goalsTab.assetsCount}{investments.length > 0 ? ` · ${fmtMoney(totalVal, currency)}` : ""}</Typography>
+              <Typography variant="caption" color="text.secondary">{investments.length} {t.goalsTab.assetsCount}{investments.length > 0 ? ` · ${fmt(totalVal)}` : ""}</Typography>
             </Box>
           </Box>
           <Button variant="outlined" startIcon={<AddIcon />} onClick={dialog.openNew}>{t.common.add}</Button>
@@ -53,7 +53,7 @@ export function InvestmentsSection({ showToast }) {
                       <Typography variant="body1" fontWeight={600}>{inv[lang]}</Typography>
                       <Chip size="small" label={typeChip(inv.type, t)} color={inv.type === "crypto" ? "error" : "default"} />
                     </Box>
-                    <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{fmtMoney(inv.value, currency, true)}</Typography>
+                    <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{fmt(inv.value, true)}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip size="small" label={`${inv.return > 0 ? "+" : ""}${inv.return}%`} color={inv.return >= 0 ? "success" : "error"} variant="outlined" />
                       <Typography variant="caption" color="text.secondary">{t.goalsTab.returnLabel}</Typography>
@@ -65,7 +65,7 @@ export function InvestmentsSection({ showToast }) {
             <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", bgcolor: "warning.light", p: 2, borderRadius: 2 }}>
               <Box>
                 <Typography variant="caption" color="warning.dark">{t.goalsTab.totalInvested}</Typography>
-                <Typography variant="h6" fontWeight={700} color="warning.dark">{fmtMoney(totalVal, currency)}</Typography>
+                <Typography variant="h6" fontWeight={700} color="warning.dark">{fmt(totalVal)}</Typography>
               </Box>
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="caption" color="warning.dark">{t.goalsTab.avgReturn}</Typography>

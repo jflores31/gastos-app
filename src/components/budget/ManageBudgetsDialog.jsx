@@ -4,7 +4,7 @@ import {
   List, ListItem, ListItemSecondaryAction, ListItemText, MenuItem, Select, TextField, Typography,
 } from "@mui/material";
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "../../theme/icons";
-import { CATEGORIES, fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { CATEGORIES, toBase, fromBase } from "../../data/index.js";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext.jsx";
 import { useData } from "../../context/DataContext.jsx";
@@ -12,7 +12,7 @@ import { useData } from "../../context/DataContext.jsx";
 // "Gestionar presupuestos": edit or delete existing monthly budgets and add new ones
 // (native or custom expense categories). Deleting asks for confirmation.
 export function ManageBudgetsDialog({ open, onClose, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { editBudgets, setEditBudgets, deleteBudgetCat, customCats } = useData();
   const [newCat, setNewCat] = useState("");
   const [newBudget, setNewBudget] = useState("");
@@ -91,7 +91,7 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
                       </Box>
                     ) : (
                       <>
-                        <ListItemText primary={getCatName(cat)} secondary={fmtMoney(amount, currency, true) + (t.common.perMonth)} />
+                        <ListItemText primary={getCatName(cat)} secondary={fmt(amount, true) + (t.common.perMonth)} />
                         <ListItemSecondaryAction>
                           <IconButton size="small" onClick={() => startEditExisting(cat)} aria-label={t.budgetTab.editBudget}><EditIcon fontSize="small" /></IconButton>
                           <IconButton size="small" color="error" onClick={() => setDeletingCat(cat)} aria-label={t.budgetTab.deleteBudget}><DeleteIcon fontSize="small" /></IconButton>

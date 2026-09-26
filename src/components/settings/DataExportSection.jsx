@@ -31,11 +31,11 @@ export function DataExportSection({ notify }) {
         />
       </ListItem>
       <ListItem sx={{ pt: 0, pb: 3 }}>
-        <Box sx={{ display: "flex", gap: 1, width: "100%", flexWrap: "wrap" }}>
-          <Button size="small" variant="outlined" startIcon={<CsvIcon />} onClick={exportCsv} disabled={data.loading} sx={{ flex: 1, borderRadius: 2, textTransform: "none" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, width: "100%" }}>
+          <Button size="small" variant="outlined" startIcon={<CsvIcon />} onClick={exportCsv} disabled={data.loading} sx={{ borderRadius: 2, textTransform: "none" }}>
             {t.settingsPanel.exportCsv}
           </Button>
-          <Button size="small" variant="outlined" startIcon={<JsonIcon />} onClick={exportJson} disabled={data.loading} sx={{ flex: 1, borderRadius: 2, textTransform: "none" }}>
+          <Button size="small" variant="outlined" startIcon={<JsonIcon />} onClick={exportJson} disabled={data.loading} sx={{ borderRadius: 2, textTransform: "none" }}>
             {t.settingsPanel.exportJson}
           </Button>
         </Box>

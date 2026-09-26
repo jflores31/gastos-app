@@ -1,6 +1,5 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { Timeline as ForecastIcon } from "../../theme/icons";
-import { fmtMoney } from "../../data/index.js";
 import { linearRegressionSlope } from "../../data/helpers.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext.jsx";
@@ -31,7 +30,7 @@ export function ForecastCard({ months }) {
 }
 
 function ForecastBody({ months }) {
-  const { t, currency } = useSettings();
+  const { t, fmt } = useSettings();
   const recent = months.slice(-6);
   if (recent.length === 0) {
     return <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{t.goalsTab.noTransactionData}</Typography>;
@@ -45,7 +44,7 @@ function ForecastBody({ months }) {
         </Typography>
         <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
           <Typography variant="body2" fontWeight={600} color="info.dark">
-            {t.goalsTab.currentAverage} {singleNet >= 0 ? "+" : "−"}{fmtMoney(Math.abs(singleNet), currency, true)}{t.common.perMonth}
+            {t.goalsTab.currentAverage} {singleNet >= 0 ? "+" : "−"}{fmt(Math.abs(singleNet), true)}{t.common.perMonth}
           </Typography>
         </Box>
       </Box>
@@ -68,13 +67,13 @@ function ForecastBody({ months }) {
             <Box sx={{ height: "100%", width: `${barPct(n)}%`, borderRadius: 6, bgcolor: n.net >= 0 ? "success.main" : "error.main" }} />
           </Box>
           <Typography variant="body2" fontWeight={700} color={n.net >= 0 ? "success.main" : "error.main"} sx={{ minWidth: 85, textAlign: "right" }}>
-            {n.net >= 0 ? "+" : "−"}{fmtMoney(Math.abs(n.net), currency, true)}
+            {n.net >= 0 ? "+" : "−"}{fmt(Math.abs(n.net), true)}
           </Typography>
         </Box>
       ))}
       <Box sx={{ mt: 1, p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
         <Typography variant="body2" fontWeight={600} color="info.dark">
-          {t.goalsTab.n3MonthProjection} {fmtMoney(next.reduce((s, n) => s + n.net, 0), currency, true)}
+          {t.goalsTab.n3MonthProjection} {fmt(next.reduce((s, n) => s + n.net, 0), true)}
         </Typography>
         {isTrendFlat && (
           <Typography variant="caption" color="info.dark" sx={{ opacity: 0.75, display: "block", mt: 0.5 }}>

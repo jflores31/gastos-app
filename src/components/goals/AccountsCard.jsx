@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon } from "../../theme/icons";
-import { fmtMoney, toBase, fromBase } from "../../data/index.js";
+import { toBase, fromBase } from "../../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext.jsx";
 import { useData } from "../../context/DataContext.jsx";
@@ -12,7 +12,7 @@ const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: "#0033A0", l
 
 // Net worth summary + the list of accounts. `worth` comes from netWorthOf().
 export function AccountsCard({ worth, showToast }) {
-  const { t, currency } = useSettings();
+  const { t, currency, fmt } = useSettings();
   const { accounts, saveAccount, deleteAccount } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_ACCOUNT,
@@ -39,15 +39,15 @@ export function AccountsCard({ worth, showToast }) {
         </Box>
         <Box sx={{ bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 3, p: 3, mb: 3 }}>
           <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{t.goalsTab.netWorth}</Typography>
-          <Typography variant="h4" fontWeight={800}>{fmtMoney(worth.net, currency)}</Typography>
+          <Typography variant="h4" fontWeight={800}>{fmt(worth.net)}</Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ xs: 6 }}>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.assets}</Typography>
-              <Typography variant="body1" fontWeight={700}>+{fmtMoney(worth.assets, currency, true)}</Typography>
+              <Typography variant="body1" fontWeight={700}>+{fmt(worth.assets, true)}</Typography>
             </Grid>
             <Grid size={{ xs: 6 }}>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.debts}</Typography>
-              <Typography variant="body1" fontWeight={700}>−{fmtMoney(worth.debt, currency, true)}</Typography>
+              <Typography variant="body1" fontWeight={700}>−{fmt(worth.debt, true)}</Typography>
             </Grid>
           </Grid>
         </Box>
@@ -88,7 +88,7 @@ export function AccountsCard({ worth, showToast }) {
 }
 
 function AccountRow({ account: a, onEdit, onDelete }) {
-  const { t, currency } = useSettings();
+  const { t, fmt } = useSettings();
   const isDebt = a.balance < 0;
   const utilPct = isDebt && a.limit ? Math.abs(a.balance) / a.limit : 0;
   return (
@@ -105,7 +105,7 @@ function AccountRow({ account: a, onEdit, onDelete }) {
         <IconButton size="small" aria-label={t.common.edit} onClick={onEdit}><EditIcon fontSize="small" /></IconButton>
         <IconButton size="small" color="error" aria-label={t.common.delete} onClick={onDelete}><DeleteIcon fontSize="small" /></IconButton>
         <Typography variant="body2" fontWeight={700} color={isDebt ? "error.main" : "success.main"} sx={{ minWidth: 80, textAlign: "right" }}>
-          {isDebt ? "−" : "+"}{fmtMoney(Math.abs(a.balance), currency, true)}
+          {isDebt ? "−" : "+"}{fmt(Math.abs(a.balance), true)}
         </Typography>
       </Box>
     </Box>

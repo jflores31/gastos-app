@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Box, Card, CardContent, Tooltip, Typography } from "@mui/material";
 import { PieChart as PieIcon } from "../../theme/icons";
-import { fmtMoney } from "../../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext.jsx";
@@ -10,7 +9,7 @@ import { Donut } from "../Charts.jsx";
 
 // Donut of what was spent in each budgeted category this period.
 export function DistributionCard({ cats }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const { editBudgets, customCats } = useData();
 
   const donutData = useMemo(() => {
@@ -33,7 +32,7 @@ export function DistributionCard({ cats }) {
           <Box sx={{ position: "relative", width: 180, height: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Donut slices={donutData} size={160} thickness={16} />
             <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 80, height: 80, display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <Typography variant="body1" fontWeight={700}>{fmtMoney(donutTotal, currency, true)}</Typography>
+              <Typography variant="body1" fontWeight={700}>{fmt(donutTotal, true)}</Typography>
               <Typography variant="caption" color="text.secondary">{t.spent}</Typography>
             </Box>
           </Box>

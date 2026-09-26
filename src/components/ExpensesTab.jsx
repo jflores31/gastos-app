@@ -12,7 +12,7 @@ import {
   TrendingDown as SpentIcon, Receipt as TxCountIcon, CalendarMonth as DailyIcon, Warning as TopExpenseIcon,
 } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { CATEGORIES, fmtMoney, txByCategory, getTodayExpenses } from "../data/index.js";
+import { CATEGORIES, txByCategory, getTodayExpenses } from "../data/index.js";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers.js";
@@ -21,7 +21,7 @@ import { useData } from "../context/DataContext.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const { txs, editBudgets, deleteTx, customCats } = useData();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
@@ -108,7 +108,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, p: 1.5, bgcolor: "primary.light", borderRadius: 2 }}>
                   <Typography variant="body2" fontWeight={600}>{t.expensesTab.totalToday}</Typography>
-                  <Typography variant="h6" fontWeight={700} color="error.main">−{fmtMoney(totalToday, currency)}</Typography>
+                  <Typography variant="h6" fontWeight={700} color="error.main">−{fmt(totalToday)}</Typography>
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
@@ -121,7 +121,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           <Typography variant="body2" fontWeight={700} noWrap sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
                           <Typography variant="caption" color="text.secondary">{catName} · {hour}</Typography>
                         </Box>
-                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmtMoney(tx.valor, currency)}</Typography>
+                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmt(tx.valor)}</Typography>
                       </Box>
                     );
                   })}
@@ -142,7 +142,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
-                <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmtMoney(filteredTotal, currency, true)}</Typography>
+                <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmt(filteredTotal, true)}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <Stack spacing={1.5}>
@@ -160,7 +160,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                             </Typography>
                             <Typography variant="caption" color="text.secondary">{c._empty ? (t.expensesTab.noExpensesYet) : `${c.count} ${t.common.transactions} · ${pct.toFixed(1)}%`}</Typography>
                           </Box>
-                          <Typography variant="h6" fontWeight={700} color="primary.main">{fmtMoney(c.total, currency, true)}</Typography>
+                          <Typography variant="h6" fontWeight={700} color="primary.main">{fmt(c.total, true)}</Typography>
                         </Box>
                         <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} color="primary" sx={{ height: 8, borderRadius: 4 }} />
                       </Box>
@@ -198,9 +198,9 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                             <CategoryAvatar icon={Icon} color={color} />
                             <Box sx={{ flex: 1 }}>
                               <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmtMoney(limit, currency, true)}`}</Typography>
+                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmt(limit, true)}`}</Typography>
                             </Box>
-                            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmtMoney(spent, currency, true)}</Typography>
+                            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmt(spent, true)}</Typography>
                           </Box>
                           <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
                         </Box>
@@ -243,7 +243,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
                         </Box>
                         <Typography variant="h6" fontWeight={700} color={item.color}>
-                          {item.isCount ? item.value : fmtMoney(item.value, currency, true)}
+                          {item.isCount ? item.value : fmt(item.value, true)}
                         </Typography>
                       </Box>
                       {!item.isCount && <LinearProgress variant="determinate" value={barVal} color={idx === 0 ? "error" : idx === 2 ? "warning" : "error"} sx={{ height: 8, borderRadius: 4 }} />}
@@ -267,7 +267,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} currency={currency} />
+              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} />
             </Box>
           </Box>
           {periodCats.length > 0 && (
@@ -308,7 +308,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     secondaryAction={
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <Typography variant="body1" fontWeight={700} color="error.main" sx={{ display: { xs: "none", sm: "block" } }}>
-                          −{fmtMoney(x.valor, currency, true)}
+                          −{fmt(x.valor, true)}
                         </Typography>
                         <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                           <EditIcon fontSize="small" />
@@ -328,7 +328,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         <Typography variant="caption" color="text.secondary" component="span">
                           {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                           <Typography variant="caption" fontWeight={700} color="error.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
-                            −{fmtMoney(x.valor, currency, true)}
+                            −{fmt(x.valor, true)}
                           </Typography>
                         </Typography>
                       }
@@ -341,7 +341,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
-            <Typography variant="h5" fontWeight={700}>−{fmtMoney(filteredTotal, currency, true)}</Typography>
+            <Typography variant="h5" fontWeight={700}>−{fmt(filteredTotal, true)}</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -359,7 +359,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
       <DialogTitle sx={{ fontWeight: 700 }}>{t.common.deleteTransaction}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">
-          {deleteTarget?.concepto} · {deleteTarget ? fmtMoney(deleteTarget.valor, currency) : ""}
+          {deleteTarget?.concepto} · {deleteTarget ? fmt(deleteTarget.valor) : ""}
         </Typography>
         <Typography variant="caption" color="text.secondary">
           {t.common.thisActionCannotBeUndone}

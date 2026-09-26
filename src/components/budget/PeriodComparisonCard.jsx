@@ -1,13 +1,12 @@
 import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "../../theme/icons";
-import { fmtMoney } from "../../data/index.js";
 import { periodLabel } from "../../data/helpers.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext.jsx";
 
 // Spending of the previous period and the % change against this one.
 export function PeriodComparisonCard({ period, prevOut, dOut }) {
-  const { t, currency } = useSettings();
+  const { t, fmt } = useSettings();
   return (
     <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "info.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
@@ -21,7 +20,7 @@ export function PeriodComparisonCard({ period, prevOut, dOut }) {
         <Box sx={{ display: "flex", flex: 1, gap: 2, alignItems: "center" }}>
           <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Typography variant="caption" color="text.secondary">{t.budgetTab.previous}</Typography>
-            <Typography variant="h5" fontWeight={700}>{fmtMoney(prevOut, currency, true)}</Typography>
+            <Typography variant="h5" fontWeight={700}>{fmt(prevOut, true)}</Typography>
           </Box>
           <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Typography variant="caption" color="text.secondary">{t.budgetTab.change}</Typography>
