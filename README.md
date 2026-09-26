@@ -136,6 +136,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 src/
 ├── app/
 │   ├── layout.tsx                  # Root layout: Providers, fuentes, favicon; render dinámico (nonce del CSP)
+│   ├── fonts/                      # IBM Plex Sans + JetBrains Mono (woff2, subset latin, OFL) vía next/font/local
 │   ├── page.tsx                    # Home → DashboardStudio
 │   ├── globals.css                 # Estilos globales (overflow-x: hidden, reduced motion, etc.)
 │   ├── error.tsx · global-error.tsx · not-found.tsx

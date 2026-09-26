@@ -1,18 +1,29 @@
 import type { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 import Providers from "./components/Providers"
 
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+// Fonts are served from the repo (latin subset, SIL OFL 1.1 — see src/app/fonts/) instead of
+// next/font/google, so `next build` no longer downloads them from Google Fonts: a failed
+// download there broke CI once. `variable` exposes the family to the MUI theme.
+const ibmPlexSans = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-sans-latin-300-normal.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-ibm-plex-sans",
+  display: "swap",
 })
 
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const jetBrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin-wght-normal.woff2",
+  weight: "100 800",
   variable: "--font-jetbrains-mono",
+  display: "swap",
 })
 
 export const viewport: Viewport = {
@@ -40,7 +51,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${ibmPlexSans.className} ${jetBrainsMono.variable}`}>
+      <body className={`${ibmPlexSans.className} ${ibmPlexSans.variable} ${jetBrainsMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

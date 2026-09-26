@@ -136,6 +136,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 src/
 ├── app/
 │   ├── layout.tsx                  # Root layout: Providers, fonts, favicon; dynamic rendering (CSP nonce)
+│   ├── fonts/                      # IBM Plex Sans + JetBrains Mono (woff2, latin subset, OFL) via next/font/local
 │   ├── page.tsx                    # Home → DashboardStudio
 │   ├── globals.css                 # Global styles (overflow-x: hidden, reduced motion, etc.)
 │   ├── error.tsx · global-error.tsx · not-found.tsx

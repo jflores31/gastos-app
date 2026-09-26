@@ -15,6 +15,10 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Transacciones > 1000:** Supabase corta cada respuesta en 1000 filas y, al ordenar ascendente, se perdían las más recientes. Ahora se paginan con `fetchAllRows()`.
 - **Sesión entre pestañas:** abrir la app en una pestaña nueva cerraba la sesión en todas (y, con `signOut()` global, en otros dispositivos); una pestaña inactiva cerraba la sesión aunque el usuario estuviera activo en otra. Ahora la pestaña nueva consulta a las demás por `BroadcastChannel`, la inactividad se mide con la marca compartida y los cierres automáticos usan `scope: "local"`.
 - `.env.example` que el README pedía copiar y no existía.
+- **Build sin red:**
+  - Las fuentes (IBM Plex Sans y JetBrains Mono) se sirven desde `src/app/fonts/` con `next/font/local`, en vez de descargarse de Google Fonts en cada build; una descarga fallida había roto la CI.
+  - El CSP ya no permite `fonts.googleapis.com` ni `fonts.gstatic.com`.
+  - Las etiquetas de los gráficos pedían `Inter`, una fuente que nunca se cargaba; ahora usan la fuente de la app.
 - **Tema oscuro e hidratación:** `useLocalStorage` leía `localStorage` en el primer render, así que un tema oscuro guardado generaba clases distintas a las del HTML del servidor (desajuste de hidratación que React no corrige). Ahora aplica el valor guardado después de montar.
 - **"Resumen del periodo" (Gastos):** los cuadros pasaban `"error.main"`/`"info.main"` a `gradientBg()`, que espera un hex, y salían casi negros. Ahora usan iconos con tono semántico.
 

@@ -2,7 +2,8 @@ import { createTheme } from "@mui/material/styles";
 
 const common = {
   typography: {
-    fontFamily: '"IBM Plex Sans", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif',
+    // --font-ibm-plex-sans comes from next/font/local in src/app/layout.tsx.
+    fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif',
     h1: { fontWeight: 700, letterSpacing: "-0.02em" },
     h2: { fontWeight: 700, letterSpacing: "-0.02em" },
     h3: { fontWeight: 600 },

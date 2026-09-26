@@ -105,7 +105,7 @@ export function StudioCashflow({ months, t }) {
             </>
           )}
           <text x={P + i * stepX} y={H - 12} textAnchor="middle" fontSize="11"
-            fill="currentColor" opacity="0.5" style={{ fontFamily: "Inter, Roboto, sans-serif" }}>
+            fill="currentColor" opacity="0.5" style={{ fontFamily: "var(--font-ibm-plex-sans), Roboto, sans-serif" }}>
             {t.months[m.mes] || ""}
           </text>
         </g>

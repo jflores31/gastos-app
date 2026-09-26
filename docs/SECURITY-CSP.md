@@ -76,8 +76,8 @@ mantiene (solo `script-src` se endureció).
 ```
 default-src 'self';
 script-src 'self' 'nonce-<único>' 'strict-dynamic'   (+ 'unsafe-eval' solo en dev);
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src 'self' https://fonts.gstatic.com;
+style-src 'self' 'unsafe-inline';
+font-src 'self';                 (fuentes servidas desde el repo, src/app/fonts/)
 img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
 connect-src 'self' https://*.supabase.co wss://*.supabase.co;
 frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
