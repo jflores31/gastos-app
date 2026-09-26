@@ -4,7 +4,7 @@ import { useSettings } from "../../context/SettingsContext.jsx";
 // Frame shared by the dialogs of the Goals tab: title, fields, and Delete (when editing) /
 // Cancel / Save. `dialog` is the object returned by useEntityDialog().
 export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", children }) {
-  const { t, lang } = useSettings();
+  const { t } = useSettings();
   return (
     <Dialog open={dialog.open} onClose={dialog.close} maxWidth={maxWidth} fullWidth>
       <DialogTitle sx={{ fontWeight: 700, borderBottom: 1, borderColor: "divider", py: 2 }}>
@@ -16,7 +16,7 @@ export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", 
       <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
         {dialog.editing && (
           <Button color="error" disabled={dialog.saving} onClick={() => dialog.destroy(dialog.editing.id)}>
-            {lang === "es" ? "Eliminar" : "Delete"}
+            {t.common.delete}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />

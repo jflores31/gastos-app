@@ -3,7 +3,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
-import { I18N } from "../data/index.js";
+import { messagesFor } from "../i18n/index.js";
 import { ACCENT_ALIASES } from "../theme/materialTheme.js";
 
 const SettingsContext = createContext(null);
@@ -37,7 +37,7 @@ export function SettingsProvider({ children }) {
     currency, setCurrency,
     lang, setLang,
     palette, setPalette,
-    t: I18N[lang],
+    t: messagesFor(lang),
     palettes: PALETTES,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [theme, density, currency, lang, palette]);

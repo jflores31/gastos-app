@@ -94,10 +94,10 @@ export default function OverviewTab({ period, setPeriod }) {
   const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
   const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, catData: incomeCats },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, catData: donut },
-    { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
-    { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
+    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: t.overviewTab.incomeRecords(inCount), catData: incomeCats },
+    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: t.overviewTab.expenseRecords(outCount), invert: true, catData: donut },
+    { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (t.overviewTab.goalMet) : "20% meta" },
+    { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: t.overviewTab.flagged },
   ];
 
   return (
@@ -108,15 +108,14 @@ export default function OverviewTab({ period, setPeriod }) {
             {(() => {
               const h = new Date().getHours();
               const name = firstName ? ` ${firstName}` : "";
-              if (lang === "es") return h < 12 ? `Buenos días${name},` : h < 19 ? `Buenas tardes${name},` : `Buenas noches${name},`;
-              return h < 12 ? `Good morning${name},` : h < 19 ? `Good afternoon${name},` : `Good evening${name},`;
+              return t.overviewTab.greeting(h, name);
             })()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
             <Typography variant="h3" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "3rem" } }}>
               {net >= 0
-                ? (lang === "es" ? `Ahorrando ${fmtMoney(net, currency, true)}` : `Saving ${fmtMoney(net, currency, true)}`)
-                : (lang === "es" ? `Sobregiro ${fmtMoney(Math.abs(net), currency, true)}` : `Overdrawn ${fmtMoney(Math.abs(net), currency, true)}`)}
+                ? (t.overviewTab.saving(fmtMoney(net, currency, true)))
+                : (t.overviewTab.overdrawn(fmtMoney(Math.abs(net), currency, true)))}
             </Typography>
           </Box>
         </Box>
@@ -161,7 +160,7 @@ export default function OverviewTab({ period, setPeriod }) {
               {card.delta != null && (
                 <Chip
                   size="small"
-                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% ${lang === "es" ? "vs ant." : "vs prev."}`}
+                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% ${t.common.vsPrev}`}
                   color={card.invert ? (card.delta < 0 ? "success" : "error") : (card.delta > 0 ? "success" : "error")}
                   variant="filled"
                   sx={{ fontWeight: 600, fontSize: 11, alignSelf: "flex-start", mb: 1 }}
@@ -243,7 +242,7 @@ export default function OverviewTab({ period, setPeriod }) {
                 <GradientIcon icon={InsightsIcon} tone="income" bubble />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.insights}</Typography>
-                  <Typography variant="body2" color="text.secondary">{lang === "es" ? "Análisis automático" : "Auto analysis"}</Typography>
+                  <Typography variant="body2" color="text.secondary">{t.overviewTab.autoAnalysis}</Typography>
                 </Box>
               </Box>
               <Chip size="small" label="AI" color="success" variant="filled" sx={{ fontWeight: 700 }} />
@@ -270,7 +269,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <GradientIcon icon={CalendarIcon} tone="expense" bubble />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.heatmap}</Typography>
-                <Typography variant="body2" color="text.secondary">{lang === "es" ? "Gastos diarios · 12 semanas" : "Daily spending · 12 weeks"}</Typography>
+                <Typography variant="body2" color="text.secondary">{t.overviewTab.dailySpending12Weeks}</Typography>
               </Box>
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
@@ -284,13 +283,11 @@ export default function OverviewTab({ period, setPeriod }) {
             {period !== "all" && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ color: "primary.main", fontWeight: 700 }}>
-                  {lang === "es"
-                    ? `vs ${period === "week" ? "semana" : period === "month" ? "mes" : period === "quarter" ? "trimestre" : "año"} anterior`
-                    : `vs previous ${period === "week" ? "week" : period === "month" ? "month" : period === "quarter" ? "quarter" : "year"}`}
+                  {t.common.vsPreviousPeriod(period)}
                 </Typography>
                 {prevIn === 0 && prevOut === 0 ? (
                   <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic", textAlign: "center", py: 1 }}>
-                    {lang === "es" ? "Sin datos del período anterior" : "No data for previous period"}
+                    {t.overviewTab.noDataForPreviousPeriod}
                   </Typography>
                 ) : (
                   [

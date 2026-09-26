@@ -11,15 +11,15 @@ import { useData } from "../../context/DataContext.jsx";
 // "Presupuestos": one card per budgeted category (spent vs limit, limit editable inline)
 // plus the "add budget" card. `cats` is txByCategory() of the period.
 export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
-  const { lang } = useSettings();
+  const { t } = useSettings();
   const { editBudgets } = useData();
 
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Presupuestos" : "Budgets"}</Typography>
+        <Typography variant="h6" fontWeight={700}>{t.budgetTab.budgets}</Typography>
         <Button variant="outlined" startIcon={<EditIcon />} onClick={onManage} size="small">
-          {lang === "es" ? "Gestionar" : "Manage"}
+          {t.budgetTab.manage}
         </Button>
       </Box>
 
@@ -31,7 +31,7 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
           <Card onClick={onManage} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s, color 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="body1" fontWeight={600}>{lang === "es" ? "Agregar presupuesto" : "Add budget"}</Typography>
+              <Typography variant="body1" fontWeight={600}>{t.budgetTab.addBudget}</Typography>
             </Box>
           </Card>
         </Grid>
@@ -57,9 +57,9 @@ function BudgetCard({ cat, spent, period, showToast }) {
     if (!(v > 0)) { setEditing(false); return; }
     try {
       await setEditBudgets((b) => ({ ...b, [cat]: v }));
-      showToast?.(lang === "es" ? "Presupuesto actualizado" : "Budget updated");
+      showToast?.(t.budgetTab.budgetUpdated);
     } catch {
-      showToast?.(lang === "es" ? "Error al actualizar presupuesto" : "Error updating budget", "error");
+      showToast?.(t.budgetTab.errorUpdatingBudget, "error");
     } finally {
       setEditing(false);
     }
@@ -96,7 +96,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
             {editing ? (
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
                 <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={{ width: 80, "& input": { fontSize: 12, py: 0.5 } }} autoFocus />
-                <IconButton size="small" onClick={saveEdit} color="success" aria-label={lang === "es" ? "Guardar" : "Save"}><CheckIcon fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={saveEdit} color="success" aria-label={t.common.save}><CheckIcon fontSize="small" /></IconButton>
               </Box>
             ) : (
               <Chip size="small" variant="outlined" label={fmtMoney(limit, currency, true)} onClick={startEdit} sx={{ cursor: "pointer", fontWeight: 600 }} />

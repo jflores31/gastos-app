@@ -9,12 +9,12 @@ import { EntityDialog } from "./EntityDialog.jsx";
 import { EmptySection } from "./EmptySection.jsx";
 
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
-const typeChip = (type, lang) =>
-  ({ retirement: "AFP", term: "DPF", crypto: "Crypto", stocks: lang === "es" ? "Acciones" : "Stocks" })[type]
-  ?? (lang === "es" ? "Ahorro" : "Savings");
+const typeChip = (type, t) =>
+  ({ retirement: "AFP", term: "DPF", crypto: "Crypto", stocks: t.goalsTab.stocks })[type]
+  ?? t.goalsTab.savings;
 
 export function InvestmentsSection({ showToast }) {
-  const { lang, currency } = useSettings();
+  const { t, lang, currency } = useSettings();
   const { investments, saveInvestment, deleteInvestment } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_INVESTMENT,
@@ -22,9 +22,7 @@ export function InvestmentsSection({ showToast }) {
     save: saveInvestment,
     remove: deleteInvestment,
     showToast,
-    messages: lang === "es"
-      ? { saved: "Inversión guardada", saveError: "Error al guardar inversión", deleted: "Inversión eliminada", deleteError: "Error al eliminar inversión" }
-      : { saved: "Investment saved", saveError: "Error saving investment", deleted: "Investment deleted", deleteError: "Error deleting investment" },
+    messages: t.goalsTab.investmentToasts,
   });
   const { form, update } = dialog;
   const totalVal = investments.reduce((s, i) => s + i.value, 0);
@@ -37,14 +35,14 @@ export function InvestmentsSection({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={InvestIcon} tone="budget" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Inversiones" : "Investments"}</Typography>
-              <Typography variant="caption" color="text.secondary">{investments.length} {lang === "es" ? "activos" : "assets"}{investments.length > 0 ? ` · ${fmtMoney(totalVal, currency)}` : ""}</Typography>
+              <Typography variant="h6" fontWeight={700}>{t.goalsTab.investments}</Typography>
+              <Typography variant="caption" color="text.secondary">{investments.length} {t.goalsTab.assetsCount}{investments.length > 0 ? ` · ${fmtMoney(totalVal, currency)}` : ""}</Typography>
             </Box>
           </Box>
-          <Button variant="outlined" startIcon={<AddIcon />} onClick={dialog.openNew}>{lang === "es" ? "Agregar" : "Add"}</Button>
+          <Button variant="outlined" startIcon={<AddIcon />} onClick={dialog.openNew}>{t.common.add}</Button>
         </Box>
         {investments.length === 0 ? (
-          <EmptySection label={lang === "es" ? "Sin inversiones registradas." : "No investments yet."} onAdd={dialog.openNew} lang={lang} />
+          <EmptySection label={t.goalsTab.noInvestmentsYet} onAdd={dialog.openNew} />
         ) : (
           <>
             <Grid container spacing={3}>
@@ -53,12 +51,12 @@ export function InvestmentsSection({ showToast }) {
                   <Card variant="outlined" sx={{ borderRadius: 2, p: 2, cursor: "pointer", "&:hover": { boxShadow: 1 } }} onClick={() => dialog.openEdit(inv)}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                       <Typography variant="body1" fontWeight={600}>{inv[lang]}</Typography>
-                      <Chip size="small" label={typeChip(inv.type, lang)} color={inv.type === "crypto" ? "error" : "default"} />
+                      <Chip size="small" label={typeChip(inv.type, t)} color={inv.type === "crypto" ? "error" : "default"} />
                     </Box>
                     <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{fmtMoney(inv.value, currency, true)}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip size="small" label={`${inv.return > 0 ? "+" : ""}${inv.return}%`} color={inv.return >= 0 ? "success" : "error"} variant="outlined" />
-                      <Typography variant="caption" color="text.secondary">{lang === "es" ? "rendimiento" : "return"}</Typography>
+                      <Typography variant="caption" color="text.secondary">{t.goalsTab.returnLabel}</Typography>
                     </Box>
                   </Card>
                 </Grid>
@@ -66,11 +64,11 @@ export function InvestmentsSection({ showToast }) {
             </Grid>
             <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", bgcolor: "warning.light", p: 2, borderRadius: 2 }}>
               <Box>
-                <Typography variant="caption" color="warning.dark">{lang === "es" ? "Total invertido" : "Total invested"}</Typography>
+                <Typography variant="caption" color="warning.dark">{t.goalsTab.totalInvested}</Typography>
                 <Typography variant="h6" fontWeight={700} color="warning.dark">{fmtMoney(totalVal, currency)}</Typography>
               </Box>
               <Box sx={{ textAlign: "right" }}>
-                <Typography variant="caption" color="warning.dark">{lang === "es" ? "Promedio rendimiento" : "Avg return"}</Typography>
+                <Typography variant="caption" color="warning.dark">{t.goalsTab.avgReturn}</Typography>
                 <Typography variant="h6" fontWeight={700} color={weightedReturn >= 0 ? "success.dark" : "error.dark"}>
                   {weightedReturn >= 0 ? "+" : ""}{weightedReturn.toFixed(1)}%
                 </Typography>
@@ -82,27 +80,27 @@ export function InvestmentsSection({ showToast }) {
 
       <EntityDialog
         dialog={dialog}
-        title={dialog.editing ? (lang === "es" ? "Editar inversión" : "Edit investment") : (lang === "es" ? "Nueva inversión" : "New investment")}
+        title={dialog.editing ? (t.goalsTab.editInvestment) : (t.goalsTab.newInvestment)}
         canSave={form.es && form.value && parseFloat(form.value) > 0}
         onSave={() => dialog.submit({ ...form, value: toBase(parseFloat(form.value), currency), return: parseFloat(form.return) || 0 })}
       >
-        <TextField label={lang === "es" ? "Nombre" : "Name"} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Valor" : "Value"} type="number" inputProps={{ min: 0 }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.value} type="number" inputProps={{ min: 0 }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Rendimiento %" : "Return %"} type="number" value={form.return} onChange={(e) => update({ return: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.returnPct} type="number" value={form.return} onChange={(e) => update({ return: e.target.value })} fullWidth />
           </Grid>
         </Grid>
         <FormControl fullWidth>
-          <InputLabel id="investment-type-label">{lang === "es" ? "Tipo" : "Type"}</InputLabel>
-          <Select labelId="investment-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
-            <MenuItem value="retirement">{lang === "es" ? "Jubilación (AFP)" : "Retirement (AFP)"}</MenuItem>
-            <MenuItem value="term">{lang === "es" ? "Plazo fijo (DPF)" : "Fixed term (DPF)"}</MenuItem>
-            <MenuItem value="savings">{lang === "es" ? "Ahorro" : "Savings"}</MenuItem>
+          <InputLabel id="investment-type-label">{t.common.type}</InputLabel>
+          <Select labelId="investment-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={t.common.type}>
+            <MenuItem value="retirement">{t.goalsTab.retirementAfp}</MenuItem>
+            <MenuItem value="term">{t.goalsTab.fixedTermDpf}</MenuItem>
+            <MenuItem value="savings">{t.goalsTab.savings}</MenuItem>
             <MenuItem value="crypto">Crypto</MenuItem>
-            <MenuItem value="stocks">{lang === "es" ? "Acciones" : "Stocks"}</MenuItem>
+            <MenuItem value="stocks">{t.goalsTab.stocks}</MenuItem>
           </Select>
         </FormControl>
       </EntityDialog>

@@ -16,7 +16,7 @@ const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e", icon: "Categor
 // "Mis categorías" in the profile tab: list, create/edit dialog and delete confirmation.
 // `notify(msg, severity)` shows the panel's snackbar.
 export function CustomCategoriesSection({ notify }) {
-  const { lang } = useSettings();
+  const { t } = useSettings();
   const { customCats, saveCustomCat, deleteCustomCat } = useData();
   const [catDialog, setCatDialog] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
@@ -32,15 +32,15 @@ export function CustomCategoriesSection({ notify }) {
   };
 
   const handleSaveCat = async () => {
-    if (!catForm.nombre.trim()) { setCatError(lang === "es" ? "Ingresa un nombre" : "Enter a name"); return; }
+    if (!catForm.nombre.trim()) { setCatError(t.settingsPanel.enterAName); return; }
     try {
       await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
       setCatDialog(false);
       notify(editingCat
-        ? (lang === "es" ? "Categoría actualizada" : "Category updated")
-        : (lang === "es" ? "Categoría creada" : "Category created"), "success");
+        ? (t.settingsPanel.categoryUpdated)
+        : (t.settingsPanel.categoryCreated), "success");
     } catch {
-      notify(lang === "es" ? "Error al guardar categoría" : "Error saving category", "error");
+      notify(t.settingsPanel.errorSavingCategory, "error");
     }
   };
 
@@ -49,10 +49,10 @@ export function CustomCategoriesSection({ notify }) {
     try {
       await deleteCustomCat(deleteTarget.id);
       setDeleteTarget(null);
-      notify(lang === "es" ? "Categoría eliminada" : "Category deleted", "success");
+      notify(t.settingsPanel.categoryDeleted, "success");
     } catch {
       setDeleteTarget(null);
-      notify(lang === "es" ? "Error al eliminar categoría" : "Error deleting category", "error");
+      notify(t.settingsPanel.errorDeletingCategory, "error");
     }
   };
 
@@ -61,13 +61,13 @@ export function CustomCategoriesSection({ notify }) {
       <ListItem
         secondaryAction={
           <Button size="small" startIcon={<AddIcon />} onClick={() => openCatDialog()} variant="outlined" sx={{ borderRadius: 2 }}>
-            {lang === "es" ? "Nueva" : "New"}
+            {t.settingsPanel.new}
           </Button>
         }
       >
         <ListItemText
-          primary={lang === "es" ? "Mis Categorías" : "My Categories"}
-          secondary={lang === "es" ? "Categorías propias para tus transacciones" : "Custom categories for your transactions"}
+          primary={t.settingsPanel.myCategories}
+          secondary={t.settingsPanel.customCategoriesForYourTransactions}
           primaryTypographyProps={{ variant: "overline" }}
           secondaryTypographyProps={{ variant: "caption" }}
         />
@@ -76,7 +76,7 @@ export function CustomCategoriesSection({ notify }) {
         <Box sx={{ width: "100%" }}>
           {customCats.length === 0 ? (
             <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
-              {lang === "es" ? "Ninguna aún. Crea tu primera categoría." : "None yet. Create your first category."}
+              {t.settingsPanel.noneYetCreateYourFirst}
             </Typography>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
@@ -84,12 +84,12 @@ export function CustomCategoriesSection({ notify }) {
                 <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
                   <CategoryAvatar icon={iconByName(c.icon) || DEFAULT_ICON} color={c.color} size={28} />
                   <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
-                  <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
+                  <Chip label={c.tipo === "EGRESO" ? (t.settingsPanel.expense) : (t.settingsPanel.incomeType)}
                     size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
-                  <IconButton onClick={() => openCatDialog(c)} aria-label={lang === "es" ? "Editar categoría" : "Edit category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                  <IconButton onClick={() => openCatDialog(c)} aria-label={t.settingsPanel.editCategoryLabel} sx={{ minWidth: 40, minHeight: 40 }}>
                     <EditIcon sx={{ fontSize: 18 }} />
                   </IconButton>
-                  <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={lang === "es" ? "Eliminar categoría" : "Delete category"} sx={{ minWidth: 40, minHeight: 40 }}>
+                  <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={t.settingsPanel.deleteCategory} sx={{ minWidth: 40, minHeight: 40 }}>
                     <DeleteIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Box>
@@ -102,12 +102,12 @@ export function CustomCategoriesSection({ notify }) {
       <Dialog open={catDialog} onClose={() => setCatDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 700 }}>
           {editingCat
-            ? (lang === "es" ? "Editar Categoría" : "Edit Category")
-            : (lang === "es" ? "Nueva Categoría" : "New Category")}
+            ? (t.settingsPanel.editCategoryTitle)
+            : (t.settingsPanel.newCategory)}
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
           <TextField
-            label={lang === "es" ? "Nombre" : "Name"}
+            label={t.common.name}
             value={catForm.nombre}
             onChange={(e) => { setCatForm((f) => ({ ...f, nombre: e.target.value })); setCatError(""); }}
             error={!!catError}
@@ -118,7 +118,7 @@ export function CustomCategoriesSection({ notify }) {
           />
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
-              {lang === "es" ? "Tipo" : "Type"}
+              {t.common.type}
             </Typography>
             <ToggleButtonGroup
               value={catForm.tipo}
@@ -128,16 +128,16 @@ export function CustomCategoriesSection({ notify }) {
               size="small"
             >
               <ToggleButton value="EGRESO" sx={{ fontWeight: 600, color: "error.main", "&.Mui-selected": { bgcolor: "error.light", color: "error.dark" } }}>
-                {lang === "es" ? "Gasto" : "Expense"}
+                {t.settingsPanel.expense}
               </ToggleButton>
               <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
-                {lang === "es" ? "Ingreso" : "Income"}
+                {t.settingsPanel.incomeType}
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
-              {lang === "es" ? "Color" : "Color"}
+              {t.settingsPanel.color}
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {COLOR_PRESETS.map((c) => (
@@ -158,7 +158,7 @@ export function CustomCategoriesSection({ notify }) {
             </Box>
           </Box>
           <IconPicker
-            label={lang === "es" ? "Icono" : "Icon"}
+            label={t.common.icon}
             value={catForm.icon}
             color={catForm.color}
             onChange={(icon) => setCatForm((f) => ({ ...f, icon }))}
@@ -166,31 +166,29 @@ export function CustomCategoriesSection({ notify }) {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setCatDialog(false)} color="inherit">
-            {lang === "es" ? "Cancelar" : "Cancel"}
+            {t.common.cancel}
           </Button>
           <Button onClick={handleSaveCat} variant="contained">
-            {lang === "es" ? "Guardar" : "Save"}
+            {t.common.save}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>
-          {lang === "es" ? "Eliminar categoría" : "Delete category"}
+          {t.settingsPanel.deleteCategory}
         </DialogTitle>
         <DialogContent>
           <Typography>
-            {lang === "es"
-              ? `¿Eliminar "${deleteTarget?.nombre}"? Las transacciones existentes no se verán afectadas.`
-              : `Delete "${deleteTarget?.nombre}"? Existing transactions won't be affected.`}
+            {t.settingsPanel.confirmDeleteCategory(deleteTarget?.nombre)}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDeleteTarget(null)} color="inherit">
-            {lang === "es" ? "Cancelar" : "Cancel"}
+            {t.common.cancel}
           </Button>
           <Button onClick={handleDeleteCat} variant="contained" color="error">
-            {lang === "es" ? "Eliminar" : "Delete"}
+            {t.common.delete}
           </Button>
         </DialogActions>
       </Dialog>

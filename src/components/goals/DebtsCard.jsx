@@ -11,7 +11,7 @@ import { EmptySection } from "./EmptySection.jsx";
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 
 export function DebtsCard({ showToast }) {
-  const { lang, currency } = useSettings();
+  const { t, currency } = useSettings();
   const { debts, saveDebt, deleteDebt } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_DEBT,
@@ -19,9 +19,7 @@ export function DebtsCard({ showToast }) {
     save: saveDebt,
     remove: deleteDebt,
     showToast,
-    messages: lang === "es"
-      ? { saved: "Préstamo guardado", saveError: "Error al guardar préstamo", deleted: "Préstamo eliminado", deleteError: "Error al eliminar préstamo" }
-      : { saved: "Loan saved", saveError: "Error saving loan", deleted: "Loan deleted", deleteError: "Error deleting loan" },
+    messages: t.goalsTab.debtToasts,
   });
   const { form, update } = dialog;
   const tooManyRemaining = form.remaining && form.original_months && parseInt(form.remaining) > parseInt(form.original_months);
@@ -33,14 +31,14 @@ export function DebtsCard({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={DebtIcon} tone="expense" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Control de deudas" : "Debt control"}</Typography>
-              <Typography variant="caption" color="text.secondary">{debts.length} {lang === "es" ? "préstamos" : "loans"}</Typography>
+              <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.debtControl}</Typography>
+              <Typography variant="caption" color="text.secondary">{debts.length} {t.goalsTab.loans}</Typography>
             </Box>
           </Box>
-          <IconButton size="small" aria-label={lang === "es" ? "Agregar deuda" : "Add debt"} onClick={dialog.openNew} sx={{ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label={t.goalsTab.addDebt} onClick={dialog.openNew} sx={{ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
         </Box>
         {debts.length === 0 ? (
-          <EmptySection label={lang === "es" ? "Sin préstamos registrados." : "No loans yet."} onAdd={dialog.openNew} lang={lang} />
+          <EmptySection label={t.goalsTab.noLoansYet} onAdd={dialog.openNew} />
         ) : (
           <Box sx={{ flex: 1 }}>
             {debts.map((d) => <DebtRow key={d.id} debt={d} onOpen={() => dialog.openEdit(d)} />)}
@@ -49,7 +47,7 @@ export function DebtsCard({ showToast }) {
         {debts.length > 0 && (
           <Box sx={{ mt: 2, p: 2, bgcolor: "error.light", borderRadius: 2 }}>
             <Typography variant="body2" color="error.dark" fontWeight={600}>
-              {lang === "es" ? "Total deudas:" : "Total debt:"} {fmtMoney(debts.reduce((s, d) => s + d.balance, 0), currency)}
+              {t.goalsTab.totalDebt} {fmtMoney(debts.reduce((s, d) => s + d.balance, 0), currency)}
             </Typography>
           </Box>
         )}
@@ -57,28 +55,28 @@ export function DebtsCard({ showToast }) {
 
       <EntityDialog
         dialog={dialog}
-        title={dialog.editing ? (lang === "es" ? "Editar préstamo" : "Edit loan") : (lang === "es" ? "Nuevo préstamo" : "New loan")}
+        title={dialog.editing ? (t.goalsTab.editLoan) : (t.goalsTab.newLoan)}
         canSave={form.es && form.balance && !tooManyRemaining}
         onSave={() => dialog.submit({ ...form, balance: toBase(parseFloat(form.balance), currency), rate: parseFloat(form.rate) || 0, monthly: toBase(parseFloat(form.monthly) || 0, currency), remaining: parseInt(form.remaining) || 0, original_months: parseInt(form.original_months) || parseInt(form.remaining) || 0 })}
       >
-        <TextField label={lang === "es" ? "Nombre" : "Name"} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Saldo pendiente" : "Balance"} type="number" value={form.balance} onChange={(e) => update({ balance: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.outstandingBalance} type="number" value={form.balance} onChange={(e) => update({ balance: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Tasa % TEA" : "Rate % TEA"} type="number" value={form.rate} onChange={(e) => update({ rate: e.target.value })} fullWidth helperText={lang === "es" ? "Tasa efectiva anual" : "Annual effective rate"} />
+            <TextField label={t.goalsTab.rateTea} type="number" value={form.rate} onChange={(e) => update({ rate: e.target.value })} fullWidth helperText={t.goalsTab.annualEffectiveRate} />
           </Grid>
         </Grid>
         <Grid container spacing={2}>
           <Grid size={{ xs: 4 }}>
-            <TextField label={lang === "es" ? "Cuota/mes" : "Monthly"} type="number" value={form.monthly} onChange={(e) => update({ monthly: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.monthlyPayment} type="number" value={form.monthly} onChange={(e) => update({ monthly: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 4 }}>
-            <TextField label={lang === "es" ? "Cuotas restantes" : "Remaining"} type="number" value={form.remaining} onChange={(e) => update({ remaining: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.remaining} type="number" value={form.remaining} onChange={(e) => update({ remaining: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 4 }}>
-            <TextField label={lang === "es" ? "Total cuotas" : "Total months"} type="number" value={form.original_months} onChange={(e) => update({ original_months: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.totalMonths} type="number" value={form.original_months} onChange={(e) => update({ original_months: e.target.value })} fullWidth />
           </Grid>
         </Grid>
       </EntityDialog>
@@ -87,7 +85,7 @@ export function DebtsCard({ showToast }) {
 }
 
 function DebtRow({ debt: d, onOpen }) {
-  const { lang, currency } = useSettings();
+  const { t, lang, currency } = useSettings();
   const orig = d.original_months || d.remaining || 1;
   const paid = Math.max(0, orig - d.remaining);
   const pct = orig > 0 ? paid / orig : 0;
@@ -99,10 +97,10 @@ function DebtRow({ debt: d, onOpen }) {
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
         <Typography variant="body2" color="text.secondary">{fmtMoney(d.balance, currency, true)}</Typography>
-        <Typography variant="body2" fontWeight={600}>{fmtMoney(d.monthly, currency, true)} {lang === "es" ? "/mes" : "/month"}</Typography>
+        <Typography variant="body2" fontWeight={600}>{fmtMoney(d.monthly, currency, true)} {t.common.perMonth}</Typography>
       </Box>
       <LinearProgress variant="determinate" value={pct * 100} sx={{ height: 6, borderRadius: 3, mb: 0.5, bgcolor: "action.selected", "& .MuiLinearProgress-bar": { bgcolor: "error.main" } }} />
-      <Typography variant="caption" color="text.secondary">{d.remaining} {lang === "es" ? "cuotas restantes" : "installments left"}</Typography>
+      <Typography variant="caption" color="text.secondary">{d.remaining} {t.goalsTab.installmentsLeft}</Typography>
     </Box>
   );
 }

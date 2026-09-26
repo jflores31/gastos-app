@@ -11,14 +11,14 @@ import { CustomCategoriesSection } from "./CustomCategoriesSection.jsx";
 // "Perfil" tab of the settings panel. The name fields' state lives in SettingsPanel so an
 // unsaved edit survives switching tabs, and resets each time the panel opens.
 export function ProfileTab({ user, name, notify }) {
-  const { lang } = useSettings();
+  const { t } = useSettings();
 
   if (!user) {
     return (
       <Box sx={{ p: 5, textAlign: "center", color: "text.secondary" }}>
         <PersonIcon sx={{ fontSize: 48, opacity: 0.35, mb: 1.5 }} />
         <Typography variant="body2">
-          {lang === "es" ? "Inicia sesión para ver tu perfil y categorías." : "Sign in to see your profile and categories."}
+          {t.settingsPanel.signInToSeeYour}
         </Typography>
       </Box>
     );
@@ -65,7 +65,7 @@ export function ProfileTab({ user, name, notify }) {
 
 // `name` = { first, last, setFirst, setLast, metaFirst, metaLast } from SettingsPanel.
 function PersonalInfoSection({ name, notify }) {
-  const { lang } = useSettings();
+  const { t } = useSettings();
   const [saving, setSaving] = useState(false);
   const dirty = name.first.trim() !== (name.metaFirst || "").trim() || name.last.trim() !== (name.metaLast || "").trim();
 
@@ -77,16 +77,16 @@ function PersonalInfoSection({ name, notify }) {
       data: { first_name: name.first.trim(), last_name: name.last.trim(), full_name },
     });
     setSaving(false);
-    if (error) notify(lang === "es" ? "Error al guardar tu nombre" : "Error saving your name", "error");
-    else notify(lang === "es" ? "Nombre actualizado" : "Name updated", "success");
+    if (error) notify(t.settingsPanel.errorSavingYourName, "error");
+    else notify(t.settingsPanel.nameUpdated, "success");
   };
 
   return (
     <>
       <ListItem sx={{ pt: 2 }}>
         <ListItemText
-          primary={lang === "es" ? "Datos personales" : "Personal info"}
-          secondary={lang === "es" ? "Tu nombre visible en la app" : "Your name shown across the app"}
+          primary={t.settingsPanel.personalInfo}
+          secondary={t.settingsPanel.yourNameShownAcrossThe}
           primaryTypographyProps={{ variant: "overline" }}
           secondaryTypographyProps={{ variant: "caption" }}
         />
@@ -95,7 +95,7 @@ function PersonalInfoSection({ name, notify }) {
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
           <TextField
             fullWidth size="small"
-            label={lang === "es" ? "Nombre" : "First name"}
+            label={t.settingsPanel.firstName}
             value={name.first}
             onChange={(e) => name.setFirst(e.target.value)}
             autoComplete="given-name"
@@ -103,7 +103,7 @@ function PersonalInfoSection({ name, notify }) {
           />
           <TextField
             fullWidth size="small"
-            label={lang === "es" ? "Apellidos" : "Last name"}
+            label={t.settingsPanel.lastName}
             value={name.last}
             onChange={(e) => name.setLast(e.target.value)}
             autoComplete="family-name"
@@ -118,7 +118,7 @@ function PersonalInfoSection({ name, notify }) {
         >
           {saving
             ? <CircularProgress size={18} color="inherit" />
-            : (lang === "es" ? "Guardar" : "Save")}
+            : (t.common.save)}
         </Button>
       </ListItem>
     </>
@@ -127,7 +127,7 @@ function PersonalInfoSection({ name, notify }) {
 
 // Favourite categories live in the auth user's metadata (fav_categories).
 function FavoriteCategoriesSection({ user, notify }) {
-  const { lang } = useSettings();
+  const { t, lang } = useSettings();
   const { customCats } = useData();
   const [favInput, setFavInput] = useState(null);
   const favCats = useMemo(() => user?.user_metadata?.fav_categories || [], [user]);
@@ -135,20 +135,20 @@ function FavoriteCategoriesSection({ user, notify }) {
   const allCatOptions = useMemo(() => [
     ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({
       value: k, tipo: "EGRESO",
-      label: lang === "es" ? v.es : v.en,
-      group: lang === "es" ? "Gastos" : "Expenses",
+      label: v[lang],
+      group: t.settingsPanel.expenseGroup,
     })),
     ...Object.entries(CATEGORIES.income).map(([k, v]) => ({
       value: k, tipo: "INGRESO",
-      label: lang === "es" ? v.es : v.en,
-      group: lang === "es" ? "Ingresos" : "Income",
+      label: v[lang],
+      group: t.settingsPanel.incomeGroup,
     })),
-  ].filter((o) => !favCats.find((f) => f.categoria === o.value)), [lang, favCats]);
+  ].filter((o) => !favCats.find((f) => f.categoria === o.value)), [lang, t, favCats]);
 
   const saveFavCats = async (newList) => {
     const supabase = createClient();
     const { error } = await supabase.auth.updateUser({ data: { fav_categories: newList } });
-    if (error) notify(lang === "es" ? "Error al guardar favoritos" : "Error saving favorites", "error");
+    if (error) notify(t.settingsPanel.errorSavingFavorites, "error");
     return !error;
   };
 
@@ -166,8 +166,8 @@ function FavoriteCategoriesSection({ user, notify }) {
     <>
       <ListItem sx={{ pt: 2 }}>
         <ListItemText
-          primary={lang === "es" ? "Categorías Favoritas" : "Favorite Categories"}
-          secondary={lang === "es" ? "Aparecen primero en el selector" : "Shown first in the selector"}
+          primary={t.settingsPanel.favoriteCategories}
+          secondary={t.settingsPanel.shownFirstInTheSelector}
           primaryTypographyProps={{ variant: "overline" }}
           secondaryTypographyProps={{ variant: "caption" }}
         />
@@ -187,9 +187,9 @@ function FavoriteCategoriesSection({ user, notify }) {
         <Autocomplete
           options={allCatOptions} groupBy={(o) => o.group} value={favInput}
           onChange={(_, v) => handleAddFav(v)} getOptionLabel={(o) => o?.label || ""}
-          size="small" noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
+          size="small" noOptionsText={t.settingsPanel.allCategoriesAdded}
           renderInput={(params) => (
-            <TextField {...params} label={lang === "es" ? "Agregar favorita" : "Add favorite"} size="small" />
+            <TextField {...params} label={t.settingsPanel.addFavorite} size="small" />
           )}
         />
       </ListItem>

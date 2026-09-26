@@ -12,7 +12,7 @@ const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: "#0033A0", l
 
 // Net worth summary + the list of accounts. `worth` comes from netWorthOf().
 export function AccountsCard({ worth, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, currency } = useSettings();
   const { accounts, saveAccount, deleteAccount } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_ACCOUNT,
@@ -20,9 +20,7 @@ export function AccountsCard({ worth, showToast }) {
     save: saveAccount,
     remove: deleteAccount,
     showToast,
-    messages: lang === "es"
-      ? { saved: "Cuenta guardada", saveError: "Error al guardar cuenta", deleted: "Cuenta eliminada", deleteError: "Error al eliminar cuenta" }
-      : { saved: "Account saved", saveError: "Error saving account", deleted: "Account deleted", deleteError: "Error deleting account" },
+    messages: t.goalsTab.accountToasts,
   });
   const { form, update } = dialog;
 
@@ -34,27 +32,27 @@ export function AccountsCard({ worth, showToast }) {
             <GradientIcon icon={BankIcon} tone="networth" bubble bubbleSize={40} size={22} />
             <Box>
               <Typography variant="subtitle1" fontWeight={700}>{t.networth}</Typography>
-              <Typography variant="caption" color="text.secondary">{accounts.length} {lang === "es" ? "cuentas" : "accounts"}</Typography>
+              <Typography variant="caption" color="text.secondary">{accounts.length} {t.goalsTab.accounts}</Typography>
             </Box>
           </Box>
-          <IconButton size="small" onClick={dialog.openNew} aria-label={lang === "es" ? "Nueva cuenta" : "New account"} sx={{ bgcolor: "primary.light", "&:hover": { bgcolor: "primary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={dialog.openNew} aria-label={t.goalsTab.newAccount} sx={{ bgcolor: "primary.light", "&:hover": { bgcolor: "primary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
         </Box>
         <Box sx={{ bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 3, p: 3, mb: 3 }}>
-          <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{lang === "es" ? "PATRIMONIO NETO" : "NET WORTH"}</Typography>
+          <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{t.goalsTab.netWorth}</Typography>
           <Typography variant="h4" fontWeight={800}>{fmtMoney(worth.net, currency)}</Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ xs: 6 }}>
-              <Typography variant="caption" sx={{ opacity: 0.8 }}>{lang === "es" ? "Activos" : "Assets"}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.assets}</Typography>
               <Typography variant="body1" fontWeight={700}>+{fmtMoney(worth.assets, currency, true)}</Typography>
             </Grid>
             <Grid size={{ xs: 6 }}>
-              <Typography variant="caption" sx={{ opacity: 0.8 }}>{lang === "es" ? "Deudas" : "Debts"}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.debts}</Typography>
               <Typography variant="body1" fontWeight={700}>−{fmtMoney(worth.debt, currency, true)}</Typography>
             </Grid>
           </Grid>
         </Box>
         {accounts.length === 0 ? (
-          <EmptySection label={lang === "es" ? "Sin cuentas registradas." : "No accounts yet."} onAdd={dialog.openNew} lang={lang} />
+          <EmptySection label={t.goalsTab.noAccountsYet} onAdd={dialog.openNew} />
         ) : (
           <Box sx={{ flex: 1 }}>
             <Stack spacing={1}>
@@ -68,21 +66,21 @@ export function AccountsCard({ worth, showToast }) {
 
       <EntityDialog
         dialog={dialog}
-        title={dialog.editing ? (lang === "es" ? "Editar cuenta" : "Edit account") : (lang === "es" ? "Nueva cuenta" : "New account")}
+        title={dialog.editing ? (t.goalsTab.editAccount) : (t.goalsTab.newAccount)}
         canSave={form.name && form.balance !== ""}
         onSave={() => dialog.submit({ ...form, balance: toBase(parseFloat(form.balance), currency), limit: form.limit ? toBase(parseFloat(form.limit), currency) : undefined })}
       >
-        <TextField label={lang === "es" ? "Nombre" : "Name"} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
         <FormControl fullWidth>
-          <InputLabel id="account-type-label">{lang === "es" ? "Tipo" : "Type"}</InputLabel>
-          <Select labelId="account-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
-            <MenuItem value="bank">{lang === "es" ? "Banco" : "Bank"}</MenuItem>
-            <MenuItem value="card">{lang === "es" ? "Tarjeta" : "Card"}</MenuItem>
-            <MenuItem value="cash">{lang === "es" ? "Efectivo" : "Cash"}</MenuItem>
+          <InputLabel id="account-type-label">{t.common.type}</InputLabel>
+          <Select labelId="account-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={t.common.type}>
+            <MenuItem value="bank">{t.goalsTab.bank}</MenuItem>
+            <MenuItem value="card">{t.goalsTab.card}</MenuItem>
+            <MenuItem value="cash">{t.goalsTab.cash}</MenuItem>
           </Select>
         </FormControl>
-        <TextField label={lang === "es" ? "Saldo" : "Balance"} type="number" value={form.balance} onChange={(e) => update({ balance: e.target.value })} fullWidth />
-        {form.type === "card" && <TextField label={lang === "es" ? "Límite" : "Limit"} type="number" value={form.limit} onChange={(e) => update({ limit: e.target.value })} fullWidth />}
+        <TextField label={t.goalsTab.balance} type="number" value={form.balance} onChange={(e) => update({ balance: e.target.value })} fullWidth />
+        {form.type === "card" && <TextField label={t.goalsTab.limit} type="number" value={form.limit} onChange={(e) => update({ limit: e.target.value })} fullWidth />}
         <TextField label="Color" type="color" value={form.color} onChange={(e) => update({ color: e.target.value })} sx={{ width: 80 }} />
       </EntityDialog>
     </Card>
@@ -90,7 +88,7 @@ export function AccountsCard({ worth, showToast }) {
 }
 
 function AccountRow({ account: a, onEdit, onDelete }) {
-  const { lang, currency } = useSettings();
+  const { t, currency } = useSettings();
   const isDebt = a.balance < 0;
   const utilPct = isDebt && a.limit ? Math.abs(a.balance) / a.limit : 0;
   return (
@@ -99,7 +97,7 @@ function AccountRow({ account: a, onEdit, onDelete }) {
       <Box sx={{ flex: 1 }}>
         <Typography variant="body2" fontWeight={600}>{a.name}</Typography>
         <Typography variant="caption" color="text.secondary">
-          {a.type === "bank" ? (lang === "es" ? "Banco" : "Bank") : a.type === "card" ? (lang === "es" ? "Tarjeta" : "Card") : (lang === "es" ? "Efectivo" : "Cash")}
+          {a.type === "bank" ? (t.goalsTab.bank) : a.type === "card" ? (t.goalsTab.card) : (t.goalsTab.cash)}
           {isDebt && a.limit ? ` · ${Math.round(utilPct * 100)}%` : ""}
         </Typography>
       </Box>

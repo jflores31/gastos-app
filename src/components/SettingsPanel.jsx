@@ -11,7 +11,7 @@ import { PreferencesTab } from "./settings/PreferencesTab.jsx";
 // Side panel with two tabs: "Perfil" (name, favourite and custom categories) and
 // "Ajustes" (theme, density, accent, language, currency). See src/components/settings/.
 export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) {
-  const { lang } = useSettings();
+  const { t } = useSettings();
   const user = useSupabaseUser();
 
   // Canonical name from metadata. Fallback splits full_name for accounts created
@@ -45,7 +45,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
       {/* Header */}
       <Box sx={{ p: 2, pb: 1.25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h6" fontWeight={700}>
-          {tab === "perfil" ? (lang === "es" ? "Perfil" : "Profile") : (lang === "es" ? "Ajustes" : "Settings")}
+          {tab === "perfil" ? (t.settingsPanel.profile) : (t.settingsPanel.settings)}
         </Typography>
         <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
       </Box>
@@ -58,9 +58,9 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
         sx={{ position: "sticky", top: 0, zIndex: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", minHeight: 48 }}
       >
         <Tab value="perfil" icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start"
-          label={lang === "es" ? "Perfil" : "Profile"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+          label={t.settingsPanel.profile} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
         <Tab value="ajustes" icon={<SettingsIcon sx={{ fontSize: 18 }} />} iconPosition="start"
-          label={lang === "es" ? "Ajustes" : "Settings"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+          label={t.settingsPanel.settings} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
       </Tabs>
 
       {tab === "perfil" && <ProfileTab user={user} name={name} notify={notify} />}

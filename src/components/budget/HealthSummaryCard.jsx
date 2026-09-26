@@ -12,9 +12,9 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
   const gaugeColor = healthTone(score);
   const GaugeIcon = score >= 75 ? HealthIcon : WarningIcon;
   const stats = [
-    { lbl: lang === "es" ? "Presupuesto" : "Budget", val: fmtMoney(totalBudget, currency, true), c: "primary.main", icon: <WalletIcon fontSize="small" /> },
+    { lbl: t.budgetTab.budget, val: fmtMoney(totalBudget, currency, true), c: "primary.main", icon: <WalletIcon fontSize="small" /> },
     { lbl: t.spent, val: fmtMoney(totalOut, currency, true), c: budgetUsed > 1 ? "error.main" : "success.main", icon: <TrendDownIcon fontSize="small" /> },
-    { lbl: lang === "es" ? "Uso" : "Usage", val: Math.round(budgetUsed * 100) + "%", c: budgetUsed > 1 ? "error.main" : "primary.main", icon: null },
+    { lbl: t.budgetTab.usage, val: Math.round(budgetUsed * 100) + "%", c: budgetUsed > 1 ? "error.main" : "primary.main", icon: null },
     { lbl: t.income, val: fmtMoney(totalIn, currency, true), c: "success.main", icon: <TrendUpIcon fontSize="small" /> },
   ];
 

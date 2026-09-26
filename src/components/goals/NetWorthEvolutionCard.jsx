@@ -7,7 +7,7 @@ import { useSettings } from "../../context/SettingsContext.jsx";
 // Net worth over the last 6 months, rebuilt backwards from today's value: each month is
 // today's net worth minus the net of the months after it.
 export function NetWorthEvolutionCard({ months, netWorth }) {
-  const { t, lang, currency } = useSettings();
+  const { t, currency } = useSettings();
   const recent = months.slice(-6);
   const nets = recent.map((m) => m.ingreso - m.egreso);
   const history = recent.map((m, i) => ({ month: t.months[m.mes], value: netWorth - nets.slice(i + 1).reduce((s, n) => s + n, 0) }));
@@ -20,15 +20,15 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={HistoryIcon} tone="income" bubble />
           <Box>
-            <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Evolución del patrimonio" : "Net worth evolution"}</Typography>
-            <Typography variant="caption" color="text.secondary">{lang === "es" ? "Últimos 6 meses" : "Last 6 months"}</Typography>
+            <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.netWorthEvolution}</Typography>
+            <Typography variant="caption" color="text.secondary">{t.goalsTab.last6Months}</Typography>
           </Box>
         </Box>
         <Box sx={{ flex: 1 }}>
           {recent.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{lang === "es" ? "Sin datos de transacciones" : "No transaction data"}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4, fontStyle: "italic" }}>{t.goalsTab.noTransactionData}</Typography>
           ) : (
-            <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 150 }} role="img" aria-label={lang === "es" ? "Gráfico de evolución del patrimonio" : "Net worth evolution chart"}>
+            <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 150 }} role="img" aria-label={t.goalsTab.netWorthEvolutionChart}>
               {history.map((h, i) => (
                 <Box key={i} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                   <Typography variant="caption" fontWeight={600}>{fmtMoney(h.value, currency, true)}</Typography>
@@ -43,11 +43,11 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
         </Box>
         <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", p: 2, bgcolor: "success.light", borderRadius: 2 }}>
           <Box>
-            <Typography variant="caption" color="success.dark">{lang === "es" ? "Patrimonio inicial" : "Initial net worth"}</Typography>
+            <Typography variant="caption" color="success.dark">{t.goalsTab.initialNetWorth}</Typography>
             <Typography variant="body1" fontWeight={700} color="success.dark">{fmtMoney(initial, currency)}</Typography>
           </Box>
           <Box sx={{ textAlign: "right" }}>
-            <Typography variant="caption" color="success.dark">{lang === "es" ? "Patrimonio actual" : "Current net worth"}</Typography>
+            <Typography variant="caption" color="success.dark">{t.goalsTab.currentNetWorth}</Typography>
             <Typography variant="body1" fontWeight={700} color="success.dark">{fmtMoney(netWorth, currency)}</Typography>
           </Box>
         </Box>

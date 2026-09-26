@@ -107,13 +107,13 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             {todayExpenses.length > 0 ? (
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, p: 1.5, bgcolor: "primary.light", borderRadius: 2 }}>
-                  <Typography variant="body2" fontWeight={600}>{lang === "es" ? "Total hoy" : "Total today"}</Typography>
+                  <Typography variant="body2" fontWeight={600}>{t.expensesTab.totalToday}</Typography>
                   <Typography variant="h6" fontWeight={700} color="error.main">−{fmtMoney(totalToday, currency)}</Typography>
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
                     const { label: catName, color, Icon } = catMeta(tx.categoria);
-                    const hour = tx.date.toLocaleTimeString(lang === "es" ? "es-PE" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                    const hour = tx.date.toLocaleTimeString(t.common.locale, { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
                       <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                         <CategoryAvatar icon={Icon} color={color} size={32} />
@@ -129,7 +129,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
               </>
             ) : (
               <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: "center", fontStyle: "italic" }}>
-                {lang === "es" ? "No hay gastos registrados hoy" : "No expenses recorded today"}
+                {t.expensesTab.noExpensesRecordedToday}
               </Typography>
             )}
           </Collapse>
@@ -158,7 +158,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                               <Typography component="span" variant="body2" fontWeight={700} color="text.secondary" sx={{ mr: 0.75 }}>#{idx + 1}</Typography>
                               {catName}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">{c._empty ? (lang === "es" ? "Sin gastos aún" : "No expenses yet") : `${c.count} ${lang === "es" ? "transacciones" : "transactions"} · ${pct.toFixed(1)}%`}</Typography>
+                            <Typography variant="caption" color="text.secondary">{c._empty ? (t.expensesTab.noExpensesYet) : `${c.count} ${t.common.transactions} · ${pct.toFixed(1)}%`}</Typography>
                           </Box>
                           <Typography variant="h6" fontWeight={700} color="primary.main">{fmtMoney(c.total, currency, true)}</Typography>
                         </Box>
@@ -177,12 +177,12 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" fontWeight={700} sx={{ color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
-                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {lang === "es" ? "categorías" : "categories"}</Typography>
+                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {t.common.categories}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 {Object.keys(editBudgets).length === 0 ? (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3, fontStyle: "italic" }}>
-                    {lang === "es" ? "Sin presupuestos configurados" : "No budgets configured"}
+                    {t.expensesTab.noBudgetsConfigured}
                   </Typography>
                 ) : (
                   <Stack spacing={1.5}>
@@ -198,7 +198,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                             <CategoryAvatar icon={Icon} color={color} />
                             <Box sx={{ flex: 1 }}>
                               <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (lang === "es" ? "· Sobre límite" : "· Over limit") : `· ${lang === "es" ? "de" : "of"} ${fmtMoney(limit, currency, true)}`}</Typography>
+                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmtMoney(limit, currency, true)}`}</Typography>
                             </Box>
                             <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmtMoney(spent, currency, true)}</Typography>
                           </Box>
@@ -217,16 +217,16 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "success.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark", mb: 0.5 }}>{lang === "es" ? "Resumen del periodo" : "Period Summary"}</Typography>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark", mb: 0.5 }}>{t.expensesTab.periodSummary}</Typography>
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 <Stack spacing={1.5}>
                   {[
                     { label: t.spent, value: filteredTotal, color: "error.main", bg: "error.light", icon: SpentIcon, tone: "expense" },
-                    { label: lang === "es" ? "Transacciones" : "Transactions", value: expenseTxs.length, color: "info.main", bg: "info.light", isCount: true, icon: TxCountIcon, tone: "goals" },
-                    { label: lang === "es" ? "Promedio diario" : "Daily avg", value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light", icon: DailyIcon, tone: "warning" },
-                    { label: lang === "es" ? "Mayor gasto" : "Top expense", value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light", icon: TopExpenseIcon, tone: "expense" },
+                    { label: t.expensesTab.transactions, value: expenseTxs.length, color: "info.main", bg: "info.light", isCount: true, icon: TxCountIcon, tone: "goals" },
+                    { label: t.expensesTab.dailyAvg, value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light", icon: DailyIcon, tone: "warning" },
+                    { label: t.expensesTab.topExpense, value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light", icon: TopExpenseIcon, tone: "expense" },
                   ].map((item, idx) => {
                     const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
                     const maxExpense = expenseTxs.reduce((m, x) => Math.max(m, x.valor), 0);
@@ -263,18 +263,18 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">{t.transactions}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {expenseTxs.length} {lang === "es" ? "gastos registrados" : "recorded expenses"}
+                {expenseTxs.length} {t.expensesTab.recordedExpenses}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} lang={lang} currency={currency} />
+              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} currency={currency} />
             </Box>
           </Box>
           {periodCats.length > 0 && (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
               <Chip
                 size="small"
-                label={lang === "es" ? "Todos" : "All"}
+                label={t.common.all}
                 variant={!activeCat ? "filled" : "outlined"}
                 color={!activeCat ? "primary" : "default"}
                 onClick={() => setActiveCat(null)}
@@ -298,7 +298,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             </Box>
           )}
           {expenseTxs.length === 0 ? (
-            <NoTransactions lang={lang} type="expense" />
+            <NoTransactions type="expense" />
           ) : (
             <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
               {expenseTxs.map((x) => {
@@ -310,10 +310,10 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         <Typography variant="body1" fontWeight={700} color="error.main" sx={{ display: { xs: "none", sm: "block" } }}>
                           −{fmtMoney(x.valor, currency, true)}
                         </Typography>
-                        <IconButton onClick={() => setEditingTx(x)} aria-label={lang === "es" ? "Editar" : "Edit"} sx={{ minWidth: 40, minHeight: 40 }}>
+                        <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton color="error" onClick={() => setDeleteTarget(x)} aria-label={lang === "es" ? "Eliminar" : "Delete"} sx={{ minWidth: 40, minHeight: 40 }}>
+                        <IconButton color="error" onClick={() => setDeleteTarget(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
@@ -326,7 +326,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
                       secondary={
                         <Typography variant="caption" color="text.secondary" component="span">
-                          {catName} · {x.date.toLocaleString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
+                          {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                           <Typography variant="caption" fontWeight={700} color="error.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
                             −{fmtMoney(x.valor, currency, true)}
                           </Typography>
@@ -340,7 +340,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             </List>
           )}
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
-            <Typography variant="body1" fontWeight={600}>{lang === "es" ? "TOTAL GASTOS" : "TOTAL EXPENSES"}{(calFilter || activeCat) ? ` (${lang === "es" ? "filtrado" : "filtered"})` : ""}</Typography>
+            <Typography variant="body1" fontWeight={600}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
             <Typography variant="h5" fontWeight={700}>−{fmtMoney(filteredTotal, currency, true)}</Typography>
           </Box>
         </CardContent>
@@ -350,28 +350,28 @@ export default function ExpensesTab({ period, openModal, showToast }) {
       <AddTransactionModal
         editTx={editingTx}
         mode="expense"
-        onAdd={() => showToast?.(lang === "es" ? "Transacción actualizada" : "Transaction updated", "success")}
+        onAdd={() => showToast?.(t.common.transactionUpdated, "success")}
         onClose={() => setEditingTx(null)}
         showToast={showToast}
       />
     )}
     <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>{lang === "es" ? "¿Eliminar transacción?" : "Delete transaction?"}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700 }}>{t.common.deleteTransaction}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">
           {deleteTarget?.concepto} · {deleteTarget ? fmtMoney(deleteTarget.valor, currency) : ""}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {lang === "es" ? "Esta acción no se puede deshacer." : "This action cannot be undone."}
+          {t.common.thisActionCannotBeUndone}
         </Typography>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={() => setDeleteTarget(null)} color="inherit">{lang === "es" ? "Cancelar" : "Cancel"}</Button>
+        <Button onClick={() => setDeleteTarget(null)} color="inherit">{t.common.cancel}</Button>
         <Button
           variant="contained" color="error"
-          onClick={async () => { try { await deleteTx(deleteTarget.id); showToast?.(lang === "es" ? "Transacción eliminada" : "Transaction deleted", "success"); } catch { showToast?.(lang === "es" ? "Error al eliminar" : "Error deleting", "error"); } finally { setDeleteTarget(null); } }}
+          onClick={async () => { try { await deleteTx(deleteTarget.id); showToast?.(t.common.transactionDeleted, "success"); } catch { showToast?.(t.common.errorDeleting, "error"); } finally { setDeleteTarget(null); } }}
         >
-          {lang === "es" ? "Eliminar" : "Delete"}
+          {t.common.delete}
         </Button>
       </DialogActions>
     </Dialog>

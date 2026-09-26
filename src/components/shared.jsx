@@ -5,11 +5,8 @@ import { useTheme, alpha } from "@mui/material/styles";
 import { CATEGORIES, fmtMoney } from "../data/index.js";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
+import { useSettings } from "../context/SettingsContext.jsx";
 
-const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAYS_ES = ["L", "M", "X", "J", "V", "S", "D"];
-const DAYS_EN = ["M", "T", "W", "T", "F", "S", "S"];
 
 export function EmptyState({ icon, title, subtitle, action }) {
   return (
@@ -33,13 +30,14 @@ export function EmptyState({ icon, title, subtitle, action }) {
   );
 }
 
-export function NoTransactions({ lang, type = "expense" }) {
+export function NoTransactions({ type = "expense" }) {
+  const { t } = useSettings();
   const isExpense = type === "expense";
   return (
     <EmptyState 
       icon={isExpense ? <ReceiptIcon sx={{ fontSize: 32 }} /> : <MoneyIcon sx={{ fontSize: 32 }} />}
-      title={lang === "es" ? (isExpense ? "Sin gastos" : "Sin ingresos") : (isExpense ? "No expenses" : "No income")}
-      subtitle={lang === "es" ? "Agrega tu primera transacción" : "Add your first transaction"}
+      title={isExpense ? t.sharedUi.noExpenses : t.sharedUi.noIncome}
+      subtitle={t.sharedUi.addYourFirstTransaction}
     />
   );
 }
@@ -107,7 +105,8 @@ export function SummaryCard({ label, value, delta, sub, invert, color, icon }) {
   );
 }
 
-export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
+export function CalendarFilter({ txs, tipo, onFilter, currency }) {
+  const { t } = useSettings();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState("day");
@@ -116,8 +115,8 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
 
   const mainColor = tipo === "EGRESO" ? theme.palette.error.main : theme.palette.success.main;
   const sign = tipo === "EGRESO" ? "−" : "+";
-  const monthNames = lang === "es" ? MONTHS_ES : MONTHS_EN;
-  const dayNames = lang === "es" ? DAYS_ES : DAYS_EN;
+  const monthNames = t.months;
+  const dayNames = t.days;
 
   const dayMap = useMemo(() => {
     const m = new Map();
@@ -184,7 +183,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
 
   const selectedLabel = selected
     ? selected.type === "day"
-      ? selected.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "short" })
+      ? selected.date.toLocaleDateString(t.common.locale, { day: "numeric", month: "short" })
       : `${monthNames[selected.date.getMonth()]} ${selected.date.getFullYear()}`
     : null;
 
@@ -205,7 +204,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
           <Chip
             size="small"
             icon={<CalendarIcon sx={{ fontSize: "14px !important" }} />}
-            label={lang === "es" ? "Filtrar por fecha" : "Filter by date"}
+            label={t.sharedUi.filterByDate}
             onClick={() => setOpen((o) => !o)}
             variant="outlined"
             sx={{ fontWeight: 600, fontSize: 11, borderColor: "divider", color: "text.secondary", cursor: "pointer", "&:hover": { borderColor: mainColor, color: mainColor } }}
@@ -222,21 +221,21 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
               <Chip
                 key={mode}
                 size="small"
-                label={mode === "day" ? (lang === "es" ? "Día" : "Day") : (lang === "es" ? "Mes" : "Month")}
-                aria-label={mode === "day" ? (lang === "es" ? "Ver por día" : "View by day") : (lang === "es" ? "Ver por mes" : "View by month")}
+                label={mode === "day" ? (t.sharedUi.day) : (t.sharedUi.month)}
+                aria-label={mode === "day" ? (t.sharedUi.viewByDay) : (t.sharedUi.viewByMonth)}
                 onClick={() => { setViewMode(mode); clearFilter(); setOpen(true); }}
                 variant={viewMode === mode ? "filled" : "outlined"}
                 sx={{ fontWeight: 600, fontSize: 10, height: 20, bgcolor: viewMode === mode ? mainColor : undefined, color: viewMode === mode ? "#fff" : "text.secondary", borderColor: viewMode === mode ? mainColor : "divider", "&:hover": { opacity: 0.85 } }}
               />
             ))}
             <Box sx={{ flex: 1 }} />
-            <IconButton size="small" onClick={prevNav} sx={{ p: 0.25 }} aria-label={lang === "es" ? "Anterior" : "Previous"}>
+            <IconButton size="small" onClick={prevNav} sx={{ p: 0.25 }} aria-label={t.sharedUi.previous}>
               <ChevronLeftIcon sx={{ fontSize: 16 }} />
             </IconButton>
             <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 72, textAlign: "center", fontSize: 11 }}>
               {viewMode === "day" ? `${monthNames[navDate.getMonth()]} ${navDate.getFullYear()}` : navDate.getFullYear()}
             </Typography>
-            <IconButton size="small" onClick={nextNav} sx={{ p: 0.25 }} aria-label={lang === "es" ? "Siguiente" : "Next"}>
+            <IconButton size="small" onClick={nextNav} sx={{ p: 0.25 }} aria-label={t.sharedUi.next}>
               <ChevronRightIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
@@ -287,11 +286,11 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                 })}
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1, justifyContent: "center" }}>
-                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{lang === "es" ? "Menos" : "Less"}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{t.sharedUi.less}</Typography>
                 {[0.1, 0.3, 0.55, 0.75, 0.9].map((o) => (
                   <Box key={o} sx={{ width: 8, height: 8, borderRadius: 0.25, bgcolor: alpha(mainColor, o) }} />
                 ))}
-                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{lang === "es" ? "Más" : "More"}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{t.sharedUi.more}</Typography>
               </Box>
             </>
           ) : (
@@ -339,7 +338,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
 }
 
 export function TxTable({ txs, lang, currency, t }) {
-  if (!txs.length) return <div className="st-tx-empty">{lang === "es" ? "No hay transacciones para mostrar" : "No transactions to show"}</div>;
+  if (!txs.length) return <div className="st-tx-empty">{t.sharedUi.noTransactionsToShow}</div>;
   return (
     <div className="st-tx-table">
       <div className="st-tx-head">

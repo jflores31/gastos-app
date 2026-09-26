@@ -1,4 +1,5 @@
 import { getToday } from "./index.js";
+import { messagesFor } from "../i18n/index.js";
 
 export function filterByPeriod(txs, period, offset = 0) {
   const today = getToday();
@@ -69,9 +70,10 @@ export function healthScore(savingsRate, spendingChange, anomalyCount) {
 // Label/colour for a health score. Single source of truth shared by the tabs;
 // thresholds match (>=75 good, >=50 fair, else critical).
 export function healthLabel(score, lang) {
-  if (score >= 75) return lang === "es" ? "Excelente" : "Excellent";
-  if (score >= 50) return lang === "es" ? "Regular" : "Fair";
-  return lang === "es" ? "Crítica" : "Critical";
+  const m = messagesFor(lang).healthLevels;
+  if (score >= 75) return m.excellent;
+  if (score >= 50) return m.fair;
+  return m.critical;
 }
 
 export function healthTone(score) {
@@ -148,37 +150,29 @@ export function linearRegressionSlope(values) {
 }
 
 export function insightsList(lang, totalOut, totalIn, savingsRate, dOut, anomalies, currency, fmtMoney, period = "month") {
+  const m = messagesFor(lang).insightTexts;
   const t = [];
-  const higherLower = dOut > 0 ? (lang === "es" ? "más altos" : "higher") : (lang === "es" ? "más bajos" : "lower");
   t.push({
     icon: "trend", tone: dOut > 0 ? "warn" : "good",
-    title: lang === "es" ? "Tendencia de gastos" : "Spending trend",
-    desc: lang === "es"
-      ? `Egresos ${Math.abs(dOut).toFixed(0)}% ${higherLower} que el período anterior.`
-      : `Spending ${Math.abs(dOut).toFixed(0)}% ${higherLower} than last period.`
+    title: m.spendingTrend,
+    desc: m.spendingTrendDesc(Math.abs(dOut).toFixed(0), dOut > 0),
   });
   t.push({
     icon: "savings", tone: savingsRate >= 20 ? "good" : savingsRate >= 10 ? "info" : "warn",
-    title: lang === "es" ? "Tasa de ahorro" : "Savings rate",
-    desc: lang === "es"
-      ? `Ahorrando ${savingsRate.toFixed(0)}% de ingresos. ${savingsRate >= 20 ? "¡Objetivo 20% cumplido!" : "Meta: 20%."}`
-      : `Saving ${savingsRate.toFixed(0)}% of income. ${savingsRate >= 20 ? "Goal met!" : "Target: 20%."}`
+    title: m.savingsRate,
+    desc: m.savingsRateDesc(savingsRate.toFixed(0), savingsRate >= 20),
   });
   if (anomalies.length > 0) {
     t.push({
       icon: "warning", tone: "warn",
-      title: lang === "es" ? "Gastos inusuales" : "Unusual expenses",
-      desc: lang === "es"
-        ? `${anomalies.length} transacción(es) inusual(es) detectada(s) este período.`
-        : `${anomalies.length} unusual transaction(s) flagged this period.`
+      title: m.unusualExpenses,
+      desc: m.unusualExpensesDesc(anomalies.length),
     });
   }
   t.push({
     icon: "forecast", tone: "info",
-    title: lang === "es" ? "Proyección fin de mes" : "Month-end forecast",
-    desc: lang === "es"
-      ? `Al ritmo actual: ${fmtMoney((totalOut / daysCount(period)) * 30, currency, true)} proyectado al mes.`
-      : `At current pace: ${fmtMoney((totalOut / daysCount(period)) * 30, currency, true)} projected per month.`
+    title: m.monthEndForecast,
+    desc: m.monthEndForecastDesc(fmtMoney((totalOut / daysCount(period)) * 30, currency, true)),
   });
   return t;
 }

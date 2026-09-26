@@ -22,7 +22,7 @@ export function RecurringCard() {
           <GradientIcon icon={EventIcon} tone="income" bubble />
           <Box>
             <Typography variant="h6" fontWeight={700}>{t.recurring}</Typography>
-            <Typography variant="body2" color="text.secondary">{recurring.length} {lang === "es" ? "pagos" : "payments"}</Typography>
+            <Typography variant="body2" color="text.secondary">{recurring.length} {t.budgetTab.payments}</Typography>
           </Box>
         </Box>
         <Stack spacing={1}>
@@ -34,7 +34,7 @@ export function RecurringCard() {
                 <CategoryAvatar icon={Icon} color={color} size={36} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
-                  <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName} · {lang === "es" ? `día ${r.day}` : `day ${r.day}`}</Typography>
+                  <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName} · {t.budgetTab.day(r.day)}</Typography>
                 </Box>
                 <Typography variant="body1" fontWeight={700}>{fmtMoney(r.avg, currency, true)}</Typography>
               </Box>
@@ -43,7 +43,7 @@ export function RecurringCard() {
         </Stack>
         {recurring.length > 5 && (
           <Button size="small" onClick={() => setShowAll((v) => !v)} sx={{ mt: 1, alignSelf: "center" }}>
-            {showAll ? (lang === "es" ? "Ver menos" : "Show less") : (lang === "es" ? `Ver más (${recurring.length - 5})` : `Show more (${recurring.length - 5})`)}
+            {showAll ? (t.budgetTab.showLess) : (t.budgetTab.showMore(recurring.length - 5))}
           </Button>
         )}
       </CardContent>

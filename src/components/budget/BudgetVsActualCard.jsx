@@ -22,7 +22,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
           <GradientIcon icon={CompareIcon} tone="trend" bubble />
           <Box>
-            <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Presupuesto vs Gasto real" : "Budget vs Actual"}</Typography>
+            <Typography variant="h6" fontWeight={700}>{t.budgetTab.budgetVsActual}</Typography>
             <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
           </Box>
         </Box>
@@ -44,9 +44,9 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
                     <Box>
                       <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 140, sm: 220 } }}>{catName}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {lang === "es" ? "Gastado" : "Spent"}{" "}
+                        {t.budgetTab.spent}{" "}
                         <Box component="strong" sx={{ color: isOver ? "error.main" : "text.primary" }}>{fmtMoney(spent, currency, true)}</Box>
-                        {" · "}{lang === "es" ? "límite" : "limit"} {fmtMoney(limit, currency, true)}
+                        {" · "}{t.budgetTab.limit} {fmtMoney(limit, currency, true)}
                       </Typography>
                     </Box>
                   </Box>
@@ -74,8 +74,8 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
                 </Box>
                 <Typography variant="caption" sx={{ color: barColor, fontWeight: 600, mt: 0.5, display: "block" }}>
                   {isOver
-                    ? `${lang === "es" ? "Excedido en" : "Over by"} ${fmtMoney(spent - limit, currency, true)}`
-                    : `${lang === "es" ? "Disponible" : "Available"} ${fmtMoney(limit - spent, currency, true)}`}
+                    ? `${t.budgetTab.overBy} ${fmtMoney(spent - limit, currency, true)}`
+                    : `${t.budgetTab.available} ${fmtMoney(limit - spent, currency, true)}`}
                 </Typography>
               </Box>
             );
@@ -84,14 +84,14 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
         {/* Summary footer */}
         <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
           <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            {lang === "es" ? "Total gastado" : "Total spent"}: <strong>{fmtMoney(totalSpentBudgeted, currency, true)}</strong>
+            {t.budgetTab.totalSpent}: <strong>{fmtMoney(totalSpentBudgeted, currency, true)}</strong>
           </Typography>
           <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            {lang === "es" ? "Total presupuestado" : "Total budget"}: <strong>{fmtMoney(totalBudget, currency, true)}</strong>
+            {t.budgetTab.totalBudget}: <strong>{fmtMoney(totalBudget, currency, true)}</strong>
           </Typography>
           <Chip
             size="small"
-            label={`${Math.round(used * 100)}% ${lang === "es" ? "usado" : "used"}`}
+            label={`${Math.round(used * 100)}% ${t.budgetTab.used}`}
             color={used > 1 ? "error" : used >= 0.8 ? "warning" : "success"}
             variant="outlined"
             sx={{ fontWeight: 700 }}

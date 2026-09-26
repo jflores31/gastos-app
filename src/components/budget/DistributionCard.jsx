@@ -27,7 +27,7 @@ export function DistributionCard({ cats }) {
       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={PieIcon} tone="warning" bubble />
-          <Typography variant="h6" fontWeight={700}>{lang === "es" ? "Distribución" : "Distribution"}</Typography>
+          <Typography variant="h6" fontWeight={700}>{t.budgetTab.distribution}</Typography>
         </Box>
         <Box sx={{ display: "flex", flex: 1, gap: 3, alignItems: "center", flexDirection: { xs: "column", sm: "row" } }}>
           <Box sx={{ position: "relative", width: 180, height: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>

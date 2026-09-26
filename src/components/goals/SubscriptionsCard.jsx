@@ -15,7 +15,7 @@ const EMPTY_SUB = { name: "", price: "", cycle: "monthly", category: "" };
 const monthlyTotal = (subs) => subs.reduce((s, sub) => s + (sub.cycle === "yearly" ? sub.price / 12 : sub.price), 0);
 
 export function SubscriptionsCard({ showToast }) {
-  const { lang, currency } = useSettings();
+  const { t, lang, currency } = useSettings();
   const { subscriptions, saveSubscription, deleteSubscription, customCats } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_SUB,
@@ -23,9 +23,7 @@ export function SubscriptionsCard({ showToast }) {
     save: saveSubscription,
     remove: deleteSubscription,
     showToast,
-    messages: lang === "es"
-      ? { saved: "Suscripción guardada", saveError: "Error al guardar suscripción", deleted: "Suscripción eliminada", deleteError: "Error al eliminar suscripción" }
-      : { saved: "Subscription saved", saveError: "Error saving subscription", deleted: "Subscription deleted", deleteError: "Error deleting subscription" },
+    messages: t.goalsTab.subscriptionToasts,
   });
   const { form, update } = dialog;
   const categoryName = (cat) => cat?.startsWith("custom_")
@@ -39,14 +37,14 @@ export function SubscriptionsCard({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={SubIcon} tone="goals" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Suscripciones" : "Subscriptions"}</Typography>
-              <Typography variant="caption" color="text.secondary">{subscriptions.length} {lang === "es" ? "activas" : "active"}{subscriptions.length > 0 ? ` · ${fmtMoney(monthlyTotal(subscriptions), currency)}${lang === "es" ? "/mes" : "/month"}` : ""}</Typography>
+              <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.subscriptions}</Typography>
+              <Typography variant="caption" color="text.secondary">{subscriptions.length} {t.goalsTab.active}{subscriptions.length > 0 ? ` · ${fmtMoney(monthlyTotal(subscriptions), currency)}${t.common.perMonth}` : ""}</Typography>
             </Box>
           </Box>
-          <IconButton size="small" aria-label={lang === "es" ? "Agregar suscripción" : "Add subscription"} onClick={dialog.openNew} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label={t.goalsTab.addSubscription} onClick={dialog.openNew} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
         </Box>
         {subscriptions.length === 0 ? (
-          <EmptySection label={lang === "es" ? "Sin suscripciones registradas." : "No subscriptions yet."} onAdd={dialog.openNew} lang={lang} />
+          <EmptySection label={t.goalsTab.noSubscriptionsYet} onAdd={dialog.openNew} />
         ) : (
           <>
             <Box sx={{ flex: 1 }}>
@@ -67,7 +65,7 @@ export function SubscriptionsCard({ showToast }) {
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
               <Typography variant="body2" color="secondary.dark" fontWeight={600}>
-                {lang === "es" ? "Total mensual:" : "Monthly total:"} {fmtMoney(monthlyTotal(subscriptions), currency)}
+                {t.goalsTab.monthlyTotal} {fmtMoney(monthlyTotal(subscriptions), currency)}
               </Typography>
             </Box>
           </>
@@ -77,32 +75,32 @@ export function SubscriptionsCard({ showToast }) {
       <EntityDialog
         dialog={dialog}
         maxWidth="xs"
-        title={dialog.editing ? (lang === "es" ? "Editar suscripción" : "Edit subscription") : (lang === "es" ? "Nueva suscripción" : "New subscription")}
+        title={dialog.editing ? (t.goalsTab.editSubscription) : (t.goalsTab.newSubscription)}
         canSave={form.name && form.price && parseFloat(form.price) > 0}
         onSave={() => dialog.submit({ ...form, price: toBase(parseFloat(form.price), currency) })}
       >
-        <TextField label={lang === "es" ? "Nombre" : "Name"} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
         <TextField
-          label={lang === "es" ? "Precio" : "Price"}
+          label={t.goalsTab.price}
           type="number"
           inputProps={{ min: 0 }}
           value={form.price}
           onChange={(e) => update({ price: e.target.value })}
           fullWidth
           helperText={form.cycle === "yearly" && form.price > 0
-            ? (lang === "es" ? `≈ ${(parseFloat(form.price) / 12).toFixed(2)}/mes` : `≈ ${(parseFloat(form.price) / 12).toFixed(2)}/month`)
+            ? (t.goalsTab.approxPerMonth((parseFloat(form.price) / 12).toFixed(2)))
             : undefined}
         />
         <FormControl fullWidth>
-          <InputLabel id="subscription-cycle-label">{lang === "es" ? "Ciclo" : "Cycle"}</InputLabel>
-          <Select labelId="subscription-cycle-label" value={form.cycle} onChange={(e) => update({ cycle: e.target.value })} label={lang === "es" ? "Ciclo" : "Cycle"}>
-            <MenuItem value="monthly">{lang === "es" ? "Mensual" : "Monthly"}</MenuItem>
-            <MenuItem value="yearly">{lang === "es" ? "Anual" : "Yearly"}</MenuItem>
+          <InputLabel id="subscription-cycle-label">{t.goalsTab.cycle}</InputLabel>
+          <Select labelId="subscription-cycle-label" value={form.cycle} onChange={(e) => update({ cycle: e.target.value })} label={t.goalsTab.cycle}>
+            <MenuItem value="monthly">{t.goalsTab.monthlyCycle}</MenuItem>
+            <MenuItem value="yearly">{t.goalsTab.yearly}</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth>
-          <InputLabel id="subscription-category-label">{lang === "es" ? "Categoría" : "Category"}</InputLabel>
-          <Select labelId="subscription-category-label" value={form.category} onChange={(e) => update({ category: e.target.value })} label={lang === "es" ? "Categoría" : "Category"}>
+          <InputLabel id="subscription-category-label">{t.common.category}</InputLabel>
+          <Select labelId="subscription-category-label" value={form.category} onChange={(e) => update({ category: e.target.value })} label={t.common.category}>
             {[...Object.keys(CATEGORIES.expense), ...customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => `custom_${cc.id}`)].map((cat) => {
               const { label, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
               return (

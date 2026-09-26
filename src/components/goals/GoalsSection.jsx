@@ -16,6 +16,7 @@ import { useEntityDialog } from "./useEntityDialog.js";
 import { EntityDialog } from "./EntityDialog.jsx";
 import { EmptySection } from "./EmptySection.jsx";
 
+const DAYJS_LOCALES = { es, en };
 const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: "#7ab87a", icon: "Flag" };
 
 export function GoalsSection({ showToast }) {
@@ -27,9 +28,7 @@ export function GoalsSection({ showToast }) {
     save: saveGoal,
     remove: deleteGoal,
     showToast,
-    messages: lang === "es"
-      ? { saved: "Meta guardada", saveError: "Error al guardar meta", deleted: "Meta eliminada", deleteError: "Error al eliminar meta" }
-      : { saved: "Goal saved", saveError: "Error saving goal", deleted: "Goal deleted", deleteError: "Error deleting goal" },
+    messages: t.goalsTab.goalToasts,
   });
   const { form, update } = dialog;
 
@@ -40,16 +39,16 @@ export function GoalsSection({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <GradientIcon icon={GoalIcon} tone="income" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="h6" fontWeight={700}>{t.goals} · {lang === "es" ? "Ahorro" : "Savings"}</Typography>
-              <Typography variant="caption" color="text.secondary">{goals.length} {lang === "es" ? "metas activas" : "active goals"}</Typography>
+              <Typography variant="h6" fontWeight={700}>{t.goals} · {t.goalsTab.savings}</Typography>
+              <Typography variant="caption" color="text.secondary">{goals.length} {t.goalsTab.activeGoals}</Typography>
             </Box>
           </Box>
           <Button variant="outlined" startIcon={<AddIcon />} onClick={dialog.openNew}>
-            {lang === "es" ? "Nueva meta" : "New goal"}
+            {t.goalsTab.newGoal}
           </Button>
         </Box>
         {goals.length === 0 ? (
-          <EmptySection label={lang === "es" ? "Sin metas de ahorro. Agrega la primera." : "No savings goals yet."} onAdd={dialog.openNew} lang={lang} />
+          <EmptySection label={t.goalsTab.noSavingsGoalsYet} onAdd={dialog.openNew} />
         ) : (
           <Grid container spacing={3}>
             {goals.map((g) => <GoalCard key={g.id} goal={g} onOpen={() => dialog.openEdit(g)} />)}
@@ -59,31 +58,31 @@ export function GoalsSection({ showToast }) {
 
       <EntityDialog
         dialog={dialog}
-        title={dialog.editing ? (lang === "es" ? "Editar meta" : "Edit goal") : (lang === "es" ? "Nueva meta" : "New goal")}
+        title={dialog.editing ? (t.goalsTab.editGoal) : (t.goalsTab.newGoal)}
         canSave={form.es && form.target}
         onSave={() => dialog.submit({ ...form, target: toBase(parseFloat(form.target), currency), current: toBase(parseFloat(form.current) || 0, currency) })}
       >
-        <TextField label={lang === "es" ? "Nombre" : "Name"} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Monto objetivo" : "Target"} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.target} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField label={lang === "es" ? "Monto actual" : "Current"} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.current} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
           </Grid>
         </Grid>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? es : en}>
-          <DatePicker label={lang === "es" ? "Fecha límite" : "Deadline"} value={form.deadline ? dayjs(form.deadline) : null} onChange={(v) => update({ deadline: v ? v.format("YYYY-MM-DD") : null })} minDate={dayjs()} slotProps={{ textField: { fullWidth: true } }} format={lang === "es" ? "DD/MM/YYYY" : "MM/DD/YYYY"} />
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={DAYJS_LOCALES[lang]}>
+          <DatePicker label={t.goalsTab.deadline} value={form.deadline ? dayjs(form.deadline) : null} onChange={(v) => update({ deadline: v ? v.format("YYYY-MM-DD") : null })} minDate={dayjs()} slotProps={{ textField: { fullWidth: true } }} format={t.goalsTab.dateFormat} />
         </LocalizationProvider>
         <TextField label="Color" type="color" value={form.color} onChange={(e) => update({ color: e.target.value })} sx={{ width: 80 }} />
-        <IconPicker label={lang === "es" ? "Icono" : "Icon"} value={form.icon} color={form.color} onChange={(icon) => update({ icon })} />
+        <IconPicker label={t.common.icon} value={form.icon} color={form.color} onChange={(icon) => update({ icon })} />
       </EntityDialog>
     </Card>
   );
 }
 
 function GoalCard({ goal: g, onOpen }) {
-  const { lang, currency } = useSettings();
+  const { t, lang, currency } = useSettings();
   const pct = g.target > 0 ? g.current / g.target : 0;
   const left = Math.max(0, g.target - g.current);
   const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - new Date()) / 86400000)) : null;
@@ -101,7 +100,7 @@ function GoalCard({ goal: g, onOpen }) {
             )}
             <Box sx={{ flex: 1 }}>
               <Typography variant="body1" fontWeight={600} noWrap>{g[lang]}</Typography>
-              {days !== null && <Typography variant="caption" color="text.secondary">{days} {lang === "es" ? "días" : "days"}</Typography>}
+              {days !== null && <Typography variant="caption" color="text.secondary">{days} {t.goalsTab.days}</Typography>}
             </Box>
           </Box>
           <Box sx={{ flex: 1 }}>
@@ -109,8 +108,8 @@ function GoalCard({ goal: g, onOpen }) {
               <Typography variant="h5" fontWeight={800} sx={{ color: g.color }}>{Math.round(pct * 100)}%</Typography>
               <Typography variant="body2" fontWeight={600} color={pct >= 1 ? "success.main" : "text.secondary"}>
                 {pct >= 1
-                  ? (lang === "es" ? "¡Meta cumplida!" : "Goal reached!")
-                  : `${fmtMoney(left, currency, true)} ${lang === "es" ? "faltan" : "to go"}`}
+                  ? (t.goalsTab.goalReached)
+                  : `${fmtMoney(left, currency, true)} ${t.goalsTab.toGo}`}
               </Typography>
             </Box>
             <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} sx={{ height: 8, borderRadius: 4, mb: 1.5, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: g.color, borderRadius: 4 } }} />
