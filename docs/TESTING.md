@@ -7,7 +7,7 @@
 - **[Vitest](https://vitest.dev/)** para unitarios y componentes. Config en [`vitest.config.mjs`](../vitest.config.mjs):
   - `include: ["src/**/*.test.{js,jsx}"]`;
   - entorno `node` por defecto;
-  - JSX con el runtime automático, como Next.
+  - JSX con el runtime automático, como Next (`oxc.jsx.runtime`; desde Vitest 5 la opción `esbuild` se ignora).
 - **jsdom + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/)** para componentes. Cada archivo de componente pide jsdom con un comentario en la primera línea: `// @vitest-environment jsdom`.
 - **[Playwright](https://playwright.dev/)** para end-to-end. Config en [`playwright.config.ts`](../playwright.config.ts) y tests en [`e2e/`](../e2e). Levanta dos servidores:
   - `next start` en el puerto 3100;
@@ -72,7 +72,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 14 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 15 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
 
@@ -95,6 +95,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Diálogos:** la etiqueta flotante del primer campo queda dentro del contenido (antes MUI la recortaba).
 - **Inactividad:** con el reloj simulado de Playwright (`page.clock`), eligiendo 5 minutos en Ajustes: a los 4:20 sigue la sesión, a los 4:35 aparece el aviso y a los 5:05 vuelve a `/login`.
 - **Sesión:**
+  - con el token vencido, el proxy la renueva y la respuesta sale con `Cache-Control: no-store` (probado con el manifest, una ruta estática que sin esto se podía cachear con la cookie nueva);
   - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;
   - al reabrir el navegador sin otra pestaña abierta, pide iniciar sesión de nuevo.
 

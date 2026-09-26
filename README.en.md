@@ -12,13 +12,13 @@ Personal finance application to track income, expenses, budgets, goals, and more
 
 | Category | Technology |
 |---|---|
-| Framework | Next.js 16.3 (App Router, Turbopack) |
+| Framework | Next.js 16.3 (App Router, Turbopack) + React 19 |
 | UI | Material UI (MUI) v9 + `@mui/icons-material` (Rounded variant) + `@mui/material-nextjs` (server-side styles in `<head>`) |
-| Auth + DB | Supabase (email/password; OAuth wired up but disabled) |
+| Auth + DB | Supabase with `@supabase/ssr` 0.12 (email/password; OAuth wired up but disabled) |
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
 | Language | TypeScript (routes/config) + JSX (components) |
-| Tests | Vitest (unit and jsdom component tests) + Playwright (end-to-end) |
+| Tests | Vitest 5 (unit and jsdom component tests) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests and build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
 

@@ -32,6 +32,12 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - una copia completa en JSON.
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
+### Dependencias
+- **React 19**, igual al que ya usaba Next 16 por dentro (los tests unitarios corrían con React 18).
+- **`@supabase/ssr` 0.12 y `supabase-js` 2.117.** Cuando el proxy renueva la sesión, la respuesta sale con `Cache-Control: no-store`, así un CDN no puede guardar una respuesta con la cookie de un usuario y entregársela a otro. Antes, una ruta estática (como el manifest) salía con `public, max-age=0`.
+- **Vitest 5.**
+- `npm audit`: 0 vulnerabilidades.
+
 ### Corregido
 - **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
 - **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
