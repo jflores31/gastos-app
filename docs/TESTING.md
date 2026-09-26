@@ -33,18 +33,19 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 87 tests en 10 archivos
+### Unitarios y componentes: 95 tests en 11 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
-| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 27 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las pestañas (detalle abajo) |
+| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las pestañas (detalle abajo) |
 | [`src/data/currency.test.js`](../src/data/currency.test.js) | 13 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
 | [`src/lib/reportError.test.js`](../src/lib/reportError.test.js) | 8 | Reporte de errores del navegador: recorte de campos, solo el pathname (sin query), sin repetidos, tope de 10, `fetch` si no hay `sendBeacon`, nunca lanza |
 | [`src/app/api/client-error/route.test.js`](../src/app/api/client-error/route.test.js) | 4 | La ruta escribe una línea JSON y responde 204. Descarta campos desconocidos, 400 si el JSON es inválido, 413 si pasa de 8 KB |
 | [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 4 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27`; editar precarga el monto en la moneda elegida; el tope se valida en PEN |
-| [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
+| [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono con su nombre traducido, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
+| [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
 | [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 8 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
@@ -65,7 +66,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 10 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 11 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
 
@@ -83,6 +84,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
   - editar el límite desde la tarjeta;
   - en "Gestionar", agregar uno nativo y uno de categoría propia, editar y cancelar, y borrar con confirmación.
 - **Perfil:** el nombre y las favoritas se guardan en `user_metadata`; una categoría propia se edita (nombre, color, tipo) y se borra con confirmación.
+- **Diálogos:** la etiqueta flotante del primer campo queda dentro del contenido (antes MUI la recortaba).
 - **Sesión:**
   - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;
   - al reabrir el navegador sin otra pestaña abierta, pide iniciar sesión de nuevo.
@@ -114,6 +116,7 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 | `healthScore` | alcanza `100`; suelo `0`; tope del bono de ahorro (`+40`); penalti por anomalía (`-5` c/u); tope del penalti por gasto (`-15`) |
 | `healthLabel` / `healthTone` | umbrales `75` / `50`, bilingüe |
 | `linearRegressionSlope` | pendiente conocida; serie plana = `0`; `n<2` = `0` |
+| `insightsList` | textos en es y en con los datos del período; sin anomalías no agrega ese aviso |
 | `netWorthOf` | activos = saldos positivos + inversiones; deuda = saldos negativos + préstamos; sin datos = `0` |
 | `recurringList` | agrupa por `categoria|concepto`; filtra `>= 3` meses; promedia día/monto; ignora `INGRESO` |
 | `filterByPeriod` | `all`, `month`, `year` con `offset` |
@@ -130,7 +133,8 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 4. **Código que habla con Supabase:**
    - para una función suelta, pasar un objeto con la forma del query builder (ver `fakeTable()` en `fetchAllRows.test.js`);
    - para `DataContext`, usar el cliente simulado de `DataContext.test.jsx`: un builder encadenable y `await`-able que registra las llamadas, más `fake.respond(tabla, llamadas)` para decidir qué devuelve cada consulta.
-5. **End-to-end:** agregar casos en `e2e/`.
+5. **Textos nuevos:** van en `src/i18n/ui.js`, en los dos idiomas. `messages.test.js` falla si falta uno o si se escribe `lang === "es" ? …` en un componente.
+6. **End-to-end:** agregar casos en `e2e/`.
    - Para flujos con sesión, usar `login(page, uniqueEmail(info))` y `mockDb(request, email)` de [`e2e/helpers.ts`](../e2e/helpers.ts).
    - Una columna nueva en la base va en su migración SQL: el Supabase simulado la lee de ahí.
 

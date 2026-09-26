@@ -174,11 +174,16 @@ src/
 │   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N, fmtMoney, toBase/fromBase
+│   ├── index.js                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
 │   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.js             # Paginación con .range() (Supabase corta en 1000 filas)
 │   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
+├── i18n/
+│   ├── base.js                     # Textos cortos compartidos (t.income, t.save, t.months…)
+│   ├── ui.js                       # Textos por área (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
+│   ├── index.js                    # MESSAGES y messagesFor(lang)
+│   └── messages.test.js            # Mismas claves en es/en; sin ternarios de idioma fuera de i18n/
 ├── theme/
 │   ├── materialTheme.js            # Temas light/dark, acentos y animación de iconos
 │   ├── icons.js                    # Set central de iconos MUI Rounded
@@ -370,6 +375,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 - **Deudas:** el progreso nunca es negativo y usa `original_months || remaining || 1`.
 - **Formularios:** tienen validaciones (mínimos, precio > 0, cuotas restantes ≤ total, ayuda para "TEA") y los botones de eliminar se deshabilitan durante la operación.
 
+### Idiomas (i18n)
+
+- **Todos los textos viven en `src/i18n/`**, en español e inglés. Los componentes los toman como `t` de `useSettings()`: `t.save`, `t.goalsTab.newGoal`, `t.common.delete`.
+- **Textos con datos:** son funciones, así el plural y el orden de las palabras quedan en el diccionario. Por ejemplo, `t.overviewTab.expenseRecords(n)` da "1 gasto" o "3 gastos", y `t.common.vsPreviousPeriod(period)` da "vs trimestre anterior".
+- **Fuera de React** (p. ej. `healthLabel` e `insightsList` en `helpers.js`): `messagesFor(lang)`.
+- **Nombres accesibles:** también se traducen los `aria-label`, los nombres de los 43 iconos del selector (`t.iconNames`) y de las paletas (`t.palettes`).
+- **Regla:** no se escribe `lang === "es" ? … : …`. `messages.test.js` falla si aparece fuera de `src/i18n/`, o si falta una clave en un idioma.
+- **Nombres de categorías:** siguen en `CATEGORIES` (`src/data/index.js`), con `es` y `en` en cada una.
+
 ### Formularios y UI
 
 **`AddTransactionModal`:**
@@ -385,6 +399,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Otros:**
 - El avatar de `DashboardStudio` no falla con nombre vacío (`displayName?.[0]?.toUpperCase() || "?"`).
 - Los textos del botón "Entrar" y del banner de error son bilingües.
+- **Diálogos:** MUI pone `padding-top: 0` al `DialogContent` que sigue a un `DialogTitle`, con un selector más específico que el `sx`. El padding se aplica con `"&&": { pt }`; sin eso, la etiqueta flotante del primer campo queda recortada.
 - `not-found.tsx` es Client Component (usa `<Button component={Link}>`).
 - El borrado de transacciones usa `try/catch/finally`.
 

@@ -174,11 +174,16 @@ src/
 │   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N, fmtMoney, toBase/fromBase
+│   ├── index.js                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
 │   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.js             # Pagination with .range() (Supabase caps responses at 1000 rows)
 │   └── *.test.js                   # helpers, currency, fetchAllRows (components: *.test.jsx next to each)
+├── i18n/
+│   ├── base.js                     # Short shared texts (t.income, t.save, t.months…)
+│   ├── ui.js                       # Texts by area (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
+│   ├── index.js                    # MESSAGES and messagesFor(lang)
+│   └── messages.test.js            # Same keys in es/en; no language ternaries outside i18n/
 ├── theme/
 │   ├── materialTheme.js            # Light/dark themes, accents and icon animation
 │   ├── icons.js                    # Central MUI Rounded icon set
@@ -370,6 +375,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 - **Debts:** progress is never negative and uses `original_months || remaining || 1`.
 - **Forms:** they have validation (minimums, price > 0, remaining ≤ total installments, a hint for "TEA"), and delete buttons are disabled while the operation runs.
 
+### Languages (i18n)
+
+- **Every text lives in `src/i18n/`**, in Spanish and English. Components get them as `t` from `useSettings()`: `t.save`, `t.goalsTab.newGoal`, `t.common.delete`.
+- **Texts with data are functions,** so plurals and word order stay in the dictionary. For example, `t.overviewTab.expenseRecords(n)` gives "1 expense" or "3 expenses", and `t.common.vsPreviousPeriod(period)` gives "vs previous quarter".
+- **Outside React** (e.g. `healthLabel` and `insightsList` in `helpers.js`): `messagesFor(lang)`.
+- **Accessible names are translated too:** `aria-label`s, the 43 icon names in the picker (`t.iconNames`) and the palettes (`t.palettes`).
+- **Rule:** no `lang === "es" ? … : …`. `messages.test.js` fails if one appears outside `src/i18n/`, or if a key is missing in one language.
+- **Category names** stay in `CATEGORIES` (`src/data/index.js`), with `es` and `en` on each.
+
 ### Forms and UI
 
 **`AddTransactionModal`:**
@@ -385,6 +399,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 **Other:**
 - The `DashboardStudio` avatar is safe with an empty name (`displayName?.[0]?.toUpperCase() || "?"`).
 - The "Sign in" button and error banner texts are bilingual.
+- **Dialogs:** MUI sets `padding-top: 0` on a `DialogContent` that follows a `DialogTitle`, with a selector more specific than `sx`. The padding is applied with `"&&": { pt }`; without it the first field's floating label is clipped.
 - `not-found.tsx` is a Client Component (it uses `<Button component={Link}>`).
 - Transaction deletion uses `try/catch/finally`.
 
