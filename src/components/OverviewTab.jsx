@@ -18,14 +18,15 @@ const INSIGHT_ICONS = {
   forecast: <ForecastIcon />,
 };
 const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
-import { CATEGORIES, fmtMoney, txByMonth, txByCategory } from "../data/index.js";
+import { fmtMoney, txByMonth, txByCategory } from "../data/index.js";
 import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
-import { GradientIcon } from "../theme/GradientIcon.jsx";
+import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
+import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 
 function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
   if (!data || !data.length) return null;
@@ -36,7 +37,7 @@ function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
       {items.map((d) => (
         <Box key={d.id}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.4 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color, flexShrink: 0 }} />
+            {d.Icon ? <d.Icon sx={{ fontSize: 14, color: d.color, flexShrink: 0 }} /> : <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color, flexShrink: 0 }} />}
             <Typography variant="caption" noWrap sx={{ flex: 1, fontWeight: 600, color: "text.secondary" }}>{d.label}</Typography>
             <Typography variant="caption" sx={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(d.value, currency, true)}</Typography>
           </Box>
@@ -73,27 +74,15 @@ export default function OverviewTab({ period, setPeriod }) {
   const score = healthScore(savingsRate, dOut ?? 0, anomalies.length);
   const scoreTone = healthTone(score);
   const donut = useMemo(() => cats.slice(0, 6).map((c) => {
-    const isCustom = c.categoria?.startsWith("custom_");
-    const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
-    return {
-      id: c.categoria,
-      label: customCat?.nombre || CATEGORIES.expense[c.categoria]?.[lang] || c.categoria,
-      value: c.total,
-      color: customCat?.color || CATEGORIES.expense[c.categoria]?.color || "#9e9e9e",
-    };
+    const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "EGRESO");
+    return { id: c.categoria, label, value: c.total, color, Icon };
   }), [cats, customCats, lang]);
   const donutTotal = useMemo(() => donut.reduce((s, d) => s + d.value, 0), [donut]);
   const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, fmtMoney, period);
 
   const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO").slice(0, 6).map((c) => {
-    const isCustom = c.categoria?.startsWith("custom_");
-    const customCat = isCustom ? customCats.find((cc) => cc.id === c.categoria.slice("custom_".length)) : null;
-    return {
-      id: c.categoria,
-      label: customCat?.nombre || CATEGORIES.income[c.categoria]?.[lang] || c.categoria,
-      value: c.total,
-      color: customCat?.color || CATEGORIES.income[c.categoria]?.color || "#22c55e",
-    };
+    const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "INGRESO");
+    return { id: c.categoria, label, value: c.total, color, Icon };
   }), [periodTxs, customCats, lang]);
 
   const heatVals = useMemo(() => {
@@ -237,7 +226,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <Box sx={{ flex: 1 }}>
                 {donut.map((s) => (
                   <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
-                    <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }} />
+                    <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
                   </Box>

@@ -11,8 +11,7 @@ import { createClient } from "../../lib/supabase"
 import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { darkFieldSx } from "../components/auth/authStyles"
-
-const OAUTH_ENABLED = false
+import { OAUTH_ENABLED } from "../../lib/featureFlags.js"
 
 const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
@@ -170,7 +169,7 @@ export default function RegisterPage() {
         {/* Error */}
         <AuthErrorAlert error={error} />
 
-        {/* OAuth — activar cuando esté implementado: OAUTH_ENABLED = true */}
+        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.js */}
         {OAUTH_ENABLED && (
           <>
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>

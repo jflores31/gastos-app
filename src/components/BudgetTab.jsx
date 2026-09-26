@@ -56,8 +56,8 @@ export default function BudgetTab({ period, showToast }) {
   const donutData = useMemo(() => {
     return Object.keys(editBudgets).map((cat) => {
       const spent = cats.find((c) => c.categoria === cat)?.total || 0;
-      const { label, color } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
-      return { label, value: spent, color };
+      const { label, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
+      return { label, value: spent, color, Icon };
     }).filter(d => d.value > 0);
   }, [editBudgets, cats, lang, customCats]);
 
@@ -263,7 +263,7 @@ export default function BudgetTab({ period, showToast }) {
                   {donutData.slice(0, 5).map((s) => (
                     <Tooltip key={s.label} title={s.label} arrow placement="top">
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "action.hover", cursor: "default" }}>
-                        <Box sx={{ width: 14, height: 14, borderRadius: 1, bgcolor: s.color }} />
+                        <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                         <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</Typography>
                         <Typography variant="body2" fontWeight={700}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
                       </Box>

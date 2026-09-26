@@ -3,6 +3,18 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 El proyecto reinició su numeración en `0.0.1`; el historial previo se descartó.
 
+## [Unreleased]
+
+### Cambiado
+- **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
+- **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
+- **CRUD unificado:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas comparten `useTableCrud()`. Transacciones y presupuestos siguen aparte. `DataContext` pasó de 537 a 425 líneas, con la misma API.
+- **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).
+- **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
+
+### Añadido
+- `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.
+
 ## [0.0.1]
 
 ### Cambiado
@@ -56,7 +68,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - "Notas Técnicas" reagrupadas por tema, sin las notas obsoletas o contradictorias (CSP en `next.config.mjs`, iconos en `AddTransactionModal`, carga solo en `INITIAL_SESSION`).
   - Sección de arquitectura sin las métricas viejas de graphify.
   - Despliegue con la CI y las migraciones, cómo mergear un PR y cómo publicar o borrar una versión (solo en el README en español por ahora).
-- `docs/TESTING.md`: 53 tests en 4 archivos, qué cubre cada uno y gotchas nuevos (locale de `fmtMoney`, redondeo de moneda).
+- `docs/TESTING.md`: los tres niveles de tests (unitarios, componentes y end-to-end), qué cubre cada archivo y gotchas nuevos (locale de `fmtMoney`, redondeo de moneda, `sendBeacon` en Playwright).
 - `docs/SECURITY-CSP.md`: estado de la verificación en navegador y cómo quitar `'unsafe-inline'` de `style-src`.
 - `docs/INVESTIGACION.md`: 15 mejoras técnicas priorizadas (índices, observabilidad, tests end-to-end, i18n, tipado…).
 - `ICONOS_Y_ESTRUCTURA.txt`: stack, monedas y árbol de `app/` actualizados.
