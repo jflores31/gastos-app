@@ -43,7 +43,7 @@ export function seedFor(userId, schema) {
     budgets: [row("budgets", { categoria: "COMIDA", monto: 600 }), row("budgets", { categoria: "TRANSPORTE", monto: 200 })],
     goals: [row("goals", { label_es: "Fondo de emergencia", label_en: "Emergency fund", target: 5000, current_amount: 1500, color: "#38BDF8", icon: "Savings" })],
     accounts: [row("accounts", { name: "BCP", type: "bank", balance: 2500, color: "#1d4ed8" })],
-    investments: [row("investments", { label_es: "DPF", label_en: "Term deposit", value: 3000, return_rate: 6, type: "DPF" })],
+    investments: [row("investments", { label_es: "DPF", label_en: "Term deposit", value: 3000, return_rate: 6, type: "term" })],
     debts: [row("debts", { label_es: "Préstamo auto", label_en: "Car loan", balance: 8000, rate: 12, monthly: 450, remaining: 20, original_months: 36 })],
     subscriptions: [row("subscriptions", { name: "Netflix", price: 45, cycle: "monthly", category: "STREAMING" })],
     custom_categories: [row("custom_categories", { nombre: "Gatos", tipo: "EGRESO", color: "#8B5CF6", icon: "Pets" })],

@@ -144,7 +144,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           : mode === "income" ? (t.txModal.registerIncome)
           : t.addTx}
       </DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 1 }}>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } }}>
         {mode === "all" && (
           <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); } }} fullWidth size="small">
             <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>

@@ -76,7 +76,7 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
     <>
       <Dialog open={open} onClose={close}>
         <DialogTitle sx={{ fontWeight: 700 }}>{t.budgetTab.manageBudgets}</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2, minWidth: { xs: "80vw", sm: 360 } }}>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 2 }, minWidth: { xs: "80vw", sm: 360 } }}>
           {Object.keys(editBudgets).length > 0 && (
             <>
               <Typography variant="subtitle2" color="text.secondary">{t.budgetTab.existingBudgets}</Typography>

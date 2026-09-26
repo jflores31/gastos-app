@@ -10,7 +10,9 @@ export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", 
       <DialogTitle sx={{ fontWeight: 700, borderBottom: 1, borderColor: "divider", py: 2 }}>
         {title}
       </DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
+      {/* "&&": MUI zeroes padding-top of a DialogContent that follows a DialogTitle with a
+          more specific selector; without it the first field's floating label is clipped. */}
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 3 } }}>
         {children}
       </DialogContent>
       <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>

@@ -105,7 +105,8 @@ export function CustomCategoriesSection({ notify }) {
             ? (t.settingsPanel.editCategoryTitle)
             : (t.settingsPanel.newCategory)}
         </DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+        {/* "&&" beats MUI's padding-top: 0 after a DialogTitle (see goals/EntityDialog.jsx). */}
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1 } }}>
           <TextField
             label={t.common.name}
             value={catForm.nombre}
