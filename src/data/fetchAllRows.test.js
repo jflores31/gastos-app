@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { fetchAllRows } from "./fetchAllRows.js"
+import { fetchAllRows } from "./fetchAllRows"
 
 // Imita un query de supabase-js: cada llamada a buildQuery() devuelve un builder
 // nuevo cuyo .range(from, to) resuelve con la porción pedida de `table`.

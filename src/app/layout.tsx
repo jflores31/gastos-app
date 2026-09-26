@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
 import localFont from "next/font/local"
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
 import "./globals.css"
 import Providers from "./components/Providers"
 
@@ -36,7 +37,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: { default: "Finanzas", template: "%s | Finanzas" },
   description: "Aplicación de finanzas personales para rastrear ingresos y gastos",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Finanzas", statusBarStyle: "default" },
 }
 
 export default async function RootLayout({
@@ -47,12 +49,19 @@ export default async function RootLayout({
   // Reading headers() opts every route into dynamic rendering so Next can stamp the
   // per-request CSP nonce (set in src/proxy.ts) onto its <script> tags. Static prerender
   // would ship nonce-less scripts that 'strict-dynamic' then blocks.
-  await headers()
+  // The same nonce goes to emotion, which stamps it on every <style> it writes (SSR and
+  // client), as the CSP's style-src-elem requires.
+  const nonce = (await headers()).get("x-nonce") ?? undefined
 
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ibmPlexSans.className} ${ibmPlexSans.variable} ${jetBrainsMono.variable}`}>
-        <Providers>{children}</Providers>
+        {/* Emotion styles go into <head> during SSR. Without this provider emotion writes a
+            <style> next to every component in <body>; any of those still there when React
+            hydrates (HTML streamed after emotion loaded) is an extra node → React #418. */}
+        <AppRouterCacheProvider options={{ key: "mui", nonce }}>
+          <Providers>{children}</Providers>
+        </AppRouterCacheProvider>
       </body>
     </html>
   )

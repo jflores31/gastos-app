@@ -3,9 +3,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createClient } from "../lib/supabase"
-import { flagAnomalies } from "../data/helpers.js"
-import { fetchAllRows } from "../data/fetchAllRows.js"
-import { reportError } from "../lib/reportError.js"
+import { flagAnomalies } from "../data/helpers"
+import { fetchAllRows } from "../data/fetchAllRows"
+import { reportError } from "../lib/reportError"
 
 const DataContext = createContext(null)
 

@@ -18,9 +18,9 @@ const INSIGHT_ICONS = {
   forecast: <ForecastIcon />,
 };
 const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
-import { fmtMoney, txByMonth, txByCategory } from "../data/index.js";
-import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { txByMonth, txByCategory } from "../data/index";
+import { filterByPeriod, periodLabel, healthScore, healthTone, insightsList } from "../data/helpers";
+import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
@@ -28,7 +28,8 @@ import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 
-function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
+function CategoryBars({ data, max = 5 }) {
+  const { fmt } = useSettings();
   if (!data || !data.length) return null;
   const items = data.slice(0, max);
   const peak = Math.max(...items.map((d) => d.value), 1);
@@ -39,7 +40,7 @@ function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.4 }}>
             {d.Icon ? <d.Icon sx={{ fontSize: 14, color: d.color, flexShrink: 0 }} /> : <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color, flexShrink: 0 }} />}
             <Typography variant="caption" noWrap sx={{ flex: 1, fontWeight: 600, color: "text.secondary" }}>{d.label}</Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(d.value, currency, true)}</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmt(d.value, true)}</Typography>
           </Box>
           <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: "hidden" }}>
             <Box sx={{ height: "100%", width: `${(d.value / peak) * 100}%`, bgcolor: d.color, borderRadius: 3, transition: "width 0.5s cubic-bezier(.4,0,.2,1)" }} />
@@ -51,7 +52,7 @@ function CategoryBars({ data, currency, fmtMoney, max = 5 }) {
 }
 
 export default function OverviewTab({ period, setPeriod }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { txs, customCats } = useData();
   const user = useSupabaseUser();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "";
@@ -78,7 +79,7 @@ export default function OverviewTab({ period, setPeriod }) {
     return { id: c.categoria, label, value: c.total, color, Icon };
   }), [cats, customCats, lang]);
   const donutTotal = useMemo(() => donut.reduce((s, d) => s + d.value, 0), [donut]);
-  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, fmtMoney, period);
+  const insights = insightsList(lang, totalOut, totalIn, savingsRate, dOut ?? 0, anomalies, currency, (v, _currency, compact) => fmt(v, compact), period);
 
   const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO").slice(0, 6).map((c) => {
     const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "INGRESO");
@@ -94,10 +95,10 @@ export default function OverviewTab({ period, setPeriod }) {
   const inCount = periodTxs.filter((x) => x.tipo === "INGRESO").length;
   const outCount = periodTxs.filter((x) => x.tipo === "EGRESO").length;
   const miniCards = [
-    { label: t.income, value: fmtMoney(totalIn, currency), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: lang === "es" ? `${inCount} ${inCount === 1 ? "registro" : "registros"}` : `${inCount} ${inCount === 1 ? "record" : "records"}`, catData: incomeCats },
-    { label: t.expense, value: fmtMoney(totalOut, currency), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: lang === "es" ? `${outCount} ${outCount === 1 ? "gasto" : "gastos"}` : `${outCount} ${outCount === 1 ? "expense" : "expenses"}`, invert: true, catData: donut },
-    { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (lang === "es" ? "Meta cumplida" : "Goal met") : "20% meta" },
-    { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: lang === "es" ? "requieren revisión" : "flagged" },
+    { label: t.income, value: fmt(totalIn), delta: dIn, icon: <TrendUpIcon />, color: "success", sub: t.overviewTab.incomeRecords(inCount), catData: incomeCats },
+    { label: t.expense, value: fmt(totalOut), delta: dOut, icon: <TrendDownIcon />, color: "error", sub: t.overviewTab.expenseRecords(outCount), invert: true, catData: donut },
+    { label: t.savings, value: savingsRate.toFixed(1) + "%", icon: <SavingsIcon />, color: "primary", sub: savingsRate >= 20 ? (t.overviewTab.goalMet) : "20% meta" },
+    { label: t.anomalies, value: anomalies.length, icon: <WarningIcon />, color: "warning", sub: t.overviewTab.flagged },
   ];
 
   return (
@@ -108,15 +109,14 @@ export default function OverviewTab({ period, setPeriod }) {
             {(() => {
               const h = new Date().getHours();
               const name = firstName ? ` ${firstName}` : "";
-              if (lang === "es") return h < 12 ? `Buenos días${name},` : h < 19 ? `Buenas tardes${name},` : `Buenas noches${name},`;
-              return h < 12 ? `Good morning${name},` : h < 19 ? `Good afternoon${name},` : `Good evening${name},`;
+              return t.overviewTab.greeting(h, name);
             })()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
             <Typography variant="h3" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "3rem" } }}>
               {net >= 0
-                ? (lang === "es" ? `Ahorrando ${fmtMoney(net, currency, true)}` : `Saving ${fmtMoney(net, currency, true)}`)
-                : (lang === "es" ? `Sobregiro ${fmtMoney(Math.abs(net), currency, true)}` : `Overdrawn ${fmtMoney(Math.abs(net), currency, true)}`)}
+                ? (t.overviewTab.saving(fmt(net, true)))
+                : (t.overviewTab.overdrawn(fmt(Math.abs(net), true)))}
             </Typography>
           </Box>
         </Box>
@@ -133,7 +133,7 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <Box>
                 <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.balance.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmtMoney(net, currency)}</Typography>
+                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmt(net)}</Typography>
               </Box>
               <GradientIcon icon={WalletIcon} tone={net >= 0 ? "income" : "expense"} bubble bubbleSize={48} size={26} />
             </Box>
@@ -161,7 +161,7 @@ export default function OverviewTab({ period, setPeriod }) {
               {card.delta != null && (
                 <Chip
                   size="small"
-                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% ${lang === "es" ? "vs ant." : "vs prev."}`}
+                  label={`${card.delta > 0 ? "+" : ""}${card.delta.toFixed(1)}% ${t.common.vsPrev}`}
                   color={card.invert ? (card.delta < 0 ? "success" : "error") : (card.delta > 0 ? "success" : "error")}
                   variant="filled"
                   sx={{ fontWeight: 600, fontSize: 11, alignSelf: "flex-start", mb: 1 }}
@@ -170,7 +170,7 @@ export default function OverviewTab({ period, setPeriod }) {
               {card.sub && <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{card.sub}</Typography>}
               {card.catData && card.catData.length > 0 && (
                 <Box sx={{ mt: 2 }}>
-                  <CategoryBars data={card.catData} currency={currency} fmtMoney={fmtMoney} />
+                  <CategoryBars data={card.catData} />
                 </Box>
               )}
             </CardContent>
@@ -219,7 +219,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                 <Donut slices={donut} size={160} thickness={20} />
                 <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmtMoney(donutTotal, currency, true)}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmt(donutTotal, true)}</Typography>
                   <Typography variant="caption" color="text.secondary">{t.expense}</Typography>
                 </Box>
               </Box>
@@ -243,7 +243,7 @@ export default function OverviewTab({ period, setPeriod }) {
                 <GradientIcon icon={InsightsIcon} tone="income" bubble />
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.insights}</Typography>
-                  <Typography variant="body2" color="text.secondary">{lang === "es" ? "Análisis automático" : "Auto analysis"}</Typography>
+                  <Typography variant="body2" color="text.secondary">{t.overviewTab.autoAnalysis}</Typography>
                 </Box>
               </Box>
               <Chip size="small" label="AI" color="success" variant="filled" sx={{ fontWeight: 700 }} />
@@ -270,7 +270,7 @@ export default function OverviewTab({ period, setPeriod }) {
               <GradientIcon icon={CalendarIcon} tone="expense" bubble />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.heatmap}</Typography>
-                <Typography variant="body2" color="text.secondary">{lang === "es" ? "Gastos diarios · 12 semanas" : "Daily spending · 12 weeks"}</Typography>
+                <Typography variant="body2" color="text.secondary">{t.overviewTab.dailySpending12Weeks}</Typography>
               </Box>
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
@@ -284,13 +284,11 @@ export default function OverviewTab({ period, setPeriod }) {
             {period !== "all" && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ color: "primary.main", fontWeight: 700 }}>
-                  {lang === "es"
-                    ? `vs ${period === "week" ? "semana" : period === "month" ? "mes" : period === "quarter" ? "trimestre" : "año"} anterior`
-                    : `vs previous ${period === "week" ? "week" : period === "month" ? "month" : period === "quarter" ? "quarter" : "year"}`}
+                  {t.common.vsPreviousPeriod(period)}
                 </Typography>
                 {prevIn === 0 && prevOut === 0 ? (
                   <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic", textAlign: "center", py: 1 }}>
-                    {lang === "es" ? "Sin datos del período anterior" : "No data for previous period"}
+                    {t.overviewTab.noDataForPreviousPeriod}
                   </Typography>
                 ) : (
                   [

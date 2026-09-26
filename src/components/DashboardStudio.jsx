@@ -17,9 +17,11 @@ import {
   Settings as SettingsIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
+  Visibility as ShowAmountsIcon,
+  VisibilityOff as HideAmountsIcon,
 } from "../theme/icons";
 import { accentGradient } from "../theme/materialTheme.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { createClient } from "../lib/supabase";
@@ -37,7 +39,7 @@ const LAST_ACTIVE_KEY = "gastos_last_active";
 const SESSION_CHANNEL = "gastos-session";
 
 export default function DashboardStudio() {
-  const { t, lang } = useSettings();
+  const { t, privacy, setPrivacy, idleMinutes } = useSettings();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const user = useSupabaseUser();
@@ -64,8 +66,8 @@ export default function DashboardStudio() {
   }, []);
 
   const handleAddTx = useCallback(() => {
-    showToast(lang === "es" ? "Transacción guardada" : "Transaction saved", "success");
-  }, [showToast, lang]);
+    showToast(t.dashboard.transactionSaved, "success");
+  }, [showToast, t]);
 
   const handleSignOut = useCallback(async () => {
     localStorage.removeItem(LAST_ACTIVE_KEY);
@@ -91,14 +93,14 @@ export default function DashboardStudio() {
     }
   }, [user, router]);
 
-  // Inactivity auto-logout: 2 minutes with 30s warning.
+  // Inactivity auto-logout after `idleMinutes` (Ajustes, 2 by default) with a 30s warning.
   // LAST_ACTIVE_KEY lives in localStorage, shared by every tab: before warning or
   // logging out, re-read it so an idle tab doesn't end a session the user is
   // actively using in another tab.
   useEffect(() => {
     if (!user) return;
 
-    const TIMEOUT = 120_000;
+    const TIMEOUT = idleMinutes * 60_000;
     const WARN_BEFORE = 30_000;
 
     let logoutTimer;
@@ -127,13 +129,7 @@ export default function DashboardStudio() {
         schedule();
         return;
       }
-      showToast(
-        lang === "es"
-          ? "La sesión se cerrará en 30 segundos por inactividad"
-          : "Session will close in 30 seconds due to inactivity",
-        "warning",
-        WARN_BEFORE
-      );
+      showToast(t.dashboard.sessionClosingSoon, "warning", WARN_BEFORE);
     };
 
     const resetTimers = () => {
@@ -150,7 +146,7 @@ export default function DashboardStudio() {
       clearTimeout(warnTimer);
       EVENTS.forEach((e) => window.removeEventListener(e, resetTimers));
     };
-  }, [user, showToast, lang, autoSignOut]);
+  }, [user, showToast, t, autoSignOut, idleMinutes]);
 
   // Session security: force login on browser close (sessionStorage flag) + 8h max-age for open tabs.
   // sessionStorage is per tab, so a tab opened by hand (bookmark, typed URL) starts without
@@ -244,7 +240,7 @@ export default function DashboardStudio() {
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}>
             <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>◈</Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>{lang === "es" ? "Finanzas" : "Finances"}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>{t.dashboard.finances}</Typography>
           </Box>
           {!isMobile && (
             <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ flex: 1 }}>
@@ -257,18 +253,23 @@ export default function DashboardStudio() {
           <Fab size="small" color="primary" aria-label={t.addTx} onClick={() => openModal()} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44, background: (th) => accentGradient(th), color: "#fff", "&:hover": { background: (th) => accentGradient(th, 145), filter: "brightness(1.05)" }, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <AddIcon />
           </Fab>
-          <Fab size="small" color="default" aria-label="Settings" onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
+          <Tooltip title={privacy ? t.dashboard.showAmounts : t.dashboard.hideAmounts}>
+            <Fab size="small" color="default" aria-label={t.dashboard.hideAmounts} aria-pressed={privacy} onClick={() => setPrivacy(!privacy)} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44 }}>
+              {privacy ? <HideAmountsIcon fontSize="small" /> : <ShowAmountsIcon fontSize="small" />}
+            </Fab>
+          </Tooltip>
+          <Fab size="small" color="default" aria-label={t.settingsPanel.settings} onClick={() => openSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
             <SettingsIcon fontSize="small" />
           </Fab>
           {user === undefined ? null : user ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Tooltip title={lang === "es" ? "Ver perfil" : "View profile"}>
+              <Tooltip title={t.dashboard.viewProfile}>
                 <Avatar
                   src={avatarSrc}
                   onClick={() => openSettings("perfil")}
                   role="button"
                   tabIndex={0}
-                  aria-label={lang === "es" ? "Ver perfil" : "View profile"}
+                  aria-label={t.dashboard.viewProfile}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSettings("perfil"); } }}
                   sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer", "&:hover": { boxShadow: "0 0 0 2px var(--accent)" }, transition: "box-shadow 0.15s" }}
                 >
@@ -286,10 +287,10 @@ export default function DashboardStudio() {
                 color="inherit"
                 startIcon={<LogoutIcon />}
                 onClick={handleSignOut}
-                aria-label={lang === "es" ? "Cerrar sesión" : "Sign out"}
+                aria-label={t.dashboard.signOutLabel}
                 sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
               >
-                {isMobile ? null : (lang === "es" ? "Salir" : "Sign out")}
+                {isMobile ? null : (t.dashboard.signOut)}
               </Button>
             </Box>
           ) : (
@@ -300,7 +301,7 @@ export default function DashboardStudio() {
               onClick={() => setShowLoginModal(true)}
               sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
             >
-              {isMobile ? (lang === "es" ? "Entrar" : "Sign in") : (lang === "es" ? "Iniciar sesión" : "Sign in")}
+              {isMobile ? (t.dashboard.signIn) : (t.common.signIn)}
             </Button>
           )}
         </Toolbar>
@@ -324,13 +325,11 @@ export default function DashboardStudio() {
           const isClockSkew = loadError.toLowerCase().includes("jwt") && loadError.toLowerCase().includes("future");
           return (
             <Alert severity="error" sx={{ mb: 2 }} action={
-              <Button color="inherit" size="small" onClick={() => window.location.reload()}>{lang === "es" ? "Reintentar" : "Retry"}</Button>
+              <Button color="inherit" size="small" onClick={() => window.location.reload()}>{t.dashboard.retry}</Button>
             }>
               {isClockSkew
-                ? (lang === "es"
-                  ? "El reloj de tu dispositivo está adelantado. Sincroniza la hora del sistema e intenta de nuevo."
-                  : "Your device clock is ahead of the server. Sync your system time and try again.")
-                : `${lang === "es" ? "Error al cargar datos" : "Error loading data"}: ${loadError}`
+                ? t.dashboard.clockAhead
+                : `${t.dashboard.errorLoadingData}: ${loadError}`
               }
             </Alert>
           );

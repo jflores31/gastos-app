@@ -15,9 +15,10 @@ jobs:
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: 1
-      # Valores falsos: el build no contacta a Supabase, solo necesita que existan.
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      # El build apunta al Supabase simulado de los tests end-to-end (e2e/mock-supabase),
+      # que Playwright levanta junto a la app. Next incrusta estas variables al compilar.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-anon-key
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

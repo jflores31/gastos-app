@@ -3,11 +3,13 @@
 import { Box, IconButton, Typography } from "@mui/material";
 import { ICON_CHOICES } from "./categoryIcons.js";
 import { tint } from "./iconTones.js";
+import { useSettings } from "../context/SettingsContext";
 
 // Rejilla de iconos elegibles (ICON_CHOICES) para metas y categorías personalizadas.
 // `value` es la clave que se guarda en DB (p. ej. "Flight"); un valor que no está en
 // la lista (glifo viejo como "◉") simplemente no aparece seleccionado.
 export function IconPicker({ value, onChange, color = "#7C8CA1", label }) {
+  const { t } = useSettings();
   return (
     <Box>
       {label && (
@@ -34,7 +36,7 @@ export function IconPicker({ value, onChange, color = "#7C8CA1", label }) {
               key={name}
               role="radio"
               aria-checked={selected}
-              aria-label={name}
+              aria-label={t.iconNames[name] ?? name}
               onClick={() => onChange(name)}
               sx={{
                 width: 40,

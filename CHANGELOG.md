@@ -9,10 +9,79 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
 - **CRUD unificado:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas comparten `useTableCrud()`. Transacciones y presupuestos siguen aparte. `DataContext` pasó de 537 a 425 líneas, con la misma API.
+- **Textos en un diccionario (T6):**
+  - Los 339 `lang === "es" ? … : …` repartidos en los componentes pasaron a `src/i18n/`, en español e inglés.
+  - Los textos con datos son funciones, así el plural queda en el diccionario (`t.overviewTab.expenseRecords(n)`).
+  - Sin cambios visibles: 36 capturas de pantalla (5 pestañas y 13 diálogos o paneles, en los dos idiomas) salieron idénticas.
+  - `src/i18n/messages.test.js` exige las mismas claves en los dos idiomas e impide volver a escribir ternarios de idioma.
+- **Componentes grandes divididos (T7):**
+  - `GoalsTab` (816 líneas → 55): una sección por archivo en `src/components/goals/`, con un hook `useEntityDialog()` y un marco `EntityDialog` en lugar de cinco copias del mismo estado y handlers.
+  - `SettingsPanel` (500 → 77): pestañas en `src/components/settings/`.
+  - `BudgetTab` (488 → 56): una tarjeta por archivo en `src/components/budget/`.
+  - Sin cambios visibles: capturas de pantalla idénticas píxel a píxel antes y después, y tests end-to-end escritos antes de dividir.
+- **TypeScript estricto (T8):**
+  - `strict: true`, y ESLint revisa también los `.ts`/`.tsx` con `typescript-eslint`.
+  - `src/data`, `src/i18n`, `src/lib`, `SettingsContext` y `useLocalStorage` pasaron a TypeScript, con los tipos del dominio en `src/types.ts` (`Transaction`, `Goal`, `Period`…).
+  - El diccionario en inglés está tipado como `typeof es`: una clave faltante o una función con otros parámetros no compila.
+  - Lo que encontró el lint: 8 pantallas de auth copiaban el tema a un estado desde un efecto (un render de más); ahora lo leen directo.
+- **CSP:** `connect-src` incluye el origen de `NEXT_PUBLIC_SUPABASE_URL`, además de `*.supabase.co`. Así funciona con un dominio propio de Supabase y con el simulado de los tests.
+- **CI:** el build apunta al Supabase simulado (`http://127.0.0.1:54321`) para que los tests end-to-end puedan iniciar sesión.
 - **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
+### Añadido (producto)
+- **Cierre por inactividad configurable:** en Ajustes se elige 2, 5, 15 o 30 minutos (antes, 2 fijos). El aviso sigue llegando 30 s antes, y el valor se sincroniza entre pestañas.
+- **Modo privacidad:** el botón del ojo oculta todos los montos ("S/••••") y se recuerda.
+- **Exportar datos (Perfil → Tus datos):**
+  - las transacciones en CSV, preparadas para Excel y protegidas contra fórmulas;
+  - una copia completa en JSON.
+- **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
+
+### Seguridad
+- **CSP de estilos:** los `<style>` necesitan el nonce de la respuesta, como los scripts. Emotion lo recibe del layout y lo pone en cada `<style>`. Solo los atributos `style="…"` siguen permitidos inline. Un `<style>` inyectado ya no se aplica.
+- **Reporte de violaciones del CSP:** el navegador las envía a `/api/csp-report`, que las escribe en los logs sin la query de las URLs.
+
+### Dependencias
+- **React 19**, igual al que ya usaba Next 16 por dentro (los tests unitarios corrían con React 18).
+- **`@supabase/ssr` 0.12 y `supabase-js` 2.117.** Cuando el proxy renueva la sesión, la respuesta sale con `Cache-Control: no-store`, así un CDN no puede guardar una respuesta con la cookie de un usuario y entregársela a otro. Antes, una ruta estática (como el manifest) salía con `public, max-age=0`.
+- **Vitest 5.**
+- `npm audit`: 0 vulnerabilidades.
+
+### Corregido
+- **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
+- **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
+- **Error de hidratación intermitente (React #418):**
+  - `/reset-password` fallaba en 1 de cada 20 cargas, más con el servidor cargado.
+  - Causa: emotion escribía un `<style>` por componente dentro del `<body>` y los movía al `<head>` al cargar. Los que llegaban después, por el streaming, quedaban como nodos de más.
+  - Ahora `AppRouterCacheProvider` (`@mui/material-nextjs`) pone los estilos en el `<head>` desde el servidor.
+  - Verificado con 200 cargas seguidas sin error (antes fallaban 6 de 100).
+- **Etiquetas en un solo idioma:**
+  - el engranaje se anunciaba "Settings" y el botón de cerrar "Close" también en español;
+  - editar y borrar una cuenta se anunciaban "Editar" y "Eliminar" también en inglés;
+  - las paletas tenían nombres solo en español;
+  - el selector de iconos anunciaba claves internas ("TwoWheeler"). Ahora sus 43 iconos tienen nombre en los dos idiomas.
+- **Diálogos que recortaban la etiqueta del primer campo:** MUI pone `padding-top: 0` al contenido que sigue al título, con un selector más específico que el padding de la app. Afectaba a todos los diálogos de Metas y al de categorías propias. Hay un test end-to-end que lo detecta.
+- **Patrimonio neto sin inversiones:** solo sumaba los saldos de las cuentas, así que un DPF o un fondo AFP no aparecía en el patrimonio ni en su evolución. Ahora las inversiones cuentan como activo (`netWorthOf()`, con tests).
+- **Inversiones:** el tipo "Acciones" mostraba la etiqueta "Ahorro", y "Ahorro" no se traducía al inglés.
+- **Presupuestos:**
+  - en "Gestionar", el botón que cancela la edición de un monto tenía el icono de la papelera;
+  - los botones de icono de ese diálogo y el de guardar en cada tarjeta no tenían nombre accesible;
+  - en "Recurrentes", un mismo concepto en dos categorías (p. ej. MANTENIMIENTO del auto y de la moto) repetía la `key` de React.
+- **Accesibilidad:** 6 selectores no tenían nombre accesible, porque su etiqueta no estaba enlazada: moneda, categoría de presupuesto, tipo de cuenta, tipo de inversión, ciclo y categoría de suscripción. Un lector de pantalla solo leía el valor elegido.
+
 ### Añadido
+- **Tests end-to-end con sesión:** 11 tests en `e2e/session.spec.ts` contra un Supabase simulado (`e2e/mock-supabase/`), que Playwright levanta junto a la app. Cubren:
+  - login;
+  - las 5 pestañas, los ajustes, el tema oscuro y el inglés, sin errores de consola;
+  - alta, edición y borrado de un gasto;
+  - moneda en USD;
+  - iconos de metas y categorías;
+  - Metas: cuentas, inversiones, deudas y suscripciones;
+  - Presupuestos: la tarjeta y "Gestionar";
+  - Perfil: nombre, favoritas y categorías propias;
+  - la etiqueta flotante de los diálogos;
+  - sesión entre pestañas y al reabrir el navegador.
+- El Supabase simulado lee las tablas de `supabase/migrations/*.sql` y aplica RLS por usuario. Escribir una columna inexistente falla (`PGRST204`) como en producción.
 - `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.
 
 ### Documentación

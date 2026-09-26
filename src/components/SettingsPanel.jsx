@@ -1,31 +1,18 @@
 "use client"
 
-import { useState, useMemo } from "react";
-import {
-  Drawer, Box, Typography, Divider, Avatar,
-  Chip, Select, MenuItem, FormControl, InputLabel, IconButton, List, ListItem, ListItemText,
-  Autocomplete, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  ToggleButtonGroup, ToggleButton, Snackbar, Alert, Tabs, Tab, CircularProgress,
-} from "@mui/material";
-import { Close as CloseIcon, DarkMode as DarkModeIcon, LightMode as LightModeIcon, Person as PersonIcon, Settings as SettingsIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
-import { useSettings, PALETTES as PALETTES_MAP } from "../context/SettingsContext.jsx";
+import { useState } from "react";
+import { Alert, Box, Drawer, IconButton, Snackbar, Tab, Tabs, Typography } from "@mui/material";
+import { Close as CloseIcon, Person as PersonIcon, Settings as SettingsIcon } from "../theme/icons";
+import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
-import { useData } from "../context/DataContext.jsx";
-import { CURRENCIES, CATEGORIES } from "../data/index.js";
-import { CategoryAvatar } from "../theme/GradientIcon.jsx";
-import { IconPicker } from "../theme/IconPicker.jsx";
-import { DEFAULT_ICON, iconByName, resolveCategoryMeta } from "../theme/categoryIcons.js";
-import { createClient } from "../lib/supabase";
+import { ProfileTab } from "./settings/ProfileTab.jsx";
+import { PreferencesTab } from "./settings/PreferencesTab.jsx";
 
-const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
-
-const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
-const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e", icon: "Category" };
-
+// Side panel with two tabs: "Perfil" (name, favourite and custom categories) and
+// "Ajustes" (theme, density, accent, language, currency). See src/components/settings/.
 export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) {
-  const { theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency } = useSettings();
+  const { t } = useSettings();
   const user = useSupabaseUser();
-  const { customCats, saveCustomCat, deleteCustomCat } = useData();
 
   // Canonical name from metadata. Fallback splits full_name for accounts created
   // before first_name/last_name were stored separately (register only wrote full_name).
@@ -37,14 +24,10 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
   const [wasOpen, setWasOpen] = useState(open);
   const [firstName, setFirstName] = useState(metaFirst);
   const [lastName, setLastName] = useState(metaLast);
-  const [savingName, setSavingName] = useState(false);
-  const [favInput, setFavInput] = useState(null);
-  const [catDialog, setCatDialog] = useState(false);
-  const [editingCat, setEditingCat] = useState(null);
-  const [catForm, setCatForm] = useState(EMPTY_CAT);
-  const [catError, setCatError] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [snack, setSnack] = useState(null);
+  // A new id per notification remounts the Snackbar, so each one gets its full 3 s even
+  // when the previous one is still showing (MUI only restarts the timer on open).
+  const notify = (msg, severity) => setSnack({ msg, severity, id: Date.now() });
 
   // Jump to the tab requested by whoever opened the panel (avatar → perfil, gear → ajustes).
   // Adjust during render on the closed→open transition — no effect needed.
@@ -57,107 +40,16 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
     }
   }
 
-  const fullName = user?.user_metadata?.full_name || "";
-  const email = user?.email || "";
-  const displayName = fullName || email || "Usuario";
-  const avatarSrc = user?.user_metadata?.avatar_url || undefined;
-  const initials = fullName
-    ? fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-    : (email[0] || "U").toUpperCase();
-
-  const favCats = useMemo(() => user?.user_metadata?.fav_categories || [], [user]);
-
-  const allCatOptions = useMemo(() => [
-    ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({
-      value: k, tipo: "EGRESO",
-      label: lang === "es" ? v.es : v.en,
-      group: lang === "es" ? "Gastos" : "Expenses",
-    })),
-    ...Object.entries(CATEGORIES.income).map(([k, v]) => ({
-      value: k, tipo: "INGRESO",
-      label: lang === "es" ? v.es : v.en,
-      group: lang === "es" ? "Ingresos" : "Income",
-    })),
-  ].filter((o) => !favCats.find((f) => f.categoria === o.value)), [lang, favCats]);
-
-  const saveFavCats = async (newList) => {
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ data: { fav_categories: newList } });
-    if (error) setSnack({ msg: lang === "es" ? "Error al guardar favoritos" : "Error saving favorites", severity: "error" });
-    return !error;
-  };
-
-  const handleAddFav = async (option) => {
-    if (!option) return;
-    const ok = await saveFavCats([...favCats, { categoria: option.value, tipo: option.tipo }]);
-    if (ok) setFavInput(null);
-  };
-
-  const handleRemoveFav = async (categoria) => {
-    await saveFavCats(favCats.filter((f) => f.categoria !== categoria));
-  };
-
-  const profileDirty =
-    firstName.trim() !== (metaFirst || "").trim() ||
-    lastName.trim() !== (metaLast || "").trim();
-
-  const handleSaveProfile = async () => {
-    setSavingName(true);
-    const supabase = createClient();
-    const full_name = `${firstName.trim()} ${lastName.trim()}`.trim();
-    const { error } = await supabase.auth.updateUser({
-      data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name },
-    });
-    setSavingName(false);
-    setSnack(error
-      ? { msg: lang === "es" ? "Error al guardar tu nombre" : "Error saving your name", severity: "error" }
-      : { msg: lang === "es" ? "Nombre actualizado" : "Name updated", severity: "success" });
-  };
-
-  const openCatDialog = (cat = null) => {
-    setEditingCat(cat);
-    setCatForm(cat ? { nombre: cat.nombre, tipo: cat.tipo, color: cat.color, icon: cat.icon || "Category" } : EMPTY_CAT);
-    setCatError("");
-    setCatDialog(true);
-  };
-
-  const handleSaveCat = async () => {
-    if (!catForm.nombre.trim()) { setCatError(lang === "es" ? "Ingresa un nombre" : "Enter a name"); return; }
-    try {
-      await saveCustomCat({ ...catForm, nombre: catForm.nombre.trim(), id: editingCat?.id });
-      setCatDialog(false);
-      setSnack({ msg: editingCat
-        ? (lang === "es" ? "Categoría actualizada" : "Category updated")
-        : (lang === "es" ? "Categoría creada" : "Category created"), severity: "success" });
-    } catch {
-      setSnack({ msg: lang === "es" ? "Error al guardar categoría" : "Error saving category", severity: "error" });
-    }
-  };
-
-  const handleDeleteCat = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteCustomCat(deleteTarget.id);
-      setDeleteTarget(null);
-      setSnack({ msg: lang === "es" ? "Categoría eliminada" : "Category deleted", severity: "success" });
-    } catch {
-      setDeleteTarget(null);
-      setSnack({ msg: lang === "es" ? "Error al eliminar categoría" : "Error deleting category", severity: "error" });
-    }
-  };
-
-  const sectionLabel = (es, en) => (
-    <ListItemText primary={lang === "es" ? es : en} primaryTypographyProps={{ variant: "overline" }} />
-  );
+  const name = { first: firstName, last: lastName, setFirst: setFirstName, setLast: setLastName, metaFirst, metaLast };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 380 }, p: 0, overflowY: "auto" } }}>
       {/* Header */}
       <Box sx={{ p: 2, pb: 1.25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h6" fontWeight={700}>
-          {tab === "perfil" ? (lang === "es" ? "Perfil" : "Profile") : (lang === "es" ? "Ajustes" : "Settings")}
+          {tab === "perfil" ? (t.settingsPanel.profile) : (t.settingsPanel.settings)}
         </Typography>
-        <IconButton onClick={onClose} aria-label="Close"><CloseIcon /></IconButton>
+        <IconButton onClick={onClose} aria-label={t.common.close}><CloseIcon /></IconButton>
       </Box>
 
       {/* Tabs: separa Perfil de Ajustes */}
@@ -168,328 +60,15 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
         sx={{ position: "sticky", top: 0, zIndex: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", minHeight: 48 }}
       >
         <Tab value="perfil" icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start"
-          label={lang === "es" ? "Perfil" : "Profile"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+          label={t.settingsPanel.profile} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
         <Tab value="ajustes" icon={<SettingsIcon sx={{ fontSize: 18 }} />} iconPosition="start"
-          label={lang === "es" ? "Ajustes" : "Settings"} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
+          label={t.settingsPanel.settings} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />
       </Tabs>
 
-      {/* ===== PERFIL ===== */}
-      {tab === "perfil" && (
-        user ? (
-          <Box>
-            {/* Hero */}
-            <Box sx={{
-              px: 3, pt: 4, pb: 3.5, textAlign: "center", color: "primary.contrastText",
-              background: (t) => `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
-            }}>
-              <Avatar
-                src={avatarSrc}
-                sx={{
-                  width: 78, height: 78, mx: "auto", mb: 1.5,
-                  bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontWeight: 800, fontSize: 28,
-                  border: "3px solid rgba(255,255,255,0.55)", boxShadow: "0 8px 26px rgba(0,0,0,0.22)",
-                }}
-              >
-                {initials || <PersonIcon />}
-              </Avatar>
-              <Typography variant="h6" fontWeight={800} noWrap>{displayName}</Typography>
-              {fullName && <Typography variant="body2" noWrap sx={{ opacity: 0.85, mt: 0.25 }}>{email}</Typography>}
-            </Box>
+      {tab === "perfil" && <ProfileTab user={user} name={name} notify={notify} />}
+      {tab === "ajustes" && <PreferencesTab />}
 
-            <List disablePadding>
-              {/* Datos personales */}
-              <ListItem sx={{ pt: 2 }}>
-                <ListItemText
-                  primary={lang === "es" ? "Datos personales" : "Personal info"}
-                  secondary={lang === "es" ? "Tu nombre visible en la app" : "Your name shown across the app"}
-                  primaryTypographyProps={{ variant: "overline" }}
-                  secondaryTypographyProps={{ variant: "caption" }}
-                />
-              </ListItem>
-              <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
-                <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
-                  <TextField
-                    fullWidth size="small"
-                    label={lang === "es" ? "Nombre" : "First name"}
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    autoComplete="given-name"
-                    slotProps={{ htmlInput: { maxLength: 40 } }}
-                  />
-                  <TextField
-                    fullWidth size="small"
-                    label={lang === "es" ? "Apellidos" : "Last name"}
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    autoComplete="family-name"
-                    slotProps={{ htmlInput: { maxLength: 40 } }}
-                  />
-                </Box>
-                <Button
-                  variant="contained" size="small"
-                  onClick={handleSaveProfile}
-                  disabled={!profileDirty || savingName}
-                  sx={{ alignSelf: "flex-end", borderRadius: 2, textTransform: "none", fontWeight: 600, minWidth: 120 }}
-                >
-                  {savingName
-                    ? <CircularProgress size={18} color="inherit" />
-                    : (lang === "es" ? "Guardar" : "Save")}
-                </Button>
-              </ListItem>
-
-              <Divider variant="middle" />
-
-              {/* Favoritas */}
-              <ListItem sx={{ pt: 2 }}>
-                <ListItemText
-                  primary={lang === "es" ? "Categorías Favoritas" : "Favorite Categories"}
-                  secondary={lang === "es" ? "Aparecen primero en el selector" : "Shown first in the selector"}
-                  primaryTypographyProps={{ variant: "overline" }}
-                  secondaryTypographyProps={{ variant: "caption" }}
-                />
-              </ListItem>
-              <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
-                {favCats.length > 0 && (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {favCats.map((f) => {
-                      const { label, Icon } = resolveCategoryMeta(f.categoria, customCats, lang, f.tipo);
-                      return (
-                        <Chip key={f.categoria} icon={<Icon />} label={label} size="small" onDelete={() => handleRemoveFav(f.categoria)}
-                          color={f.tipo === "EGRESO" ? "error" : "success"} variant="outlined" />
-                      );
-                    })}
-                  </Box>
-                )}
-                <Autocomplete
-                  options={allCatOptions} groupBy={(o) => o.group} value={favInput}
-                  onChange={(_, v) => handleAddFav(v)} getOptionLabel={(o) => o?.label || ""}
-                  size="small" noOptionsText={lang === "es" ? "Ya las agregaste todas" : "All categories added"}
-                  renderInput={(params) => (
-                    <TextField {...params} label={lang === "es" ? "Agregar favorita" : "Add favorite"} size="small" />
-                  )}
-                />
-              </ListItem>
-
-              <Divider variant="middle" />
-
-              {/* Mis categorías */}
-              <ListItem
-                secondaryAction={
-                  <Button size="small" startIcon={<AddIcon />} onClick={() => openCatDialog()} variant="outlined" sx={{ borderRadius: 2 }}>
-                    {lang === "es" ? "Nueva" : "New"}
-                  </Button>
-                }
-              >
-                <ListItemText
-                  primary={lang === "es" ? "Mis Categorías" : "My Categories"}
-                  secondary={lang === "es" ? "Categorías propias para tus transacciones" : "Custom categories for your transactions"}
-                  primaryTypographyProps={{ variant: "overline" }}
-                  secondaryTypographyProps={{ variant: "caption" }}
-                />
-              </ListItem>
-              <ListItem sx={{ pt: 0, pb: 3 }}>
-                <Box sx={{ width: "100%" }}>
-                  {customCats.length === 0 ? (
-                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
-                      {lang === "es" ? "Ninguna aún. Crea tu primera categoría." : "None yet. Create your first category."}
-                    </Typography>
-                  ) : (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                      {customCats.map((c) => (
-                        <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
-                          <CategoryAvatar icon={iconByName(c.icon) || DEFAULT_ICON} color={c.color} size={28} />
-                          <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
-                          <Chip label={c.tipo === "EGRESO" ? (lang === "es" ? "Gasto" : "Expense") : (lang === "es" ? "Ingreso" : "Income")}
-                            size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
-                          <IconButton onClick={() => openCatDialog(c)} aria-label={lang === "es" ? "Editar categoría" : "Edit category"} sx={{ minWidth: 40, minHeight: 40 }}>
-                            <EditIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                          <IconButton color="error" onClick={() => setDeleteTarget(c)} aria-label={lang === "es" ? "Eliminar categoría" : "Delete category"} sx={{ minWidth: 40, minHeight: 40 }}>
-                            <DeleteIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              </ListItem>
-            </List>
-          </Box>
-        ) : (
-          <Box sx={{ p: 5, textAlign: "center", color: "text.secondary" }}>
-            <PersonIcon sx={{ fontSize: 48, opacity: 0.35, mb: 1.5 }} />
-            <Typography variant="body2">
-              {lang === "es" ? "Inicia sesión para ver tu perfil y categorías." : "Sign in to see your profile and categories."}
-            </Typography>
-          </Box>
-        )
-      )}
-
-      {/* ===== AJUSTES ===== */}
-      {tab === "ajustes" && (
-        <List disablePadding>
-          <ListItem sx={{ pt: 2 }}>{sectionLabel("Tema", "Theme")}</ListItem>
-          <ListItem sx={{ pt: 0 }}>
-            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-              <Chip icon={<LightModeIcon />} label={lang === "es" ? "Claro" : "Light"} variant={theme === "light" ? "filled" : "outlined"} color={theme === "light" ? "primary" : "default"} onClick={() => setTheme("light")} sx={{ flex: 1 }} />
-              <Chip icon={<DarkModeIcon />} label={lang === "es" ? "Oscuro" : "Dark"} variant={theme === "dark" ? "filled" : "outlined"} color={theme === "dark" ? "primary" : "default"} onClick={() => setTheme("dark")} sx={{ flex: 1 }} />
-            </Box>
-          </ListItem>
-
-          <Divider variant="middle" />
-
-          <ListItem>{sectionLabel("Densidad", "Density")}</ListItem>
-          <ListItem sx={{ pt: 0 }}>
-            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-              <Chip label={lang === "es" ? "Cómoda" : "Comfy"} variant={density === "comfy" ? "filled" : "outlined"} color={density === "comfy" ? "primary" : "default"} onClick={() => setDensity("comfy")} sx={{ flex: 1 }} />
-              <Chip label={lang === "es" ? "Compacta" : "Compact"} variant={density === "compact" ? "filled" : "outlined"} color={density === "compact" ? "primary" : "default"} onClick={() => setDensity("compact")} sx={{ flex: 1 }} />
-            </Box>
-          </ListItem>
-
-          <Divider variant="middle" />
-
-          <ListItem>{sectionLabel("Color de acento", "Accent color")}</ListItem>
-          <ListItem sx={{ pt: 0 }}>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-              {PALETTES.map((p) => (
-                <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={p.label} tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
-                  sx={{
-                    width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
-                    background: `linear-gradient(135deg, ${p.grad[0]} 0%, ${p.grad[1]} 100%)`,
-                    boxShadow: palette === p.key ? "0 2px 8px rgba(0,0,0,0.25)" : "none",
-                    border: palette === p.key ? "3px solid" : "2px solid transparent",
-                    borderColor: palette === p.key ? "text.primary" : "transparent",
-                    transition: "transform 0.15s, border-color 0.15s",
-                    "&:hover": { transform: "scale(1.15)" },
-                  }} title={p.label} />
-              ))}
-            </Box>
-          </ListItem>
-
-          <Divider variant="middle" />
-
-          <ListItem>{sectionLabel("Idioma", "Language")}</ListItem>
-          <ListItem sx={{ pt: 0 }}>
-            <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
-              <Chip label="🇵🇪 Español" variant={lang === "es" ? "filled" : "outlined"} color={lang === "es" ? "primary" : "default"} onClick={() => setLang("es")} sx={{ flex: 1 }} />
-              <Chip label="🇺🇸 English" variant={lang === "en" ? "filled" : "outlined"} color={lang === "en" ? "primary" : "default"} onClick={() => setLang("en")} sx={{ flex: 1 }} />
-            </Box>
-          </ListItem>
-
-          <Divider variant="middle" />
-
-          <ListItem>{sectionLabel("Moneda", "Currency")}</ListItem>
-          <ListItem sx={{ pt: 0, pb: 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>{lang === "es" ? "Moneda" : "Currency"}</InputLabel>
-              <Select value={currency} label={lang === "es" ? "Moneda" : "Currency"} onChange={(e) => setCurrency(e.target.value)}>
-                {Object.entries(CURRENCIES).map(([k, c]) => (
-                  <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </ListItem>
-        </List>
-      )}
-
-      <Dialog open={catDialog} onClose={() => setCatDialog(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          {editingCat
-            ? (lang === "es" ? "Editar Categoría" : "Edit Category")
-            : (lang === "es" ? "Nueva Categoría" : "New Category")}
-        </DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-          <TextField
-            label={lang === "es" ? "Nombre" : "Name"}
-            value={catForm.nombre}
-            onChange={(e) => { setCatForm((f) => ({ ...f, nombre: e.target.value })); setCatError(""); }}
-            error={!!catError}
-            helperText={catError}
-            fullWidth
-            autoFocus
-            slotProps={{ htmlInput: { maxLength: 40 } }}
-          />
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
-              {lang === "es" ? "Tipo" : "Type"}
-            </Typography>
-            <ToggleButtonGroup
-              value={catForm.tipo}
-              exclusive
-              onChange={(_, v) => { if (v) setCatForm((f) => ({ ...f, tipo: v })); }}
-              fullWidth
-              size="small"
-            >
-              <ToggleButton value="EGRESO" sx={{ fontWeight: 600, color: "error.main", "&.Mui-selected": { bgcolor: "error.light", color: "error.dark" } }}>
-                {lang === "es" ? "Gasto" : "Expense"}
-              </ToggleButton>
-              <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
-                {lang === "es" ? "Ingreso" : "Income"}
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
-              {lang === "es" ? "Color" : "Color"}
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {COLOR_PRESETS.map((c) => (
-                <Box
-                  key={c}
-                  onClick={() => setCatForm((f) => ({ ...f, color: c }))}
-                  role="radio" aria-checked={catForm.color === c} aria-label={c} tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && setCatForm((f) => ({ ...f, color: c }))}
-                  sx={{
-                    width: 32, height: 32, borderRadius: "50%", bgcolor: c, cursor: "pointer",
-                    border: catForm.color === c ? "3px solid" : "2px solid transparent",
-                    borderColor: catForm.color === c ? "text.primary" : "transparent",
-                    transition: "transform 0.15s",
-                    "&:hover": { transform: "scale(1.2)" },
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-          <IconPicker
-            label={lang === "es" ? "Icono" : "Icon"}
-            value={catForm.icon}
-            color={catForm.color}
-            onChange={(icon) => setCatForm((f) => ({ ...f, icon }))}
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setCatDialog(false)} color="inherit">
-            {lang === "es" ? "Cancelar" : "Cancel"}
-          </Button>
-          <Button onClick={handleSaveCat} variant="contained">
-            {lang === "es" ? "Guardar" : "Save"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          {lang === "es" ? "Eliminar categoría" : "Delete category"}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            {lang === "es"
-              ? `¿Eliminar "${deleteTarget?.nombre}"? Las transacciones existentes no se verán afectadas.`
-              : `Delete "${deleteTarget?.nombre}"? Existing transactions won't be affected.`}
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDeleteTarget(null)} color="inherit">
-            {lang === "es" ? "Cancelar" : "Cancel"}
-          </Button>
-          <Button onClick={handleDeleteCat} variant="contained" color="error">
-            {lang === "es" ? "Eliminar" : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
+      <Snackbar key={snack?.id} open={!!snack} autoHideDuration={3000} onClose={() => setSnack(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity={snack?.severity ?? "success"} onClose={() => setSnack(null)} sx={{ width: "100%" }}>
           {snack?.msg}

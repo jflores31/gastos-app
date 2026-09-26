@@ -1,77 +1,9 @@
-export const I18N = {
-  es: {
-    income: "Ingresos", expense: "Egresos", net: "Neto", balance: "Balance",
-    budget: "Presupuesto", spent: "Gastado", remaining: "Restante", overspent: "Excedido",
-    savings: "Ahorro", rate: "Tasa", forecast: "Proyección", actual: "Real",
-    month: "Mes", year: "Año", quarter: "Trimestre", week: "Semana", day: "Día", today: "Hoy",
-    category: "Categoría", concept: "Concepto", amount: "Monto", date: "Fecha", type: "Tipo",
-    transactions: "Transacciones", recent: "Recientes", all: "Todas",
-    topCategories: "Top categorías", topConcepts: "Conceptos principales",
-    cashflow: "Flujo de caja", trend: "Tendencia", breakdown: "Desglose",
-    budgetVsActual: "Presupuesto vs. Real", anomalies: "Anomalías", insights: "Insights",
-    recurring: "Recurrentes", goals: "Metas", networth: "Patrimonio",
-    heatmap: "Mapa de calor", search: "Buscar", filter: "Filtrar", export: "Exportar",
-    addTx: "Nueva transacción", suggested: "Sugeridas", new: "Nuevo",
-    vsLastMonth: "vs. mes anterior", vsLastYear: "vs. año anterior", vsAvg: "vs. promedio",
-    avgDaily: "Promedio diario", avgMonthly: "Promedio mensual", projected: "Proyectado",
-    overBudget: "Sobre presupuesto", onTrack: "Dentro de presupuesto", under: "Bajo",
-    selectCategory: "Seleccionar categoría", enterConcept: "Ingresar concepto",
-    enterAmount: "Ingresar monto", save: "Guardar", cancel: "Cancelar",
-    months: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
-    monthsLong: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
-    days: ["L","M","X","J","V","S","D"],
-    overview: "Resumen", expenses: "Gastos", incomes: "Ingresos",
-    spending: "Gasto", earning: "Ingreso", saving: "Ahorrado",
-    healthScore: "Salud financiera", emergencyFund: "Fondo de emergencia",
-    debt: "Deudas", debtPayoff: "Liquidación de deudas",
-    upcoming: "Próximos", unusual: "Inusual", normal: "Normal",
-    aiInsight: "Análisis IA", askAI: "Preguntar a la IA",
-    higher: "más alto", lower: "más bajo", ofBudget: "del presupuesto",
-    vsExpected: "vs. esperado", note: "Nota", tag: "Etiqueta",
-    family: "Familia", member: "Miembro", account: "Cuenta",
-    cash: "Efectivo", bank: "Banco", card: "Tarjeta",
-    months_full: "los últimos 12 meses",
-    dailyTitle: "Gastos Diarios", dailySubtitle: "Registra tus gastos del día por categoría",
-    todaysExpenses: "Gastos de hoy", runway: "Runway", days_left: "días", you: "Tú",
-  },
-  en: {
-    income: "Income", expense: "Expense", net: "Net", balance: "Balance",
-    budget: "Budget", spent: "Spent", remaining: "Remaining", overspent: "Over",
-    savings: "Savings", rate: "Rate", forecast: "Forecast", actual: "Actual",
-    month: "Month", year: "Year", quarter: "Quarter", week: "Week", day: "Day", today: "Today",
-    category: "Category", concept: "Concept", amount: "Amount", date: "Date", type: "Type",
-    transactions: "Transactions", recent: "Recent", all: "All",
-    topCategories: "Top categories", topConcepts: "Top concepts",
-    cashflow: "Cash flow", trend: "Trend", breakdown: "Breakdown",
-    budgetVsActual: "Budget vs. Actual", anomalies: "Anomalies", insights: "Insights",
-    recurring: "Recurring", goals: "Goals", networth: "Net worth",
-    heatmap: "Heat map", search: "Search", filter: "Filter", export: "Export",
-    addTx: "New transaction", suggested: "Suggested", new: "New",
-    vsLastMonth: "vs. last month", vsLastYear: "vs. last year", vsAvg: "vs. average",
-    avgDaily: "Daily avg", avgMonthly: "Monthly avg", projected: "Projected",
-    overBudget: "Over budget", onTrack: "On track", under: "Under",
-    selectCategory: "Select category", enterConcept: "Enter concept",
-    enterAmount: "Enter amount", save: "Save", cancel: "Cancel",
-    months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-    monthsLong: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-    days: ["M","T","W","T","F","S","S"],
-    overview: "Overview", expenses: "Expenses", incomes: "Income",
-    spending: "Spending", earning: "Earning", saving: "Saved",
-    healthScore: "Financial health", emergencyFund: "Emergency fund",
-    debt: "Debt", debtPayoff: "Debt payoff",
-    upcoming: "Upcoming", unusual: "Unusual", normal: "Normal",
-    aiInsight: "AI Insight", askAI: "Ask AI",
-    higher: "higher", lower: "lower", ofBudget: "of budget",
-    vsExpected: "vs. expected", note: "Note", tag: "Tag",
-    family: "Family", member: "Member", account: "Account",
-    cash: "Cash", bank: "Bank", card: "Card",
-    months_full: "trailing 12 months",
-    dailyTitle: "Daily Expenses", dailySubtitle: "Record your daily expenses by category",
-    todaysExpenses: "Today's Expenses", runway: "Runway", days_left: "days", you: "You",
-  }
-};
+import type { Transaction, TxType } from "../types";
 
-export const CATEGORIES = {
+// A built-in category: labels in both languages, colour, and concept suggestions.
+export type CategoryDef = { es: string; en: string; color: string; concepts: string[] };
+
+export const CATEGORIES: { income: Record<string, CategoryDef>; expense: Record<string, CategoryDef> } = {
   income: {
     SUELDO:          { es: "Sueldo",                    en: "Salary",              color: "#5a9bc9", concepts: ["SUELDO POR PLANILLA", "SUELDO BASE"] },
     HONORARIOS:      { es: "Honorarios / freelance",     en: "Freelance",           color: "#7b68ee", concepts: ["FREELANCE", "CONSULTORIA"] },
@@ -142,7 +74,10 @@ export const CATEGORIES = {
 };
 
 
-export const CURRENCIES = {
+export type CurrencyCode = "PEN" | "USD" | "EUR" | "MXN" | "COP" | "ARS" | "CLP" | "BRL";
+export type Currency = { symbol: string; code: CurrencyCode; name: string; rate: number };
+
+export const CURRENCIES: Record<CurrencyCode, Currency> = {
   PEN: { symbol: "S/", code: "PEN", name: "Sol Peruano", rate: 1 },
   USD: { symbol: "$",  code: "USD", name: "US Dollar",   rate: 0.27 },
   EUR: { symbol: "€",  code: "EUR", name: "Euro",        rate: 0.25 },
@@ -156,38 +91,45 @@ export const CURRENCIES = {
 // Los montos se guardan siempre en la moneda base (PEN, rate 1); `fmtMoney` los
 // multiplica por `rate` al mostrar. Los formularios trabajan en la moneda elegida,
 // así que convierten con toBase() al guardar y con fromBase() al precargar una edición.
-const round2 = (n) => Math.round(n * 100) / 100;
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export function toBase(v, curr = "PEN") {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
-  return round2(Number(v) / c.rate);
+// Unknown codes (e.g. an old value in localStorage) fall back to PEN.
+export const currencyOf = (code: string): Currency => CURRENCIES[code as CurrencyCode] || CURRENCIES.PEN;
+
+export function toBase(v: number | string, curr = "PEN") {
+  return round2(Number(v) / currencyOf(curr).rate);
 }
 
-export function fromBase(v, curr = "PEN") {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
-  return round2(Number(v) * c.rate);
+export function fromBase(v: number | string, curr = "PEN") {
+  return round2(Number(v) * currencyOf(curr).rate);
 }
 
-export function fmtMoney(v, curr = "PEN", compact = false) {
-  const c = CURRENCIES[curr] || CURRENCIES.PEN;
+// `locale` fixes the digit grouping (t.common.locale). Without it, toLocaleString used
+// the browser's locale: a German browser showed "S/3.500" in an app set to Spanish,
+// and the server (Node's default locale) could render different text than the client.
+export function fmtMoney(v: number, curr = "PEN", compact = false, locale = "es-PE") {
+  const c = currencyOf(curr);
   const n = v * c.rate;
   if (compact) {
-    if (Math.abs(n) >= 1e6) return c.symbol + (n / 1e6).toFixed(1) + "M";
-    if (Math.abs(n) >= 1e3) return c.symbol + (n / 1e3).toFixed(1) + "k";
+    const short = (x: number) => x.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    if (Math.abs(n) >= 1e6) return c.symbol + short(n / 1e6) + "M";
+    if (Math.abs(n) >= 1e3) return c.symbol + short(n / 1e3) + "k";
   }
-  return c.symbol + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: n >= 100 ? 0 : 2 });
+  return c.symbol + n.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: Math.abs(n) >= 100 ? 0 : 2 });
 }
 
 export function getToday() {
   return new Date();
 }
 
-export function txByMonth(txs) {
-  const m = new Map();
+export type MonthSummary = { key: string; año: number; mes: number; ingreso: number; egreso: number; txs: Transaction[] };
+
+export function txByMonth(txs: Transaction[]) {
+  const m = new Map<string, MonthSummary>();
   for (const t of txs) {
     const k = `${t.año}-${String(t.mes).padStart(2, "0")}`;
     if (!m.has(k)) m.set(k, { key: k, año: t.año, mes: t.mes, ingreso: 0, egreso: 0, txs: [] });
-    const e = m.get(k);
+    const e = m.get(k)!;
     if (t.tipo === "INGRESO") e.ingreso += t.valor;
     else e.egreso += t.valor;
     e.txs.push(t);
@@ -195,37 +137,40 @@ export function txByMonth(txs) {
   return [...m.values()].sort((a, b) => a.año - b.año || a.mes - b.mes);
 }
 
-export function txByCategory(txs, tipo = "EGRESO") {
-  const m = new Map();
+export type CategorySummary = { categoria: string; total: number; count: number; txs: Transaction[] };
+
+export function txByCategory(txs: Transaction[], tipo: TxType = "EGRESO") {
+  const m = new Map<string, CategorySummary>();
   for (const t of txs) if (t.tipo === tipo) {
     if (!m.has(t.categoria)) m.set(t.categoria, { categoria: t.categoria, total: 0, count: 0, txs: [] });
-    const e = m.get(t.categoria);
+    const e = m.get(t.categoria)!;
     e.total += t.valor; e.count++; e.txs.push(t);
   }
   return [...m.values()].sort((a, b) => b.total - a.total);
 }
 
-export function txByCategoryToday(txs) {
+export function txByCategoryToday(txs: Transaction[]) {
   const today = getToday();
   const todayTx = txs.filter((t) => t.date.toDateString() === today.toDateString());
-  const m = new Map();
+  type Concept = { concepto: string; total: number };
+  const m = new Map<string, CategorySummary & { concepts: Map<string, Concept> }>();
   for (const t of todayTx) if (t.tipo === "EGRESO") {
     if (!m.has(t.categoria)) m.set(t.categoria, { categoria: t.categoria, total: 0, count: 0, concepts: new Map(), txs: [] });
-    const cat = m.get(t.categoria);
+    const cat = m.get(t.categoria)!;
     cat.total += t.valor; cat.count++; cat.txs.push(t);
     if (!cat.concepts.has(t.concepto)) cat.concepts.set(t.concepto, { concepto: t.concepto, total: 0 });
-    cat.concepts.get(t.concepto).total += t.valor;
+    cat.concepts.get(t.concepto)!.total += t.valor;
   }
   return [...m.values()].map((cat) => ({
     ...cat,
     concepts: [...cat.concepts.values()].sort((a, b) => b.total - a.total),
-    txs: cat.txs.sort((a, b) => a.date - b.date),
+    txs: cat.txs.sort((a, b) => a.date.getTime() - b.date.getTime()),
   })).sort((a, b) => b.total - a.total);
 }
 
-export function getTodayExpenses(txs) {
+export function getTodayExpenses(txs: Transaction[]) {
   const today = getToday();
   return txs.filter((t) => t.tipo === "EGRESO" && t.date.toDateString() === today.toDateString())
-    .sort((a, b) => b.date - a.date);
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 

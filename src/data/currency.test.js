@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { CURRENCIES, toBase, fromBase, fmtMoney } from "./index.js"
+import { CURRENCIES, toBase, fromBase, fmtMoney } from "./index"
 
 describe("toBase / fromBase", () => {
   it("PEN es la moneda base: no convierte", () => {
@@ -35,5 +35,27 @@ describe("toBase / fromBase", () => {
   it("acepta strings numéricos", () => {
     expect(toBase("27", "USD")).toBe(100)
     expect(fromBase("100", "USD")).toBe(27)
+  })
+})
+
+describe("fmtMoney — formato por idioma", () => {
+  it("usa el locale que recibe, no el del navegador", () => {
+    expect(fmtMoney(3500, "PEN", false, "es-PE")).toBe("S/3,500")
+    expect(fmtMoney(3500, "PEN", false, "en-US")).toBe("S/3,500")
+    // Un locale con otro separador demuestra que se usa el argumento.
+    expect(fmtMoney(3500, "PEN", false, "de-DE")).toBe("S/3.500")
+    expect(fmtMoney(3_700_000, "PEN", true, "de-DE")).toBe("S/3,7M")
+  })
+
+  it("sin locale usa es-PE (igual en el servidor y en el navegador)", () => {
+    expect(fmtMoney(1234.5)).toBe("S/1,235")
+    expect(fmtMoney(12.5)).toBe("S/12.5")
+    expect(fmtMoney(3500, "PEN", true)).toBe("S/3.5k")
+  })
+
+  it("los negativos grandes se redondean igual que los positivos", () => {
+    // Antes: -1234.56 salía con decimales porque se comparaba n >= 100 sin valor absoluto.
+    expect(fmtMoney(-1234.56)).toBe("S/-1,235")
+    expect(fmtMoney(-12.5)).toBe("S/-12.5")
   })
 })

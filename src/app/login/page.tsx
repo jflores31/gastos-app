@@ -13,13 +13,12 @@ import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"
 import { darkFieldSx } from "../components/auth/authStyles"
-import { OAUTH_ENABLED } from "../../lib/featureFlags.js"
+import { OAUTH_ENABLED } from "../../lib/featureFlags"
 
 export default function LoginPage() {
   const router = useRouter()
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,6 +30,8 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search)
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
     const code = params.get("error_code") || hashParams.get("error_code")
+    // Reads the URL once after hydration (the server can't see the hash).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (code === "otp_expired") setError("El enlace de recuperación expiró. Solicita uno nuevo.")
   }, [])
 
@@ -125,7 +126,7 @@ export default function LoginPage() {
         {/* Error */}
         <AuthErrorAlert error={error} />
 
-        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.js */}
+        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.ts */}
         {OAUTH_ENABLED && (
           <>
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>

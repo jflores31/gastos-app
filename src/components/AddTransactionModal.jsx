@@ -13,8 +13,8 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { Star, Label } from "../theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
-import { CATEGORIES, CURRENCIES, toBase, fromBase, fmtMoney } from "../data/index.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+import { CATEGORIES, CURRENCIES, toBase, fromBase } from "../data/index";
+import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 
@@ -25,7 +25,7 @@ const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;
 const MAX_AMOUNT_BASE = 10_000_000;
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
-  const { t, lang, currency } = useSettings();
+  const { t, lang, currency, fmt } = useSettings();
   const { addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
 
@@ -39,8 +39,8 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const favCats = user?.user_metadata?.fav_categories || [];
 
-  const myGroup = lang === "es" ? "Mis categorías" : "My categories";
-  const customGroup = lang === "es" ? "Personalizadas" : "Custom";
+  const myGroup = t.txModal.myCategories;
+  const customGroup = t.txModal.custom;
   const groupIcons = { [myGroup]: { Icon: Star, color: "warning.main" }, [customGroup]: { Icon: Label, color: "primary.main" } };
 
   const categoryOptions = useMemo(() => {
@@ -90,11 +90,11 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const validate = () => {
     const errs = {};
-    if (!categoria) errs.categoria = lang === "es" ? "Selecciona una categoría" : "Select a category";
-    if (!concepto.trim()) errs.concepto = lang === "es" ? "Ingresa un concepto" : "Enter a concept";
+    if (!categoria) errs.categoria = t.txModal.selectACategory;
+    if (!concepto.trim()) errs.concepto = t.txModal.enterAConcept;
     // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
-    if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
-    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = lang === "es" ? `El monto máximo es ${fmtMoney(MAX_AMOUNT_BASE, currency)}` : `Maximum amount is ${fmtMoney(MAX_AMOUNT_BASE, currency)}`;
+    if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = t.txModal.enterAValidAmount;
+    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = t.txModal.maximumAmountIs(fmt(MAX_AMOUNT_BASE));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -127,7 +127,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       onClose();
     } catch {
       setSaving(false);
-      showToast?.(lang === "es" ? "Error al guardar. Intenta de nuevo." : "Error saving. Please try again.", "error");
+      showToast?.(t.txModal.errorSavingPleaseTryAgain, "error");
     }
   };
 
@@ -139,12 +139,12 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle sx={{ fontWeight: 700 }}>
         {editTx
-          ? (lang === "es" ? "Editar Transacción" : "Edit Transaction")
-          : mode === "expense" ? (lang === "es" ? "Registrar Gasto Diario" : "Register Daily Expense")
-          : mode === "income" ? (lang === "es" ? "Registrar Ingreso" : "Register Income")
+          ? (t.txModal.editTransaction)
+          : mode === "expense" ? (t.txModal.registerDailyExpense)
+          : mode === "income" ? (t.txModal.registerIncome)
           : t.addTx}
       </DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 1 }}>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } }}>
         {mode === "all" && (
           <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); } }} fullWidth size="small">
             <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
@@ -203,9 +203,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
           error={!!errors.valor} helperText={errors.valor} fullWidth
           slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, currency), step: "any" } } }} />
 
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? "es" : "en"}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
           <DatePicker
-            label={lang === "es" ? "Fecha" : "Date"}
+            label={t.txModal.date}
             value={fecha}
             onChange={(newValue) => {
               if (newValue) setFecha(newValue.hour(fecha.hour()).minute(fecha.minute()).second(fecha.second()));
@@ -217,7 +217,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit" disabled={saving}>{t.cancel}</Button>
         <Button onClick={handleSubmit} variant="contained" color="primary" disabled={saving}>
-          {saving ? <CircularProgress size={20} color="inherit" /> : editTx ? (lang === "es" ? "Actualizar" : "Update") : t.save}
+          {saving ? <CircularProgress size={20} color="inherit" /> : editTx ? (t.txModal.update) : t.save}
         </Button>
       </DialogActions>
     </Dialog>

@@ -11,7 +11,9 @@ import {
   monthCount,
   daysCount,
   fmtDate,
-} from "./helpers.js"
+  netWorthOf,
+  insightsList,
+} from "./helpers"
 
 // Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
 function tx({ tipo = "EGRESO", categoria = "comida", concepto = "x", valor = 10, date = new Date() } = {}) {
@@ -200,5 +202,42 @@ describe("helpers triviales", () => {
   it("fmtDate formatea dd/mm con padding", () => {
     expect(fmtDate(new Date(2026, 0, 5))).toBe("05/01")
     expect(fmtDate(new Date(2026, 11, 25))).toBe("25/12")
+  })
+})
+
+describe("netWorthOf", () => {
+  it("activos = saldos positivos de cuentas + inversiones; deuda = saldos negativos + préstamos", () => {
+    const accounts = [{ balance: 2500 }, { balance: -300 }, { balance: 0 }]
+    const debts = [{ balance: 8000 }, { balance: null }]
+    const investments = [{ value: 3000 }, { value: 1200 }]
+    expect(netWorthOf(accounts, debts, investments)).toEqual({ assets: 6700, debt: 8300, net: -1600 })
+  })
+
+  it("las inversiones cuentan como activo (antes quedaban fuera del patrimonio)", () => {
+    expect(netWorthOf([], [], [{ value: 500 }])).toEqual({ assets: 500, debt: 0, net: 500 })
+  })
+
+  it("sin datos: todo en cero", () => {
+    expect(netWorthOf()).toEqual({ assets: 0, debt: 0, net: 0 })
+  })
+})
+
+describe("insightsList", () => {
+  const fmt = (v) => `S/${Math.round(v)}`
+
+  it("arma los textos en español con los datos del período", () => {
+    const list = insightsList("es", 300, 1000, 25, 12.4, [{ id: 1 }], "PEN", fmt, "month")
+    expect(list.map((i) => i.title)).toEqual(["Tendencia de gastos", "Tasa de ahorro", "Gastos inusuales", "Proyección fin de mes"])
+    expect(list[0].desc).toBe("Egresos 12% más altos que el período anterior.")
+    expect(list[1].desc).toBe("Ahorrando 25% de ingresos. ¡Objetivo 20% cumplido!")
+    expect(list[2].desc).toBe("1 transacción(es) inusual(es) detectada(s) este período.")
+    expect(list[3].desc).toMatch(/^Al ritmo actual: S\/\d+ proyectado al mes\.$/)
+  })
+
+  it("en inglés, y sin anomalías no agrega ese aviso", () => {
+    const list = insightsList("en", 300, 1000, 5, -8, [], "PEN", fmt, "month")
+    expect(list.map((i) => i.title)).toEqual(["Spending trend", "Savings rate", "Month-end forecast"])
+    expect(list[0].desc).toBe("Spending 8% lower than last period.")
+    expect(list[1].desc).toBe("Saving 5% of income. Target: 20%.")
   })
 })

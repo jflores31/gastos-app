@@ -2,14 +2,10 @@ import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
 import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "../theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
-import { CATEGORIES, fmtMoney } from "../data/index.js";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
 import { TONE_BY_PALETTE } from "../theme/iconTones.js";
+import { useSettings } from "../context/SettingsContext";
 
-const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAYS_ES = ["L", "M", "X", "J", "V", "S", "D"];
-const DAYS_EN = ["M", "T", "W", "T", "F", "S", "S"];
 
 export function EmptyState({ icon, title, subtitle, action }) {
   return (
@@ -33,13 +29,14 @@ export function EmptyState({ icon, title, subtitle, action }) {
   );
 }
 
-export function NoTransactions({ lang, type = "expense" }) {
+export function NoTransactions({ type = "expense" }) {
+  const { t } = useSettings();
   const isExpense = type === "expense";
   return (
     <EmptyState 
       icon={isExpense ? <ReceiptIcon sx={{ fontSize: 32 }} /> : <MoneyIcon sx={{ fontSize: 32 }} />}
-      title={lang === "es" ? (isExpense ? "Sin gastos" : "Sin ingresos") : (isExpense ? "No expenses" : "No income")}
-      subtitle={lang === "es" ? "Agrega tu primera transacción" : "Add your first transaction"}
+      title={isExpense ? t.sharedUi.noExpenses : t.sharedUi.noIncome}
+      subtitle={t.sharedUi.addYourFirstTransaction}
     />
   );
 }
@@ -107,7 +104,8 @@ export function SummaryCard({ label, value, delta, sub, invert, color, icon }) {
   );
 }
 
-export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
+export function CalendarFilter({ txs, tipo, onFilter }) {
+  const { t, fmt } = useSettings();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState("day");
@@ -116,8 +114,8 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
 
   const mainColor = tipo === "EGRESO" ? theme.palette.error.main : theme.palette.success.main;
   const sign = tipo === "EGRESO" ? "−" : "+";
-  const monthNames = lang === "es" ? MONTHS_ES : MONTHS_EN;
-  const dayNames = lang === "es" ? DAYS_ES : DAYS_EN;
+  const monthNames = t.months;
+  const dayNames = t.days;
 
   const dayMap = useMemo(() => {
     const m = new Map();
@@ -184,7 +182,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
 
   const selectedLabel = selected
     ? selected.type === "day"
-      ? selected.date.toLocaleDateString(lang === "es" ? "es-PE" : "en-US", { day: "numeric", month: "short" })
+      ? selected.date.toLocaleDateString(t.common.locale, { day: "numeric", month: "short" })
       : `${monthNames[selected.date.getMonth()]} ${selected.date.getFullYear()}`
     : null;
 
@@ -205,7 +203,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
           <Chip
             size="small"
             icon={<CalendarIcon sx={{ fontSize: "14px !important" }} />}
-            label={lang === "es" ? "Filtrar por fecha" : "Filter by date"}
+            label={t.sharedUi.filterByDate}
             onClick={() => setOpen((o) => !o)}
             variant="outlined"
             sx={{ fontWeight: 600, fontSize: 11, borderColor: "divider", color: "text.secondary", cursor: "pointer", "&:hover": { borderColor: mainColor, color: mainColor } }}
@@ -222,21 +220,21 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
               <Chip
                 key={mode}
                 size="small"
-                label={mode === "day" ? (lang === "es" ? "Día" : "Day") : (lang === "es" ? "Mes" : "Month")}
-                aria-label={mode === "day" ? (lang === "es" ? "Ver por día" : "View by day") : (lang === "es" ? "Ver por mes" : "View by month")}
+                label={mode === "day" ? (t.sharedUi.day) : (t.sharedUi.month)}
+                aria-label={mode === "day" ? (t.sharedUi.viewByDay) : (t.sharedUi.viewByMonth)}
                 onClick={() => { setViewMode(mode); clearFilter(); setOpen(true); }}
                 variant={viewMode === mode ? "filled" : "outlined"}
                 sx={{ fontWeight: 600, fontSize: 10, height: 20, bgcolor: viewMode === mode ? mainColor : undefined, color: viewMode === mode ? "#fff" : "text.secondary", borderColor: viewMode === mode ? mainColor : "divider", "&:hover": { opacity: 0.85 } }}
               />
             ))}
             <Box sx={{ flex: 1 }} />
-            <IconButton size="small" onClick={prevNav} sx={{ p: 0.25 }} aria-label={lang === "es" ? "Anterior" : "Previous"}>
+            <IconButton size="small" onClick={prevNav} sx={{ p: 0.25 }} aria-label={t.sharedUi.previous}>
               <ChevronLeftIcon sx={{ fontSize: 16 }} />
             </IconButton>
             <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 72, textAlign: "center", fontSize: 11 }}>
               {viewMode === "day" ? `${monthNames[navDate.getMonth()]} ${navDate.getFullYear()}` : navDate.getFullYear()}
             </Typography>
-            <IconButton size="small" onClick={nextNav} sx={{ p: 0.25 }} aria-label={lang === "es" ? "Siguiente" : "Next"}>
+            <IconButton size="small" onClick={nextNav} sx={{ p: 0.25 }} aria-label={t.sharedUi.next}>
               <ChevronRightIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
@@ -287,11 +285,11 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                 })}
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1, justifyContent: "center" }}>
-                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{lang === "es" ? "Menos" : "Less"}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{t.sharedUi.less}</Typography>
                 {[0.1, 0.3, 0.55, 0.75, 0.9].map((o) => (
                   <Box key={o} sx={{ width: 8, height: 8, borderRadius: 0.25, bgcolor: alpha(mainColor, o) }} />
                 ))}
-                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{lang === "es" ? "Más" : "More"}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{t.sharedUi.more}</Typography>
               </Box>
             </>
           ) : (
@@ -324,7 +322,7 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
                     <Typography variant="caption" sx={{ fontWeight: 600, display: "block", color: sel ? "#fff" : "text.primary", fontSize: 10 }}>{name}</Typography>
                     {val > 0 && (
                       <Typography variant="caption" sx={{ display: "block", color: sel ? "rgba(255,255,255,0.8)" : mainColor, fontWeight: 600, fontSize: 8, lineHeight: 1.2, mt: 0.25 }}>
-                        {sign}{fmtMoney(val, currency, true)}
+                        {sign}{fmt(val, true)}
                       </Typography>
                     )}
                   </Box>
@@ -335,42 +333,5 @@ export function CalendarFilter({ txs, tipo, onFilter, lang, currency }) {
         </Paper>
       </Collapse>
     </Box>
-  );
-}
-
-export function TxTable({ txs, lang, currency, t }) {
-  if (!txs.length) return <div className="st-tx-empty">{lang === "es" ? "No hay transacciones para mostrar" : "No transactions to show"}</div>;
-  return (
-    <div className="st-tx-table">
-      <div className="st-tx-head">
-        <span>{t.date}</span><span>{t.category}</span><span>{t.concept}</span>
-        <span style={{ textAlign: "right" }}>{t.amount}</span>
-      </div>
-      <div className="st-tx-body">
-        {txs.map((x) => {
-          const expColor = CATEGORIES.expense[x.categoria]?.color;
-          const color    = expColor || "var(--income)";
-          const catName  = CATEGORIES.expense[x.categoria]?.[lang] || CATEGORIES.income[x.categoria]?.[lang] || x.categoria;
-          return (
-            <div key={x.id} className="st-tx-row" data-anom={x.anomaly}>
-              <div className="st-tx-date"><div className="st-tx-d">{x.dia}</div><div className="st-tx-m">{t.months[x.mes]}</div></div>
-              <div className="st-tx-cat">
-                <i style={{ background: `color-mix(in oklch, ${expColor || "#9e9e9e"} 18%, transparent)`, color }}>
-                  {catName.slice(0, 1)}
-                </i>
-                <div className="st-tx-con">
-                  <span>{catName}</span>
-                  {x.anomaly && <span className="st-tx-flag">⚠ {t.unusual}</span>}
-                </div>
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{x.concepto}</div>
-              <div className="st-tx-amt" data-tipo={x.tipo}>
-                {x.tipo === "INGRESO" ? "+" : "−"}{fmtMoney(x.valor, currency, true)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

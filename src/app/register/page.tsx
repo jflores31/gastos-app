@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
@@ -11,7 +11,7 @@ import { createClient } from "../../lib/supabase"
 import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { darkFieldSx } from "../components/auth/authStyles"
-import { OAUTH_ENABLED } from "../../lib/featureFlags.js"
+import { OAUTH_ENABLED } from "../../lib/featureFlags"
 
 const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
@@ -41,8 +41,7 @@ const Blobs = ({ isDark }: { isDark: boolean }) => (
 
 export default function RegisterPage() {
   const theme = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(theme.palette.mode === "dark") }, [theme.palette.mode])
+  const isDark = theme.palette.mode === "dark"
 
   const [name, setName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -169,7 +168,7 @@ export default function RegisterPage() {
         {/* Error */}
         <AuthErrorAlert error={error} />
 
-        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.js */}
+        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.ts */}
         {OAUTH_ENABLED && (
           <>
             <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>

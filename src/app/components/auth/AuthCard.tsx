@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Box } from "@mui/material"
-import { useTheme } from "@mui/material/styles"
+import { useTheme, type Theme } from "@mui/material/styles"
+import type { ResponsiveStyleValue, SystemStyleObject } from "@mui/system"
 import { type ReactNode } from "react"
 import { cardBaseSx } from "./authStyles"
 
 interface AuthCardProps {
   children: ReactNode
   maxWidth?: number
-  p?: object | number
+  p?: ResponsiveStyleValue<number>
   accentColor?: string
-  sx?: object
+  sx?: SystemStyleObject<Theme>
 }
 
 export function AuthCard({
@@ -22,8 +22,7 @@ export function AuthCard({
   sx,
 }: AuthCardProps) {
   const { palette } = useTheme()
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => { setIsDark(palette.mode === "dark") }, [palette.mode])
+  const isDark = palette.mode === "dark"
 
   return (
     <Box

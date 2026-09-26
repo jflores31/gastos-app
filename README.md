@@ -12,13 +12,13 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 
 | Categoría | Tecnología |
 |---|---|
-| Framework | Next.js 16.3 (App Router, Turbopack) |
-| UI | Material UI (MUI) v9 + `@mui/icons-material` (variante Rounded) |
-| Auth + DB | Supabase (email/password; OAuth preparado pero desactivado) |
+| Framework | Next.js 16.3 (App Router, Turbopack) + React 19 |
+| UI | Material UI (MUI) v9 + `@mui/icons-material` (variante Rounded) + `@mui/material-nextjs` (estilos en el `<head>` desde el servidor) |
+| Auth + DB | Supabase con `@supabase/ssr` 0.12 (email/password; OAuth preparado pero desactivado) |
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
-| Lenguaje | TypeScript (rutas/config) + JSX (componentes) |
-| Tests | Vitest (unitarios y componentes con jsdom) + Playwright (end-to-end) |
+| Lenguaje | TypeScript `strict` (rutas, datos, textos, contextos de ajustes y usuario) + JSX (componentes) |
+| Tests | Vitest 5 (unitarios y componentes con jsdom) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests y build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
 
@@ -29,7 +29,7 @@ Aplicación de finanzas personales para rastrear ingresos, gastos, presupuestos,
 - Registro con nombre, apellidos y email — confirmación por email
 - Recuperación de contraseña completa (forgot → email → reset con detección de enlace expirado)
 - Protección de rutas doble capa: `src/proxy.ts` (server) + `router.replace` en `DashboardStudio` (client)
-- Auto-logout por inactividad a los 2 minutos con aviso a los 30 s, medido entre todas las pestañas (una pestaña inactiva no cierra la sesión si estás activo en otra)
+- Auto-logout por inactividad (2, 5, 15 o 30 minutos, se elige en Ajustes; 2 por defecto) con aviso 30 s antes, medido entre todas las pestañas (una pestaña inactiva no cierra la sesión si estás activo en otra)
 - Cierre forzado al reabrir el navegador: `UserContext` escribe el flag `gastos_session_alive` en `sessionStorage` al detectar `SIGNED_IN`; `DashboardStudio` lo verifica al montar. Si falta, pregunta por `BroadcastChannel` a las otras pestañas: si alguna responde (pestaña nueva con el navegador abierto) hereda el flag; si no (navegador reabierto) cierra la sesión solo en este navegador (`scope: "local"`)
 - Pestaña abierta >8 h: `checkSessionAge` lee `gastos_last_active` (localStorage) al recuperar visibilidad (`visibilitychange` + `pageshow` para bfcache) y cierra sesión si supera el límite
 
@@ -88,7 +88,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Metas y Finanzas (GoalsTab)
 - CRUD de metas de ahorro con fecha límite, color e icono elegible (`IconPicker`) — formulario con nombre único
 - Gestión de cuentas bancarias/tarjetas/efectivo
-- Patrimonio neto (activos − deudas) en tiempo real
+- Patrimonio neto en tiempo real (`netWorthOf()`): activos (saldos positivos de cuentas + inversiones) − deudas (saldos negativos + préstamos)
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.) — formulario con nombre único
 - Control de deudas y préstamos con cuotas — formulario con campo de nombre único (guarda en ambos idiomas automáticamente)
 - Suscripciones recurrentes con selector de categoría (nativas + personalizadas); botón "Agregar / Add" bilingüe en estados vacíos
@@ -98,9 +98,16 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Perfil y Configuración (SettingsPanel)
 Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color e icono — en Supabase)
-- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN: los formularios convierten con `toBase()` al guardar y `fromBase()` al editar (`src/data/index.js`), con tasas fijas
+- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN: los formularios convierten con `toBase()` al guardar y `fromBase()` al editar (`src/data/index.ts`), con tasas fijas
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
+
+### Privacidad, exportación y app instalable
+- **Modo privacidad:** el botón del ojo en la barra superior oculta todos los montos ("S/••••"). Se recuerda en el navegador. Los montos se formatean con `fmt()` de `useSettings()`, que ya conoce la moneda y este modo.
+- **Tus datos (Perfil):**
+  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN, celdas protegidas contra fórmulas);
+  - todo se descarga como copia completa en JSON (`src/data/export.ts`).
+- **App instalable:** `src/app/manifest.ts` y los iconos de `public/icons/`, generados con `node scripts/generate-icons.mjs`. Chrome, Edge y Android ofrecen "Instalar app"; iOS, "Agregar a pantalla de inicio". No hay Service Worker a propósito (ver "Solución de problemas").
 
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
@@ -118,6 +125,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 .
 ├── .github/workflows/ci.yml        # CI: lint, typecheck, tests, build y e2e en cada PR y push a main
 ├── e2e/                            # Tests end-to-end (Playwright) + playwright.config.ts
+│   └── mock-supabase/              # Supabase simulado (Auth + PostgREST) para los tests con sesión
 ├── .env.example                    # Variables de entorno (copiar a .env.local)
 ├── CHANGELOG.md                    # Historial de cambios
 ├── ICONOS_Y_ESTRUCTURA.txt         # Mapa de iconos y estructura en texto plano
@@ -145,6 +153,7 @@ src/
 │   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx de cada pantalla de auth
 │   ├── auth/callback/route.ts      # Canje del código PKCE de OAuth (OAuth desactivado por ahora)
 │   ├── api/client-error/route.ts   # Recibe errores del navegador y los escribe en los logs del servidor
+│   ├── api/csp-report/route.ts     # Recibe las violaciones del CSP y las escribe en los logs
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
@@ -155,24 +164,35 @@ src/
 │   ├── OverviewTab.jsx             # Vista general con gráficos y saludo
 │   ├── ExpensesTab.jsx             # Gastos con CRUD y filtros
 │   ├── IncomeTab.jsx               # Ingresos con CRUD y filtros
-│   ├── BudgetTab.jsx               # Presupuestos
-│   ├── GoalsTab.jsx                # Metas, cuentas, inversiones, deudas, suscripciones
+│   ├── BudgetTab.jsx               # Presupuestos: métricas del período + layout
+│   ├── budget/                     # Una tarjeta por archivo (salud, presupuestos, distribución,
+│   │                               #   comparación, presupuesto vs real, recurrentes) + diálogo Gestionar
+│   ├── GoalsTab.jsx                # Metas: layout de las secciones
+│   ├── goals/                      # Una sección por archivo (metas, cuentas, pronóstico, inversiones,
+│   │                               #   deudas, suscripciones, evolución) + useEntityDialog y EntityDialog
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
-│   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes + categorías personalizadas
+│   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes (pestañas y snackbar)
+│   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
 │   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
 │   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
-│   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES
+│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N, fmtMoney, toBase/fromBase
-│   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
+│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
+│   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   insightsList, linearRegressionSlope…
-│   ├── fetchAllRows.js             # Paginación con .range() (Supabase corta en 1000 filas)
+│   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
+│   ├── export.ts                   # CSV y copia JSON de "Tus datos"
 │   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
+├── i18n/
+│   ├── base.ts                     # Textos cortos compartidos (t.income, t.save, t.months…)
+│   ├── ui.ts                       # Textos por área (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
+│   ├── index.ts                    # MESSAGES y messagesFor(lang)
+│   └── messages.test.js            # Mismas claves en es/en; sin ternarios de idioma fuera de i18n/
 ├── theme/
 │   ├── materialTheme.js            # Temas light/dark, acentos y animación de iconos
 │   ├── icons.js                    # Set central de iconos MUI Rounded
@@ -180,11 +200,12 @@ src/
 │   ├── iconTones.js                # Gradientes por tono (TONES, TONE_BY_PALETTE)
 │   ├── GradientIcon.jsx            # GradientIcon + CategoryAvatar
 │   └── IconPicker.jsx              # Selector de icono (metas y categorías personalizadas)
+├── types.ts                        # Tipos del dominio: Transaction, Goal, Account, Period…
 ├── hooks/
-│   └── useLocalStorage.js          # Valor por defecto en el primer render; el guardado, tras montar
+│   └── useLocalStorage.ts          # Valor por defecto en el primer render; el guardado, tras montar
 ├── lib/
-│   ├── featureFlags.js             # OAUTH_ENABLED (login, registro y LoginModal)
-│   ├── reportError.js              # Envía errores del navegador a /api/client-error
+│   ├── featureFlags.ts             # OAUTH_ENABLED (login, registro y LoginModal)
+│   ├── reportError.ts              # Envía errores del navegador a /api/client-error
 │   ├── supabase.ts                 # Cliente browser (createBrowserClient)
 │   └── supabase-server.ts          # Cliente server
 └── proxy.ts                        # Guard de auth + CSP con nonce por request (Next.js 16)
@@ -232,8 +253,9 @@ npm run dev
 # Tests unitarios y de componentes (Vitest)
 npm run test
 
-# Tests end-to-end (Playwright) sobre el build de producción
-npm run build && npm run test:e2e
+# Tests end-to-end (Playwright) sobre el build de producción, contra un Supabase simulado
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=e2e npm run build
+npm run test:e2e
 
 # Lint (ESLint) y chequeo de tipos (tsc)
 npm run lint
@@ -255,7 +277,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 | Medida | Detalle |
 |---|---|
-| HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`) generada en `proxy.ts`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
+| HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`; los `<style>` de emotion también llevan el nonce) generada en `proxy.ts`, con las violaciones reportadas a `/api/csp-report`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |
@@ -274,7 +296,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Carga de datos:** `DataContext.load()` corre con el primer evento de `onAuthStateChange` que traiga `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` o `USER_UPDATED`) y se deduplica por `session.user.id`, así los refrescos periódicos del token no repiten las 8 queries. No se llama al montar (eso duplicaba las queries). Si falla, se resetea el flag para reintentar con el siguiente evento. Esto elimina el bug de "hay que refrescar 2 veces", cuando un `INITIAL_SESSION` sin sesión utilizable no tenía reintento. Las queries dependen de RLS (`select("*")` sin `.eq("user_id")`).
 
-**Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/data/fetchAllRows.js`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
+**Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/data/fetchAllRows.ts`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
 
 **Moneda:** los montos se guardan siempre en PEN. `fmtMoney(v, currency)` multiplica por la `rate` fija de `CURRENCIES` al mostrar, y los formularios convierten con `toBase()` al guardar y `fromBase()` al precargar una edición (transacciones, presupuestos, metas, cuentas, inversiones, deudas y suscripciones; las tasas % y los meses no se convierten). El tope de 10,000,000 se valida en PEN. Límite conocido: redondear a 2 decimales en PEN puede mover un monto en COP hasta unas 5 unidades.
 
@@ -302,11 +324,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Seguridad de sesión:**
 - `UserContext` escribe `gastos_session_alive` en `sessionStorage` al recibir `SIGNED_IN`; el navegador la borra al cerrarse y las recargas (F5) la conservan.
 - Al montar, `DashboardStudio` la verifica. Si falta, pregunta por `BroadcastChannel("gastos-session")` si hay otra pestaña viva (espera unos 300 ms): si alguna responde, es una pestaña nueva con el navegador abierto y hereda la marca; si no, el navegador se reabrió y cierra sesión.
-- Inactividad: 2 min con aviso a los 30 s. `gastos_last_active` (localStorage, compartido entre pestañas) se actualiza con cada evento del usuario y se relee antes de avisar o cerrar, así una pestaña inactiva no cierra la sesión si estás activo en otra.
+- Inactividad: 2 min por defecto (configurable en Ajustes: 2, 5, 15 o 30, en `gastos-idle-minutes`), con aviso 30 s antes. El valor se sincroniza entre pestañas con el evento `storage`, así una pestaña con el valor viejo no cierra la sesión antes de tiempo. `gastos_last_active` (localStorage, compartido entre pestañas) se actualiza con cada evento del usuario y se relee antes de avisar o cerrar, así una pestaña inactiva no cierra la sesión si estás activo en otra.
 - Pestaña abierta más de 8 h: se revisa al recuperar visibilidad (`visibilitychange` y `pageshow` para bfcache).
 - Los cierres automáticos usan `signOut({ scope: "local" })`, que no revoca las sesiones de otros dispositivos; el botón "Cerrar sesión" mantiene el alcance global. Todos borran `gastos_last_active` para no entrar en un bucle de logout en el siguiente login.
 
-**OAuth (desactivado):** `src/app/auth/callback/route.ts` canjea el código PKCE y valida que `next` sea una ruta interna. Para activarlo: crear las apps OAuth en Google/GitHub, cargar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true` en `src/lib/featureFlags.js` (lo usan el login, el registro y `LoginModal`). ⚠ Antes, revisar la marca de sesión: el canje ocurre en el servidor, así que el cliente no recibe `SIGNED_IN` y no se escribiría `gastos_session_alive`.
+**OAuth (desactivado):** `src/app/auth/callback/route.ts` canjea el código PKCE y valida que `next` sea una ruta interna. Para activarlo: crear las apps OAuth en Google/GitHub, cargar client id/secret en Supabase → Auth → Providers, añadir `https://www.jeshu.cfd/auth/callback` a las redirect URLs y poner `OAUTH_ENABLED = true` en `src/lib/featureFlags.ts` (lo usan el login, el registro y `LoginModal`). ⚠ Antes, revisar la marca de sesión: el canje ocurre en el servidor, así que el cliente no recibe `SIGNED_IN` y no se escribiría `gastos_session_alive`.
 
 **Supabase `redirectTo`:** `window.location.origin` puede devolver `https://www.jeshu.cfd` (con www), pero Supabase solo acepta `https://jeshu.cfd/**`. Aplicar `.replace(/^https:\/\/www\./, "https://")` antes de `redirectTo`.
 
@@ -363,6 +385,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 - **Deudas:** el progreso nunca es negativo y usa `original_months || remaining || 1`.
 - **Formularios:** tienen validaciones (mínimos, precio > 0, cuotas restantes ≤ total, ayuda para "TEA") y los botones de eliminar se deshabilitan durante la operación.
 
+### Idiomas (i18n)
+
+- **Todos los textos viven en `src/i18n/`**, en español e inglés. Los componentes los toman como `t` de `useSettings()`: `t.save`, `t.goalsTab.newGoal`, `t.common.delete`.
+- **Textos con datos:** son funciones, así el plural y el orden de las palabras quedan en el diccionario. Por ejemplo, `t.overviewTab.expenseRecords(n)` da "1 gasto" o "3 gastos", y `t.common.vsPreviousPeriod(period)` da "vs trimestre anterior".
+- **Fuera de React** (p. ej. `healthLabel` e `insightsList` en `helpers.ts`): `messagesFor(lang)`.
+- **Nombres accesibles:** también se traducen los `aria-label`, los nombres de los 43 iconos del selector (`t.iconNames`) y de las paletas (`t.palettes`).
+- **Regla:** no se escribe `lang === "es" ? … : …`. `messages.test.js` falla si aparece fuera de `src/i18n/`, o si falta una clave en un idioma.
+- **Nombres de categorías:** siguen en `CATEGORIES` (`src/data/index.ts`), con `es` y `en` en cada una.
+
 ### Formularios y UI
 
 **`AddTransactionModal`:**
@@ -378,6 +409,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 **Otros:**
 - El avatar de `DashboardStudio` no falla con nombre vacío (`displayName?.[0]?.toUpperCase() || "?"`).
 - Los textos del botón "Entrar" y del banner de error son bilingües.
+- **Diálogos:** MUI pone `padding-top: 0` al `DialogContent` que sigue a un `DialogTitle`, con un selector más específico que el `sx`. El padding se aplica con `"&&": { pt }`; sin eso, la etiqueta flotante del primer campo queda recortada.
 - `not-found.tsx` es Client Component (usa `<Button component={Link}>`).
 - El borrado de transacciones usa `try/catch/finally`.
 
@@ -401,7 +433,7 @@ Supabase DB (8 tablas, RLS auth.uid() = user_id)
                     ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
                     └── GoalsTab  (goals + accounts + investments + debts + subscriptions)
 
-Cada pestaña: filterByPeriod(txs, period) → helpers.js → Charts.jsx
+Cada pestaña: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Nombre / color / icono de categoría: resolveCategoryMeta()  (theme/categoryIcons.js)
 Montos: guardados en PEN → fmtMoney(v, currency) al mostrar; toBase()/fromBase() en formularios
 ```
@@ -412,7 +444,8 @@ Montos: guardados en PEN → fmtMoney(v, currency) al mostrar; toBase()/fromBase
 |---|---|
 | `DashboardStudio.jsx` | Shell de la app: único componente que consume los 3 contextos (Settings, User, Data), controla el `period` compartido, es el canal de `showToast` y aplica la seguridad de sesión |
 | `DataContext.jsx` | Única fuente de datos y de mutaciones contra Supabase |
-| `data/helpers.js` | Cálculos puros que usan las 4 pestañas principales (períodos, salud financiera, anomalías, recurrentes, tendencias); un bug aquí afecta a todas, por eso tiene tests |
+| `data/helpers.ts` | Cálculos puros que usan las pestañas (períodos, salud financiera, anomalías, recurrentes, tendencias, patrimonio); un bug aquí afecta a todas, por eso tiene tests |
+| `components/goals/useEntityDialog.js` | Estado y handlers de los diálogos crear/editar/borrar de Metas (metas, cuentas, inversiones, deudas, suscripciones) |
 | `theme/categoryIcons.js` | Nombre, color e icono de cualquier categoría |
 | `proxy.ts` | Guard de rutas + CSP con nonce por request |
 

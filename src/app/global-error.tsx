@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { reportError } from "../lib/reportError.js"
+import { reportError } from "../lib/reportError"
 
 export default function GlobalError({
   error,

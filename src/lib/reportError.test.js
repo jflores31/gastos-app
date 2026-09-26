@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { buildReport, reportError, _resetReportedErrors } from "./reportError.js"
+import { buildReport, reportError, _resetReportedErrors } from "./reportError"
 
 describe("buildReport", () => {
   it("toma mensaje, nombre, stack y digest del error", () => {
