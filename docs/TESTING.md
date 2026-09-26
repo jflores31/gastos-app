@@ -23,6 +23,10 @@ npm run typecheck    # tsc --noEmit
 
 - Ningún test necesita un Supabase real.
 - Para correr los tests end-to-end en otra máquina, instalar antes el navegador con `npx playwright install chromium` (la CI lo hace sola).
+- **El build de los end-to-end necesita las variables `NEXT_PUBLIC_SUPABASE_*`.**
+  - Next las incrusta al compilar, así que Playwright no puede ponerlas después.
+  - Sin `.env.local`, compilar con las falsas de la CI: `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=x npm run build`.
+  - Si faltan, las páginas de auth caen en el error global y fallan 7 de los 10 tests.
 
 ## Qué está cubierto
 
