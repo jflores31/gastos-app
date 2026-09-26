@@ -294,6 +294,32 @@ test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)",
   await expect(panel.getByText("Ninguna aún. Crea tu primera categoría.")).toBeVisible()
 })
 
+test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const { tables } = await mockDb(request, email)
+  await openSettings(page, "Perfil")
+  const read = async (button: string) => {
+    const [download] = await Promise.all([page.waitForEvent("download"), dialog(page).first().getByRole("button", { name: button }).click()])
+    return { name: download.suggestedFilename(), text: (await (await download.createReadStream()).toArray()).join("") }
+  }
+
+  const csv = await read("Transacciones (CSV)")
+  expect(csv.name).toMatch(/^finanzas-transacciones-\d{4}-\d{2}-\d{2}\.csv$/)
+  const lines = csv.text.replace(/^﻿/, "").trim().split("\r\n")
+  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen")
+  expect(lines).toHaveLength(tables.transactions.length + 1)
+  expect(lines).toContain(lines.find((l) => l.includes(",SUPERMERCADO,900")))
+  expect(csv.text).toContain(",COMIDA,Comida,")
+
+  const json = JSON.parse((await read("Copia completa (JSON)")).text)
+  expect(json).toMatchObject({ app: "gastos-app", version: 1, currency: "PEN" })
+  expect(json.transactions).toHaveLength(tables.transactions.length)
+  expect(json.budgets).toEqual(expect.arrayContaining([{ categoria: "COMIDA", monto: 600 }]))
+  expect(json.custom_categories.map((c: { nombre: string }) => c.nombre)).toEqual(["Gatos"])
+  await expect(toast(page, "Archivo descargado")).toBeVisible()
+})
+
 test("en los diálogos, la etiqueta flotante del primer campo no queda recortada", async ({ page }, info) => {
   await login(page, uniqueEmail(info))
   // The label floats above the field once it has a value; MUI's padding-top: 0 on a

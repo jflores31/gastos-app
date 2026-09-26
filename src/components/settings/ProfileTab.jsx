@@ -7,6 +7,7 @@ import { CATEGORIES } from "../../data/index.js";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { createClient } from "../../lib/supabase";
 import { CustomCategoriesSection } from "./CustomCategoriesSection.jsx";
+import { DataExportSection } from "./DataExportSection.jsx";
 
 // "Perfil" tab of the settings panel. The name fields' state lives in SettingsPanel so an
 // unsaved edit survives switching tabs, and resets each time the panel opens.
@@ -58,6 +59,8 @@ export function ProfileTab({ user, name, notify }) {
         <FavoriteCategoriesSection user={user} notify={notify} />
         <Divider variant="middle" />
         <CustomCategoriesSection notify={notify} />
+        <Divider variant="middle" />
+        <DataExportSection notify={notify} />
       </List>
     </Box>
   );
