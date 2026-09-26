@@ -37,7 +37,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: { default: "Finanzas", template: "%s | Finanzas" },
   description: "Aplicación de finanzas personales para rastrear ingresos y gastos",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Finanzas", statusBarStyle: "default" },
 }
 
 export default async function RootLayout({

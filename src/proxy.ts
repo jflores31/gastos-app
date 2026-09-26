@@ -74,8 +74,10 @@ export default async function proxy(request: NextRequest) {
   const isCallback = pathname.startsWith("/auth/callback")
   // Browser error reports must get through without a session (errors on the auth pages).
   const isErrorReport = pathname === "/api/client-error"
+  // The browser fetches the web app manifest without cookies before anyone signs in.
+  const isManifest = pathname === "/manifest.webmanifest"
 
-  if (!user && !isAuthPage && !isCallback && !isErrorReport) {
+  if (!user && !isAuthPage && !isCallback && !isErrorReport && !isManifest) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     const redirect = NextResponse.redirect(url)

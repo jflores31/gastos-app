@@ -66,6 +66,27 @@ test("el favicon de la app existe y está enlazado", async ({ page, request }) =
   expect(await res.text()).toContain("<svg")
 })
 
+test("la app es instalable: manifest público, iconos y sin errores de instalabilidad", async ({ page, request }) => {
+  const res = await request.get("/manifest.webmanifest", { maxRedirects: 0 })
+  expect(res.status()).toBe(200)
+  const manifest = await res.json()
+  expect(manifest).toMatchObject({ short_name: "Finanzas", start_url: "/", display: "standalone" })
+  for (const icon of manifest.icons) {
+    const img = await request.get(icon.src)
+    expect(img.status(), icon.src).toBe(200)
+    expect(img.headers()["content-type"], icon.src).toContain(icon.type)
+  }
+  expect(manifest.icons.some((i: { purpose?: string }) => i.purpose === "maskable")).toBe(true)
+
+  await page.goto("/login", { waitUntil: "networkidle" })
+  await expect(page.locator('link[rel="manifest"]')).toHaveCount(1)
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1)
+  // Chromium's own verdict (what decides whether "Install app" is offered).
+  const cdp = await page.context().newCDPSession(page)
+  const { installabilityErrors } = await cdp.send("Page.getInstallabilityErrors")
+  expect(installabilityErrors).toEqual([])
+})
+
 test("un error no capturado en el navegador llega a /api/client-error (sin la query)", async ({ page }) => {
   // Playwright doesn't expose sendBeacon bodies: wrap it to record the payload, then let the
   // real beacon go out so the route's response is checked too.
