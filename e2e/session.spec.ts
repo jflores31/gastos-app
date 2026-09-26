@@ -3,6 +3,16 @@ import { login, mockDb, uniqueEmail, watchConsole } from "./helpers"
 
 // Flows behind the login, against the mock Supabase in e2e/mock-supabase.
 
+// Every flow behind the login runs without CSP violations: a <style> without the nonce
+// (a library emotion doesn't manage, a regression in the layout) would be blocked and
+// the screen would lose its styles. Chromium logs each violation to the console.
+let cspProblems: string[] = []
+test.beforeEach(({ page }) => {
+  cspProblems = []
+  page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) cspProblems.push(m.text()) })
+})
+test.afterEach(() => expect(cspProblems).toEqual([]))
+
 const dialog = (page: Page) => page.getByRole("dialog")
 const toast = (page: Page, text: string | RegExp) => page.getByRole("alert").filter({ hasText: text })
 

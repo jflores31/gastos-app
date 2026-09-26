@@ -33,7 +33,7 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 111 tests en 13 archivos
+### Unitarios y componentes: 115 tests en 14 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
@@ -43,6 +43,7 @@ npm run typecheck    # tsc --noEmit
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
 | [`src/lib/reportError.test.js`](../src/lib/reportError.test.js) | 8 | Reporte de errores del navegador: recorte de campos, solo el pathname (sin query), sin repetidos, tope de 10, `fetch` si no hay `sendBeacon`, nunca lanza |
 | [`src/app/api/client-error/route.test.js`](../src/app/api/client-error/route.test.js) | 4 | La ruta escribe una línea JSON y responde 204. Descarta campos desconocidos, 400 si el JSON es inválido, 413 si pasa de 8 KB |
+| [`src/app/api/csp-report/route.test.js`](../src/app/api/csp-report/route.test.js) | 4 | **Reportes del CSP:** formato `report-uri` y de la Reporting API, URLs sin query ni hash, campos desconocidos descartados, máximo 10 por envío, 400 y 413 |
 | [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 4 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27`; editar precarga el monto en la moneda elegida; el tope se valida en PEN |
 | [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono con su nombre traducido, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
@@ -53,14 +54,16 @@ npm run typecheck    # tsc --noEmit
 
 Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
 
-### End-to-end sin sesión: 11 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
+### End-to-end sin sesión: 12 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
 
 - **Sin sesión:** `/` redirige a `/login`.
 - **`/login` en tema claro y oscuro:**
   - el CSP trae nonce y `'strict-dynamic'`, sin `'unsafe-inline'`, y **todos** los `<script>` llevan el nonce;
+  - `style-src-elem` lleva el mismo nonce, y **todos** los `<style>` también;
   - el formulario es interactivo (hidrató);
   - aplica el tema guardado;
   - la consola queda sin errores.
+- **CSP de estilos:** un `<style>` inyectado sin nonce se bloquea (`style-src-elem`), no se aplica, y el navegador envía el reporte a `/api/csp-report` (204). La ruta también acepta el formato de la Reporting API.
 - **Otras páginas de auth:** `/register`, `/forgot-password` y `/reset-password` cargan sin errores de consola.
 - **Recursos:** las fuentes se cargan desde la app, sin peticiones a otros dominios, y el favicon existe y está enlazado.
 - **App instalable:**
@@ -74,7 +77,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
 
 ### End-to-end con sesión: 15 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
-Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
+Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse. Todos fallan si la consola registra una violación del CSP (`afterEach`).
 
 - **Login:** con credenciales inválidas muestra el error y no entra.
 - **Todas las pantallas sin errores de consola:**

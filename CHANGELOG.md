@@ -32,6 +32,10 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - una copia completa en JSON.
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
+### Seguridad
+- **CSP de estilos:** los `<style>` necesitan el nonce de la respuesta, como los scripts. Emotion lo recibe del layout y lo pone en cada `<style>`. Solo los atributos `style="…"` siguen permitidos inline. Un `<style>` inyectado ya no se aplica.
+- **Reporte de violaciones del CSP:** el navegador las envía a `/api/csp-report`, que las escribe en los logs sin la query de las URLs.
+
 ### Dependencias
 - **React 19**, igual al que ya usaba Next 16 por dentro (los tests unitarios corrían con React 18).
 - **`@supabase/ssr` 0.12 y `supabase-js` 2.117.** Cuando el proxy renueva la sesión, la respuesta sale con `Cache-Control: no-store`, así un CDN no puede guardar una respuesta con la cookie de un usuario y entregársela a otro. Antes, una ruta estática (como el manifest) salía con `public, max-age=0`.

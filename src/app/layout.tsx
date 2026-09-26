@@ -49,7 +49,9 @@ export default async function RootLayout({
   // Reading headers() opts every route into dynamic rendering so Next can stamp the
   // per-request CSP nonce (set in src/proxy.ts) onto its <script> tags. Static prerender
   // would ship nonce-less scripts that 'strict-dynamic' then blocks.
-  await headers()
+  // The same nonce goes to emotion, which stamps it on every <style> it writes (SSR and
+  // client), as the CSP's style-src-elem requires.
+  const nonce = (await headers()).get("x-nonce") ?? undefined
 
   return (
     <html lang="es" suppressHydrationWarning>
@@ -57,7 +59,7 @@ export default async function RootLayout({
         {/* Emotion styles go into <head> during SSR. Without this provider emotion writes a
             <style> next to every component in <body>; any of those still there when React
             hydrates (HTML streamed after emotion loaded) is an extra node → React #418. */}
-        <AppRouterCacheProvider>
+        <AppRouterCacheProvider options={{ key: "mui", nonce }}>
           <Providers>{children}</Providers>
         </AppRouterCacheProvider>
       </body>

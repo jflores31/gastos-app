@@ -153,6 +153,7 @@ src/
 │   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx de cada pantalla de auth
 │   ├── auth/callback/route.ts      # Canje del código PKCE de OAuth (OAuth desactivado por ahora)
 │   ├── api/client-error/route.ts   # Recibe errores del navegador y los escribe en los logs del servidor
+│   ├── api/csp-report/route.ts     # Recibe las violaciones del CSP y las escribe en los logs
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
@@ -274,7 +275,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 | Medida | Detalle |
 |---|---|
-| HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`) generada en `proxy.ts`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
+| HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`; los `<style>` de emotion también llevan el nonce) generada en `proxy.ts`, con las violaciones reportadas a `/api/csp-report`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
 | RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |

@@ -153,6 +153,7 @@ src/
 │   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx for each auth screen
 │   ├── auth/callback/route.ts      # OAuth PKCE code exchange (OAuth disabled for now)
 │   ├── api/client-error/route.ts   # Receives browser errors and writes them to the server logs
+│   ├── api/csp-report/route.ts     # Receives CSP violation reports and writes them to the logs
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
@@ -274,7 +275,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 | Measure | Detail |
 |---|---|
-| HTTP Security Headers | CSP **with a per-request nonce** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, no `'unsafe-inline'`) generated in `proxy.ts`; the rest (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) in `next.config.mjs` |
+| HTTP Security Headers | CSP **with a per-request nonce** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, no `'unsafe-inline'`; emotion's `<style>` tags carry the nonce too) generated in `proxy.ts`, with violations reported to `/api/csp-report`; the rest (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) in `next.config.mjs` |
 | RLS in Supabase | All tables with owner-only policies `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Password policy | `minimum_password_length = 8` in `supabase/config.toml` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |
