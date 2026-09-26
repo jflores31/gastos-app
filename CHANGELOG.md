@@ -55,7 +55,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Esquema con iconos y el paso de migración.
   - "Notas Técnicas" reagrupadas por tema, sin las notas obsoletas o contradictorias (CSP en `next.config.mjs`, iconos en `AddTransactionModal`, carga solo en `INITIAL_SESSION`).
   - Sección de arquitectura sin las métricas viejas de graphify.
-  - Despliegue con la CI y las migraciones.
+  - Despliegue con la CI y las migraciones, cómo mergear un PR y cómo publicar o borrar una versión (solo en el README en español por ahora).
 - `docs/TESTING.md`: 53 tests en 4 archivos, qué cubre cada uno y gotchas nuevos (locale de `fmtMoney`, redondeo de moneda).
 - `docs/SECURITY-CSP.md`: estado de la verificación en navegador y cómo quitar `'unsafe-inline'` de `style-src`.
 - `docs/INVESTIGACION.md`: 15 mejoras técnicas priorizadas (índices, observabilidad, tests end-to-end, i18n, tipado…).
