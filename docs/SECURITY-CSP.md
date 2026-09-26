@@ -79,9 +79,11 @@ script-src 'self' 'nonce-<único>' 'strict-dynamic'   (+ 'unsafe-eval' solo en d
 style-src 'self' 'unsafe-inline';
 font-src 'self';                 (fuentes servidas desde el repo, src/app/fonts/)
 img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
-connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+connect-src 'self' <NEXT_PUBLIC_SUPABASE_URL> https://*.supabase.co wss://*.supabase.co;
 frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
 ```
+
+`<NEXT_PUBLIC_SUPABASE_URL>` es el origen del proyecto configurado. En producción ya lo cubre `*.supabase.co`; se agrega para un dominio propio y para el Supabase simulado de los tests end-to-end (`http://127.0.0.1:54321`).
 
 ## Cómo verificar
 

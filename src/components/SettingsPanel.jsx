@@ -382,8 +382,8 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
           <ListItem>{sectionLabel("Moneda", "Currency")}</ListItem>
           <ListItem sx={{ pt: 0, pb: 3 }}>
             <FormControl fullWidth size="small">
-              <InputLabel>{lang === "es" ? "Moneda" : "Currency"}</InputLabel>
-              <Select value={currency} label={lang === "es" ? "Moneda" : "Currency"} onChange={(e) => setCurrency(e.target.value)}>
+              <InputLabel id="currency-label">{lang === "es" ? "Moneda" : "Currency"}</InputLabel>
+              <Select labelId="currency-label" value={currency} label={lang === "es" ? "Moneda" : "Currency"} onChange={(e) => setCurrency(e.target.value)}>
                 {Object.entries(CURRENCIES).map(([k, c]) => (
                   <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
                 ))}

@@ -1,12 +1,5 @@
 import { test, expect, type Page } from "@playwright/test"
-
-// Collects everything that would show up red in the browser console.
-function watchConsole(page: Page) {
-  const problems: string[] = []
-  page.on("console", (m) => { if (m.type() === "error") problems.push(m.text()) })
-  page.on("pageerror", (e) => problems.push(String(e)))
-  return problems
-}
+import { watchConsole } from "./helpers"
 
 const setTheme = (page: Page, theme: "light" | "dark") =>
   page.addInitScript((t) => localStorage.setItem("gastos-theme", JSON.stringify(t)), theme)

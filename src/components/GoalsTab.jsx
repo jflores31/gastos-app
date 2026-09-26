@@ -674,8 +674,8 @@ export default function GoalsTab({ showToast }) {
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 3 }}>
           <TextField label={lang === "es" ? "Nombre" : "Name"} value={accountForm.name} inputProps={{ maxLength: 60 }} onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })} fullWidth />
           <FormControl fullWidth>
-            <InputLabel>{lang === "es" ? "Tipo" : "Type"}</InputLabel>
-            <Select value={accountForm.type} onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
+            <InputLabel id="account-type-label">{lang === "es" ? "Tipo" : "Type"}</InputLabel>
+            <Select labelId="account-type-label" value={accountForm.type} onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
               <MenuItem value="bank">{lang === "es" ? "Banco" : "Bank"}</MenuItem>
               <MenuItem value="card">{lang === "es" ? "Tarjeta" : "Card"}</MenuItem>
               <MenuItem value="cash">{lang === "es" ? "Efectivo" : "Cash"}</MenuItem>
@@ -709,8 +709,8 @@ export default function GoalsTab({ showToast }) {
             </Grid>
           </Grid>
           <FormControl fullWidth>
-            <InputLabel>{lang === "es" ? "Tipo" : "Type"}</InputLabel>
-            <Select value={investForm.type} onChange={(e) => setInvestForm({ ...investForm, type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
+            <InputLabel id="investment-type-label">{lang === "es" ? "Tipo" : "Type"}</InputLabel>
+            <Select labelId="investment-type-label" value={investForm.type} onChange={(e) => setInvestForm({ ...investForm, type: e.target.value })} label={lang === "es" ? "Tipo" : "Type"}>
               <MenuItem value="retirement">{lang === "es" ? "Jubilación (AFP)" : "Retirement (AFP)"}</MenuItem>
               <MenuItem value="term">{lang === "es" ? "Plazo fijo (DPF)" : "Fixed term (DPF)"}</MenuItem>
               <MenuItem value="savings">{lang === "es" ? "Ahorro" : "Savings"}</MenuItem>
@@ -781,15 +781,15 @@ export default function GoalsTab({ showToast }) {
               : undefined}
           />
           <FormControl fullWidth>
-            <InputLabel>{lang === "es" ? "Ciclo" : "Cycle"}</InputLabel>
-            <Select value={subForm.cycle} onChange={(e) => setSubForm({ ...subForm, cycle: e.target.value })} label={lang === "es" ? "Ciclo" : "Cycle"}>
+            <InputLabel id="subscription-cycle-label">{lang === "es" ? "Ciclo" : "Cycle"}</InputLabel>
+            <Select labelId="subscription-cycle-label" value={subForm.cycle} onChange={(e) => setSubForm({ ...subForm, cycle: e.target.value })} label={lang === "es" ? "Ciclo" : "Cycle"}>
               <MenuItem value="monthly">{lang === "es" ? "Mensual" : "Monthly"}</MenuItem>
               <MenuItem value="yearly">{lang === "es" ? "Anual" : "Yearly"}</MenuItem>
             </Select>
           </FormControl>
           <FormControl fullWidth>
-            <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
-            <Select value={subForm.category} onChange={(e) => setSubForm({ ...subForm, category: e.target.value })} label={lang === "es" ? "Categoría" : "Category"}>
+            <InputLabel id="subscription-category-label">{lang === "es" ? "Categoría" : "Category"}</InputLabel>
+            <Select labelId="subscription-category-label" value={subForm.category} onChange={(e) => setSubForm({ ...subForm, category: e.target.value })} label={lang === "es" ? "Categoría" : "Category"}>
               {[...Object.keys(CATEGORIES.expense), ...customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => `custom_${cc.id}`)].map((cat) => {
                 const { label, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
                 return (

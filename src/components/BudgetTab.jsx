@@ -447,8 +447,8 @@ export default function BudgetTab({ period, showToast }) {
           )}
           <Typography variant="subtitle2" color="text.secondary">{lang === "es" ? "Agregar nuevo" : "Add new"}</Typography>
           <FormControl fullWidth>
-            <InputLabel>{lang === "es" ? "Categoría" : "Category"}</InputLabel>
-            <Select value={newCat} onChange={(e) => setNewCat(e.target.value)} label={lang === "es" ? "Categoría" : "Category"}>
+            <InputLabel id="budget-category-label">{lang === "es" ? "Categoría" : "Category"}</InputLabel>
+            <Select labelId="budget-category-label" value={newCat} onChange={(e) => setNewCat(e.target.value)} label={lang === "es" ? "Categoría" : "Category"}>
               {availableCats.map((cat) => {
                 const { label, color, Icon } = catMeta(cat);
                 return (

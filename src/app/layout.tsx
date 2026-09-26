@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
 import localFont from "next/font/local"
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
 import "./globals.css"
 import Providers from "./components/Providers"
 
@@ -52,7 +53,12 @@ export default async function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${ibmPlexSans.className} ${ibmPlexSans.variable} ${jetBrainsMono.variable}`}>
-        <Providers>{children}</Providers>
+        {/* Emotion styles go into <head> during SSR. Without this provider emotion writes a
+            <style> next to every component in <body>; any of those still there when React
+            hydrates (HTML streamed after emotion loaded) is an extra node → React #418. */}
+        <AppRouterCacheProvider>
+          <Providers>{children}</Providers>
+        </AppRouterCacheProvider>
       </body>
     </html>
   )

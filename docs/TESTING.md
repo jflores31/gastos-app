@@ -1,6 +1,6 @@
 # Testing
 
-> Tres niveles: tests unitarios (Vitest, entorno `node`), tests de componentes (Vitest + jsdom + Testing Library) y tests end-to-end (Playwright contra el build de producción). La CI (`.github/workflows/ci.yml`) corre los tres en cada PR y en cada push a `main`, junto con lint, typecheck y build.
+> Tres niveles: tests unitarios (Vitest, entorno `node`), tests de componentes (Vitest + jsdom + Testing Library) y tests end-to-end (Playwright contra el build de producción y un Supabase simulado). La CI (`.github/workflows/ci.yml`) corre los tres en cada PR y en cada push a `main`, junto con lint, typecheck y build.
 
 ## Stack
 
@@ -9,24 +9,27 @@
   - entorno `node` por defecto;
   - JSX con el runtime automático, como Next.
 - **jsdom + [Testing Library](https://testing-library.com/docs/react-testing-library/intro/)** para componentes. Cada archivo de componente pide jsdom con un comentario en la primera línea: `// @vitest-environment jsdom`.
-- **[Playwright](https://playwright.dev/)** para end-to-end. Config en [`playwright.config.ts`](../playwright.config.ts) y tests en [`e2e/`](../e2e). Levanta `next start` en el puerto 3100 con variables de Supabase falsas.
+- **[Playwright](https://playwright.dev/)** para end-to-end. Config en [`playwright.config.ts`](../playwright.config.ts) y tests en [`e2e/`](../e2e). Levanta dos servidores:
+  - `next start` en el puerto 3100;
+  - [`e2e/mock-supabase`](../e2e/mock-supabase) en el 54321, un Supabase simulado (ver abajo).
 
 ## Cómo correr
 
 ```bash
 npm run test         # unitarios + componentes (vitest run)
 npm run test:watch   # modo watch
-npm run build && npm run test:e2e   # end-to-end: necesita un build de producción
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=e2e npm run build
+npm run test:e2e     # end-to-end: necesita ese build de producción
 npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
 ```
 
 - Ningún test necesita un Supabase real.
 - Para correr los tests end-to-end en otra máquina, instalar antes el navegador con `npx playwright install chromium` (la CI lo hace sola).
-- **El build de los end-to-end necesita las variables `NEXT_PUBLIC_SUPABASE_*`.**
-  - Next las incrusta al compilar, así que Playwright no puede ponerlas después.
-  - Sin `.env.local`, compilar con las falsas de la CI: `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=x npm run build`.
-  - Si faltan, las páginas de auth caen en el error global y fallan 7 de los 10 tests.
+- **El build de los end-to-end debe apuntar al Supabase simulado.**
+  - Next incrusta las variables `NEXT_PUBLIC_SUPABASE_*` al compilar, así que Playwright no puede cambiarlas después.
+  - Las variables del comando tienen prioridad sobre `.env.local`: con ellas, el build no usa tu proyecto real.
+  - Si faltan, las páginas de auth caen en el error global y fallan casi todos los tests. Si el build apunta a otro Supabase, fallan los tests con sesión.
 
 ## Qué está cubierto
 
@@ -47,7 +50,7 @@ npm run typecheck    # tsc --noEmit
 
 Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
 
-### End-to-end: 10 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
+### End-to-end sin sesión: 10 tests en [`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts)
 
 - **Sin sesión:** `/` redirige a `/login`.
 - **`/login` en tema claro y oscuro:**
@@ -61,6 +64,42 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - un error no capturado llega a `/api/client-error` (204), sin la query de la URL;
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
+
+### End-to-end con sesión: 7 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+
+Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
+
+- **Login:** con credenciales inválidas muestra el error y no entra.
+- **Todas las pantallas sin errores de consola:**
+  - las 5 pestañas con los datos del usuario;
+  - los ajustes;
+  - el tema oscuro;
+  - el cambio a inglés.
+- **Gasto de punta a punta:** el alta, la edición y el borrado llegan a la base con el `user_id` de la sesión.
+- **Moneda:** en USD los montos se muestran convertidos y un gasto de $27 se guarda como S/100.
+- **Iconos:** una meta nueva y una categoría personalizada se guardan con su icono.
+- **Sesión:**
+  - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;
+  - al reabrir el navegador sin otra pestaña abierta, pide iniciar sesión de nuevo.
+
+### El Supabase simulado ([`e2e/mock-supabase/`](../e2e/mock-supabase))
+
+Un servidor Node sin dependencias que imita lo que la app usa de Supabase:
+
+- **Auth:**
+  - login con contraseña (`wrong-password` simula credenciales inválidas);
+  - refresh, `getUser`, `updateUser`, logout, registro y recuperación.
+  - Los tokens son JWT sin firma válida: el servidor simulado solo lee el `sub` y la expiración.
+- **PostgREST:**
+  - `select` con filtros (`eq`, `in`, `gt`…), `order` y paginación;
+  - `insert`, `update`, `delete` y `upsert`;
+  - `.single()`.
+- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK (col IN …)`.
+- **RLS:** cada usuario solo ve y escribe sus filas. Insertar con otro `user_id` devuelve `42501`.
+- **Datos iniciales ([`seed.mjs`](../e2e/mock-supabase/seed.mjs)):** cuatro meses de movimientos (con una anomalía este mes) y una fila en cada tabla. Las fechas son relativas a hoy.
+- **Para los tests:** `GET /__mock/db?email=…` devuelve las filas de ese usuario, para comprobar qué se guardó.
+
+Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento exacto de Postgres. Para eso sigue haciendo falta probar en el preview de Vercel.
 
 ### Detalle de `helpers.test.js`
 
@@ -85,7 +124,9 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
 4. **Código que habla con Supabase:**
    - para una función suelta, pasar un objeto con la forma del query builder (ver `fakeTable()` en `fetchAllRows.test.js`);
    - para `DataContext`, usar el cliente simulado de `DataContext.test.jsx`: un builder encadenable y `await`-able que registra las llamadas, más `fake.respond(tabla, llamadas)` para decidir qué devuelve cada consulta.
-5. **End-to-end:** agregar casos en `e2e/`. Sin un Supabase de pruebas solo se puede cubrir lo que funciona sin sesión.
+5. **End-to-end:** agregar casos en `e2e/`.
+   - Para flujos con sesión, usar `login(page, uniqueEmail(info))` y `mockDb(request, email)` de [`e2e/helpers.ts`](../e2e/helpers.ts).
+   - Una columna nueva en la base va en su migración SQL: el Supabase simulado la lee de ahí.
 
 ## Gotchas
 
@@ -99,9 +140,14 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - el test end-to-end del reporte envuelve `navigator.sendBeacon` con `addInitScript` para guardar el payload;
   - deja salir el beacon real, así también se verifica la respuesta de la ruta.
 - **React en producción no avisa de desajustes de hidratación en atributos** (solo en desarrollo). El test end-to-end del tema oscuro pasaría aunque volviera el bug. Esa regresión la cubre `useLocalStorage.test.jsx`.
+- **Los desajustes de hidratación pueden ser intermitentes.**
+  - `/reset-password` fallaba 1 de cada 20 cargas con React #418: emotion escribía un `<style>` por componente en el `<body>`, y los que no alcanzaba a mover al `<head>` antes de hidratar sobraban.
+  - `AppRouterCacheProvider` lo corrigió (ver `layout.tsx`).
+  - Para detectar este tipo de fallo: `npx playwright test --repeat-each 50 --workers 4`.
+- **Los emails de prueba llevan un sufijo aleatorio:** en local, el Supabase simulado sigue vivo entre corridas (`reuseExistingServer`). Sin el sufijo, un test encontraría los datos de la corrida anterior.
 - **Navegador local:** este repo fija `@playwright/test` en `1.56.1`. Si `PLAYWRIGHT_BROWSERS_PATH` apunta a navegadores ya instalados de esa versión, no hace falta `playwright install`.
 
 ## Pendiente / próximos candidatos
 
-- **Flujos con sesión:** login real, alta y edición de transacciones, moneda en el dashboard y sesión entre pestañas. Necesitan un proyecto de Supabase de pruebas, con sus credenciales como secretos de la CI.
+- **Contra un Supabase real:** RLS, triggers y migraciones. Necesitan un proyecto de pruebas, con sus credenciales como secretos de la CI.
 - **Más componentes:** pestañas con datos simulados (p. ej. que "Resumen del periodo" use tonos válidos).

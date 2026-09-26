@@ -5,6 +5,12 @@ import { NextResponse, type NextRequest } from "next/server"
 // (middleware) instead of the static next.config.mjs headers. Next.js reads the nonce
 // from the request `Content-Security-Policy` header and stamps it onto its <script> tags.
 // Note: style-src keeps 'unsafe-inline' — MUI/emotion inject styles at runtime.
+// The configured Supabase origin is allowed explicitly, besides *.supabase.co: it covers a
+// custom domain and the local mock the e2e tests run against (e2e/mock-supabase).
+const supabaseOrigin = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin } catch { return "" }
+})()
+
 function buildCsp(nonce: string): string {
   const dev = process.env.NODE_ENV !== "production"
   return [
@@ -13,7 +19,7 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://*.supabase.co wss://*.supabase.co`,
     "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",

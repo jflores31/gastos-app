@@ -13,7 +13,7 @@ Personal finance application to track income, expenses, budgets, goals, and more
 | Category | Technology |
 |---|---|
 | Framework | Next.js 16.3 (App Router, Turbopack) |
-| UI | Material UI (MUI) v9 + `@mui/icons-material` (Rounded variant) |
+| UI | Material UI (MUI) v9 + `@mui/icons-material` (Rounded variant) + `@mui/material-nextjs` (server-side styles in `<head>`) |
 | Auth + DB | Supabase (email/password; OAuth wired up but disabled) |
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
@@ -118,6 +118,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 .
 ├── .github/workflows/ci.yml        # CI: lint, typecheck, tests, build and e2e on every PR and push to main
 ├── e2e/                            # End-to-end tests (Playwright) + playwright.config.ts
+│   └── mock-supabase/              # Mock Supabase (Auth + PostgREST) for the logged-in tests
 ├── .env.example                    # Environment variables (copy to .env.local)
 ├── CHANGELOG.md                    # Changelog
 ├── ICONOS_Y_ESTRUCTURA.txt         # Plain-text icon map and structure (Spanish)
@@ -232,8 +233,9 @@ npm run dev
 # Unit and component tests (Vitest)
 npm run test
 
-# End-to-end tests (Playwright) against the production build
-npm run build && npm run test:e2e
+# End-to-end tests (Playwright) against the production build and a mock Supabase
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=e2e npm run build
+npm run test:e2e
 
 # Lint (ESLint) and type check (tsc)
 npm run lint

@@ -9,10 +9,28 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
 - **CRUD unificado:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas comparten `useTableCrud()`. Transacciones y presupuestos siguen aparte. `DataContext` pasó de 537 a 425 líneas, con la misma API.
+- **CSP:** `connect-src` incluye el origen de `NEXT_PUBLIC_SUPABASE_URL`, además de `*.supabase.co`. Así funciona con un dominio propio de Supabase y con el simulado de los tests.
+- **CI:** el build apunta al Supabase simulado (`http://127.0.0.1:54321`) para que los tests end-to-end puedan iniciar sesión.
 - **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
+### Corregido
+- **Error de hidratación intermitente (React #418):**
+  - `/reset-password` fallaba en 1 de cada 20 cargas, más con el servidor cargado.
+  - Causa: emotion escribía un `<style>` por componente dentro del `<body>` y los movía al `<head>` al cargar. Los que llegaban después, por el streaming, quedaban como nodos de más.
+  - Ahora `AppRouterCacheProvider` (`@mui/material-nextjs`) pone los estilos en el `<head>` desde el servidor.
+  - Verificado con 200 cargas seguidas sin error (antes fallaban 6 de 100).
+- **Accesibilidad:** 6 selectores no tenían nombre accesible, porque su etiqueta no estaba enlazada: moneda, categoría de presupuesto, tipo de cuenta, tipo de inversión, ciclo y categoría de suscripción. Un lector de pantalla solo leía el valor elegido.
+
 ### Añadido
+- **Tests end-to-end con sesión:** 7 tests en `e2e/session.spec.ts` contra un Supabase simulado (`e2e/mock-supabase/`), que Playwright levanta junto a la app. Cubren:
+  - login;
+  - las 5 pestañas, los ajustes, el tema oscuro y el inglés, sin errores de consola;
+  - alta, edición y borrado de un gasto;
+  - moneda en USD;
+  - iconos de metas y categorías;
+  - sesión entre pestañas y al reabrir el navegador.
+- El Supabase simulado lee las tablas de `supabase/migrations/*.sql` y aplica RLS por usuario. Escribir una columna inexistente falla (`PGRST204`) como en producción.
 - `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.
 
 ### Documentación
