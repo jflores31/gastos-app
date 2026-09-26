@@ -1,12 +1,10 @@
 import { useState, useMemo } from "react";
-import { Box, Card, CardContent, Typography, Avatar, Chip, IconButton, Collapse, Paper } from "@mui/material";
+import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
 import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "../theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
 import { CATEGORIES, fmtMoney } from "../data/index.js";
 import { GradientIcon } from "../theme/GradientIcon.jsx";
-
-// Mapea el color semántico de StatsCard al tono de gradiente correspondiente.
-const TONE_BY_COLOR = { primary: "trend", success: "income", error: "expense", warning: "warning", info: "goals", secondary: "networth" };
+import { TONE_BY_PALETTE } from "../theme/iconTones.js";
 
 const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -16,9 +14,12 @@ const DAYS_EN = ["M", "T", "W", "T", "F", "S", "S"];
 export function EmptyState({ icon, title, subtitle, action }) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 6, px: 3, textAlign: "center" }}>
-      <Avatar sx={{ width: 64, height: 64, bgcolor: "grey.100", color: "grey.400", mb: 2 }}>
-        {icon || <InboxIcon sx={{ fontSize: 32 }} />}
-      </Avatar>
+      {/* Neutral bubble instead of a grey.100 Avatar, which stood out as a light disc in dark mode. */}
+      <Box sx={{ mb: 2 }}>
+        <GradientIcon tone="neutral" bubble bubbleSize={64} size={32}>
+          {icon || <InboxIcon />}
+        </GradientIcon>
+      </Box>
       <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
         {title}
       </Typography>
@@ -66,7 +67,7 @@ export function StatsCard({ title, subtitle, icon, iconColor = "primary", tone, 
         {(title || icon) && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
             {icon && (
-              <GradientIcon tone={tone || TONE_BY_COLOR[iconColor] || "neutral"} bubble bubbleSize={40} size={22}>
+              <GradientIcon tone={tone || TONE_BY_PALETTE[iconColor] || "neutral"} bubble bubbleSize={40} size={22}>
                 {icon}
               </GradientIcon>
             )}

@@ -5,6 +5,11 @@ dist/
 .vercel
 .next/
 tsconfig.tsbuildinfo
+
+# Playwright (e2e)
+test-results/
+playwright-report/
+blob-report/
 skills-lock.json
 
 # graphify knowledge-graph output (generated locally)

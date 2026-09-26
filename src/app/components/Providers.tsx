@@ -4,10 +4,12 @@ import { SettingsProvider } from "../../context/SettingsContext.jsx"
 import { DataProvider } from "../../context/DataContext.jsx"
 import { UserProvider } from "../../context/UserContext"
 import DynamicThemeProvider from "./DynamicThemeProvider"
+import ErrorReporter from "./ErrorReporter"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <UserProvider>
+      <ErrorReporter />
       <SettingsProvider>
         <DataProvider>
           <DynamicThemeProvider>

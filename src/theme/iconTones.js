@@ -86,6 +86,16 @@ export const TONES = {
   neutral:  { from: "#94A3B8", to: "#64748B", base: "#7C8CA1" }, // gris azulado pulido
 };
 
+// Color de paleta MUI (el `color` de cards y chips) → tono semántico.
+export const TONE_BY_PALETTE = {
+  primary: "trend",
+  secondary: "networth",
+  success: "income",
+  error: "expense",
+  warning: "warning",
+  info: "goals",
+};
+
 // Resuelve un tono: nombre semántico (TONES), color hex (toneFromColor) u objeto {from,to}.
 export function resolveTone(tone) {
   if (!tone) return TONES.neutral;

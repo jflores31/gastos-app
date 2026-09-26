@@ -153,6 +153,21 @@ export const CURRENCIES = {
   BRL: { symbol: "R$", code: "BRL", name: "Real BRL",   rate: 1.5 },
 };
 
+// Los montos se guardan siempre en la moneda base (PEN, rate 1); `fmtMoney` los
+// multiplica por `rate` al mostrar. Los formularios trabajan en la moneda elegida,
+// así que convierten con toBase() al guardar y con fromBase() al precargar una edición.
+const round2 = (n) => Math.round(n * 100) / 100;
+
+export function toBase(v, curr = "PEN") {
+  const c = CURRENCIES[curr] || CURRENCIES.PEN;
+  return round2(Number(v) / c.rate);
+}
+
+export function fromBase(v, curr = "PEN") {
+  const c = CURRENCIES[curr] || CURRENCIES.PEN;
+  return round2(Number(v) * c.rate);
+}
+
 export function fmtMoney(v, curr = "PEN", compact = false) {
   const c = CURRENCIES[curr] || CURRENCIES.PEN;
   const n = v * c.rate;

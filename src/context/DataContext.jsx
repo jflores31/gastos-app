@@ -4,6 +4,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "../lib/supabase"
 import { flagAnomalies } from "../data/helpers.js"
+import { fetchAllRows } from "../data/fetchAllRows.js"
+import { reportError } from "../lib/reportError.js"
 
 const DataContext = createContext(null)
 
@@ -107,7 +109,9 @@ export function DataProvider({ children }) {
         setLoading(true)
         setLoadError(null)
         const results = await Promise.all([
-          supabase.from("transactions").select("*").order("fecha", { ascending: true }),
+          fetchAllRows(() =>
+            supabase.from("transactions").select("*").order("fecha", { ascending: true }).order("id", { ascending: true })
+          ),
           supabase.from("budgets").select("*"),
           supabase.from("goals").select("*").order("created_at"),
           supabase.from("accounts").select("*").order("created_at"),
@@ -130,6 +134,7 @@ export function DataProvider({ children }) {
 
         const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
         errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
+        if (errors.length > 0) reportError(errors[0], { where: "DataContext.load", failedQueries: errors.length })
         if (errors.length > 0) {
           setLoadError(errors[0].message)
           loadedForUser = null // let the next auth event retry
@@ -147,6 +152,7 @@ export function DataProvider({ children }) {
         if (customCatsData) setCustomCats(customCatsData)
       } catch (err) {
         console.error("[DataContext] load() uncaught error:", err)
+        reportError(err, { where: "DataContext.load" })
         setLoadError(err?.message ?? "Error desconocido")
         loadedForUser = null // let the next auth event retry
       } finally {
@@ -248,16 +254,22 @@ export function DataProvider({ children }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const row = { user_id: user.id, nombre: cat.nombre, tipo: cat.tipo, color: cat.color }
+    const row = { user_id: user.id, nombre: cat.nombre, tipo: cat.tipo, color: cat.color, icon: cat.icon ?? null }
+    const write = (r) => cat.id
+      ? supabase.from("custom_categories").update(r).eq("id", cat.id).select().single()
+      : supabase.from("custom_categories").insert(r).select().single()
 
-    if (cat.id) {
-      const { data, error } = await supabase.from("custom_categories").update(row).eq("id", cat.id).select().single()
-      if (error) throw error
-      if (data) setCustomCats((prev) => prev.map((x) => x.id === cat.id ? data : x))
-    } else {
-      const { data, error } = await supabase.from("custom_categories").insert(row).select().single()
-      if (error) throw error
-      if (data) setCustomCats((prev) => [...prev, data])
+    let { data, error } = await write(row)
+    // PGRST204 = unknown column: supabase/migrations/upgrade_0.0.1.sql hasn't been run
+    // on this database yet. Save without the icon rather than failing the whole write.
+    if (error?.code === "PGRST204") {
+      const withoutIcon = { ...row }
+      delete withoutIcon.icon
+      ;({ data, error } = await write(withoutIcon))
+    }
+    if (error) throw error
+    if (data) {
+      setCustomCats((prev) => cat.id ? prev.map((x) => x.id === cat.id ? data : x) : [...prev, data])
     }
   }, [])
 

@@ -10,8 +10,8 @@ function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
     "frame-ancestors 'self'",
@@ -66,8 +66,10 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/reset-password")
   // OAuth lands here with a `code` but no session yet — let it through to exchange it.
   const isCallback = pathname.startsWith("/auth/callback")
+  // Browser error reports must get through without a session (errors on the auth pages).
+  const isErrorReport = pathname === "/api/client-error"
 
-  if (!user && !isAuthPage && !isCallback) {
+  if (!user && !isAuthPage && !isCallback && !isErrorReport) {
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     const redirect = NextResponse.redirect(url)

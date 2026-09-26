@@ -11,89 +11,18 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import {
-  Home, Restaurant, Movie, AccountBalance, Pets,
-  AttachMoney, Work, Lightbulb, WaterDrop, Wifi, PhoneAndroid, DirectionsBus,
-  LocalGasStation, DirectionsCar, TwoWheeler, Build, TireRepair, OilBarrel,
-  Security, LocalParking, Coffee, Checkroom, HealthAndSafety, School,
-  CardGiftcard, Warning, Savings, DeliveryDining, SportsEsports, Celebration,
-  Face, FitnessCenter, Flight, Receipt, ShoppingBag, MusicNote, Event, Speaker,
-  Album, Theaters, PhotoCamera, Videocam, Campaign, LightbulbCircle,
-  CorporateFare, Code, YouTube, OndemandVideo, TrendingUp,
-} from "../theme/icons";
-import { CATEGORIES } from "../data/index.js";
+import { Star, Label } from "../theme/icons";
+import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
+import { CATEGORIES, CURRENCIES, toBase, fromBase, fmtMoney } from "../data/index.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 
-const EXPENSE_ICONS = {
-  VIVIENDA: <Home fontSize="small" />,
-  LUZ: <Lightbulb fontSize="small" />,
-  AGUA: <WaterDrop fontSize="small" />,
-  INTERNET: <Wifi fontSize="small" />,
-  CELULAR: <PhoneAndroid fontSize="small" />,
-  COMIDA: <Restaurant fontSize="small" />,
-  TRANSPORTE: <DirectionsBus fontSize="small" />,
-  GASOLINA: <LocalGasStation fontSize="small" />,
-  AUTO: <DirectionsCar fontSize="small" />,
-  MOTO: <TwoWheeler fontSize="small" />,
-  REPUESTOS: <Build fontSize="small" />,
-  LLANTAS: <TireRepair fontSize="small" />,
-  ACEITE: <OilBarrel fontSize="small" />,
-  SOAT: <Security fontSize="small" />,
-  ESTACIONAMIENTO: <LocalParking fontSize="small" />,
-  STREAMING: <Movie fontSize="small" />,
-  CAFES: <Coffee fontSize="small" />,
-  ROPA: <Checkroom fontSize="small" />,
-  SALUD: <HealthAndSafety fontSize="small" />,
-  DEUDAS: <AccountBalance fontSize="small" />,
-  EDUCACION: <School fontSize="small" />,
-  MASCOTA: <Pets fontSize="small" />,
-  REGALOS: <CardGiftcard fontSize="small" />,
-  IMPREVISTOS: <Warning fontSize="small" />,
-  AHORRO: <Savings fontSize="small" />,
-  DELIVERY: <DeliveryDining fontSize="small" />,
-  JUEGOS: <SportsEsports fontSize="small" />,
-  SALIDAS: <Celebration fontSize="small" />,
-  HIGIENE: <Face fontSize="small" />,
-  GIMNASIO: <FitnessCenter fontSize="small" />,
-  VIAJES: <Flight fontSize="small" />,
-  IMPUESTOS: <Receipt fontSize="small" />,
-  COMPRAS: <ShoppingBag fontSize="small" />,
-};
+// Category icon in the picker, tinted with the category color.
+const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;
 
-const INCOME_ICONS = {
-  SUELDO: <AttachMoney fontSize="small" />,
-  HONORARIOS: <Code fontSize="small" />,
-  NEGOCIO: <Work fontSize="small" />,
-  INVERSIONES: <TrendingUp fontSize="small" />,
-  INTERESES: <AccountBalance fontSize="small" />,
-  ALQUILERES: <Home fontSize="small" />,
-  VENTAS: <ShoppingBag fontSize="small" />,
-  CONTENIDO: <YouTube fontSize="small" />,
-  GAMING: <OndemandVideo fontSize="small" />,
-  CLASES: <School fontSize="small" />,
-  ASESORIAS: <Work fontSize="small" />,
-  TECNICO: <Build fontSize="small" />,
-  TELECOM: <Wifi fontSize="small" />,
-  MUSICA: <MusicNote fontSize="small" />,
-  EVENTOS: <Event fontSize="small" />,
-  DJ: <Speaker fontSize="small" />,
-  TOCADAS: <Album fontSize="small" />,
-  PRODUCCION: <Theaters fontSize="small" />,
-  FOTOGRAFIA: <PhotoCamera fontSize="small" />,
-  EDICION: <Videocam fontSize="small" />,
-  ORGANIZACION: <Campaign fontSize="small" />,
-  ALQUILER_SONIDO: <LightbulbCircle fontSize="small" />,
-  EVENTOS_CORP: <CorporateFare fontSize="small" />,
-  COMISIONES: <AttachMoney fontSize="small" />,
-  REGALOS: <CardGiftcard fontSize="small" />,
-  CRIPTO: <AttachMoney fontSize="small" />,
-  DIVIDENDOS: <TrendingUp fontSize="small" />,
-  BONOS: <Work fontSize="small" />,
-  CASHBACK: <ShoppingBag fontSize="small" />,
-  AHORROS: <Savings fontSize="small" />,
-};
+// Per-transaction cap, in the base currency (PEN).
+const MAX_AMOUNT_BASE = 10_000_000;
 
 export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency } = useSettings();
@@ -102,24 +31,31 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
   const [concepto, setConcepto] = useState(editTx?.concepto || "");
-  const [valor, setValor] = useState(editTx?.valor?.toString() || "");
+  // Stored amounts are in PEN; the form works in the selected currency.
+  const [valor, setValor] = useState(editTx?.valor != null ? String(fromBase(editTx.valor, currency)) : "");
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   const favCats = user?.user_metadata?.fav_categories || [];
 
+  const myGroup = lang === "es" ? "Mis categorías" : "My categories";
+  const customGroup = lang === "es" ? "Personalizadas" : "Custom";
+  const groupIcons = { [myGroup]: { Icon: Star, color: "warning.main" }, [customGroup]: { Icon: Label, color: "primary.main" } };
+
   const categoryOptions = useMemo(() => {
-    const myGroup = lang === "es" ? "⭐ Mis Categorías" : "⭐ My Categories";
-    const customGroup = lang === "es" ? "🏷️ Personalizadas" : "🏷️ Custom";
+    const builtIn = (k, v, group, type) => ({
+      value: k, label: v[lang], group, type,
+      icon: optionIcon((type === "INGRESO" ? INCOME_ICONS : EXPENSE_ICONS)[k] || DEFAULT_ICON, v.color),
+    });
     const myOptions = favCats
       .map((f) => {
         if (f.tipo === "EGRESO") {
           const v = CATEGORIES.expense[f.categoria];
-          return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "EGRESO", icon: EXPENSE_ICONS[f.categoria] } : null;
+          return v ? builtIn(f.categoria, v, myGroup, "EGRESO") : null;
         }
         const v = CATEGORIES.income[f.categoria];
-        return v ? { value: f.categoria, label: v[lang], group: myGroup, type: "INGRESO", icon: INCOME_ICONS[f.categoria] } : null;
+        return v ? builtIn(f.categoria, v, myGroup, "INGRESO") : null;
       })
       .filter(Boolean);
     const customOptions = customCats.map((c) => ({
@@ -127,14 +63,14 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
       label: c.nombre,
       group: customGroup,
       type: c.tipo,
-      icon: <Box sx={{ width: 16, height: 16, borderRadius: "50%", bgcolor: c.color, flexShrink: 0 }} />,
+      icon: optionIcon(iconByName(c.icon) || DEFAULT_ICON, c.color),
       color: c.color,
     }));
     return [
       ...myOptions,
       ...customOptions,
-      ...Object.entries(CATEGORIES.income).map(([k, v]) => ({ value: k, label: v[lang], group: t.income, type: "INGRESO", icon: INCOME_ICONS[k] })),
-      ...Object.entries(CATEGORIES.expense).map(([k, v]) => ({ value: k, label: v[lang], group: t.expense, type: "EGRESO", icon: EXPENSE_ICONS[k] })),
+      ...Object.entries(CATEGORIES.income).map(([k, v]) => builtIn(k, v, t.income, "INGRESO")),
+      ...Object.entries(CATEGORIES.expense).map(([k, v]) => builtIn(k, v, t.expense, "EGRESO")),
     ];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, customCats, t.income, t.expense]);
@@ -156,8 +92,9 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     const errs = {};
     if (!categoria) errs.categoria = lang === "es" ? "Selecciona una categoría" : "Select a category";
     if (!concepto.trim()) errs.concepto = lang === "es" ? "Ingresa un concepto" : "Enter a concept";
-    if (!valor || parseFloat(valor) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
-    else if (parseFloat(valor) > 10_000_000) errs.valor = lang === "es" ? "El monto máximo es 10,000,000" : "Maximum amount is 10,000,000";
+    // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
+    if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = lang === "es" ? "Ingresa un monto válido" : "Enter a valid amount";
+    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = lang === "es" ? `El monto máximo es ${fmtMoney(MAX_AMOUNT_BASE, currency)}` : `Maximum amount is ${fmtMoney(MAX_AMOUNT_BASE, currency)}`;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -178,7 +115,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
         mes: fecha.month(),
         año: fecha.year(),
         date: fecha.toDate(),
-        valor: parseFloat(valor),
+        valor: toBase(parseFloat(valor), currency),
         anomaly: false,
       };
       if (editTx) {
@@ -194,7 +131,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
     }
   };
 
-  const currSymbol = { PEN: "S/", USD: "$", EUR: "€", MXN: "$", COP: "$", ARS: "$", CLP: "$", BRL: "R$" }[currency] || "$";
+  const currSymbol = (CURRENCIES[currency] || CURRENCIES.PEN).symbol;
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
@@ -232,14 +169,18 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
               <Typography variant="body2">{opt.label}</Typography>
             </Box>
           )}
-          renderGroup={(params) => (
-            <Box key={params.key}>
-              <Typography variant="caption" sx={{ px: 1.5, py: 0.5, display: "block", bgcolor: "action.hover", fontWeight: 600 }}>
-                {params.group}
-              </Typography>
-              {params.children}
-            </Box>
-          )}
+          renderGroup={(params) => {
+            const groupIcon = groupIcons[params.group];
+            return (
+              <Box key={params.key}>
+                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, display: "flex", alignItems: "center", gap: 0.75, bgcolor: "action.hover", fontWeight: 600 }}>
+                  {groupIcon && <groupIcon.Icon sx={{ fontSize: 14, color: groupIcon.color }} />}
+                  {params.group}
+                </Typography>
+                {params.children}
+              </Box>
+            );
+          }}
           renderInput={(params) => (
             <TextField {...params} label={t.category} error={!!errors.categoria} helperText={errors.categoria}
               slotProps={{
@@ -260,7 +201,7 @@ export default function AddTransactionModal({ initialCategory = "", mode = "all"
 
         <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
           error={!!errors.valor} helperText={errors.valor} fullWidth
-          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: 10_000_000, step: "any" } } }} />
+          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, currency), step: "any" } } }} />
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? "es" : "en"}>
           <DatePicker

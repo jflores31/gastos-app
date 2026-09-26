@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react";
-import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Avatar, FormControl, InputLabel, Select, MenuItem, CircularProgress } from "@mui/material";
+import { Box, Card, CardContent, Typography, Grid, Stack, LinearProgress, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, FormControl, InputLabel, Select, MenuItem, CircularProgress } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -9,14 +9,15 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import en from "dayjs/locale/en";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, Timeline as ForecastIcon, Savings as GoalIcon, ShowChart as InvestIcon, CreditScore as DebtIcon, History as HistoryIcon, Subscriptions as SubIcon } from "../theme/icons";
-import { fmtMoney, txByMonth, CATEGORIES } from "../data/index.js";
-import { gradientBg } from "../theme/iconTones.js";
-import { GradientIcon } from "../theme/GradientIcon.jsx";
+import { fmtMoney, txByMonth, CATEGORIES, toBase, fromBase } from "../data/index.js";
+import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { IconPicker } from "../theme/IconPicker.jsx";
+import { iconByName } from "../theme/categoryIcons.js";
 import { linearRegressionSlope } from "../data/helpers.js";
 import { useSettings } from "../context/SettingsContext.jsx";
 import { useData } from "../context/DataContext.jsx";
 
-const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: "#7ab87a", icon: "◉" };
+const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: "#7ab87a", icon: "Flag" };
 const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: "#0033A0", limit: "" };
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
@@ -79,12 +80,12 @@ export default function GoalsTab({ showToast }) {
 
   // Goals handlers
   const openNewGoal = () => { setEditingGoal(null); setGoalForm(EMPTY_GOAL); setGoalsDialog(true); };
-  const openEditGoal = (g) => { setEditingGoal(g); setGoalForm({ ...g }); setGoalsDialog(true); };
+  const openEditGoal = (g) => { setEditingGoal(g); setGoalForm({ ...g, target: String(fromBase(g.target, currency)), current: String(fromBase(g.current, currency)) }); setGoalsDialog(true); };
   const closeGoalDialog = () => { setGoalsDialog(false); setEditingGoal(null); };
   const handleSaveGoal = async () => {
     setSavingGoal(true);
     try {
-      await saveGoal({ ...goalForm, target: parseFloat(goalForm.target), current: parseFloat(goalForm.current) || 0 });
+      await saveGoal({ ...goalForm, target: toBase(parseFloat(goalForm.target), currency), current: toBase(parseFloat(goalForm.current) || 0, currency) });
       showToast?.(lang === "es" ? "Meta guardada" : "Goal saved", "success");
       closeGoalDialog();
     } catch {
@@ -105,12 +106,12 @@ export default function GoalsTab({ showToast }) {
 
   // Account handlers
   const openNewAccount = () => { setEditingAccount(null); setAccountForm(EMPTY_ACCOUNT); setAccountsDialog(true); };
-  const openEditAccount = (a) => { setEditingAccount(a); setAccountForm({ ...a, limit: a.limit ?? "" }); setAccountsDialog(true); };
+  const openEditAccount = (a) => { setEditingAccount(a); setAccountForm({ ...a, balance: String(fromBase(a.balance, currency)), limit: a.limit != null ? String(fromBase(a.limit, currency)) : "" }); setAccountsDialog(true); };
   const closeAccountDialog = () => { setAccountsDialog(false); setEditingAccount(null); };
   const handleSaveAccount = async () => {
     setSavingAccount(true);
     try {
-      await saveAccount({ ...accountForm, balance: parseFloat(accountForm.balance), limit: accountForm.limit ? parseFloat(accountForm.limit) : undefined });
+      await saveAccount({ ...accountForm, balance: toBase(parseFloat(accountForm.balance), currency), limit: accountForm.limit ? toBase(parseFloat(accountForm.limit), currency) : undefined });
       showToast?.(lang === "es" ? "Cuenta guardada" : "Account saved", "success");
       closeAccountDialog();
     } catch {
@@ -131,12 +132,12 @@ export default function GoalsTab({ showToast }) {
 
   // Investment handlers
   const openNewInvest = () => { setEditingInvest(null); setInvestForm(EMPTY_INVESTMENT); setInvestDialog(true); };
-  const openEditInvest = (inv) => { setEditingInvest(inv); setInvestForm({ ...inv, value: String(inv.value), return: String(inv.return) }); setInvestDialog(true); };
+  const openEditInvest = (inv) => { setEditingInvest(inv); setInvestForm({ ...inv, value: String(fromBase(inv.value, currency)), return: String(inv.return) }); setInvestDialog(true); };
   const closeInvestDialog = () => { setInvestDialog(false); setEditingInvest(null); };
   const handleSaveInvest = async () => {
     setSavingInvest(true);
     try {
-      await saveInvestment({ ...investForm, value: parseFloat(investForm.value), return: parseFloat(investForm.return) || 0 });
+      await saveInvestment({ ...investForm, value: toBase(parseFloat(investForm.value), currency), return: parseFloat(investForm.return) || 0 });
       showToast?.(lang === "es" ? "Inversión guardada" : "Investment saved", "success");
       closeInvestDialog();
     } catch {
@@ -157,12 +158,12 @@ export default function GoalsTab({ showToast }) {
 
   // Debt handlers
   const openNewDebt = () => { setEditingDebt(null); setDebtForm(EMPTY_DEBT); setDebtDialog(true); };
-  const openEditDebt = (d) => { setEditingDebt(d); setDebtForm({ ...d, balance: String(d.balance), rate: String(d.rate), monthly: String(d.monthly), remaining: String(d.remaining), original_months: String(d.original_months) }); setDebtDialog(true); };
+  const openEditDebt = (d) => { setEditingDebt(d); setDebtForm({ ...d, balance: String(fromBase(d.balance, currency)), rate: String(d.rate), monthly: String(fromBase(d.monthly, currency)), remaining: String(d.remaining), original_months: String(d.original_months) }); setDebtDialog(true); };
   const closeDebtDialog = () => { setDebtDialog(false); setEditingDebt(null); };
   const handleSaveDebt = async () => {
     setSavingDebt(true);
     try {
-      await saveDebt({ ...debtForm, balance: parseFloat(debtForm.balance), rate: parseFloat(debtForm.rate) || 0, monthly: parseFloat(debtForm.monthly) || 0, remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
+      await saveDebt({ ...debtForm, balance: toBase(parseFloat(debtForm.balance), currency), rate: parseFloat(debtForm.rate) || 0, monthly: toBase(parseFloat(debtForm.monthly) || 0, currency), remaining: parseInt(debtForm.remaining) || 0, original_months: parseInt(debtForm.original_months) || parseInt(debtForm.remaining) || 0 });
       showToast?.(lang === "es" ? "Préstamo guardado" : "Loan saved", "success");
       closeDebtDialog();
     } catch {
@@ -183,12 +184,12 @@ export default function GoalsTab({ showToast }) {
 
   // Subscription handlers
   const openNewSub = () => { setEditingSub(null); setSubForm(EMPTY_SUB); setSubDialog(true); };
-  const openEditSub = (s) => { setEditingSub(s); setSubForm({ ...s, price: String(s.price) }); setSubDialog(true); };
+  const openEditSub = (s) => { setEditingSub(s); setSubForm({ ...s, price: String(fromBase(s.price, currency)) }); setSubDialog(true); };
   const closeSubDialog = () => { setSubDialog(false); setEditingSub(null); };
   const handleSaveSub = async () => {
     setSavingSub(true);
     try {
-      await saveSubscription({ ...subForm, price: parseFloat(subForm.price) });
+      await saveSubscription({ ...subForm, price: toBase(parseFloat(subForm.price), currency) });
       showToast?.(lang === "es" ? "Suscripción guardada" : "Subscription saved", "success");
       closeSubDialog();
     } catch {
@@ -242,12 +243,18 @@ export default function GoalsTab({ showToast }) {
                 const left = Math.max(0, g.target - g.current);
                 const today = new Date();
                 const days = g.deadline ? Math.max(0, Math.ceil((new Date(g.deadline) - today) / 86400000)) : null;
+                const GoalGlyph = iconByName(g.icon);
                 return (
                   <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={g.id}>
                     <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={() => openEditGoal(g)}>
                       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column", "&:last-child": { pb: 2.5 } }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                          <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
+                          {GoalGlyph ? (
+                            <CategoryAvatar icon={GoalGlyph} color={g.color} size={44} />
+                          ) : (
+                            // Older goals stored a free-text glyph (e.g. "◉").
+                            <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
+                          )}
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body1" fontWeight={600} noWrap>{g[lang]}</Typography>
                             {days !== null && <Typography variant="caption" color="text.secondary">{days} {lang === "es" ? "días" : "days"}</Typography>}
@@ -316,9 +323,7 @@ export default function GoalsTab({ showToast }) {
                       const utilPct = isDebt && a.limit ? Math.abs(a.balance) / a.limit : 0;
                       return (
                         <Box key={a.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                          <Box sx={{ width: 36, height: 36, borderRadius: 2, background: gradientBg(a.color), color: "common.white", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {a.type === "bank" ? <BankIcon fontSize="small" /> : a.type === "card" ? <CardIcon fontSize="small" /> : <CashIcon fontSize="small" />}
-                          </Box>
+                          <CategoryAvatar icon={a.type === "bank" ? BankIcon : a.type === "card" ? CardIcon : CashIcon} color={a.color} size={36} />
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="body2" fontWeight={600}>{a.name}</Typography>
                             <Typography variant="caption" color="text.secondary">
@@ -584,7 +589,7 @@ export default function GoalsTab({ showToast }) {
           <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "success.main" }}>
             <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                <Avatar sx={{ bgcolor: "success.light", color: "success.dark" }}><HistoryIcon /></Avatar>
+                <GradientIcon icon={HistoryIcon} tone="income" bubble />
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700}>{lang === "es" ? "Evolución del patrimonio" : "Net worth evolution"}</Typography>
                   <Typography variant="caption" color="text.secondary">{lang === "es" ? "Últimos 6 meses" : "Last 6 months"}</Typography>
@@ -650,10 +655,8 @@ export default function GoalsTab({ showToast }) {
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang === "es" ? es : en}>
             <DatePicker label={lang === "es" ? "Fecha límite" : "Deadline"} value={goalForm.deadline ? dayjs(goalForm.deadline) : null} onChange={(v) => setGoalForm({ ...goalForm, deadline: v ? v.format("YYYY-MM-DD") : null })} minDate={dayjs()} slotProps={{ textField: { fullWidth: true } }} format={lang === "es" ? "DD/MM/YYYY" : "MM/DD/YYYY"} />
           </LocalizationProvider>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField label="Color" type="color" value={goalForm.color} onChange={(e) => setGoalForm({ ...goalForm, color: e.target.value })} sx={{ width: 80 }} />
-            <TextField label={lang === "es" ? "Icono" : "Icon"} value={goalForm.icon} inputProps={{ maxLength: 10 }} onChange={(e) => setGoalForm({ ...goalForm, icon: e.target.value })} sx={{ width: 80 }} />
-          </Box>
+          <TextField label="Color" type="color" value={goalForm.color} onChange={(e) => setGoalForm({ ...goalForm, color: e.target.value })} sx={{ width: 80 }} />
+          <IconPicker label={lang === "es" ? "Icono" : "Icon"} value={goalForm.icon} color={goalForm.color} onChange={(icon) => setGoalForm({ ...goalForm, icon })} />
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
           {editingGoal && <Button color="error" disabled={savingGoal} onClick={() => handleDeleteGoal(editingGoal.id)}>{lang === "es" ? "Eliminar" : "Delete"}</Button>}

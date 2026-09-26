@@ -11,7 +11,9 @@ const securityHeaders = [
 
 const nextConfig = {
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    // Strip console.log/info in production but keep error and warn: they are the only
+    // trace of a failure (see also src/lib/reportError.js → /api/client-error).
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
   experimental: {
     optimizePackageImports: [

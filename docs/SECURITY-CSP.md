@@ -1,6 +1,6 @@
 # Content-Security-Policy con nonce por request
 
-> Endurecimiento introducido en **v1.6.0**. Elimina `'unsafe-inline'` de `script-src`
+> Endurecimiento de seguridad: elimina `'unsafe-inline'` de `script-src`
 > — la mejora de seguridad de mayor severidad que quedaba pendiente.
 
 ## Qué cambió y por qué
@@ -76,8 +76,8 @@ mantiene (solo `script-src` se endureció).
 ```
 default-src 'self';
 script-src 'self' 'nonce-<único>' 'strict-dynamic'   (+ 'unsafe-eval' solo en dev);
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-font-src 'self' https://fonts.gstatic.com;
+style-src 'self' 'unsafe-inline';
+font-src 'self';                 (fuentes servidas desde el repo, src/app/fonts/)
 img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
 connect-src 'self' https://*.supabase.co wss://*.supabase.co;
 frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
@@ -100,15 +100,21 @@ grep -o '<script[^>]*>' /tmp/login.html | grep -v 'nonce=' | wc -l
 Resultado esperado y verificado: páginas dinámicas, **todos** los scripts con el nonce que
 coincide con el header, **0 scripts sin proteger**, y los redirects del guard llevan el CSP.
 
-### En navegador (pendiente, hacer en el preview antes de mergear)
+### En navegador
 
-1. Abrir DevTools → **Console**: que **no haya** violaciones de CSP y que la app hidrate
-   (login carga, charts se ven).
-2. **Refresh de token (~1h):** loguearse, dejar la pestaña abierta y volver tras la expiración
-   del access token → debe **renovar sesión**, no expulsar al login. Es el único punto no
-   testeable por HTTP en local.
+1. **Consola sin violaciones:** verificado con Playwright sobre `next start` (versión `0.0.1`).
+   `/login` responde con el CSP con nonce, hidrata y no registra violaciones de CSP ni errores
+   de hidratación, en tema claro y oscuro. El dashboard requiere sesión de Supabase: revisar la
+   consola en el preview de Vercel.
+2. **Refresh de token (~1h), pendiente de verificar a mano:** loguearse, dejar la pestaña
+   abierta y volver tras la expiración del access token → debe **renovar sesión**, no expulsar
+   al login. Es el único punto que no se puede probar sin una sesión real.
 
-## Próxima mejora posible
+## Próximas mejoras posibles
 
-Reportar violaciones con `report-to` / `Reporting-Endpoints` para detectar en producción
-cualquier script que quede bloqueado sin romper la UX.
+- **Reportar violaciones** con `report-to` / `Reporting-Endpoints`, para detectar en producción
+  cualquier script que quede bloqueado sin romper la UX.
+- **Quitar `'unsafe-inline'` de `style-src`:** emotion acepta un `nonce` en su cache
+  (`createCache({ key: "css", nonce })`). Pasar el mismo nonce del proxy (header `x-nonce`) al
+  `CacheProvider` de MUI permitiría usar `style-src 'self' 'nonce-…'`. Hay que verificar que
+  MUI X siga funcionando y reemplazar los ~25 atributos `style={{…}}` inline (en `Charts.jsx`, `BudgetTab`, `shared.jsx`, las páginas de auth, etc.), que un `style-src` sin `'unsafe-inline'` bloquea.

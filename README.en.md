@@ -2,7 +2,7 @@
 
 Personal finance application to track income, expenses, budgets, goals, and more. Deployed at **[www.jeshu.cfd](https://www.jeshu.cfd)**.
 
-**Version:** `v1.7.0`
+**Version:** `v0.0.1` · [Changelog](CHANGELOG.md) · [Research on similar projects & roadmap (Spanish)](docs/INVESTIGACION.md)
 
 <!-- i18n-selector-start -->
 🌐 [Español](README.md) · **English**
@@ -12,12 +12,14 @@ Personal finance application to track income, expenses, budgets, goals, and more
 
 | Category | Technology |
 |---|---|
-| Framework | Next.js 16.2.6 (App Router) |
-| UI | Material UI (MUI) v9 |
-| Auth + DB | Supabase (email/password) |
+| Framework | Next.js 16.3 (App Router, Turbopack) |
+| UI | Material UI (MUI) v9 + `@mui/icons-material` (Rounded variant) |
+| Auth + DB | Supabase (email/password; OAuth wired up but disabled) |
 | Date Picker | MUI X Date Pickers + dayjs |
 | State | React Context + localStorage |
 | Language | TypeScript (routes/config) + JSX (components) |
+| Tests | Vitest (unit and jsdom component tests) + Playwright (end-to-end) |
+| CI | GitHub Actions: lint, typecheck, tests and build |
 | Deploy | Vercel → `https://www.jeshu.cfd` |
 
 ## Features
@@ -27,8 +29,8 @@ Personal finance application to track income, expenses, budgets, goals, and more
 - Registration with first name, last name, and email — email confirmation required
 - Full password recovery flow (forgot → email → reset with expired link detection)
 - Double-layer route protection: `src/proxy.ts` (server) + `router.replace` in `DashboardStudio` (client)
-- Auto-logout on inactivity after 2 minutes with a 30 s warning
-- Forced logout on browser reopen: `UserContext` writes the `gastos_session_alive` flag to `sessionStorage` on `SIGNED_IN` (covers email/password and OAuth); `DashboardStudio` checks it on mount — if missing (browser was closed) it calls `handleSignOut()` immediately before rendering the dashboard
+- Auto-logout on inactivity after 2 minutes with a 30 s warning, measured across all tabs (an idle tab doesn't sign you out while you're active in another one)
+- Forced logout on browser reopen: `UserContext` writes the `gastos_session_alive` flag to `sessionStorage` on `SIGNED_IN`; `DashboardStudio` checks it on mount. If it's missing, it asks the other tabs over a `BroadcastChannel`: if one answers (new tab while the browser is open) it inherits the flag; if none does (browser reopened) it signs out in this browser only (`scope: "local"`)
 - Tab left open >8 h: `checkSessionAge` reads `gastos_last_active` (localStorage) on focus recovery (`visibilitychange` + `pageshow` for bfcache) and signs out if the threshold is exceeded
 
 **Unified design system across all auth pages — supports light and dark theme:**
@@ -56,35 +58,35 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 
 ### Expenses (ExpensesTab)
 - Today's expenses with per-transaction detail
-- Top categories with progress bars
+- Top categories with icon, rank and progress bars
 - Budget vs actual — shows categories from the active budget (`editBudgets`), not hardcoded; "No budgets" message if none configured
 - Period summary (total, transactions, daily average, largest expense) — **all reflect the active filter**; progress bars with meaningful relative values (no bar for the count item)
 - Daily average calculated with `daysCount(period)` (7/30/90/365 per period)
 - Largest expense = maximum of the filtered transactions
-- Full list with edit and delete (delete confirmation)
-- Filter by category
+- Full list with each category's icon, edit and delete (delete confirmation)
+- Filter by category with chips that show the icon
 - **CalendarFilter:** interactive heat map — day and month views with proportional intensity; click filters the list, footer shows filtered total with "(filtered)" label
 - Footer total updates in real time when any filter is applied
 - Full date and time per transaction
 
 ### Income (IncomeTab)
 - Total income card with sparkline; `+X.X% vs prev.` chip hidden when no previous period (`dIn = null`)
-- Category grid with percentages and donut — real colors from `CATEGORIES.income[k].color` and custom categories; interactive cards to filter by source
+- Category grid with icon, percentages and donut — label, color and icon via `resolveCategoryMeta` (built-in and custom); interactive cards to filter by source
 - Monthly trend with full legend: income / expenses / net
 - **CalendarFilter** in green (success)
 - Footer total updates in real time when any filter is applied
-- Transaction list with edit and delete; avatars with correct colors per category
+- Transaction list with edit and delete; avatar with each category's icon and color
 
 ### Budgets (BudgetTab)
 - Visual health score gauge
-- Per-category cards with progress and alerts at 80% and 100%
+- Per-category cards with icon, progress and alerts at 80% and 100%
 - Expense distribution donut — **stacks vertically on mobile** (column on xs, row on sm+)
 - **"Budget vs Actual" chart:** horizontal bars per category, colored green/yellow/red; bars at 100%+ with diagonal stripe pattern; footer with totals
 - Comparison with previous period — dynamic label per active period (week/month/quarter/year)
 - Budget CRUD — exclusively from Supabase; selector includes custom categories in addition to native ones
 
 ### Goals & Finances (GoalsTab)
-- Savings goal CRUD with deadline — form with single name field
+- Savings goal CRUD with deadline, color and a selectable icon (`IconPicker`) — form with single name field
 - Bank account / card / cash management
 - Net worth (assets − debts) in real time
 - Investment tracking (AFP, DPF, crypto, etc.) — form with single name field
@@ -95,8 +97,8 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
-- **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color — in Supabase)
-- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL)
+- **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color and icon — in Supabase)
+- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN: forms convert with `toBase()` on save and `fromBase()` on edit (`src/data/index.js`), using fixed rates
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
@@ -113,54 +115,78 @@ Drawer with **two tabs** that separate Profile from Settings:
 ## Project Structure
 
 ```
+.
+├── .github/workflows/ci.yml        # CI: lint, typecheck, tests, build and e2e on every PR and push to main
+├── e2e/                            # End-to-end tests (Playwright) + playwright.config.ts
+├── .env.example                    # Environment variables (copy to .env.local)
+├── CHANGELOG.md                    # Changelog
+├── ICONOS_Y_ESTRUCTURA.txt         # Plain-text icon map and structure (Spanish)
+├── docs/
+│   ├── INVESTIGACION.md            # Similar projects, roadmap and technical improvements (Spanish)
+│   ├── SECURITY-CSP.md             # Per-request nonce CSP (Spanish)
+│   └── TESTING.md                  # Unit tests with Vitest (Spanish)
+├── public/favicon.svg              # App icon
+├── src/                            # (detail below)
+└── supabase/
+    ├── config.toml
+    ├── migrations/schema.sql       # Full DB schema (single source of truth, for a new DB)
+    ├── migrations/upgrade_0.0.1.sql # 0.0.1 changes for an existing DB (idempotent)
+    └── seed/reset.sql              # Empties the 8 tables — destructive
+```
+
+```
 src/
 ├── app/
-│   ├── layout.tsx                  # Root layout con Providers + IBM Plex Sans
+│   ├── layout.tsx                  # Root layout: Providers, fonts, favicon; dynamic rendering (CSP nonce)
+│   ├── fonts/                      # IBM Plex Sans + JetBrains Mono (woff2, latin subset, OFL) via next/font/local
 │   ├── page.tsx                    # Home → DashboardStudio
-│   ├── globals.css                 # Estilos globales (overflow-x: hidden, etc.)
-│   ├── login/page.tsx
-│   ├── register/page.tsx
-│   ├── forgot-password/page.tsx
-│   ├── reset-password/page.tsx
+│   ├── globals.css                 # Global styles (overflow-x: hidden, reduced motion, etc.)
+│   ├── error.tsx · global-error.tsx · not-found.tsx
+│   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx for each auth screen
+│   ├── auth/callback/route.ts      # OAuth PKCE code exchange (OAuth disabled for now)
+│   ├── api/client-error/route.ts   # Receives browser errors and writes them to the server logs
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
-│       └── DynamicThemeProvider.tsx
+│       ├── DynamicThemeProvider.tsx
+│       ├── ErrorReporter.tsx       # Reports uncaught errors (window.onerror, unhandledrejection)
+│       └── auth/                   # AuthCard, AuthErrorAlert, AuthThemeToggle, authStyles
 ├── components/
-│   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, inactividad
-│   ├── OverviewTab.jsx             # Vista general con gráficos y saludo
-│   ├── ExpensesTab.jsx             # Gastos con CRUD y filtros
-│   ├── IncomeTab.jsx               # Ingresos con CRUD y filtros
-│   ├── BudgetTab.jsx               # Presupuestos
-│   ├── GoalsTab.jsx                # Metas, cuentas, inversiones, deudas, subs
+│   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, period, toasts, session security
+│   ├── OverviewTab.jsx             # Overview with charts and greeting
+│   ├── ExpensesTab.jsx             # Expenses with CRUD and filters
+│   ├── IncomeTab.jsx               # Income with CRUD and filters
+│   ├── BudgetTab.jsx               # Budgets
+│   ├── GoalsTab.jsx                # Goals, accounts, investments, debts, subscriptions
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
-│   ├── shared.jsx                  # Delta, SummaryCard, NoTransactions, CalendarFilter
-│   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
-│   ├── SettingsPanel.jsx           # Drawer de ajustes + categorías personalizadas
-│   ├── LoginModal.jsx              # Modal de login in-app
-│   └── ErrorBoundary.jsx
+│   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
+│   ├── AddTransactionModal.jsx     # New/edit transaction modal
+│   ├── SettingsPanel.jsx           # Profile/settings drawer + custom categories
+│   └── LoginModal.jsx              # In-app login modal
 ├── context/
-│   ├── DataContext.jsx             # CRUD: txs, budgets, goals, accounts,
+│   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
-│   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES export
+│   ├── SettingsContext.jsx         # theme, density, currency, lang, palette + PALETTES
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N (sin datos mock)
-│   └── helpers.js                  # filterByPeriod, periodLabel, monthCount, daysCount,
-│                                   #   healthScore, recurringList, insightsList,
-│                                   #   linearRegressionSlope (OLS slope para series temporales)
+│   ├── index.js                    # CATEGORIES, CURRENCIES, I18N, fmtMoney, toBase/fromBase
+│   ├── helpers.js                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
+│   │                               #   insightsList, linearRegressionSlope…
+│   ├── fetchAllRows.js             # Pagination with .range() (Supabase caps responses at 1000 rows)
+│   └── *.test.js                   # helpers, currency, fetchAllRows (components: *.test.jsx next to each)
 ├── theme/
-│   └── materialTheme.js            # Temas light/dark + paletas de acento
+│   ├── materialTheme.js            # Light/dark themes, accents and icon animation
+│   ├── icons.js                    # Central MUI Rounded icon set
+│   ├── categoryIcons.js            # Category → icon, ICON_CHOICES, resolveCategoryMeta() (+ test)
+│   ├── iconTones.js                # Gradients per tone (TONES, TONE_BY_PALETTE)
+│   ├── GradientIcon.jsx            # GradientIcon + CategoryAvatar
+│   └── IconPicker.jsx              # Icon picker (goals and custom categories)
 ├── hooks/
-│   └── useLocalStorage.js
+│   └── useLocalStorage.js          # Default value on first render; stored value applied after mount
 ├── lib/
-│   ├── supabase.ts                 # Cliente browser (createBrowserClient)
-│   └── supabase-server.ts          # Cliente server
-└── proxy.ts                        # Protección de rutas (Next.js 16)
-supabase/
-├── migrations/
-│   └── schema.sql                  # Esquema completo de DB (todas las tablas aplicadas ✓)
-└── seed/
-    └── reset.sql                   # Wipes the 8 tables (count → TRUNCATE → verify) — destructive
+│   ├── reportError.js              # Sends browser errors to /api/client-error
+│   ├── supabase.ts                 # Browser client (createBrowserClient)
+│   └── supabase-server.ts          # Server client
+└── proxy.ts                        # Auth guard + per-request nonce CSP (Next.js 16)
 ```
 
 ## Database (Supabase)
@@ -169,43 +195,59 @@ All tables use RLS with `auth.uid() = user_id`.
 
 | Table | Description |
 |---|---|
-| `transactions` | Transactions (type, category, concept, amount, date) |
-| `budgets` | Monthly budgets per category |
-| `goals` | Savings goals with target, progress, and deadline |
+| `transactions` | Transactions (type, category, concept, amount in PEN, date) |
+| `budgets` | Monthly budgets per category (amount in PEN) |
+| `goals` | Savings goals with target, progress, deadline, color and icon (an `ICON_CHOICES` key; older goals store a text glyph) |
 | `accounts` | Bank accounts / cards / cash |
-| `investments` | Investments with return rate |
+| `investments` | Investments with rate of return |
 | `debts` | Loans with installments and remaining months |
 | `subscriptions` | Recurring subscriptions |
-| `custom_categories` | User-defined categories (name, type, color) |
+| `custom_categories` | User-defined categories (name, type, color, icon) |
 
-The complete schema is in `supabase/migrations/schema.sql`.
+The full schema is in `supabase/migrations/schema.sql`.
 
-> **Maintenance — wiping the database:** `supabase/seed/reset.sql` zeroes out all 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or `auth.users` accounts. It's **destructive and irreversible** — run it from the Supabase SQL Editor.
+> **Schema changes on an existing DB:** `schema.sql` uses `CREATE TABLE IF NOT EXISTS`, so it doesn't alter tables that already exist. Each version's changes ship as an idempotent script that must be run in the Supabase SQL Editor **before** deploying. For 0.0.1 it's `supabase/migrations/upgrade_0.0.1.sql`, which adds:
+> - the `custom_categories.icon` column;
+> - `(user_id, …)` indexes on the tables;
+> - RLS policies using `(select auth.uid())`.
+>
+> Tested on Postgres 16: running it twice doesn't error, and it leaves the DB identical to a fresh `schema.sql` install. With 200,000 transactions, loading one user's data went from ~120 ms (full table scan) to ~1.4 ms (index).
+
+> **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
 ## Quick Start
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Configurar variables de entorno
+# Set up environment variables
 cp .env.example .env.local
-# Editar .env.local con tus credenciales de Supabase
+# Edit .env.local with your Supabase credentials
 
-# Iniciar servidor de desarrollo
+# Start the dev server
 npm run dev
 
-# Correr los tests unitarios (Vitest)
+# Unit and component tests (Vitest)
 npm run test
+
+# End-to-end tests (Playwright) against the production build
+npm run build && npm run test:e2e
+
+# Lint (ESLint) and type check (tsc)
+npm run lint
+npm run typecheck
 ```
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build and end-to-end tests on every push to `main` and on every PR.
 
 The app will be available at `http://localhost:3000`. Testing details in **[docs/TESTING.md](docs/TESTING.md)**.
 
 ### Environment Variables
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## Security
@@ -216,196 +258,168 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | RLS in Supabase | All tables with owner-only policies `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Password policy | `minimum_password_length = 8` in `supabase/config.toml` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |
-| Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads |
+| Browser-session flag | `gastos_session_alive` in `sessionStorage` (cleared by the browser on close); reopening the browser forces re-login. The session survives normal page reloads. A tab opened by hand asks over `BroadcastChannel("gastos-session")` whether another tab is alive and, if one answers, inherits the session instead of signing out |
+| Scoped automatic sign-outs | Inactivity, 8 h max age and reopened browser use `signOut({ scope: "local" })` (other devices' sessions are not revoked). Before an inactivity logout the shared `gastos_last_active` is re-read so an idle tab doesn't sign out a user who is active in another tab |
 | Prolonged inactivity expiry | `gastos_last_active` in `localStorage` updated on every user event; if the tab has been inactive for >8 h, the session is closed on focus recovery |
-| Amount limit | Maximum 10,000,000 validated on client and with `max` attribute on the input |
+| Amount limit | Maximum 10,000,000 (in PEN, the base currency) validated on client and with `max` attribute on the input |
 | Error feedback | `loadError` in `DataContext` — banner with a Retry button if loading fails |
+| Errors visible in production | Browser errors (Next error boundaries, data-loading failures, uncaught errors) are sent by `reportError()` to `/api/client-error`, which writes them as one `[client-error]` JSON line in the server logs (Vercel → Logs). Only the pathname is sent (no query string), with a size cap and at most 10 reports per page. The route accepts reports without a session so the auth pages are covered. Production keeps `console.error` and `console.warn` |
 
 > Per-request nonce CSP architecture (`proxy.ts` flow, dynamic rendering, how to verify): **[docs/SECURITY-CSP.md](docs/SECURITY-CSP.md)**.
 
 ## Technical Notes
 
-**Colorful icons + cheerful accent system (v1.7.0):** Icons (still monochrome MUI Rounded) are now painted with **2-stop gradients** and, where it fits, sit in a soft-tinted **squircle bubble**. New wrapper `src/theme/GradientIcon.jsx` (reuses the `icons.js` set, doesn't replace it): applies an SVG `linearGradient` with a unique `id` via `useId()` (same pattern as `Charts.jsx`) and supports both `icon={Component}` and `children` (colors an already-rendered icon via CSS). Tones live in `src/theme/iconTones.js` (semantic per domain: income=green→teal, expense=coral→pink, budget=amber→gold, goals=blue→teal, net worth=indigo→violet) + `toneFromColor()`/`gradientBg()` deriving a vibrant gradient from each category's base color. Applied in `StatsCard` (all tabs), Overview mini-cards, Expenses/Income/Budget category avatars and Goals section headers; the dull/gray `CATEGORIES` colors were refreshed. **Accent:** the flat `amber/indigo/green/mono` set was replaced by **Coral, Mint, Ocean, Grape, Mono**, each with a gradient and light/dark variants (`ACCENTS` + `accentGradient()` in `materialTheme.js`); old accents migrate via aliases (`amber→coral`, `indigo→ocean`, `green→mint`) so `gastos-palette` isn't reset. The selector swatches and the "+" FAB use the accent gradient. Design guided by the `ui-ux-pro-max` skill (fintech/playful palettes, AA contrast).
+### Data and Supabase
 
-**Per-request nonce CSP — dropping `'unsafe-inline'` from scripts (v1.6.0):** The Content-Security-Policy moved from the static `next.config.mjs` headers into the middleware (`proxy.ts`), which generates a **unique nonce per request** (`crypto.randomUUID()` in base64) and builds `script-src 'self' 'nonce-…' 'strict-dynamic'` — removing `'unsafe-inline'` from scripts (the highest-severity pending security improvement). The nonce is forwarded on the *request* headers (`x-nonce` + `Content-Security-Policy`) so Next stamps it onto its `<script>` tags; it's rebuilt after every cookie mutation in Supabase's `setAll` callback so we keep both the refresh-cookie forwarding and the header. **Key requirement:** since the nonce is unique per request, pages must render **dynamically** — the root layout calls `await headers()` to force it (without this, static pages would ship nonce-less scripts that `strict-dynamic` blocks, breaking hydration). `style-src` keeps `'unsafe-inline'` (MUI/emotion inject styles at runtime). Verified: every page's 24 scripts carry the nonce matching the header, 0 scripts left unprotected.
+**Data loading:** `DataContext.load()` runs on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` or `USER_UPDATED`) and is deduplicated by `session.user.id`, so periodic token refreshes don't re-run the 8 queries. It isn't called on mount (that duplicated the queries). On failure the flag is reset so the next event retries. This removed the "you have to refresh twice" bug, where an `INITIAL_SESSION` without a usable session was never retried. The queries rely on RLS (`select("*")` with no `.eq("user_id")`).
 
-**OAuth scaffold — PKCE callback route (v1.5.0):** The OAuth flow was wired up (still **disabled** via `OAUTH_ENABLED = false` until the providers are configured in Supabase). New route `src/app/auth/callback/route.ts` exchanges the PKCE `code` for a session (`exchangeCodeForSession`) — required with `@supabase/ssr`; without it the buttons would land on `/` with an un-exchanged `?code=`. It validates that `next` is an internal path (anti open-redirect) and honours `x-forwarded-host` in prod. The three `signInWithOAuth` calls (login, register, `LoginModal`) now point at `/auth/callback?next=/`, and `proxy.ts` exempts `/auth/callback` from the auth guard (it arrives with no session yet). **To enable:** create the OAuth apps in Google/GitHub, paste client id/secret into Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs, and set `OAUTH_ENABLED = true`.
+**More than 1000 transactions:** PostgREST caps every response at `max_rows` (1000). `transactions` is fetched with `fetchAllRows()` (`src/data/fetchAllRows.js`), which pages with `.range()` ordered by `fecha` + `id`. It's all or nothing: if a page fails, no partial result is shown.
 
-**Helper unit tests (v1.4.0):** The repo's first test set, with **Vitest** (`npm run test`). `src/data/helpers.test.js` covers `src/data/helpers.js` —the fragile link touched by all 4 tabs— with a focus on edges: `flagAnomalies` (exact 3× boundary, even/odd median, min 4 samples, EGRESO-only, immutability), `healthScore` (reaches 100, floor 0, bonus/penalty caps), `filterByPeriod`, `linearRegressionSlope` and `recurringList`. Config in `vitest.config.mjs` (`environment: node`, no jsdom — the helpers are pure ESM with no React). Minor cleanup: `mapRow` in `DataContext` now seeds an explicit `anomaly: false` (the DB column is always `false`; `flagAnomalies` is the single source of truth).
+**Currency:** amounts are always stored in PEN. `fmtMoney(v, currency)` multiplies by the fixed `rate` from `CURRENCIES` for display, and forms convert with `toBase()` on save and `fromBase()` when pre-filling an edit (transactions, budgets, goals, accounts, investments, debts and subscriptions; % rates and months are not converted). The 10,000,000 cap is validated in PEN. Known limit: rounding to 2 PEN decimals can move a COP amount by up to about 5 units.
 
-**Financial health — fixed score + anomaly detection (2026-06-18):** `healthScore` (`helpers.js`) was rescaled so **100 is reachable** (the real cap was 90 before): the savings bonus is now `Math.min(40, savingsRate * 2)` → max 50 (base) + 40 (savings ≥ 20%) + 10 (spending down) = 100. Label and colour were centralized into `healthLabel(score, lang)` and `healthTone(score)` (75/50 thresholds), removing the dead `healthLabel` and BudgetTab's duplication; **OverviewTab now colours the score by level** (green/amber/red) like BudgetTab. **Unusual-expense detection was activated** (the `anomaly` field was always stored as `false`, so the penalty, insight and flag never showed): `flagAnomalies(txs)` flags an EGRESO as anomalous when it exceeds **3× its category median** (min 4 samples; median robust to outliers), applied in `DataContext` via `useMemo`, so the score penalty, the "Unusual expenses" insight and the ⚠ row flag now work.
+**Transaction type derived from the category (not the toggle):** in `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) is the **selected category's** type (`categoria.type`). Custom categories are shown regardless of the toggle, and saving the toggle's `tipo` recorded a custom income as an expense. The Autocomplete's `onChange` also syncs the toggle. Backfill for old data: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 
-**Login theme toggle + separated Profile/Settings (v1.3.0):** The login screen mounts `AuthThemeToggle` (a floating sun/moon button) that calls `setTheme` from `useSettings` and persists in `localStorage`; `isDark` derives from `palette.mode` via `useState+useEffect` (avoids the hydration mismatch). Since the auth pages already adapt to `palette.mode`, toggling repaints the screen instantly. `SettingsPanel` was redesigned as a Drawer with **Profile** (hero + favorites + my categories) and **Settings** (theme, density, accent, language, currency) tabs; the AppBar avatar opens Profile and the gear opens Settings via the `initialTab` prop. Jumping to the requested tab on open uses the "adjust state during render" pattern with `wasOpen` (not `useEffect` — forbidden by the `react-hooks/set-state-in-effect` rule).
+**Mutations throw on error:** every CRUD function in `DataContext` (transactions, budgets, custom categories, goals, accounts, investments, debts, subscriptions) does `if (error) throw error` before touching local state. Component handlers use `try/catch/finally` and show a success or error toast, which is why `DashboardStudio` passes `showToast` to the tabs and to `AddTransactionModal`.
 
-**Security hardening (v1.3.0):** CSP extended with `object-src 'none'`, `base-uri 'self'` and `form-action 'self'`. `minimum_password_length` raised to 8 in `config.toml` (matches what the UI promises). RLS policies made explicit (`TO authenticated … WITH CHECK`) in `schema.sql` + migration `20260618120000_rls_explicit_with_check.sql` — functionally equivalent (Postgres already used `USING` as the INSERT check when `WITH CHECK` was omitted), just more explicit and robust. Full audit: posture is good (owner-only RLS on all 8 tables, `getUser()` everywhere, no `service_role` key or secrets in the client).
+**Budgets:** `editBudgets` starts as `{}` and is filled only from Supabase; `deleteBudgetCat(cat)` deletes in the DB before updating state. The stored amount is monthly; views multiply it by `monthCount(period)`.
 
-**Charts refactor (v1.3.0):** `Charts.jsx` — removed `SparkBar` (exported but unused), per-instance unique SVG gradient ids via `useId()` (avoids `url(#id)` collisions when multiple instances mount), and shared helpers `extent()` (min/max/range) and `linePath()` (`M/L` path).
+**Numeric types:** the `map*` functions in `DataContext` convert to `Number` the decimals Supabase returns as strings (e.g. debts' `remaining` and `original_months`).
 
-**Centralized Rounded icon set (v1.2.0):** All icons (`@mui/icons-material`) are imported from a single `src/theme/icons.js` module that re-exports them in their **Rounded** variant (Material 3 / Material You) via *deep-import* (better tree-shaking). The 14 components/pages import from there instead of the *barrel* — switching styles (e.g. to Outlined) later = editing just that one file. Special cases: the brand icons `GitHub`/`Google`/`YouTube` have no Rounded variant (they stay Filled) and `ErrorOutlined` maps to `ErrorRounded`. The theme micro-interactions are preserved because Rounded icons are still `MuiSvgIcon`.
+**No mock data:** everything comes from Supabase; there are no sample transactions, goals, accounts or budgets in the code.
 
-**Icon micro-interactions centralized in the theme (v1.1.0):** Icon animations live in `materialTheme.js` `components.styleOverrides` (not scattered per component): `MuiIconButton` (scale 1.12 on hover + 0.92 press), `MuiFab` (lift + scale), `MuiTab`/`MuiBottomNavigationAction` (the icon plays `iconPop` when selected + scales on hover), `MuiCard` (the header avatar pops when the card is hovered) and `MuiSvgIcon` (smooth transform/color transition). The `iconPop` keyframe is in `globals.css`. Spring-like easing `cubic-bezier(0.34,1.56,0.64,1)`, 200-300ms, hover/active-state only (no autoplay). Everything is neutralized by the `@media (prefers-reduced-motion: reduce)` guard in `globals.css` (duration collapses to ~0). The AppBar FABs (`+` and ⚙️) rotate 90° on hover via `sx`.
+**Multiple Supabase client instances:** `onAuthStateChange` events don't propagate between separate instances. `LoginModal` uses `window.location.reload()` after login so `DataContext` reloads.
 
-**Transaction type derived from the category (not the toggle):** In `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) comes from the **selected category** (`categoria.type`), not from the toggle state or `mode`. Since custom categories are always shown regardless of the toggle, saving the toggle's `tipo` caused a custom income category (picked while the toggle was on EGRESO — the FAB default) to be saved as an expense → the income "wasn't registered" and net/savings/balance went out of sync. The Autocomplete `onChange` also syncs the toggle (`if (v?.type) setTipo(v.type)`). Backfill for already mis-saved rows (custom categories): `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
+**"JWT issued at future" error:** shows up when the device clock is ahead of Supabase (1 minute is enough). Supabase rejects the JWT and every query fails. Fix: sync the system clock. The error banner detects this case and shows an actionable message.
 
-**Data loading without a double refresh:** `DataContext.load()` no longer depends solely on `INITIAL_SESSION`, nor does it make an internal `getUser()` network round-trip. It loads on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION` | `SIGNED_IN` | `TOKEN_REFRESHED` | `USER_UPDATED`), using the session from the event itself. It dedupes by `session.user.id` (so periodic token refreshes don't re-run the 8 queries) and resets the flag on failure to allow a retry. This fixes the "have to refresh twice" bug: previously, if the first `INITIAL_SESSION` arrived without a usable session (token pending refresh / latency / clock skew) there was no retry and the data wouldn't appear until another reload. The 8 queries rely on RLS (`select("*")` without `.eq("user_id")`), so `session.user` only serves as "there is a session + dedupe".
+### Session and authentication
 
-**`proxy.ts` vs `middleware.ts`:** Next.js 16 uses the `proxy.ts` convention. The name `middleware.ts` is deprecated and produces a build warning.
+**Session security:**
+- `UserContext` writes `gastos_session_alive` to `sessionStorage` on `SIGNED_IN`; the browser clears it on close and reloads (F5) keep it.
+- On mount, `DashboardStudio` checks for it. If it's missing, it asks over `BroadcastChannel("gastos-session")` whether another tab is alive (waiting about 300 ms): if one answers, this is a new tab with the browser still open and it inherits the flag; if not, the browser was reopened and it signs out.
+- Inactivity: 2 min with a warning at 30 s. `gastos_last_active` (localStorage, shared across tabs) is updated on every user event and re-read before warning or signing out, so an idle tab doesn't sign out a user who is active in another tab.
+- Tab left open for more than 8 h: checked when visibility returns (`visibilitychange`, plus `pageshow` for bfcache).
+- Automatic sign-outs use `signOut({ scope: "local" })`, which doesn't revoke the user's sessions on other devices; the "Sign out" button keeps the global scope. All of them clear `gastos_last_active` to avoid a logout loop on the next login.
 
-**Supabase redirectTo:** `window.location.origin` may return `https://www.jeshu.cfd` (with www) but Supabase only accepts `https://jeshu.cfd/**`. Always apply `.replace(/^https:\/\/www\./, "https://")` before `redirectTo`.
+**OAuth (disabled):** `src/app/auth/callback/route.ts` exchanges the PKCE code and checks that `next` is an internal path. To enable it: create the OAuth apps in Google/GitHub, add client id/secret in Supabase → Auth → Providers, add `https://www.jeshu.cfd/auth/callback` to the redirect URLs and set `OAUTH_ENABLED = true` on the login and register pages. ⚠ Check the session flag first: the exchange happens on the server, so the client never gets `SIGNED_IN` and `gastos_session_alive` wouldn't be written.
 
-**Multiple Supabase client instances:** `onAuthStateChange` events do not propagate between separate instances. `LoginModal` uses `window.location.reload()` after login to ensure `DataContext` reloads data.
+**Supabase `redirectTo`:** `window.location.origin` may return `https://www.jeshu.cfd` (with www), but Supabase only accepts `https://jeshu.cfd/**`. Apply `.replace(/^https:\/\/www\./, "https://")` before `redirectTo`.
 
-**No mock data:** All data comes exclusively from Supabase. There are no `generateTransactions()`, `SAVINGS_GOALS`, `ACCOUNTS`, or hardcoded `BUDGETS`.
+**`proxy.ts` vs `middleware.ts`:** Next.js 16 uses the `proxy.ts` convention; `middleware.ts` is deprecated and warns at build time.
 
-**Filters in ExpensesTab/IncomeTab:** `filteredTotal` is derived with `useMemo` from the already-filtered list (`expenseTxs`/`incomeTxs`). The footer and summary cards always read that value. The daily average uses `daysCount(period)` (7/30/90/365).
+**CSP:** built per request in `src/proxy.ts` (`buildCsp`) with a nonce and `'strict-dynamic'`; `'unsafe-eval'` is only added outside production. Details in [docs/SECURITY-CSP.md](docs/SECURITY-CSP.md).
 
-**GoalsTab forecast:** 3 guards based on history: `length === 0` → "No data"; `length === 1` → "At least 2 months needed" message + average of available month; `length >= 2` → OLS trend `linearRegressionSlope(nets)` (least squares over all points, more stable than first-last). The progress bar uses `avgIn > 0 ? barPct : 50` to avoid `NaN%`. If `|trend| < 1`, shows "Stable trend · N months of history" note. Projected total = `next.reduce((s,n) => s+n.net, 0)` (real sum, not `netAvg * 3`).
+**Auth pages:**
+- They all use `useTheme()` and `isDark`, with `darkField`/`cardSx` defined inside the component and `Blobs` receiving `{ isDark }`.
+- `isDark` starts as `false` and is applied in a `useEffect`, so the first render matches the server HTML (avoids the hydration mismatch).
+- The Supabase calls (`signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`) are wrapped in `try/catch/finally`, so the button never stays stuck on a spinner.
+- `AuthErrorAlert` detects the expired link in Spanish and English (`"expiró"` / `"expired"`).
 
-**GoalsTab net worth evolution:** Reconstructed from current `netWorth` backward: `history[i].value = netWorth - sum(nets[i+1..end])`. Red bars for negative values, green for positive.
+### Icons and theme
 
-**`insightsList` period-aware:** Accepts `period` as last parameter. The period-end projection uses `(totalOut / daysCount(period)) * 30` to normalize to a month-equivalent regardless of the selected period.
+**Icon system:**
+- Category icons come from a single map, `src/theme/categoryIcons.js`.
+- `resolveCategoryMeta(categoria, customCats, lang, tipo)` returns label, color and icon for both built-in and custom (`custom_<id>`) categories. The transaction picker, lists, filter chips and budgets use it, and it replaces the `customCats` lookups that used to be repeated in every tab.
+- Lists render `CategoryAvatar` (a squircle with the category color's gradient) and headers use `GradientIcon` with a semantic tone (`TONE_BY_PALETTE`).
+- Goals and custom categories pick an icon with `IconPicker` and store its key (e.g. `"Flight"`). Older goals with a text glyph still render.
+- If the `custom_categories.icon` column doesn't exist yet, `saveCustomCat` gets `PGRST204` and saves without the icon.
 
-**OverviewTab mini cards:** `dIn`/`dOut` are `null` (not `0`) when `prevIn`/`prevOut === 0`, which hides the delta chip entirely. When shown: `"+X.X% vs prev."` with always-explicit sign. Sub-label: "N records" (income) / "N expenses" (expense) with singular/plural and bilingual support. Income categories calculated with `txByCategory(periodTxs, "INGRESO")` mapped to `CATEGORIES.income`; expense categories from the `donut` array.
+**Theme without hydration mismatch:** `useLocalStorage` uses the default value on the first render (server and hydration) and applies the stored one right after mount. Reading it in the `useState` initializer made a stored dark theme produce different classNames than the server HTML, which React doesn't patch up.
 
-**OverviewTab — `CategoryBars` replaces `MiniBarLabeled` + small donut:** The previous mini-card charts were unreadable — vertical bars without amounts (income) and an 88px donut without legend (expenses). Both cards now use the same `CategoryBars` component: horizontal bar list (top 5) with color dot, name (`noWrap`), exact amount (`fmtMoney(..., true)`, tabular-nums), and a bar proportional to the largest category in the set (`value / peak`). Follows the approved horizontal-bar pattern for category breakdowns. `MiniBarLabeled` was removed from `Charts.jsx` (no longer used).
+### Calculations and charts
 
-**IncomeTab — colors per category:** The static `INCOME_COLORS` map (outdated to 6 categories) was removed. Colors are read directly from `CATEGORIES.income[c.categoria]?.color` for native categories and from `customCats.find(...)?.color` for custom ones. The delta chip uses `dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null` — `null` hides the chip when there is no previous period with data (same pattern as OverviewTab).
+**Filters (Expenses/Income):** `filteredTotal` is derived with `useMemo` from the already-filtered list. The footer and summary cards read it, and the daily average uses `daysCount(period)` (7/30/90/365).
+- **Top categories:** follows `calFilter` and the active category.
+- **"Budget vs actual":** uses the full-period `periodCats`, so a one-day filter doesn't show 0 %.
+- **"Daily average" bar:** shows the % of budget spent, or a neutral 50 % when there's no budget.
 
-**ExpensesTab — Budget vs actual:** The section uses `Object.keys(editBudgets)` (categories from the active budget loaded from Supabase) instead of hardcoded categories. Shows "No budgets configured" if `editBudgets` is empty. The summary progress bars use meaningful relative values; the count item (`isCount`) does not render `LinearProgress`.
+**Distributions:** donut percentages use the sum of the displayed slices as the denominator, so they always add up to 100 % (Overview and Budgets). The Overview donut center uses that same total.
 
-**BudgetTab — dynamic period label:** The previous-period comparison shows "vs previous week/month/quarter/year" based on the active `period`, instead of a fixed "vs last month".
+**Mini cards and deltas (Overview/Income):**
+- `dIn`/`dOut` are `null` (not `0`) when the previous period has no data, and the chip is then hidden. When shown, the sign is always explicit and the text is bilingual (`vs ant.` / `vs prev.`).
+- `CategoryBars` (top 5 as horizontal bars with the exact amount) replaced the unreadable mini charts.
 
-**BudgetTab — custom categories:** `getCatName`/`getCatColor` resolve name and color for both native categories (`CATEGORIES.expense`) and `custom_*` (via `customCats`). Defined before the `donutData` useMemo to avoid temporal dead zone. The "Add budget" selector includes `customCats.filter(cc => cc.tipo === "EGRESO")` alongside native categories.
+**`insightsList`:** takes the `period`; the projection normalizes to a month-equivalent with `(totalOut / daysCount(period)) * 30`.
 
-**GoalsTab — single name field in forms:** Goal, investment, and debt dialogs use a single "Name" field that updates both `es` and `en` simultaneously (`setForm({ ...f, es: v, en: v })`). The DB still receives `label_es` and `label_en` with the same value; `d[lang]` works correctly in either language.
+**StudioCashflow:** the net line has its own scale (`yForNet`) so it stays inside the SVG when the net is negative.
 
-**GoalsTab — category in subscriptions:** The category field in the subscription dialog is a `Select` with all expense categories (native `CATEGORIES.expense` + `customCats` of type EGRESO), each with its color dot. Previously it was a free-text `TextField` with no options.
+**Budgets:**
+- The comparison with the previous period has a dynamic label (week/month/quarter/year).
+- The "Budget vs Actual" footer sums only budgeted categories, and each row reads "Spent S/X · limit S/Y".
+- Deleting a budget asks for confirmation, and every action gives toast feedback.
+- "Recurring payments" shows 5 with "Show more / Show less".
 
-**GoalsTab — `customCats` in useData:** The `useData()` destructuring includes `customCats` — it was missing and caused a crash when opening the subscription dialog with the new category selector.
+**Forecast (Goals):** uses 3 guards based on history: 0 months → "No data"; 1 month → "At least 2 months needed"; 2 or more → OLS trend via `linearRegressionSlope(nets)`, more stable than first-to-last. If `|trend| < 1` it shows "Stable trend". The projected total is the real sum of the 3 months.
 
-**DataContext — numeric types in debts:** `mapDebt` converts `remaining` and `original_months` to `Number` (they arrived as strings from Supabase), preventing broken progress calculations.
+**Net worth and investments (Goals):** net-worth evolution is rebuilt backward from the current `netWorth`. The average investment return is weighted by value. The monthly subscriptions total normalizes yearly ones (`price / 12`).
 
-**GoalsTab — debt progress bar:** Fallback corrected: `orig = d.original_months || d.remaining || 1` instead of `d.remaining + 1`, which overestimated the total installments when `original_months` was undefined.
+**Goals and debts:**
+- **Goals:** a single "Name" field saves `label_es` and `label_en`, and the deadline can't be in the past. Goals without a deadline show no day count. A `target = 0` doesn't divide by zero. An exceeded goal says "Goal reached!" instead of a negative remainder.
+- **Debts:** progress is never negative and uses `original_months || remaining || 1`.
+- **Forms:** they have validation (minimums, price > 0, remaining ≤ total installments, a hint for "TEA"), and delete buttons are disabled while the operation runs.
 
-**ExpensesTab — custom category name in budget:** The "Budget vs actual" card resolves `custom_*` category names via `customCats` instead of showing the raw key.
+### Forms and UI
 
-**IncomeTab — active filter chip with custom categories:** The chip showing the active category resolves `custom_*` names via `customCats` instead of showing the raw key.
+**`AddTransactionModal`:**
+- `saving` prevents double submission and shows a spinner.
+- A failed save shows an error toast.
+- The date starts at the exact current time, and the DatePicker keeps the time when the day changes.
 
-**BudgetTab — amount in manage dialog:** The existing budgets list was showing `amount × monthCount(period)` with a "/month" label — an incorrect double calculation. Now shows `amount` (monthly value) directly.
+**Custom categories:**
+- They're resolved everywhere through `resolveCategoryMeta`, so the raw `custom_…` key is never shown.
+- In the subscription dialog, the category is a `Select` with built-in and custom expense categories.
+- `SettingsPanel` wraps save and delete in `try/catch` with a Snackbar, and uses `slotProps.htmlInput` (MUI v9) instead of `inputProps`.
 
-**DashboardStudio — safe Avatar against empty name:** `displayName?.[0]?.toUpperCase() || "?"` replaces `displayName[0].toUpperCase()` which threw a `TypeError` when the user had no resolved name or email.
-
-**Login / Register — try-catch on Supabase calls:** Both pages wrap `signInWithPassword`/`signUp` in `try/catch/finally`; if Supabase throws a network exception, `setLoading(false)` runs in `finally` and a "Connection error" message appears — the button does not stay stuck.
-
-**GoalsTab — debt progress bar cannot be negative:** `Math.max(0, orig - d.remaining)` prevents negative values when `remaining > original_months`.
-
-**IncomeTab — donut legend with real name:** `incomeDonut` resolves `label` from the source (`CATEGORIES.income[key]?.[lang]` or `customCats.find(...)?.nombre`) instead of passing the raw key `custom_abc123` and relying on a later lookup that failed for custom categories.
-
-**BudgetTab — confirmation when deleting a budget:** Deleting a budget from the "Manage" dialog now shows a confirmation Dialog before executing the delete (consistent with all other deletion flows).
-
-**GoalsTab — Delete buttons disabled during operation:** Delete buttons in goal, account, investment, debt, and subscription dialogs are `disabled` while the async operation is in progress, preventing double-click.
-
-**GoalsTab — goal deadline cannot be in the past:** The goal DatePicker includes `minDate={dayjs()}` — past dates cannot be selected.
-
-**GoalsTab — subscription category resolved:** The subscription card shows the real category name (native or `custom_*`) instead of the raw key.
-
-**ExpensesTab / IncomeTab — delete with try-catch:** The transaction delete confirmation button uses `await` with `try/catch/finally`: shows an error toast on failure and always closes the dialog.
-
-**DashboardStudio — i18n strings:** Login button ("Entrar"/"Sign in") and error banner ("Reintentar"/"Retry", "Error al cargar datos"/"Error loading data") respect the selected language.
-
-**BudgetTab — "Budget vs Actual" footer sums budgeted categories only:** The footer "Total spent" was using `totalOut` (all period expenses), while the individual rows only show spending for categories with an assigned budget. Adding up the rows gave a different total than the footer. Fix: `totalSpentBudgeted = Σ spent[cat] for cat ∈ editBudgets`. The top summary card (Health Score, "Spent") still uses `totalOut` — correct for the global financial health context.
-
-**Auth pages — dark mode was not applying (hydration mismatch):** `isDark = theme.palette.mode === "dark"` was computed on the first render. The server always generates HTML in light mode (no localStorage access), while the client wants dark → React detects the `className` mismatch and leaves it unpatched, permanently keeping the DOM in light mode even though the internal state was dark. Fix: `const [isDark, setIsDark] = useState(false)` + `useEffect(() => setIsDark(theme.palette.mode === "dark"), [theme.palette.mode])` in the 6 affected units: `login`, `register`, `forgot-password`, `reset-password`, `AuthCard`, `AuthErrorAlert`. The first render matches the server HTML (no mismatch), and `useEffect` applies the correct theme after hydration.
-
-**DataContext — token renewal reload fixed:** The `onAuthStateChange` listener no longer calls `load()` on the `SIGNED_IN` event (which Supabase fires when auto-renewing the JWT), preventing the Goals tab from reloading every ~55 minutes. Only loads on `INITIAL_SESSION`.
-
-**DataContext — `load()` not called on mount:** The direct `load()` call in the `useEffect` was removed. `INITIAL_SESSION` always fires when subscribing to `onAuthStateChange` and is the sole source of truth for the initial load. Calling both produced 16 parallel Supabase queries on every mount.
-
-**DataContext — `setEditBudgets` throws error consistently:** The budget upsert now does `if (error) throw error` + `setEditBudgetsState(newBudgets)`, matching all other CRUD functions. Previously it used `if (!error) setState` — Supabase errors were silently swallowed and the caller could not show feedback.
-
-**Auth pages — try/catch/finally on all Supabase calls:** `forgot-password` and `reset-password` wrap `resetPasswordForEmail` / `updateUser` in `try/catch/finally`. Without `finally`, a network error left the button permanently in spinner state since `setLoading(false)` was only called in the explicit error branch, not on exceptions.
-
-**`not-found.tsx` — must be a Client Component:** The page uses `<Button component={Link}>` which passes a function to MUI at prerender time. Next.js rejects this in Server Components. Added `"use client"` and removed the `metadata` export (404 pages are not indexed by search engines).
-
-**CSP — `unsafe-eval` in development only:** `next.config.mjs` now applies `'unsafe-eval'` only when `NODE_ENV !== "production"`. Removed from production — Next.js and MUI/Emotion do not require it in production and its presence weakens the security policy of a financial app.
-
-**`AddTransactionModal` — no icon aliases:** The 50 `const XIcon = Y` declarations were removed. Icons from `@mui/icons-material` are used directly by their import name in `EXPENSE_ICONS` and `INCOME_ICONS`. Data imports (`CATEGORIES`, contexts) were moved to the top import block.
-
-**`AuthErrorAlert` — bilingual expired link detection:** The condition to show the "Request new link" link now checks `error.includes("expiró") || error.includes("expired")`. Previously it only detected the Spanish string — if Supabase returned the message in English the link did not appear.
-
-**Auth pages — light/dark theme:** All use `useTheme()` + `isDark = theme.palette.mode === "dark"`. `darkField` and `cardSx` are defined inside the component (not at module level) to read `isDark` at render time. `Blobs` accepts a `{ isDark }` prop to adjust gradient opacity.
-
-**DataContext — `saveCustomCat` / `deleteCustomCat` throw errors:** Both functions now do `if (error) throw error` before mutating local state. Previously they used `if (!error) setCustomCats(...)` without throw — the try/catch in `SettingsPanel.handleSaveCat`/`handleDeleteCat` never fired, and Supabase errors were silently lost.
-
-**IncomeTab — bilingual delta chip:** The "vs ant." chip now uses `lang === "es" ? "vs ant." : "vs prev."`, consistent with OverviewTab.
-
-**StudioCashflow — net line with its own scale:** The net line (income − expenses) used `yFor()` designed for the 0–max range of bars. When the net was negative, the line rendered outside the SVG (below the month labels). Now uses `yForNet()` which scales to the actual net range (min negative → max positive), always staying inside the `viewBox`.
-
-**OverviewTab — donut center consistent:** The center was showing `totalOut` (all period expenses) but percentages used `donutTotal` (top-6 sum). The center now also uses `donutTotal` — arc ↔ label ↔ center all relative to the same set of visible segments.
-
-**GoalsTab — completed goal does not show a negative number:** When `current > target` (goal exceeded), `left = target - current` was negative and displayed as "-S/X.XX remaining". Fix: `Math.max(0, target - current)` + `"¡Meta cumplida!" / "Goal reached!"` text when `pct >= 1`.
-
-**ExpensesTab — "Budget vs actual" not distorted with active calFilter:** The budget section was using `cats` (derived from `expenseTxs`, calFilter-aware). With a single-day filter active, it showed 0% usage for all categories. Fix: new memo `periodCats = txByCategory(periodTxs.filter(EGRESO))` for that section — always uses the full period, independent of calFilter.
-
-**BudgetTab — "Budget vs Actual" readable labels:** The row header was showing `S/204 / S/800` without context. Now shows `Spent S/204 · limit S/800` (labeled, spent in bold and red if over). The redundant "limit S/800" bottom line was removed. "Exceeded" text changed from "Excedido +S/X" to "Excedido en S/X".
-
-**Budgets — loading and deletion:** `DataContext` initializes `editBudgets` as `{}` and fills it only from Supabase. `deleteBudgetCat(cat)` deletes from the DB before updating the state.
-
-**AddTransactionModal — double-submit prevention:** `saving` state disables the button and shows `CircularProgress`. `handleSubmit` has try-catch to release `saving` if the operation throws an exception.
-
-**Session security — browser-close detection mechanism:** `UserContext.onAuthStateChange` listens for the `SIGNED_IN` event (explicit login — email/password or OAuth) and writes `sessionStorage.setItem("gastos_session_alive", "1")`. The browser automatically clears `sessionStorage` when it closes. On reopen, `DashboardStudio` checks the flag before rendering the dashboard; if missing it calls `handleSignOut()` and redirects to `/login`. Normal page reloads (F5) preserve `sessionStorage` — the session continues as usual. For tabs left open: `gastos_last_active` in `localStorage` is updated on every user event (mousedown/keydown/scroll/etc.); `checkSessionAge` checks on focus recovery (`visibilitychange` + `pageshow` with `event.persisted` for bfcache restores) and signs out if the timestamp exceeds 8 h. All sign-out paths (manual, inactivity, expiry) call `localStorage.removeItem("gastos_last_active")` to prevent an immediate forced-logout loop on the next login.
-
-**CalendarFilter:** In `shared.jsx`. Day view: 7-column grid with `alpha(mainColor, intensity)`; month view: 4×3 grid. Red for EGRESO, green for INGRESO. Click on a cell activates `onFilter({ type, date })`, clicking again clears it. Day/Month mode chips include bilingual `aria-label` for accessibility.
-
-**Date and time on transactions:** `AddTransactionModal` initializes with `dayjs()` (exact time). When changing the date in the `DatePicker`, the time is preserved: `newValue.hour(h).minute(m).second(s)`.
-
-**BudgetTab — toast feedback on budgets:** `saveEdit`, `saveEditExisting`, and `handleAddBudget` show a confirmation toast when updating or adding a budget. They receive `showToast` as a prop from `DashboardStudio`. The "Recurring payments" list capped at 5 items shows a "Show more (N)" button if there are more; "Show less" to collapse.
-
-**SettingsPanel — try-catch on custom categories:** `handleSaveCat` and `handleDeleteCat` wrap calls to `saveCustomCat`/`deleteCustomCat` in `try/catch`; if the operation fails, an error Snackbar is shown instead of staying silent.
-
-**GoalsTab — form validations:** Target/current amount fields with `inputProps={{ min: 0 }}`; investment "Value" field the same. Save button disabled if `value ≤ 0` (investment) or `price ≤ 0` (subscription) or `remaining > original_months` (debt). Debt APR field includes bilingual `helperText` explaining "Tasa efectiva anual / Annual effective rate". Subscription price field shows monthly equivalent when cycle is annual (`≈ X.XX/month`).
-
-**OverviewTab — bilingual delta chip:** The "vs ant." chip in the summary mini cards now switches to "vs prev." when the language is English (`lang === "es" ? "vs ant." : "vs prev."`).
-
-**AddTransactionModal — error toast on save failure:** The `catch` block of `handleSubmit` shows an error toast "Error al guardar. Intenta de nuevo." when `addTx`/`updateTx` throws an exception (network, RLS). Requires the `showToast` prop passed from `DashboardStudio`. Without this the spinner disappeared silently with no feedback.
-
-**BudgetTab — budget delete with correct feedback:** `deleteBudgetCat` in `DataContext` now does `throw error` when Supabase fails, allowing `BudgetTab.deleteBudget` (async with try/catch/finally) to show a success or error toast and close dialogs in `finally`. Previously the dialog closed instantly without waiting for the DB; if it failed, the budget reappeared silently. Consistent with the pattern in `ExpensesTab` and `IncomeTab`.
-
-**GoalsTab — goals without deadline:** Goals without a `deadline` no longer show "0 days". The days calculation returns `null` when `g.deadline` is null, and the line is completely hidden in the UI (`{days !== null && <Typography>...`). `new Date(null)` returns epoch (1970) which resulted in 0 days — an incorrect value.
-
-**DataContext — all CRUD functions throw error:** The 13 CRUD functions (`addTx`, `updateTx`, `deleteTx`, `saveGoal`, `deleteGoal`, `saveAccount`, `deleteAccount`, `saveInvestment`, `deleteInvestment`, `saveDebt`, `deleteDebt`, `saveSubscription`, `deleteSubscription`) now do `if (error) throw error` instead of `if (!error && data)`. This allows component handlers to catch the error and show feedback. Previously all of them failed silently — only `deleteBudgetCat` had `throw`.
-
-**GoalsTab — `showToast` prop required:** `DashboardStudio` now passes `showToast={showToast}` to `GoalsTab`. Without this prop, the 10 CRUD operations in the tab (goals, accounts, investments, debts, subscriptions) gave success or failure with no user feedback.
-
-**GoalsTab — handlers with `try/catch/finally`:** The 5 save handlers (`handleSaveGoal`, `handleSaveAccount`, `handleSaveInvest`, `handleSaveDebt`, `handleSaveSub`) and their delete counterparts have `try/catch/finally` with `setSaving`. Without `finally`, if Supabase threw an exception the spinner stayed active and the dialog could not be closed.
-
-**GoalsTab — guard against division by zero in goal progress:** `const pct = g.target > 0 ? g.current / g.target : 0` prevents `Infinity%` when a goal's target is 0. Previously `Math.round(Infinity * 100)` rendered `"Infinity%"` and `fmtMoney(left)` showed a negative amount in "remaining".
-
-**ExpensesTab / IncomeTab — `showToast` in edit modal:** The `<AddTransactionModal editTx={...}>` mounted when editing a transaction now receives `showToast={showToast}`. Without this prop, errors when saving an edit (network, RLS) were silent — the spinner disappeared without any message.
-
-**ExpensesTab — "Daily average" bar corrected:** The period summary progress bar used the tautological formula `(X / daysCount) / (X / daysCount) = 1`, always 100%. Now uses `filteredTotal / totalBudget` (% of budget spent) if a budget is configured, or a neutral 50% if not.
-
-**ExpensesTab — Top Categories in sync with calFilter:** `cats` is now derived from `expenseTxs` (which already incorporates `calFilter` and `activeCat`) instead of `periodTxs`. Previously, filtering a day in the calendar updated the list and totals but "Top Categories" cards still showed the full month data. Percentages and the total in the Top Categories header use `filteredTotal` to stay consistent with the active view.
-
-**Math corrected in distribution charts:** The percentage denominator in donut/pie charts is always the sum of the displayed segments themselves (`sliceTotal`), not the global total. Previously, if the chart showed only the top-6 categories or only the budgeted ones, percentages never summed to 100%. Applied in `OverviewTab` (Breakdown) and `BudgetTab` (Distribution).
-
-**GoalsTab — weighted average investment return:** Changed from simple average to value-weighted average (`Σ(value × rate) / Σ(value)`). The simple average gave equal weight to all investments regardless of size.
-
-**`linearRegressionSlope` in `helpers.js`:** New utility function that calculates the slope of a time series using ordinary least squares (OLS). Replaces the `(last - first) / (n-1)` calculation in the GoalsTab forecast — the previous slope was unstable when the first or last month was an outlier.
-
-**GoalsTab — yearly subscriptions normalized to monthly:** The subscription monthly total (`subscriptions.reduce(...)`) now applies `cycle === "yearly" ? price / 12 : price` per item. Previously a yearly subscription of S/120 added 120 to the monthly total instead of 10 — "Total monthly" was massively overestimated when yearly subscriptions were present.
-
-**SettingsPanel — deprecated `inputProps` in MUI v9:** The category name `TextField` used `inputProps={{ maxLength: 40 }}` (MUI v4/v5 prop). Changed to `slotProps={{ htmlInput: { maxLength: 40 } }}`, consistent with the rest of the project.
+**Other:**
+- The `DashboardStudio` avatar is safe with an empty name (`displayName?.[0]?.toUpperCase() || "?"`).
+- The "Sign in" button and error banner texts are bilingual.
+- `not-found.tsx` is a Client Component (it uses `<Button component={Link}>`).
+- Transaction deletion uses `try/catch/finally`.
+
+**CalendarFilter (`shared.jsx`):**
+- **Views:** day (7-column grid with `alpha(mainColor, intensity)`) and month (4×3 grid).
+- **Colors:** red for EGRESO and green for INGRESO.
+- **Interaction:** a click filters and a second click clears. The Day/Month chips have bilingual `aria-label`s.
+
+## Architecture
+
+### Data flow: Supabase → tabs
+
+```
+Supabase DB (8 tables, RLS auth.uid() = user_id)
+  └── DataProvider.load() — Promise.all of 8 queries (DataContext.jsx)
+        ├── fetchAllRows(transactions) → mapRow() → flagAnomalies() → txs[]
+        ├── mapGoal() / mapAccount() / mapInvestment() / mapDebt() / mapSubscription()
+        └── unmapped → customCats[], editBudgets{}
+              │
+              └── useData()
+                    ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
+                    └── GoalsTab  (goals + accounts + investments + debts + subscriptions)
+
+Each tab: filterByPeriod(txs, period) → helpers.js → Charts.jsx
+Category label / color / icon: resolveCategoryMeta()  (theme/categoryIcons.js)
+Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase() in forms
+```
+
+### Key modules
+
+| Module | Role |
+|---|---|
+| `DashboardStudio.jsx` | App shell: the only component that consumes all 3 contexts (Settings, User, Data), owns the shared `period`, is the `showToast` channel and enforces session security |
+| `DataContext.jsx` | The single source of data and of mutations against Supabase |
+| `data/helpers.js` | Pure calculations used by the 4 main tabs (periods, financial health, anomalies, recurring, trends); a bug here hits all of them, which is why it has tests |
+| `theme/categoryIcons.js` | Label, color and icon for any category |
+| `proxy.ts` | Route guard + per-request nonce CSP |
+
+**`createClient()`** is called inside each CRUD function, but `createBrowserClient` is a singleton, so it doesn't open new connections.
+
+> The README used to include metrics from a [graphify](https://github.com/ananddtyagi/cc-marketplace) graph built on an earlier version. They were removed because they no longer matched the code; the graph can be regenerated locally (`graphify-out/`, ignored by git).
 
 ## Deployment
 
-```bash
-vercel --prod
-```
-
-Environment variables are configured in the Vercel Dashboard.
-
-Every push to `main` triggers an automatic Vercel deployment (the GitHub → Vercel integration is active).
+- The GitHub → Vercel integration deploys every push to `main` to production and creates a **preview** for every PR.
+- CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build on every PR; only merge when it's green.
+- If a change touches the schema, first run its upgrade script (for 0.0.1, `supabase/migrations/upgrade_0.0.1.sql`) in the Supabase SQL Editor (see [Database](#database-supabase)).
+- Manual deploy: `vercel --prod`. Environment variables are configured in the Vercel Dashboard.
 
 ## Troubleshooting
 

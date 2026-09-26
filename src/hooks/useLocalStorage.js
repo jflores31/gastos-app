@@ -1,15 +1,22 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export function useLocalStorage(key, initialValue) {
-  const [storedValue, setStoredValue] = useState(() => {
-    if (typeof window === "undefined") return initialValue;
+  // The first render (server and hydration) always uses initialValue so the client
+  // markup matches the server HTML; the stored value is applied right after mount.
+  // Reading localStorage in the useState initializer made a stored dark theme render
+  // different classNames on the client than on the server — a hydration mismatch
+  // React doesn't patch up, leaving parts of the page with light-theme styles.
+  const [storedValue, setStoredValue] = useState(initialValue);
+
+  useEffect(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item !== null ? JSON.parse(item) : initialValue;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from an external store after hydration
+      if (item !== null) setStoredValue(JSON.parse(item));
     } catch {
-      return initialValue;
+      // private mode / blocked storage / invalid JSON: keep initialValue
     }
-  });
+  }, [key]);
 
   const setValue = useCallback(
     (value) => {

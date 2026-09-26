@@ -1,8 +1,15 @@
 -- Schema completo de gastos-app — fuente única de verdad del esquema.
--- Todas las migraciones aplicadas en Supabase ✓
--- Última actualización: 2026-06-18
+-- Aplicado en Supabase hasta 2026-06-18 ✓. Los cambios de 0.0.1 se aplican con upgrade_0.0.1.sql.
+-- Última actualización: 2026-09-26
 --   2026-06-18: políticas RLS explícitas en las 8 tablas
 --               (FOR ALL TO authenticated USING ... WITH CHECK auth.uid() = user_id).
+--   2026-09-26 (0.0.1): columna `icon` en custom_categories (clave de ICON_CHOICES,
+--               src/theme/categoryIcons.js), índices por user_id y políticas RLS
+--               con (select auth.uid()). ⚠ En una DB existente ejecutar
+--               supabase/migrations/upgrade_0.0.1.sql en el SQL Editor antes de desplegar.
+
+-- Políticas RLS con (select auth.uid()): Postgres lo evalúa una vez por consulta en
+-- vez de una vez por fila. Índices (user_id, …): cada consulta filtra por user_id vía RLS.
 
 -- ─── TRANSACTIONS ────────────────────────────────────────────────────────────
 
@@ -18,11 +25,13 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_at timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS transactions_user_id_fecha_idx ON transactions (user_id, fecha, id);
+
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own transactions" ON transactions
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── BUDGETS ─────────────────────────────────────────────────────────────────
 
@@ -34,11 +43,12 @@ CREATE TABLE IF NOT EXISTS budgets (
   UNIQUE(user_id, categoria)
 );
 
+-- UNIQUE(user_id, categoria) ya sirve de índice por user_id.
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own budgets" ON budgets
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── GOALS ───────────────────────────────────────────────────────────────────
 
@@ -55,11 +65,13 @@ CREATE TABLE IF NOT EXISTS goals (
   created_at     timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS goals_user_id_created_at_idx ON goals (user_id, created_at);
+
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own goals" ON goals
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── ACCOUNTS ────────────────────────────────────────────────────────────────
 
@@ -74,11 +86,13 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at    timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS accounts_user_id_created_at_idx ON accounts (user_id, created_at);
+
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own accounts" ON accounts
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── INVESTMENTS ─────────────────────────────────────────────────────────────
 
@@ -93,11 +107,13 @@ CREATE TABLE IF NOT EXISTS investments (
   created_at  timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS investments_user_id_created_at_idx ON investments (user_id, created_at);
+
 ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own investments" ON investments
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── DEBTS ───────────────────────────────────────────────────────────────────
 
@@ -114,11 +130,13 @@ CREATE TABLE IF NOT EXISTS debts (
   created_at      timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS debts_user_id_created_at_idx ON debts (user_id, created_at);
+
 ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own debts" ON debts
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── SUBSCRIPTIONS ───────────────────────────────────────────────────────────
 
@@ -132,11 +150,13 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   created_at timestamptz   DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS subscriptions_user_id_created_at_idx ON subscriptions (user_id, created_at);
+
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own subscriptions" ON subscriptions
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- ─── CUSTOM CATEGORIES ───────────────────────────────────────────────────────
 
@@ -146,11 +166,17 @@ CREATE TABLE IF NOT EXISTS custom_categories (
   nombre     text        NOT NULL,
   tipo       text        NOT NULL CHECK (tipo IN ('INGRESO', 'EGRESO')),
   color      text        NOT NULL DEFAULT '#9e9e9e',
+  icon       text,
   created_at timestamptz DEFAULT now()
 );
+
+-- Idempotente: añade la columna en DBs creadas antes del 2026-09-26.
+ALTER TABLE custom_categories ADD COLUMN IF NOT EXISTS icon text;
+
+CREATE INDEX IF NOT EXISTS custom_categories_user_id_created_at_idx ON custom_categories (user_id, created_at);
 
 ALTER TABLE custom_categories ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "custom_categories_policy" ON custom_categories
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
