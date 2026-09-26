@@ -9,6 +9,11 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
 - **CRUD unificado:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas comparten `useTableCrud()`. Transacciones y presupuestos siguen aparte. `DataContext` pasó de 537 a 425 líneas, con la misma API.
+- **Componentes grandes divididos (T7):**
+  - `GoalsTab` (816 líneas → 55): una sección por archivo en `src/components/goals/`, con un hook `useEntityDialog()` y un marco `EntityDialog` en lugar de cinco copias del mismo estado y handlers.
+  - `SettingsPanel` (500 → 77): pestañas en `src/components/settings/`.
+  - `BudgetTab` (488 → 56): una tarjeta por archivo en `src/components/budget/`.
+  - Sin cambios visibles: capturas de pantalla idénticas píxel a píxel antes y después, y tests end-to-end escritos antes de dividir.
 - **CSP:** `connect-src` incluye el origen de `NEXT_PUBLIC_SUPABASE_URL`, además de `*.supabase.co`. Así funciona con un dominio propio de Supabase y con el simulado de los tests.
 - **CI:** el build apunta al Supabase simulado (`http://127.0.0.1:54321`) para que los tests end-to-end puedan iniciar sesión.
 - **OAuth en un solo lugar:** el flag `OAUTH_ENABLED` vive en `src/lib/featureFlags.js`, y `LoginModal` ya no muestra los botones de Google/GitHub mientras esté desactivado (el login y el registro ya lo respetaban).
@@ -20,15 +25,24 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Causa: emotion escribía un `<style>` por componente dentro del `<body>` y los movía al `<head>` al cargar. Los que llegaban después, por el streaming, quedaban como nodos de más.
   - Ahora `AppRouterCacheProvider` (`@mui/material-nextjs`) pone los estilos en el `<head>` desde el servidor.
   - Verificado con 200 cargas seguidas sin error (antes fallaban 6 de 100).
+- **Patrimonio neto sin inversiones:** solo sumaba los saldos de las cuentas, así que un DPF o un fondo AFP no aparecía en el patrimonio ni en su evolución. Ahora las inversiones cuentan como activo (`netWorthOf()`, con tests).
+- **Inversiones:** el tipo "Acciones" mostraba la etiqueta "Ahorro", y "Ahorro" no se traducía al inglés.
+- **Presupuestos:**
+  - en "Gestionar", el botón que cancela la edición de un monto tenía el icono de la papelera;
+  - los botones de icono de ese diálogo y el de guardar en cada tarjeta no tenían nombre accesible;
+  - en "Recurrentes", un mismo concepto en dos categorías (p. ej. MANTENIMIENTO del auto y de la moto) repetía la `key` de React.
 - **Accesibilidad:** 6 selectores no tenían nombre accesible, porque su etiqueta no estaba enlazada: moneda, categoría de presupuesto, tipo de cuenta, tipo de inversión, ciclo y categoría de suscripción. Un lector de pantalla solo leía el valor elegido.
 
 ### Añadido
-- **Tests end-to-end con sesión:** 7 tests en `e2e/session.spec.ts` contra un Supabase simulado (`e2e/mock-supabase/`), que Playwright levanta junto a la app. Cubren:
+- **Tests end-to-end con sesión:** 10 tests en `e2e/session.spec.ts` contra un Supabase simulado (`e2e/mock-supabase/`), que Playwright levanta junto a la app. Cubren:
   - login;
   - las 5 pestañas, los ajustes, el tema oscuro y el inglés, sin errores de consola;
   - alta, edición y borrado de un gasto;
   - moneda en USD;
   - iconos de metas y categorías;
+  - Metas: cuentas, inversiones, deudas y suscripciones;
+  - Presupuestos: la tarjeta y "Gestionar";
+  - Perfil: nombre, favoritas y categorías propias;
   - sesión entre pestañas y al reabrir el navegador.
 - El Supabase simulado lee las tablas de `supabase/migrations/*.sql` y aplica RLS por usuario. Escribir una columna inexistente falla (`PGRST204`) como en producción.
 - `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.

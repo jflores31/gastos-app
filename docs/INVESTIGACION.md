@@ -126,7 +126,7 @@ Revisión del código de la versión `0.0.1`, complementaria a las ideas de prod
 | T4 | ✅ Hecho (usuario de la sesión en `DataContext`) | Rendimiento | Dejar de llamar a `supabase.auth.getUser()` en cada mutación: usar el usuario de la sesión, o `DEFAULT auth.uid()` en `user_id` e insertar sin él | Hay 17 llamadas en `DataContext`, y cada una es una petición de red al servidor de Auth antes de la escritura real | `DataContext.jsx`, `schema.sql` |
 | T5 | ✅ Hecho (`useTableCrud` + tests de `DataContext`) | Código | Factory genérica para el CRUD (`makeCrud(tabla, mapRow, toRow)`) | Las 17 funciones CRUD de `DataContext` (~300 líneas) repiten el mismo patrón: obtener el usuario, escribir, lanzar el error y actualizar el estado | `DataContext.jsx` |
 | T6 | Media | i18n | Mover los textos a `I18N` (o a una librería como `next-intl`) | Hay 339 ternarios `lang === "es" ? … : …` repartidos en los componentes, aunque `I18N` ya existe en `data/index.js`. `IconPicker` usa claves en inglés como `aria-label` | `src/components/*`, `src/data/index.js`, `IconPicker.jsx` |
-| T7 | Media | Código | Dividir los componentes grandes | `GoalsTab.jsx` tiene 821 líneas (5 secciones + 5 diálogos), `SettingsPanel.jsx` 500 y `BudgetTab.jsx` 488 | `src/components/` |
+| T7 | ✅ Hecho: `goals/`, `settings/` y `budget/` (de 816, 500 y 488 líneas a 55, 77 y 56) | Código | Dividir los componentes grandes | `GoalsTab.jsx` tiene 821 líneas (5 secciones + 5 diálogos), `SettingsPanel.jsx` 500 y `BudgetTab.jsx` 488 | `src/components/` |
 | T8 | Media | Tipado | Activar `strict` de forma gradual, añadir `typescript-eslint` y migrar `data/` y `context/` a TypeScript | `tsconfig.json` tiene `strict: false`, los componentes son JSX sin tipos y ESLint solo revisa `.js`/`.jsx` | `tsconfig.json`, `eslint.config.js` |
 | T9 | Media | Base de datos | Restricciones e higiene del esquema: `CHECK (tipo IN ('INGRESO','EGRESO'))` y `CHECK (valor > 0)` en `transactions`, quitar o usar la columna `anomaly` (siempre `false`), añadir `updated_at` | Solo `custom_categories` y `accounts` validan valores en la DB; el resto confía en el cliente | `schema.sql` |
 | T10 | Media | Base de datos | Migraciones fechadas e idempotentes (`DROP POLICY IF EXISTS`) | `schema.sql` no lleva timestamp en el nombre, así que el CLI de Supabase no lo aplica como migración, y sus `CREATE POLICY` fallan si se ejecuta dos veces | `supabase/migrations/` |
@@ -136,7 +136,7 @@ Revisión del código de la versión `0.0.1`, complementaria a las ideas de prod
 | T14 | Baja | Seguridad | Quitar `'unsafe-inline'` de `style-src` (nonce en el cache de emotion) y reportar violaciones del CSP | Detalle en [SECURITY-CSP.md](SECURITY-CSP.md#próximas-mejoras-posibles) | `proxy.ts`, `Providers.tsx` |
 | T15 | Baja | Dependencias | `@supabase/ssr` 0.5 → 0.12 (revisar la API de cookies), `vitest` 3 → 5 (su aviso de seguridad solo afecta a dev), alinear React 18 con `@types/react` 19 o subir a React 19 | Versiones atrasadas o desalineadas | `package.json` |
 
-**Orden sugerido:** T1, T2, T3, T4, T5, T11 y T12 están hechos. Lo siguiente es T6 (i18n) y T7 (dividir componentes grandes).
+**Orden sugerido:** T1, T2, T3, T4, T5, T7, T11 y T12 están hechos. Lo siguiente es T6 (i18n).
 
 ## Próximos pasos de la investigación
 

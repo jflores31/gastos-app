@@ -88,7 +88,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 ### Goals & Finances (GoalsTab)
 - Savings goal CRUD with deadline, color and a selectable icon (`IconPicker`) — form with single name field
 - Bank account / card / cash management
-- Net worth (assets − debts) in real time
+- Real-time net worth (`netWorthOf()`): assets (positive account balances + investments) − debts (negative balances + loans)
 - Investment tracking (AFP, DPF, crypto, etc.) — form with single name field
 - Debt and loan tracking with installments — form with single name field (saves in both languages automatically)
 - Recurring subscriptions with category selector (native + custom); bilingual "Add" button in empty states
@@ -156,12 +156,17 @@ src/
 │   ├── OverviewTab.jsx             # Overview with charts and greeting
 │   ├── ExpensesTab.jsx             # Expenses with CRUD and filters
 │   ├── IncomeTab.jsx               # Income with CRUD and filters
-│   ├── BudgetTab.jsx               # Budgets
-│   ├── GoalsTab.jsx                # Goals, accounts, investments, debts, subscriptions
+│   ├── BudgetTab.jsx               # Budgets: period metrics + layout
+│   ├── budget/                     # One card per file (health, budgets, distribution, comparison,
+│   │                               #   budget vs actual, recurring) + Manage dialog
+│   ├── GoalsTab.jsx                # Goals: layout of the sections
+│   ├── goals/                      # One section per file (goals, accounts, forecast, investments,
+│   │                               #   debts, subscriptions, evolution) + useEntityDialog and EntityDialog
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # New/edit transaction modal
-│   ├── SettingsPanel.jsx           # Profile/settings drawer + custom categories
+│   ├── SettingsPanel.jsx           # Profile/settings drawer (tabs and snackbar)
+│   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
 │   └── LoginModal.jsx              # In-app login modal
 ├── context/
 │   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts,
@@ -414,7 +419,8 @@ Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase(
 |---|---|
 | `DashboardStudio.jsx` | App shell: the only component that consumes all 3 contexts (Settings, User, Data), owns the shared `period`, is the `showToast` channel and enforces session security |
 | `DataContext.jsx` | The single source of data and of mutations against Supabase |
-| `data/helpers.js` | Pure calculations used by the 4 main tabs (periods, financial health, anomalies, recurring, trends); a bug here hits all of them, which is why it has tests |
+| `data/helpers.js` | Pure calculations used by the tabs (periods, financial health, anomalies, recurring, trends, net worth); a bug here hits all of them, which is why it has tests |
+| `components/goals/useEntityDialog.js` | State and handlers of the Goals tab's create/edit/delete dialogs (goals, accounts, investments, debts, subscriptions) |
 | `theme/categoryIcons.js` | Label, color and icon for any category |
 | `proxy.ts` | Route guard + per-request nonce CSP |
 

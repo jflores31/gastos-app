@@ -88,7 +88,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Metas y Finanzas (GoalsTab)
 - CRUD de metas de ahorro con fecha límite, color e icono elegible (`IconPicker`) — formulario con nombre único
 - Gestión de cuentas bancarias/tarjetas/efectivo
-- Patrimonio neto (activos − deudas) en tiempo real
+- Patrimonio neto en tiempo real (`netWorthOf()`): activos (saldos positivos de cuentas + inversiones) − deudas (saldos negativos + préstamos)
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.) — formulario con nombre único
 - Control de deudas y préstamos con cuotas — formulario con campo de nombre único (guarda en ambos idiomas automáticamente)
 - Suscripciones recurrentes con selector de categoría (nativas + personalizadas); botón "Agregar / Add" bilingüe en estados vacíos
@@ -156,12 +156,17 @@ src/
 │   ├── OverviewTab.jsx             # Vista general con gráficos y saludo
 │   ├── ExpensesTab.jsx             # Gastos con CRUD y filtros
 │   ├── IncomeTab.jsx               # Ingresos con CRUD y filtros
-│   ├── BudgetTab.jsx               # Presupuestos
-│   ├── GoalsTab.jsx                # Metas, cuentas, inversiones, deudas, suscripciones
+│   ├── BudgetTab.jsx               # Presupuestos: métricas del período + layout
+│   ├── budget/                     # Una tarjeta por archivo (salud, presupuestos, distribución,
+│   │                               #   comparación, presupuesto vs real, recurrentes) + diálogo Gestionar
+│   ├── GoalsTab.jsx                # Metas: layout de las secciones
+│   ├── goals/                      # Una sección por archivo (metas, cuentas, pronóstico, inversiones,
+│   │                               #   deudas, suscripciones, evolución) + useEntityDialog y EntityDialog
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
-│   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes + categorías personalizadas
+│   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes (pestañas y snackbar)
+│   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
 │   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
 │   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts,
@@ -414,7 +419,8 @@ Montos: guardados en PEN → fmtMoney(v, currency) al mostrar; toBase()/fromBase
 |---|---|
 | `DashboardStudio.jsx` | Shell de la app: único componente que consume los 3 contextos (Settings, User, Data), controla el `period` compartido, es el canal de `showToast` y aplica la seguridad de sesión |
 | `DataContext.jsx` | Única fuente de datos y de mutaciones contra Supabase |
-| `data/helpers.js` | Cálculos puros que usan las 4 pestañas principales (períodos, salud financiera, anomalías, recurrentes, tendencias); un bug aquí afecta a todas, por eso tiene tests |
+| `data/helpers.js` | Cálculos puros que usan las pestañas (períodos, salud financiera, anomalías, recurrentes, tendencias, patrimonio); un bug aquí afecta a todas, por eso tiene tests |
+| `components/goals/useEntityDialog.js` | Estado y handlers de los diálogos crear/editar/borrar de Metas (metas, cuentas, inversiones, deudas, suscripciones) |
 | `theme/categoryIcons.js` | Nombre, color e icono de cualquier categoría |
 | `proxy.ts` | Guard de rutas + CSP con nonce por request |
 

@@ -33,11 +33,11 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 84 tests en 10 archivos
+### Unitarios y componentes: 87 tests en 10 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
-| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 24 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las 4 pestañas principales (detalle abajo) |
+| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 27 | [`helpers.js`](../src/data/helpers.js), el eslabón que tocan las pestañas (detalle abajo) |
 | [`src/data/currency.test.js`](../src/data/currency.test.js) | 13 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
@@ -65,7 +65,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 7 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 10 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse.
 
@@ -78,6 +78,11 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Gasto de punta a punta:** el alta, la edición y el borrado llegan a la base con el `user_id` de la sesión.
 - **Moneda:** en USD los montos se muestran convertidos y un gasto de $27 se guarda como S/100.
 - **Iconos:** una meta nueva y una categoría personalizada se guardan con su icono.
+- **Metas:** cuentas, inversiones, deudas y suscripciones se crean, editan y borran. Incluye una suscripción con categoría propia.
+- **Presupuestos:**
+  - editar el límite desde la tarjeta;
+  - en "Gestionar", agregar uno nativo y uno de categoría propia, editar y cancelar, y borrar con confirmación.
+- **Perfil:** el nombre y las favoritas se guardan en `user_metadata`; una categoría propia se edita (nombre, color, tipo) y se borra con confirmación.
 - **Sesión:**
   - una pestaña nueva no cierra la sesión (el bug de la 0.0.1), y **Salir** sí;
   - al reabrir el navegador sin otra pestaña abierta, pide iniciar sesión de nuevo.
@@ -109,6 +114,7 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 | `healthScore` | alcanza `100`; suelo `0`; tope del bono de ahorro (`+40`); penalti por anomalía (`-5` c/u); tope del penalti por gasto (`-15`) |
 | `healthLabel` / `healthTone` | umbrales `75` / `50`, bilingüe |
 | `linearRegressionSlope` | pendiente conocida; serie plana = `0`; `n<2` = `0` |
+| `netWorthOf` | activos = saldos positivos + inversiones; deuda = saldos negativos + préstamos; sin datos = `0` |
 | `recurringList` | agrupa por `categoria|concepto`; filtra `>= 3` meses; promedia día/monto; ignora `INGRESO` |
 | `filterByPeriod` | `all`, `month`, `year` con `offset` |
 | `periodLabel` / `monthCount` / `daysCount` / `fmtDate` | mapeos triviales |
@@ -144,6 +150,10 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
   - `/reset-password` fallaba 1 de cada 20 cargas con React #418: emotion escribía un `<style>` por componente en el `<body>`, y los que no alcanzaba a mover al `<head>` antes de hidratar sobraban.
   - `AppRouterCacheProvider` lo corrigió (ver `layout.tsx`).
   - Para detectar este tipo de fallo: `npx playwright test --repeat-each 50 --workers 4`.
+- **Detrás de un diálogo de MUI, la página es `aria-hidden`:**
+  - `getByRole` no encuentra nada del fondo mientras el diálogo está abierto, así que un `toHaveCount(0)` pasaría antes de tiempo;
+  - después de borrar desde un diálogo, esperar a que se cierre (`expect(dialog).toHaveCount(0)`) y consultar la base con `expect.poll`.
+- **Refactors de UI:** para comprobar que no cambió nada, comparar capturas de pantalla antes y después. `PNG` de `playwright-core/lib/utilsBundle` permite contar píxeles distintos sin dependencias extra.
 - **Los emails de prueba llevan un sufijo aleatorio:** en local, el Supabase simulado sigue vivo entre corridas (`reuseExistingServer`). Sin el sufijo, un test encontraría los datos de la corrida anterior.
 - **Navegador local:** este repo fija `@playwright/test` en `1.56.1`. Si `PLAYWRIGHT_BROWSERS_PATH` apunta a navegadores ya instalados de esa versión, no hace falta `playwright install`.
 

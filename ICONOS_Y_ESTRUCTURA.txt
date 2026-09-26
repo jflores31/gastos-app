@@ -59,11 +59,11 @@ src/
 │   ├── OverviewTab.jsx           # Resumen / dashboard
 │   ├── IncomeTab.jsx             # Ingresos
 │   ├── ExpensesTab.jsx           # Gastos
-│   ├── BudgetTab.jsx             # Presupuestos
-│   ├── GoalsTab.jsx              # Metas
+│   ├── BudgetTab.jsx             # Presupuestos (tarjetas en budget/)
+│   ├── GoalsTab.jsx              # Metas (secciones en goals/)
 │   ├── DashboardStudio.jsx       # Dashboard configurable
 │   ├── Charts.jsx                # Donut / SparkArea / Cashflow / Heat
-│   ├── SettingsPanel.jsx         # Ajustes + categorías custom
+│   ├── SettingsPanel.jsx         # Perfil y ajustes (pestañas en settings/)
 │   ├── LoginModal.jsx
 │   └── shared.jsx                # CalendarFilter, TxTable, Delta...
 │
