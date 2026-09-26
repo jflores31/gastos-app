@@ -9,7 +9,9 @@ import { EntityDialog } from "./EntityDialog.jsx";
 import { EmptySection } from "./EmptySection.jsx";
 
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
-const TYPE_CHIP = { retirement: "AFP", term: "DPF", crypto: "Crypto" };
+const typeChip = (type, lang) =>
+  ({ retirement: "AFP", term: "DPF", crypto: "Crypto", stocks: lang === "es" ? "Acciones" : "Stocks" })[type]
+  ?? (lang === "es" ? "Ahorro" : "Savings");
 
 export function InvestmentsSection({ showToast }) {
   const { lang, currency } = useSettings();
@@ -51,7 +53,7 @@ export function InvestmentsSection({ showToast }) {
                   <Card variant="outlined" sx={{ borderRadius: 2, p: 2, cursor: "pointer", "&:hover": { boxShadow: 1 } }} onClick={() => dialog.openEdit(inv)}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                       <Typography variant="body1" fontWeight={600}>{inv[lang]}</Typography>
-                      <Chip size="small" label={TYPE_CHIP[inv.type] ?? "Ahorro"} color={inv.type === "crypto" ? "error" : "default"} />
+                      <Chip size="small" label={typeChip(inv.type, lang)} color={inv.type === "crypto" ? "error" : "default"} />
                     </Box>
                     <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{fmtMoney(inv.value, currency, true)}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

@@ -11,6 +11,7 @@ import {
   monthCount,
   daysCount,
   fmtDate,
+  netWorthOf,
 } from "./helpers.js"
 
 // Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
@@ -200,5 +201,22 @@ describe("helpers triviales", () => {
   it("fmtDate formatea dd/mm con padding", () => {
     expect(fmtDate(new Date(2026, 0, 5))).toBe("05/01")
     expect(fmtDate(new Date(2026, 11, 25))).toBe("25/12")
+  })
+})
+
+describe("netWorthOf", () => {
+  it("activos = saldos positivos de cuentas + inversiones; deuda = saldos negativos + préstamos", () => {
+    const accounts = [{ balance: 2500 }, { balance: -300 }, { balance: 0 }]
+    const debts = [{ balance: 8000 }, { balance: null }]
+    const investments = [{ value: 3000 }, { value: 1200 }]
+    expect(netWorthOf(accounts, debts, investments)).toEqual({ assets: 6700, debt: 8300, net: -1600 })
+  })
+
+  it("las inversiones cuentan como activo (antes quedaban fuera del patrimonio)", () => {
+    expect(netWorthOf([], [], [{ value: 500 }])).toEqual({ assets: 500, debt: 0, net: 500 })
+  })
+
+  it("sin datos: todo en cero", () => {
+    expect(netWorthOf()).toEqual({ assets: 0, debt: 0, net: 0 })
   })
 })

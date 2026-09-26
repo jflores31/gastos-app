@@ -16,9 +16,9 @@ import { NetWorthEvolutionCard } from "./goals/NetWorthEvolutionCard.jsx";
 // Goals tab: savings goals, net worth (accounts), forecast, investments, debts,
 // subscriptions and net worth evolution. Each section owns its dialog (src/components/goals/).
 export default function GoalsTab({ showToast }) {
-  const { txs, loading, accounts, debts } = useData();
+  const { txs, loading, accounts, debts, investments } = useData();
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
-  const worth = useMemo(() => netWorthOf(accounts, debts), [accounts, debts]);
+  const worth = useMemo(() => netWorthOf(accounts, debts, investments), [accounts, debts, investments]);
 
   if (loading) {
     return <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}><CircularProgress /></Box>;
