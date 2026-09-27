@@ -107,7 +107,7 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | 8 | ✅ **Reglas de auto-categorización** por concepto (`suggestCategory`: historial y catálogo) | Medio | Medio | Firefly, Fintonic | Reutilizar `CATEGORIES[*].concepts`; sugerir categoría en `AddTransactionModal` |
 | 9 | ✅ **App instalable** (manifest + iconos) | Medio | Bajo | ezBookkeeping, Cashew | `src/app/manifest.ts`; reutilizar `public/favicon.svg`; revisar el CSP |
 | 10 | **Presupuestos por período** (semanal/anual) y alerta al 80 % / 100 % | Medio | Medio | JagadishPS, Cashew | `budgets` (columna `periodo`); `BudgetTab`; `monthCount` en `helpers.ts` |
-| 11 | **Papelera** (borrado lógico con `deleted_at`) y "deshacer" | Medio | Medio | valiance | una migración nueva; los `delete*` de `DataContext` pasan a `update` |
+| 11 | ✅ **Papelera** (borrado lógico con `deleted_at`) y "deshacer" | Medio | Medio | valiance | una migración nueva; los `delete*` de `DataContext` pasan a `update` |
 | 12 | **Transferencias entre cuentas** y saldo calculado | Alto | Alto | Firefly, expense-budget-tracker | `accounts` + tipo `TRANSFER`; `GoalsTab` |
 | 13 | **2FA** con el MFA TOTP de Supabase Auth | Medio | Medio | Firefly, ezBookkeeping | Pestaña Perfil de `SettingsPanel`; `/login` |
 | 14 | **Logos de suscripciones** | Bajo | Medio | Wallos | `GoalsTab` (suscripciones); `img-src` del CSP |

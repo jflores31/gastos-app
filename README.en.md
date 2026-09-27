@@ -107,6 +107,11 @@ Drawer with **two tabs** that separate Profile from Settings:
 - **Your data (Profile):**
   - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN, cells guarded against formulas);
   - everything downloads as a full JSON backup (`src/data/export.ts`).
+- **Trash (Profile → Your data):**
+  - deleting a transaction asks for no confirmation: it goes to the trash (`deleted_at`) and a notice offers "Undo" for 6 seconds;
+  - from the trash you restore or delete permanently (with a confirmation), one by one or all at once;
+  - after 30 days they're removed: `DataContext` deletes them when it loads the data;
+  - trashed transactions don't count in any total, export or import.
 - **Installable app:** `src/app/manifest.ts` plus the icons in `public/icons/`, generated with `node scripts/generate-icons.mjs`. Chrome, Edge and Android offer "Install app"; iOS offers "Add to Home Screen". No Service Worker, on purpose (see Troubleshooting).
 
 ### Faster entry
@@ -261,6 +266,7 @@ All tables use RLS with `auth.uid() = user_id`.
 | `20260618000000_init.sql` | The 8 tables, `(user_id, …)` indexes and RLS policies with `(select auth.uid())` |
 | `20260927000000_schema_hygiene.sql` | `transactions` checks `tipo IN ('INGRESO','EGRESO')` and `valor > 0` in the database; all 8 tables get `updated_at`, kept by a trigger. It includes a query to check beforehand for rows that would fail |
 | `20260927010000_drop_anomaly.sql` | Drops `transactions.anomaly`, which was always `false` (detection runs in the browser). Only once the code that no longer writes it is deployed |
+| `20260927010100_trash.sql` | Trash: `transactions.deleted_at` column and a partial `(user_id, deleted_at)` index for deleted rows |
 
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 

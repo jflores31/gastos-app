@@ -121,14 +121,17 @@ function filtersOf(url) {
   const out = []
   for (const [col, expr] of url.searchParams) {
     if (RESERVED.has(col)) continue
-    const m = /^(eq|neq|gt|gte|lt|lte|is|in)\.(.*)$/.exec(expr)
-    if (m) out.push([col, m[1], m[2]])
+    const m = /^(not\.)?(eq|neq|gt|gte|lt|lte|is|in)\.(.*)$/.exec(expr)
+    if (m) out.push([col, m[2], m[3], !!m[1]])
   }
   return out
 }
 
-function matches(row, [col, op, raw]) {
-  const v = row[col]
+function matches(row, [col, op, raw, negate]) {
+  return negate ? !matchesOp(row[col], op, raw) : matchesOp(row[col], op, raw)
+}
+
+function matchesOp(v, op, raw) {
   switch (op) {
     case "eq": return String(v) === raw
     case "neq": return String(v) !== raw

@@ -64,7 +64,7 @@ test("con sesión: todas las pestañas, los ajustes y el inglés cargan sin erro
   expect(problems).toEqual([])
 })
 
-test("alta, edición y borrado de un gasto llegan a la base", async ({ page, request }, info) => {
+test("alta, edición y borrado (a la papelera, con Deshacer) de un gasto llegan a la base", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
   const { user } = await mockDb(request, email)
@@ -88,11 +88,62 @@ test("alta, edición y borrado de un gasto llegan a la base", async ({ page, req
   await expect(dialog(page)).toHaveCount(0)
   expect(await pan()).toEqual([expect.objectContaining({ valor: 20 })])
 
+  // Deleting needs no confirmation: it goes to the trash (deleted_at) and can be undone.
   await row.getByRole("button", { name: "Eliminar" }).click()
-  await dialog(page).getByRole("button", { name: "Eliminar" }).click()
-  await expect(toast(page, "Transacción eliminada")).toBeVisible()
+  const trashed = toast(page, "Movida a la papelera")
+  await expect(trashed).toBeVisible()
   await expect(row).toHaveCount(0)
-  expect(await pan()).toEqual([])
+  expect(await pan()).toEqual([expect.objectContaining({ valor: 20, deleted_at: expect.any(String) })])
+  await trashed.getByRole("button", { name: "Deshacer" }).click()
+  await expect(toast(page, "Transacción restaurada")).toBeVisible()
+  await expect(row).toHaveCount(1)
+  expect(await pan()).toEqual([expect.objectContaining({ deleted_at: null })])
+})
+
+test("papelera: restaurar, eliminar definitivamente y vaciar", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const rows = async (concepto: string) => (await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === concepto)
+  await page.getByRole("tab", { name: "Gastos" }).click()
+  // This month's expenses in the seed: ALQUILER, NETFLIX, MERCADO and SUPERMERCADO.
+  const item = (concepto: string) => page.getByRole("listitem").filter({ has: page.getByText(concepto, { exact: true }) })
+  for (const concepto of ["SUPERMERCADO", "MERCADO"]) {
+    await item(concepto).first().getByRole("button", { name: "Eliminar" }).click()
+    await expect(toast(page, "Movida a la papelera")).toBeVisible()
+  }
+
+  await openSettings(page, "Perfil")
+  await dialog(page).first().getByRole("button", { name: "Papelera (2)" }).click()
+  const trash = page.getByRole("dialog", { name: "Papelera" })
+  await expect(trash.getByText("SUPERMERCADO")).toBeVisible()
+  await expect(trash.getByText(/se elimina en 30 días/).first()).toBeVisible()
+
+  await trash.getByRole("button", { name: "Restaurar SUPERMERCADO" }).click()
+  await expect(toast(page, "Transacción restaurada")).toBeVisible()
+  await expect(trash.getByText("SUPERMERCADO")).toHaveCount(0)
+  expect(await rows("SUPERMERCADO")).toEqual([expect.objectContaining({ deleted_at: null })])
+
+  await trash.getByRole("button", { name: "Eliminar definitivamente MERCADO" }).click()
+  await page.getByRole("dialog").filter({ hasText: "¿Eliminar definitivamente \"MERCADO\"?" }).getByRole("button", { name: "Eliminar definitivamente" }).click()
+  await expect(toast(page, "Eliminada definitivamente")).toBeVisible()
+  expect(await rows("MERCADO")).toHaveLength(3) // the seed has 4 months of MERCADO; one is gone for good
+  await expect(trash.getByText("La papelera está vacía.")).toBeVisible()
+  await trash.getByRole("button", { name: "Cerrar" }).click()
+
+  // Empty the trash: two more deletions, then everything goes.
+  await page.getByRole("button", { name: "Cerrar" }).click()
+  for (const concepto of ["NETFLIX", "ALQUILER"]) {
+    await item(concepto).first().getByRole("button", { name: "Eliminar" }).click()
+    await expect(toast(page, "Movida a la papelera")).toBeVisible()
+  }
+  await openSettings(page, "Perfil")
+  await dialog(page).first().getByRole("button", { name: "Papelera (2)" }).click()
+  await trash.getByRole("button", { name: "Vaciar papelera" }).click()
+  await page.getByRole("dialog").filter({ hasText: "¿Eliminar definitivamente 2 transacciones?" }).getByRole("button", { name: "Eliminar definitivamente" }).click()
+  await expect(toast(page, "Papelera vaciada")).toBeVisible()
+  const all = (await mockDb(request, email)).tables.transactions
+  expect(all.filter((t) => t.deleted_at)).toEqual([])
+  expect(all.filter((t) => t.concepto === "NETFLIX")).toHaveLength(3)
 })
 
 test("el concepto sugiere la categoría (historial y catálogo) sin pisar una elegida a mano", async ({ page, request }, info) => {

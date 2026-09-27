@@ -45,6 +45,8 @@ export { default as DirectionsBike } from "@mui/icons-material/DirectionsBikeRou
 export { default as DirectionsBus } from "@mui/icons-material/DirectionsBusRounded";
 export { default as DirectionsCar } from "@mui/icons-material/DirectionsCarRounded";
 export { default as Download } from "@mui/icons-material/DownloadRounded";
+export { default as DeleteForever } from "@mui/icons-material/DeleteForeverRounded";
+export { default as DeleteSweep } from "@mui/icons-material/DeleteSweepRounded";
 export { default as Edit } from "@mui/icons-material/EditRounded";
 export { default as ElectricBolt } from "@mui/icons-material/ElectricBoltRounded";
 export { default as EmojiEvents } from "@mui/icons-material/EmojiEventsRounded";
@@ -110,6 +112,7 @@ export { default as Star } from "@mui/icons-material/StarRounded";
 export { default as Storefront } from "@mui/icons-material/StorefrontRounded";
 export { default as Subscriptions } from "@mui/icons-material/SubscriptionsRounded";
 export { default as SupportAgent } from "@mui/icons-material/SupportAgentRounded";
+export { default as RestoreFromTrash } from "@mui/icons-material/RestoreFromTrashRounded";
 export { default as TableChart } from "@mui/icons-material/TableChartRounded";
 export { default as UploadFile } from "@mui/icons-material/UploadFileRounded";
 export { default as Theaters } from "@mui/icons-material/TheatersRounded";

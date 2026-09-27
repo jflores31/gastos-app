@@ -21,11 +21,15 @@ function mapRow(row) {
     dia: d.getDate(),
     mes: d.getMonth(),
     año: d.getFullYear(),
-    // Detection lives client-side in flagAnomalies() (see flaggedTxs below). The DB's
-    // `anomaly` column is no longer written and will be dropped by a later migration.
+    // Detection lives client-side in flagAnomalies() (see flaggedTxs below).
     anomaly: false,
+    // Set while the transaction is in the trash (soft delete).
+    deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,
   }
 }
+
+// Deleted transactions stay in the trash this long, then load() removes them for good.
+export const TRASH_DAYS = 30
 
 function mapGoal(row) {
   return {
@@ -170,6 +174,7 @@ export const IMPORT_CHUNK = 500
 
 export function DataProvider({ children }) {
   const [txs, setTxs] = useState([])
+  const [trash, setTrash] = useState([]) // deleted transactions, newest deletion first
   const [editBudgets, setEditBudgetsState] = useState({})
   const [goals, setGoals] = useState([])
   const [accounts, setAccounts] = useState([])
@@ -205,9 +210,15 @@ export function DataProvider({ children }) {
       try {
         setLoading(true)
         setLoadError(null)
+        // Trash older than TRASH_DAYS is deleted for good before loading. A failure
+        // here only leaves it for the next load.
+        const cutoff = new Date(Date.now() - TRASH_DAYS * 24 * 60 * 60 * 1000).toISOString()
+        const { error: purgeError } = await supabase.from("transactions").delete().lt("deleted_at", cutoff)
+        if (purgeError) console.error("[DataContext] trash purge:", purgeError.message)
+
         const results = await Promise.all([
           fetchAllRows(() =>
-            supabase.from("transactions").select("*").order("fecha", { ascending: true }).order("id", { ascending: true })
+            supabase.from("transactions").select("*").is("deleted_at", null).order("fecha", { ascending: true }).order("id", { ascending: true })
           ),
           supabase.from("budgets").select("*"),
           supabase.from("goals").select("*").order("created_at"),
@@ -216,6 +227,9 @@ export function DataProvider({ children }) {
           supabase.from("debts").select("*").order("created_at"),
           supabase.from("subscriptions").select("*").order("created_at"),
           supabase.from("custom_categories").select("*").order("created_at"),
+          fetchAllRows(() =>
+            supabase.from("transactions").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }).order("id", { ascending: true })
+          ),
         ])
 
         const [
@@ -227,9 +241,10 @@ export function DataProvider({ children }) {
           { data: debtsData, error: e6 },
           { data: subsData, error: e7 },
           { data: customCatsData, error: e8 },
+          { data: trashData, error: e9 },
         ] = results
 
-        const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
+        const errors = [e1, e2, e3, e4, e5, e6, e7, e8, e9].filter(Boolean)
         errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
         if (errors.length > 0) reportError(errors[0], { where: "DataContext.load", failedQueries: errors.length })
         if (errors.length > 0) {
@@ -247,6 +262,7 @@ export function DataProvider({ children }) {
         if (debtsData) setDebts(debtsData.map(mapDebt))
         if (subsData) setSubscriptions(subsData.map(mapSubscription))
         if (customCatsData) setCustomCats(customCatsData)
+        if (trashData) setTrash(trashData.map(mapRow))
       } catch (err) {
         console.error("[DataContext] load() uncaught error:", err)
         reportError(err, { where: "DataContext.load" })
@@ -262,6 +278,7 @@ export function DataProvider({ children }) {
         userIdRef.current = null
         loadedForUser = null
         setTxs([])
+        setTrash([])
         setEditBudgetsState({})
         setGoals([])
         setAccounts([])
@@ -354,10 +371,44 @@ export function DataProvider({ children }) {
     if (data) setTxs((prev) => prev.map((x) => x.id === tx.id ? mapRow(data) : x).sort((a, b) => a.date - b.date))
   }, [supabase, requireUserId])
 
+  // Deleting moves the transaction to the trash (deleted_at); restoreTx() brings it back.
   const deleteTx = useCallback(async (id) => {
-    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", requireUserId())
+    const { data, error } = await supabase
+      .from("transactions")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", requireUserId())
+      .select()
+      .single()
     if (error) throw error
     setTxs((prev) => prev.filter((x) => x.id !== id))
+    if (data) setTrash((prev) => [mapRow(data), ...prev.filter((x) => x.id !== id)])
+  }, [supabase, requireUserId])
+
+  const restoreTx = useCallback(async (id) => {
+    const { data, error } = await supabase
+      .from("transactions")
+      .update({ deleted_at: null })
+      .eq("id", id)
+      .eq("user_id", requireUserId())
+      .select()
+      .single()
+    if (error) throw error
+    setTrash((prev) => prev.filter((x) => x.id !== id))
+    if (data) setTxs((prev) => [...prev.filter((x) => x.id !== id), mapRow(data)].sort((a, b) => a.date - b.date))
+  }, [supabase, requireUserId])
+
+  // Permanent delete, only from the trash.
+  const purgeTx = useCallback(async (id) => {
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", requireUserId()).not("deleted_at", "is", null)
+    if (error) throw error
+    setTrash((prev) => prev.filter((x) => x.id !== id))
+  }, [supabase, requireUserId])
+
+  const emptyTrash = useCallback(async () => {
+    const { error } = await supabase.from("transactions").delete().eq("user_id", requireUserId()).not("deleted_at", "is", null)
+    if (error) throw error
+    setTrash([])
   }, [supabase, requireUserId])
 
   // Budgets: one row per category, stored as { categoria: monto } in state.
@@ -419,6 +470,7 @@ export function DataProvider({ children }) {
   const value = useMemo(
     () => ({
       txs: flaggedTxs, addTx, addTxs, updateTx, deleteTx,
+      trash, restoreTx, purgeTx, emptyTrash,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
@@ -430,6 +482,7 @@ export function DataProvider({ children }) {
     }),
     [
       flaggedTxs, addTx, addTxs, updateTx, deleteTx,
+      trash, restoreTx, purgeTx, emptyTrash,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,

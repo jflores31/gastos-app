@@ -1,20 +1,22 @@
 import { useRef, useState } from "react";
 import { Box, Button, ListItem, ListItemText } from "@mui/material";
-import { TableChart as CsvIcon, DataObject as JsonIcon, UploadFile as ImportIcon } from "../../theme/icons";
+import { TableChart as CsvIcon, DataObject as JsonIcon, UploadFile as ImportIcon, RestoreFromTrash as TrashIcon } from "../../theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export";
 import { parseCsv, MAX_IMPORT_BYTES } from "../../data/import";
 import { ImportDialog } from "./ImportDialog.jsx";
+import { TrashDialog } from "./TrashDialog.jsx";
 
-// "Tus datos": download the transactions as CSV or everything as a JSON backup, or
-// import transactions from a CSV (ImportDialog).
+// "Tus datos": download the transactions as CSV or everything as a JSON backup, import
+// transactions from a CSV (ImportDialog), and the trash of deleted transactions.
 export function DataExportSection({ notify }) {
   const { t, lang } = useSettings();
   const data = useData();
   const fileInput = useRef(null);
   const [importTable, setImportTable] = useState(null);
+  const [trashOpen, setTrashOpen] = useState(false);
 
   const pickFile = async (e) => {
     const file = e.target.files?.[0];
@@ -58,9 +60,13 @@ export function DataExportSection({ notify }) {
             {t.settingsPanel.importCsv}
           </Button>
           <input ref={fileInput} type="file" accept=".csv,text/csv" hidden onChange={pickFile} aria-label={t.settingsPanel.importCsv} />
+          <Button size="small" variant="outlined" color="inherit" startIcon={<TrashIcon />} onClick={() => setTrashOpen(true)} disabled={data.loading} sx={{ borderRadius: 2, textTransform: "none" }}>
+            {t.settingsPanel.trash(data.trash.length)}
+          </Button>
         </Box>
       </ListItem>
       {importTable && <ImportDialog table={importTable} notify={notify} onClose={() => setImportTable(null)} />}
+      {trashOpen && <TrashDialog onClose={() => setTrashOpen(false)} />}
     </>
   );
 }
