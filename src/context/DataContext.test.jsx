@@ -155,6 +155,7 @@ describe("DataContext", () => {
     expect(saved).toBe(1200)
     expect(writes().map((q) => has(q.calls, "insert")[1].length)).toEqual([500, 500, 200])
     expect(has(writes()[0].calls, "insert")[1][0]).toMatchObject({ user_id: "u1", concepto: "X0", fecha: list[0].date.toISOString() })
+    expect(has(writes()[0].calls, "insert")[1][0]).not.toHaveProperty("anomaly")
     expect(result.current.txs).toHaveLength(1200)
     expect(fake.getUser).not.toHaveBeenCalled()
   })
@@ -181,6 +182,8 @@ describe("DataContext", () => {
 
     const [insertTx, upsert] = writes()
     expect(has(insertTx.calls, "insert")[1]).toMatchObject({ user_id: "u1", valor: 15, fecha: "2026-09-02T12:00:00.000Z" })
+    // The anomaly column is on its way out: nothing writes it any more.
+    expect(has(insertTx.calls, "insert")[1]).not.toHaveProperty("anomaly")
     expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500 }])
     expect(result.current.editBudgets).toEqual({ COMIDA: 500 })
     expect(fake.getUser).not.toHaveBeenCalled()

@@ -155,8 +155,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 ├── src/                            # (detalle abajo)
 └── supabase/
     ├── config.toml
-    ├── migrations/schema.sql       # Esquema completo de la DB (fuente única, para una DB nueva)
-    ├── migrations/upgrade_0.0.1.sql # Cambios de la 0.0.1 para una DB existente (idempotente)
+    ├── migrations/AAAAMMDDHHMMSS_*.sql # Migraciones fechadas e idempotentes, en orden (la primera es el esquema base)
     └── seed/reset.sql              # Vacía las 8 tablas — destructivo
 ```
 
@@ -246,14 +245,21 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `subscriptions` | Suscripciones recurrentes |
 | `custom_categories` | Categorías propias del usuario (nombre, tipo, color, icono) |
 
-El esquema completo se encuentra en `supabase/migrations/schema.sql`.
+**Migraciones:** el esquema vive en `supabase/migrations/`, un archivo por cambio, con la fecha al principio del nombre (`AAAAMMDDHHMMSS_descripcion.sql`). El primero, `20260618000000_init.sql`, crea las 8 tablas con sus índices y políticas RLS.
 
-> **Cambios de esquema en una DB existente:** `schema.sql` usa `CREATE TABLE IF NOT EXISTS`, así que no altera tablas ya creadas. Los cambios de cada versión van en un script idempotente que hay que ejecutar en el SQL Editor de Supabase **antes** de desplegar. Para la 0.0.1 es `supabase/migrations/upgrade_0.0.1.sql`, que agrega:
-> - la columna `custom_categories.icon`;
-> - índices `(user_id, …)` en las tablas;
-> - políticas RLS con `(select auth.uid())`.
->
-> Se probó en Postgres 16: ejecutarlo dos veces no da error y deja la DB igual que una instalación nueva con `schema.sql`. Con 200.000 transacciones, la carga de un usuario bajó de ~120 ms (recorrido completo de la tabla) a ~1,4 ms (índice).
+- **Cómo se aplican:** en orden, con el CLI (`supabase db push`) o copiándolos en Supabase → SQL Editor. En una DB existente, **antes** de desplegar el código que los necesita.
+- **Idempotentes:** cada archivo se puede ejecutar más de una vez sin error, en una DB nueva o en una que ya tiene parte de los cambios. Usan `IF NOT EXISTS`, `DROP POLICY IF EXISTS` antes de cada `CREATE POLICY` y una transacción (`BEGIN … COMMIT`), así un error no deja nada a medias.
+- **Probado en Postgres 16:**
+  - en una DB nueva deja el mismo esquema que había antes con `schema.sql` + `upgrade_0.0.1.sql`, y ejecutarlo dos veces no cambia nada;
+  - sobre la DB de producción (0.0.1) y sobre una anterior a la 0.0.1 queda igual;
+  - RLS: un usuario no puede insertar filas de otro ni ver las suyas.
+- **Rendimiento:** con 200.000 transacciones, la carga de un usuario bajó de ~120 ms (recorrido completo de la tabla) a ~1,4 ms gracias a los índices `(user_id, …)` de la 0.0.1.
+- **En los tests:** el Supabase simulado de los e2e lee estos mismos archivos, en el mismo orden.
+
+| Migración | Qué hace |
+|---|---|
+| `20260618000000_init.sql` | Las 8 tablas, índices `(user_id, …)` y políticas RLS con `(select auth.uid())` |
+| `20260927000000_schema_hygiene.sql` | `transactions` valida en la base `tipo IN ('INGRESO','EGRESO')` y `valor > 0`; las 8 tablas tienen `updated_at`, que actualiza un trigger. Trae una consulta para revisar antes si hay filas que no cumplen |
 
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
@@ -477,7 +483,7 @@ Montos: guardados en PEN → fmtMoney(v, currency) al mostrar; toBase()/fromBase
 
 - La integración GitHub → Vercel despliega cada push a `main` en producción y crea un **preview** por cada PR.
 - La CI (`.github/workflows/ci.yml`) corre lint, typecheck, tests, build y los tests end-to-end en cada PR; conviene mergear solo con la CI en verde.
-- Si el cambio toca el esquema, ejecutar antes su script de actualización (para la 0.0.1, `supabase/migrations/upgrade_0.0.1.sql`) en el SQL Editor de Supabase (ver [Base de Datos](#base-de-datos-supabase)).
+- Si el cambio toca el esquema, ejecutar antes sus migraciones nuevas de `supabase/migrations/` en el SQL Editor de Supabase (ver [Base de Datos](#base-de-datos-supabase)).
 - Despliegue manual: `vercel --prod`. Las variables de entorno se configuran en el Dashboard de Vercel.
 
 ### Cómo mergear un PR

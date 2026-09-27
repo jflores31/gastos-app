@@ -21,8 +21,8 @@ function mapRow(row) {
     dia: d.getDate(),
     mes: d.getMonth(),
     año: d.getFullYear(),
-    // Detection lives client-side in flagAnomalies() (see flaggedTxs below); the
-    // DB column is always false, so seed false and let flagAnomalies be the source of truth.
+    // Detection lives client-side in flagAnomalies() (see flaggedTxs below). The DB's
+    // `anomaly` column is no longer written and will be dropped by a later migration.
     anomaly: false,
   }
 }
@@ -128,7 +128,8 @@ const subscriptionToRow = (sub) => ({
 const customCatToRow = (c) => ({ nombre: c.nombre, tipo: c.tipo, color: c.color, icon: c.icon ?? null })
 const keepRow = (row) => row // custom categories are kept as raw rows
 
-// custom_categories.icon only exists after supabase/migrations/upgrade_0.0.1.sql has run.
+// custom_categories.icon is missing in a DB created before 0.0.1 that hasn't run
+// supabase/migrations/20260618000000_init.sql again.
 const CUSTOM_CAT_OPTIONAL_COLUMNS = ["icon"]
 
 // Save (update when the item has an id, insert otherwise) and delete for a table whose rows
@@ -303,7 +304,6 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         fecha: tx.date.toISOString(),
-        anomaly: false,
       })
       .select()
       .single()
@@ -326,7 +326,6 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         fecha: tx.date.toISOString(),
-        anomaly: false,
       }))
       const { data, error } = await supabase.from("transactions").insert(rows).select()
       if (error) throw Object.assign(new Error(error.message), { saved })

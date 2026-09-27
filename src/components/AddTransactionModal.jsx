@@ -138,7 +138,6 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         año: fecha.year(),
         date: fecha.toDate(),
         valor: toBase(parseFloat(valor), currency),
-        anomaly: false,
       };
       if (editTx) {
         await updateTx({ ...tx, id: editTx.id });

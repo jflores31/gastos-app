@@ -122,7 +122,7 @@ Un servidor Node sin dependencias que imita lo que la app usa de Supabase:
   - `select` con filtros (`eq`, `in`, `gt`…), `order` y paginación;
   - `insert`, `update`, `delete` y `upsert`;
   - `.single()`.
-- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK (col IN …)`.
+- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`, aplicadas en el orden de sus nombres (fechas), igual que en Supabase. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK` (`col IN (…)` y `col > 0`, en la tabla o con `ADD CONSTRAINT`).
 - **RLS:** cada usuario solo ve y escribe sus filas. Insertar con otro `user_id` devuelve `42501`.
 - **Datos iniciales ([`seed.mjs`](../e2e/mock-supabase/seed.mjs)):** cuatro meses de movimientos (con una anomalía este mes) y una fila en cada tabla. Las fechas son relativas a hoy.
 - **Para los tests:** `GET /__mock/db?email=…` devuelve las filas de ese usuario, para comprobar qué se guardó.
