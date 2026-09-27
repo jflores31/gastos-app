@@ -155,8 +155,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 ├── src/                            # (detail below)
 └── supabase/
     ├── config.toml
-    ├── migrations/schema.sql       # Full DB schema (single source of truth, for a new DB)
-    ├── migrations/upgrade_0.0.1.sql # 0.0.1 changes for an existing DB (idempotent)
+    ├── migrations/YYYYMMDDHHMMSS_*.sql # Dated, idempotent migrations, in order (the first is the base schema)
     └── seed/reset.sql              # Empties the 8 tables — destructive
 ```
 
@@ -246,14 +245,16 @@ All tables use RLS with `auth.uid() = user_id`.
 | `subscriptions` | Recurring subscriptions |
 | `custom_categories` | User-defined categories (name, type, color, icon) |
 
-The full schema is in `supabase/migrations/schema.sql`.
+**Migrations:** the schema lives in `supabase/migrations/`, one file per change, with the date at the start of the name (`YYYYMMDDHHMMSS_description.sql`). The first one, `20260618000000_init.sql`, creates the 8 tables with their indexes and RLS policies.
 
-> **Schema changes on an existing DB:** `schema.sql` uses `CREATE TABLE IF NOT EXISTS`, so it doesn't alter tables that already exist. Each version's changes ship as an idempotent script that must be run in the Supabase SQL Editor **before** deploying. For 0.0.1 it's `supabase/migrations/upgrade_0.0.1.sql`, which adds:
-> - the `custom_categories.icon` column;
-> - `(user_id, …)` indexes on the tables;
-> - RLS policies using `(select auth.uid())`.
->
-> Tested on Postgres 16: running it twice doesn't error, and it leaves the DB identical to a fresh `schema.sql` install. With 200,000 transactions, loading one user's data went from ~120 ms (full table scan) to ~1.4 ms (index).
+- **How they're applied:** in order, with the CLI (`supabase db push`) or by pasting them into Supabase → SQL Editor. On an existing DB, **before** deploying the code that needs them.
+- **Idempotent:** every file can run more than once without errors, on a new DB or on one that already has part of the changes. They use `IF NOT EXISTS`, `DROP POLICY IF EXISTS` before each `CREATE POLICY`, and a transaction (`BEGIN … COMMIT`), so an error leaves nothing half-applied.
+- **Tested on Postgres 16:**
+  - on a new DB it leaves the same schema as the former `schema.sql` + `upgrade_0.0.1.sql`, and running it twice changes nothing;
+  - on the production DB (0.0.1) and on a pre-0.0.1 DB the result is the same;
+  - RLS: a user can't insert another user's rows or see them.
+- **Performance:** with 200,000 transactions, loading one user's data went from ~120 ms (full table scan) to ~1.4 ms thanks to the 0.0.1 `(user_id, …)` indexes.
+- **In tests:** the e2e tests' mock Supabase reads these same files, in the same order.
 
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
@@ -477,7 +478,7 @@ Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase(
 
 - The GitHub → Vercel integration deploys every push to `main` to production and creates a **preview** for every PR.
 - CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build and the end-to-end tests on every PR; only merge when it's green.
-- If a change touches the schema, first run its upgrade script (for 0.0.1, `supabase/migrations/upgrade_0.0.1.sql`) in the Supabase SQL Editor (see [Database](#database-supabase)).
+- If a change touches the schema, first run its new migrations from `supabase/migrations/` in the Supabase SQL Editor (see [Database](#database-supabase)).
 - Manual deploy: `vercel --prod`. Environment variables are configured in the Vercel Dashboard.
 
 ### How to merge a PR

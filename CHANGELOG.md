@@ -40,6 +40,9 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - una copia completa en JSON.
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
+### Base de datos
+- **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.
+
 ### Seguridad
 - **CSP de estilos:** los `<style>` necesitan el nonce de la respuesta, como los scripts. Emotion lo recibe del layout y lo pone en cada `<style>`. Solo los atributos `style="…"` siguen permitidos inline. Un `<style>` inyectado ya no se aplica.
 - **Reporte de violaciones del CSP:** el navegador las envía a `/api/csp-report`, que las escribe en los logs sin la query de las URLs.

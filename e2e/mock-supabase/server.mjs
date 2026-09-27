@@ -178,8 +178,10 @@ function prepareRow(table, input, userId, { partial = false } = {}) {
     if (row.user_id !== userId) return [null, [403, "42501", `new row violates row-level security policy for table "${table}"`]]
   }
   for (const [name, value] of Object.entries(row)) {
-    const allowed = cols[name].check
-    if (allowed && value != null && !allowed.includes(value)) return [null, [400, "23514", `new row for relation "${table}" violates check constraint "${table}_${name}_check"`]]
+    const { check: allowed, positive } = cols[name]
+    if ((allowed && value != null && !allowed.includes(value)) || (positive && value != null && !(value > 0))) {
+      return [null, [400, "23514", `new row for relation "${table}" violates check constraint "${table}_${name}_check"`]]
+    }
   }
   if (partial && "user_id" in row && row.user_id !== userId) return [null, [403, "42501", `new row violates row-level security policy for table "${table}"`]]
   return [row, null]
