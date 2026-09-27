@@ -1,14 +1,30 @@
+import { useRef, useState } from "react";
 import { Box, Button, ListItem, ListItemText } from "@mui/material";
-import { TableChart as CsvIcon, DataObject as JsonIcon } from "../../theme/icons";
+import { TableChart as CsvIcon, DataObject as JsonIcon, UploadFile as ImportIcon } from "../../theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export";
+import { parseCsv, MAX_IMPORT_BYTES } from "../../data/import";
+import { ImportDialog } from "./ImportDialog.jsx";
 
-// "Tus datos": download the transactions as CSV or everything as a JSON backup.
+// "Tus datos": download the transactions as CSV or everything as a JSON backup, or
+// import transactions from a CSV (ImportDialog).
 export function DataExportSection({ notify }) {
   const { t, lang } = useSettings();
   const data = useData();
+  const fileInput = useRef(null);
+  const [importTable, setImportTable] = useState(null);
+
+  const pickFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // choosing the same file again fires onChange again
+    if (!file) return;
+    if (file.size > MAX_IMPORT_BYTES) return notify(t.settingsPanel.importFileTooLarge, "error");
+    const table = parseCsv(await file.text());
+    if (!table.rows.length) return notify(t.settingsPanel.importEmpty, "error");
+    setImportTable(table);
+  };
 
   const exportCsv = () => {
     const name = (cat, tipo) => resolveCategoryMeta(cat, data.customCats, lang, tipo).label;
@@ -38,8 +54,13 @@ export function DataExportSection({ notify }) {
           <Button size="small" variant="outlined" startIcon={<JsonIcon />} onClick={exportJson} disabled={data.loading} sx={{ borderRadius: 2, textTransform: "none" }}>
             {t.settingsPanel.exportJson}
           </Button>
+          <Button size="small" variant="outlined" startIcon={<ImportIcon />} onClick={() => fileInput.current?.click()} disabled={data.loading} sx={{ borderRadius: 2, textTransform: "none" }}>
+            {t.settingsPanel.importCsv}
+          </Button>
+          <input ref={fileInput} type="file" accept=".csv,text/csv" hidden onChange={pickFile} aria-label={t.settingsPanel.importCsv} />
         </Box>
       </ListItem>
+      {importTable && <ImportDialog table={importTable} notify={notify} onClose={() => setImportTable(null)} />}
     </>
   );
 }

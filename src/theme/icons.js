@@ -111,6 +111,7 @@ export { default as Storefront } from "@mui/icons-material/StorefrontRounded";
 export { default as Subscriptions } from "@mui/icons-material/SubscriptionsRounded";
 export { default as SupportAgent } from "@mui/icons-material/SupportAgentRounded";
 export { default as TableChart } from "@mui/icons-material/TableChartRounded";
+export { default as UploadFile } from "@mui/icons-material/UploadFileRounded";
 export { default as Theaters } from "@mui/icons-material/TheatersRounded";
 export { default as Timeline } from "@mui/icons-material/TimelineRounded";
 export { default as TireRepair } from "@mui/icons-material/TireRepairRounded";

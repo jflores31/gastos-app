@@ -164,6 +164,9 @@ function useTableCrud({ supabase, requireUserId, table, setList, toRow, fromRow,
   return { save, remove }
 }
 
+// Rows per insert request in addTxs() (CSV import).
+export const IMPORT_CHUNK = 500
+
 export function DataProvider({ children }) {
   const [txs, setTxs] = useState([])
   const [editBudgets, setEditBudgetsState] = useState({})
@@ -309,6 +312,30 @@ export function DataProvider({ children }) {
     if (data) setTxs((prev) => [...prev, mapRow(data)].sort((a, b) => a.date - b.date))
   }, [supabase, requireUserId])
 
+  // Bulk insert (CSV import) in chunks of IMPORT_CHUNK rows, one request each. Each
+  // chunk is all or nothing; if one fails, the error carries how many rows were
+  // already saved (`error.saved`) and those stay in state.
+  const addTxs = useCallback(async (list) => {
+    const userId = requireUserId()
+    let saved = 0
+    for (let i = 0; i < list.length; i += IMPORT_CHUNK) {
+      const rows = list.slice(i, i + IMPORT_CHUNK).map((tx) => ({
+        user_id: userId,
+        tipo: tx.tipo,
+        categoria: tx.categoria,
+        concepto: tx.concepto,
+        valor: tx.valor,
+        fecha: tx.date.toISOString(),
+        anomaly: false,
+      }))
+      const { data, error } = await supabase.from("transactions").insert(rows).select()
+      if (error) throw Object.assign(new Error(error.message), { saved })
+      saved += data?.length ?? 0
+      if (data?.length) setTxs((prev) => [...prev, ...data.map(mapRow)].sort((a, b) => a.date - b.date))
+    }
+    return saved
+  }, [supabase, requireUserId])
+
   const updateTx = useCallback(async (tx) => {
     const { data, error } = await supabase
       .from("transactions")
@@ -392,7 +419,7 @@ export function DataProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      txs: flaggedTxs, addTx, updateTx, deleteTx,
+      txs: flaggedTxs, addTx, addTxs, updateTx, deleteTx,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
@@ -403,7 +430,7 @@ export function DataProvider({ children }) {
       loading, loadError,
     }),
     [
-      flaggedTxs, addTx, updateTx, deleteTx,
+      flaggedTxs, addTx, addTxs, updateTx, deleteTx,
       editBudgets, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,

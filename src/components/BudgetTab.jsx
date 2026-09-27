@@ -11,11 +11,12 @@ import { DistributionCard } from "./budget/DistributionCard.jsx";
 import { PeriodComparisonCard } from "./budget/PeriodComparisonCard.jsx";
 import { BudgetVsActualCard } from "./budget/BudgetVsActualCard.jsx";
 import { RecurringCard } from "./budget/RecurringCard.jsx";
+import { UpcomingPaymentsCard } from "./budget/UpcomingPaymentsCard.jsx";
 import { ManageBudgetsDialog } from "./budget/ManageBudgetsDialog.jsx";
 
 // Budget tab: health summary, one card per budget, distribution, comparison with the
-// previous period, budget vs actual and recurring payments (src/components/budget/).
-export default function BudgetTab({ period, showToast }) {
+// previous period, budget vs actual, upcoming and recurring payments (src/components/budget/).
+export default function BudgetTab({ period, openModal, showToast }) {
   const { txs, editBudgets } = useData();
   const [manageOpen, setManageOpen] = useState(false);
 
@@ -47,6 +48,8 @@ export default function BudgetTab({ period, showToast }) {
       </Grid>
 
       {Object.keys(editBudgets).length > 0 && <BudgetVsActualCard cats={cats} period={period} totalBudget={totalBudget} />}
+
+      <UpcomingPaymentsCard openModal={openModal} />
 
       <RecurringCard />
 

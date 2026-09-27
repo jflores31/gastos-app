@@ -95,6 +95,40 @@ test("alta, edición y borrado de un gasto llegan a la base", async ({ page, req
   expect(await pan()).toEqual([])
 })
 
+test("el concepto sugiere la categoría (historial y catálogo) sin pisar una elegida a mano", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  const category = dialog(page).getByLabel("Categoría")
+  const concept = dialog(page).getByLabel("Concepto")
+
+  // Seed: NETFLIX is always STREAMING.
+  await concept.fill("netflix")
+  await expect(category).toHaveValue("Streaming")
+  await expect(dialog(page).getByText("Sugerida: la usaste antes con este concepto")).toBeVisible()
+  await concept.fill("xyz")
+  await expect(category).toHaveValue("")
+  await concept.fill("gasolina grifo")
+  await expect(category).toHaveValue("Gasolina")
+  await expect(dialog(page).getByText("Sugerida por el concepto")).toBeVisible()
+  // A category picked by hand stays.
+  await pickCategory(page, "Comida")
+  await concept.fill("netflix")
+  await expect(category).toHaveValue("Comida")
+  await expect(dialog(page).getByText(/^Sugerida/)).toHaveCount(0)
+  await dialog(page).getByRole("button", { name: "Cancelar" }).click()
+
+  // Saved with the suggested category.
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await concept.fill("Netflix")
+  await dialog(page).getByLabel("Monto").fill("45")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  const netflix = (await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "NETFLIX")
+  expect(netflix).toHaveLength(5)
+  expect(new Set(netflix.map((t) => t.categoria))).toEqual(new Set(["STREAMING"]))
+})
+
 test("en USD los montos se muestran convertidos y se guardan en PEN", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
@@ -261,6 +295,29 @@ test("Presupuestos: editar en la tarjeta, agregar (también de una categoría pr
   await expect.poll(budgets).toEqual({ COMIDA: 700, STREAMING: 60, [`custom_${catId}`]: 80 })
 })
 
+test("Presupuesto: próximos pagos sin duplicar la suscripción, y Registrar abre el formulario lleno", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("tab", { name: "Presupuesto" }).click()
+  const card = page.locator(".MuiCard-root").filter({ has: page.getByText("Próximos pagos", { exact: true }) })
+  // Seed: 4 expenses repeat every month; the Netflix subscription merges with NETFLIX.
+  const items = card.getByRole("listitem")
+  await expect(items).toHaveCount(4)
+  await expect(items.filter({ hasText: "Netflix" })).toHaveCount(1)
+  await expect(items.filter({ hasText: "MERCADO" })).toContainText("S/165") // average of 150…180
+  await expect(card.getByText(/^Total: S\//)).toBeVisible()
+
+  await card.getByRole("button", { name: "Registrar NETFLIX" }).click()
+  const form = dialog(page)
+  await expect(form.getByText("Registrar Gasto Diario")).toBeVisible()
+  await expect(form.getByLabel("Categoría")).toHaveValue("Streaming")
+  await expect(form.getByLabel("Concepto")).toHaveValue("NETFLIX")
+  await expect(form.getByLabel("Monto")).toHaveValue("45")
+  await form.getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect((await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "NETFLIX")).toHaveLength(5)
+})
+
 test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
@@ -346,6 +403,65 @@ test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON",
   expect(json.budgets).toEqual(expect.arrayContaining([{ categoria: "COMIDA", monto: 600 }]))
   expect(json.custom_categories.map((c: { nombre: string }) => c.nombre)).toEqual(["Gatos"])
   await expect(toast(page, "Archivo descargado")).toBeVisible()
+})
+
+test("importar CSV: el export propio vuelve como ya registrado y solo entra si se pide", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const before = (await mockDb(request, email)).tables.transactions.length
+  await openSettings(page, "Perfil")
+  const [download] = await Promise.all([page.waitForEvent("download"), dialog(page).first().getByRole("button", { name: "Transacciones (CSV)" }).click()])
+  const csv = Buffer.concat(await (await download.createReadStream()).toArray())
+
+  await page.locator('input[type="file"]').setInputFiles({ name: "export.csv", mimeType: "text/csv", buffer: csv })
+  const importer = page.getByRole("dialog", { name: "Importar transacciones" })
+  await expect(importer.getByText("Archivo exportado desde la app")).toBeVisible()
+  await expect(importer.getByText("0 nuevas")).toBeVisible()
+  await expect(importer.getByText(`${before} ya registradas`)).toBeVisible()
+  await expect(importer.getByRole("button", { name: "Importar 0" })).toBeDisabled()
+
+  await importer.getByLabel("Importar también las ya registradas").check()
+  await importer.getByRole("button", { name: `Importar ${before}` }).click()
+  await expect(toast(page, `${before} transacciones importadas`)).toBeVisible()
+  await expect(importer).toHaveCount(0)
+  const after = (await mockDb(request, email)).tables.transactions
+  expect(after).toHaveLength(before * 2)
+  const count = (rows: typeof after, concepto: string) => rows.filter((t) => t.concepto === concepto).length
+  expect(count(after, "NETFLIX")).toBe(8)
+})
+
+test("importar CSV de un banco: columnas, fechas y montos en otro formato, categorías sugeridas y errores", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await openSettings(page, "Perfil")
+  const csv = [
+    "Fecha de operación;Descripción;Importe;Saldo",
+    "05/01/2026;Netflix;-45,00;1000",
+    "06/01/2026;Ferretería Pérez;-1.234,50;900",
+    "07/01/2026;Sueldo enero;3.500,00;4400",
+    "ayer;Pan;-2,00;4398",
+  ].join("\r\n")
+  await page.locator('input[type="file"]').setInputFiles({ name: "banco.csv", mimeType: "text/csv", buffer: Buffer.from(csv) })
+  const importer = page.getByRole("dialog", { name: "Importar transacciones" })
+  // Columns guessed from the header.
+  await expect(importer.getByLabel("Fecha", { exact: true })).toContainText("Fecha de operación")
+  await expect(importer.getByLabel("Concepto", { exact: true })).toContainText("Descripción")
+  await expect(importer.getByLabel("Monto", { exact: true })).toContainText("Importe")
+  await importer.getByRole("button", { name: "Siguiente" }).click()
+
+  await expect(importer.getByText("3 nuevas")).toBeVisible()
+  await expect(importer.getByText("1 con errores")).toBeVisible()
+  await expect(importer.getByText("Línea 5: fecha no reconocida")).toBeVisible()
+  // FERRETERIA has no category: it takes the default for expenses.
+  await expect(importer.getByLabel("Categoría para egresos sin categoría")).toContainText("Compras varias")
+  await importer.getByRole("button", { name: "Importar 3" }).click()
+  await expect(toast(page, "3 transacciones importadas")).toBeVisible()
+
+  const rows = (await mockDb(request, email)).tables.transactions.filter((t) => String(t.fecha).startsWith("2026-01-0"))
+  const byConcept = Object.fromEntries(rows.map((t) => [t.concepto, t]))
+  expect(byConcept["NETFLIX"]).toMatchObject({ tipo: "EGRESO", categoria: "STREAMING", valor: 45 })
+  expect(byConcept["FERRETERÍA PÉREZ"]).toMatchObject({ tipo: "EGRESO", categoria: "COMPRAS", valor: 1234.5 })
+  expect(byConcept["SUELDO ENERO"]).toMatchObject({ tipo: "INGRESO", categoria: "SUELDO", valor: 3500 })
 })
 
 test("en los diálogos, la etiqueta flotante del primer campo no queda recortada", async ({ page }, info) => {
