@@ -30,6 +30,8 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral. ⚠ Ejecutar `supabase/migrations/20260927020000_budget_periods.sql` antes de desplegar.
+- **Papelera:** borrar una transacción la manda a la papelera, con "Deshacer" en el aviso. Desde Perfil → Tus datos → Papelera se restaura o se elimina definitivamente; a los 30 días se eliminan solas. ⚠ Ejecutar `supabase/migrations/20260927010100_trash.sql` antes de desplegar.
 - **Próximos pagos (Presupuesto):** lo que vence hasta el mismo día del mes que viene, a partir de los gastos que se repiten y de las suscripciones (sin contarlas dos veces). Los que ya pasaron sin registrarse salen como vencidos, y "Registrar" abre el formulario lleno.
 - **Importar CSV (Perfil → Tus datos):** el export propio o un archivo de banco con columnas a elegir. Vista previa con filas nuevas, ya registradas y con errores; reimportar un archivo no duplica nada.
 - **Categoría sugerida por el concepto:** al escribir el concepto de una transacción nueva, la categoría se completa con la que más usaste con ese concepto o, sin historial, con la del catálogo que aparece en el texto. Nunca reemplaza una categoría elegida a mano.
@@ -41,6 +43,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
+- **Sin la columna `anomaly`:** `20260927010000_drop_anomaly.sql` la borra; siempre valía `false` y el código ya no la escribe.
 - **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las 8 tablas tienen `updated_at`, que mantiene un trigger. El código ya no escribe la columna `anomaly` (siempre `false`); se borra en una migración posterior, una vez desplegado este código. ⚠ Ejecutar `supabase/migrations/20260927000000_schema_hygiene.sql` antes de desplegar.
 - **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.
 
@@ -55,6 +58,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - `npm audit`: 0 vulnerabilidades.
 
 ### Corregido
+- **Transacciones que no contaban en su período:** el mes, el trimestre y el año terminaban a las 00:00 del último día, así que lo registrado ese día después de medianoche no entraba en los totales (el 30 de septiembre por la tarde no contaba en septiembre). La semana empezaba el lunes a la hora actual, no a las 00:00. Ahora los límites son días completos.
 - **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
 - **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
 - **Error de hidratación intermitente (React #418):**

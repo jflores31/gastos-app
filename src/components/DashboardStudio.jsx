@@ -25,6 +25,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { createClient } from "../lib/supabase";
+import { useBudgetAlertToasts } from "../hooks/useBudgetAlertToasts.js";
 import OverviewTab from "./OverviewTab.jsx";
 import ExpensesTab from "./ExpensesTab.jsx";
 import IncomeTab from "./IncomeTab.jsx";
@@ -61,11 +62,14 @@ export default function DashboardStudio() {
 
   // `prefill` ({ concepto, valor } with valor in PEN) comes from "Registrar" on an upcoming payment.
   const openModal = useCallback((cat = "", mode = "all", prefill = null) => { setModalCat(cat); setModalMode(mode); setModalPrefill(prefill); setShowModal(true); }, []);
-  const showToast = useCallback((msg, severity = "success", duration = 3000) => {
+  // `action` ({ label, onClick }) adds a button to the toast, e.g. "Deshacer".
+  const showToast = useCallback((msg, severity = "success", duration = 3000, action = null) => {
     clearTimeout(toastTimer.current);
-    setToast({ msg, severity, duration });
+    setToast({ msg, severity, duration, action, id: Date.now() });
     toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
+
+  useBudgetAlertToasts(showToast);
 
   const handleAddTx = useCallback(() => {
     showToast(t.dashboard.transactionSaved, "success");
@@ -343,8 +347,15 @@ export default function DashboardStudio() {
         {activeTab === 4 && <GoalsTab showToast={showToast} />}
       </Box>
 
-      <Snackbar open={!!toast} autoHideDuration={toast?.duration ?? 3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} sx={{ bottom: { xs: 72, sm: 24 } }}>
-        {toast && <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.msg}</Alert>}
+      <Snackbar key={toast?.id} open={!!toast} autoHideDuration={toast?.duration ?? 3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} sx={{ bottom: { xs: 72, sm: 24 } }}>
+        {toast && (
+          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}
+            action={toast.action ? (
+              <Button color="inherit" size="small" sx={{ fontWeight: 700 }} onClick={() => { setToast(null); toast.action.onClick(); }}>{toast.action.label}</Button>
+            ) : undefined}>
+            {toast.msg}
+          </Alert>
+        )}
       </Snackbar>
 
       {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} initialConcept={modalPrefill?.concepto} initialAmount={modalPrefill?.valor} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}

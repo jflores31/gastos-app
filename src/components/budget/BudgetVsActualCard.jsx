@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "../../theme/icons";
-import { monthCount, periodLabel } from "../../data/helpers";
+import { budgetFor, periodLabel } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";
@@ -9,7 +9,7 @@ import { useData } from "../../context/DataContext.jsx";
 // One bar per budgeted category, plus totals restricted to budgeted categories.
 export function BudgetVsActualCard({ cats, period, totalBudget }) {
   const { t, lang, fmt } = useSettings();
-  const { editBudgets, customCats } = useData();
+  const { editBudgets, budgetPeriods, customCats } = useData();
   const spentIn = (cat) => cats.find((c) => c.categoria === cat)?.total || 0;
   // Denominator matches the rows below: spending in budgeted categories only.
   const totalSpentBudgeted = Object.keys(editBudgets).reduce((s, cat) => s + spentIn(cat), 0);
@@ -28,7 +28,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
         <Stack spacing={2}>
           {Object.keys(editBudgets).map((cat) => {
             const spent = spentIn(cat);
-            const limit = editBudgets[cat] * monthCount(period);
+            const limit = budgetFor(editBudgets[cat], budgetPeriods[cat], period);
             const pct = limit > 0 ? Math.min(spent / limit, 1) : 0;
             const rawPct = limit > 0 ? (spent / limit) * 100 : 0;
             const { label: catName, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");

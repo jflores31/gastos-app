@@ -12,7 +12,7 @@ const fake = vi.hoisted(() => {
     queries: [],
     respond: () => ({ data: [], error: null }),
   }
-  const methods = ["select", "order", "range", "insert", "update", "delete", "upsert", "eq", "single"]
+  const methods = ["select", "order", "range", "insert", "update", "delete", "upsert", "eq", "is", "not", "lt", "single"]
   state.client = {
     auth: {
       onAuthStateChange: (cb) => {
@@ -35,6 +35,13 @@ vi.mock("../lib/supabase", () => ({ createClient: () => fake.client }))
 
 const has = (calls, name) => calls.find((c) => c[0] === name)
 const writes = () => fake.queries.filter((q) => q.calls.some((c) => ["insert", "update", "delete", "upsert"].includes(c[0])))
+
+async function mountSignedInKeepingQueries(userId = "u1") {
+  const hook = renderHook(() => useData(), { wrapper: DataProvider })
+  await act(async () => { fake.authCallback("INITIAL_SESSION", { user: { id: userId } }) })
+  await waitFor(() => expect(hook.result.current.loading).toBe(false))
+  return hook
+}
 
 async function mountSignedIn(userId = "u1") {
   const hook = renderHook(() => useData(), { wrapper: DataProvider })
@@ -64,12 +71,15 @@ describe("DataContext", () => {
     vi.restoreAllMocks()
   })
 
-  it("con sesión carga las 8 tablas y mapea las transacciones", async () => {
+  it("con sesión carga las 8 tablas y mapea las transacciones; las borradas van a la papelera", async () => {
     const loaded = []
     fake.respond = (table, calls) => {
       loaded.push(table)
       if (table === "transactions" && has(calls, "range")) {
-        return { data: [{ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "12.50", fecha: "2026-09-01T12:00:00Z" }], error: null }
+        if (has(calls, "not")) {
+          return { data: [{ id: "t2", tipo: "EGRESO", categoria: "COMIDA", concepto: "PAN", valor: "2", fecha: "2026-09-02T12:00:00Z", deleted_at: "2026-09-20T10:00:00Z" }], error: null }
+        }
+        return { data: [{ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "12.50", fecha: "2026-09-01T12:00:00Z", deleted_at: null }], error: null }
       }
       return { data: [], error: null }
     }
@@ -78,7 +88,58 @@ describe("DataContext", () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(new Set(loaded)).toEqual(new Set(["transactions", "budgets", "goals", "accounts", "investments", "debts", "subscriptions", "custom_categories"]))
     expect(result.current.txs).toHaveLength(1)
-    expect(result.current.txs[0]).toMatchObject({ id: "t1", valor: 12.5, categoria: "COMIDA" })
+    expect(result.current.txs[0]).toMatchObject({ id: "t1", valor: 12.5, categoria: "COMIDA", deletedAt: null })
+    expect(result.current.trash).toEqual([expect.objectContaining({ id: "t2", deletedAt: new Date("2026-09-20T10:00:00Z") })])
+    // The active list excludes the trash; the trash query asks for deleted_at not null.
+    const txQueries = fake.queries.filter((q) => q.table === "transactions" && has(q.calls, "select"))
+    expect(txQueries.map((q) => has(q.calls, "is") ?? has(q.calls, "not"))).toEqual([["is", "deleted_at", null], ["not", "deleted_at", "is", null]])
+  })
+
+  it("al cargar elimina de verdad lo que lleva más de 30 días en la papelera", async () => {
+    vi.useFakeTimers({ now: new Date("2026-09-30T12:00:00Z"), toFake: ["Date"] })
+    try {
+      await mountSignedInKeepingQueries()
+      const purge = fake.queries.find((q) => q.table === "transactions" && has(q.calls, "delete"))
+      expect(has(purge.calls, "lt")).toEqual(["lt", "deleted_at", "2026-08-31T12:00:00.000Z"])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("borrar una transacción la manda a la papelera; restaurar la devuelve; eliminar definitivamente y vaciar borran de verdad", async () => {
+    fake.respond = (table, calls) => {
+      const update = has(calls, "update")
+      if (update && has(calls, "single")) {
+        return { data: { id: has(calls, "eq")[2], tipo: "EGRESO", categoria: "COMIDA", concepto: "PAN", valor: 2, fecha: "2026-09-02T12:00:00Z", ...update[1] }, error: null }
+      }
+      if (has(calls, "insert")) return { data: { id: "t9", ...has(calls, "insert")[1] }, error: null }
+      return { data: [], error: null }
+    }
+    const { result } = await mountSignedIn("u1")
+    await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "COMIDA", concepto: "PAN", valor: 2, date: new Date("2026-09-02T12:00:00Z") }))
+    expect(result.current.txs).toHaveLength(1)
+
+    await act(() => result.current.deleteTx("t9"))
+    const soft = writes().find((q) => has(q.calls, "update"))
+    expect(has(soft.calls, "update")[1].deleted_at).toEqual(expect.any(String))
+    expect(soft.calls.filter((c) => c[0] === "eq")).toEqual([["eq", "id", "t9"], ["eq", "user_id", "u1"]])
+    expect(writes().some((q) => has(q.calls, "delete"))).toBe(false)
+    expect(result.current.txs).toEqual([])
+    expect(result.current.trash).toEqual([expect.objectContaining({ id: "t9", deletedAt: expect.any(Date) })])
+
+    await act(() => result.current.restoreTx("t9"))
+    expect(result.current.trash).toEqual([])
+    expect(result.current.txs).toEqual([expect.objectContaining({ id: "t9", deletedAt: null })])
+
+    await act(() => result.current.deleteTx("t9"))
+    await act(() => result.current.purgeTx("t9"))
+    const hard = writes().find((q) => has(q.calls, "delete"))
+    expect(hard.calls.filter((c) => ["eq", "not"].includes(c[0]))).toEqual([["eq", "id", "t9"], ["eq", "user_id", "u1"], ["not", "deleted_at", "is", null]])
+    expect(result.current.trash).toEqual([])
+
+    await act(() => result.current.emptyTrash())
+    const empty = writes().filter((q) => has(q.calls, "delete")).at(-1)
+    expect(empty.calls.filter((c) => ["eq", "not"].includes(c[0]))).toEqual([["eq", "user_id", "u1"], ["not", "deleted_at", "is", null]])
   })
 
   it("guardar una meta nueva inserta con el user_id de la sesión, sin llamar a auth.getUser()", async () => {
@@ -184,8 +245,16 @@ describe("DataContext", () => {
     expect(has(insertTx.calls, "insert")[1]).toMatchObject({ user_id: "u1", valor: 15, fecha: "2026-09-02T12:00:00.000Z" })
     // The anomaly column is on its way out: nothing writes it any more.
     expect(has(insertTx.calls, "insert")[1]).not.toHaveProperty("anomaly")
-    expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500 }])
+    expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500, periodo: "month" }])
     expect(result.current.editBudgets).toEqual({ COMIDA: 500 })
+
+    // A period update is saved with every row and kept in state.
+    await act(() => result.current.setEditBudgets((b) => ({ ...b, VIAJES: 1200 }), { VIAJES: "year" }))
+    expect(has(writes().at(-1).calls, "upsert")[1]).toEqual([
+      { user_id: "u1", categoria: "COMIDA", monto: 500, periodo: "month" },
+      { user_id: "u1", categoria: "VIAJES", monto: 1200, periodo: "year" },
+    ])
+    expect(result.current.budgetPeriods).toEqual({ COMIDA: "month", VIAJES: "year" })
     expect(fake.getUser).not.toHaveBeenCalled()
   })
 })

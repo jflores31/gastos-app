@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Chip, Stack, List, ListItem, ListItemAvatar, ListItemText,
-  IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button,
+  IconButton,
 } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
@@ -13,15 +13,16 @@ import { resolveCategoryMeta } from "../theme/categoryIcons.js";
 import { filterByPeriod, periodLabel } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
+import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
   const { t, lang, fmt } = useSettings();
-  const { txs, deleteTx, customCats } = useData();
+  const { txs, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const moveToTrash = useMoveToTrash(showToast);
   const [calFilter, setCalFilter] = useState(null);
   const [activeCat, setActiveCat] = useState(null);
 
@@ -257,7 +258,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                       <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton color="error" onClick={() => setDeleteTarget(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
+                      <IconButton color="error" onClick={() => moveToTrash(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Box>
@@ -299,26 +300,6 @@ export default function IncomeTab({ period, openModal, showToast }) {
         showToast={showToast}
       />
     )}
-    <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>{t.common.deleteTransaction}</DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" color="text.secondary">
-          {deleteTarget?.concepto} · {deleteTarget ? fmt(deleteTarget.valor) : ""}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {t.common.thisActionCannotBeUndone}
-        </Typography>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={() => setDeleteTarget(null)} color="inherit">{t.common.cancel}</Button>
-        <Button
-          variant="contained" color="error"
-          onClick={async () => { try { await deleteTx(deleteTarget.id); showToast?.(t.common.transactionDeleted, "success"); } catch { showToast?.(t.common.errorDeleting, "error"); } finally { setDeleteTarget(null); } }}
-        >
-          {t.common.delete}
-        </Button>
-      </DialogActions>
-    </Dialog>
     </>
   );
 }

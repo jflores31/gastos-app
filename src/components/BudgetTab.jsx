@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Grid, Stack } from "@mui/material";
 import { txByCategory } from "../data/index";
-import { filterByPeriod, monthCount, healthScore } from "../data/helpers";
+import { filterByPeriod, healthScore, budgetFor } from "../data/helpers";
 import { useData } from "../context/DataContext.jsx";
 import { HealthSummaryCard } from "./budget/HealthSummaryCard.jsx";
 import { BudgetCardsGrid } from "./budget/BudgetCardsGrid.jsx";
@@ -13,11 +13,12 @@ import { BudgetVsActualCard } from "./budget/BudgetVsActualCard.jsx";
 import { RecurringCard } from "./budget/RecurringCard.jsx";
 import { UpcomingPaymentsCard } from "./budget/UpcomingPaymentsCard.jsx";
 import { ManageBudgetsDialog } from "./budget/ManageBudgetsDialog.jsx";
+import { BudgetAlertsBanner } from "./budget/BudgetAlertsBanner.jsx";
 
 // Budget tab: health summary, one card per budget, distribution, comparison with the
 // previous period, budget vs actual, upcoming and recurring payments (src/components/budget/).
 export default function BudgetTab({ period, openModal, showToast }) {
-  const { txs, editBudgets } = useData();
+  const { txs, editBudgets, budgetPeriods } = useData();
   const [manageOpen, setManageOpen] = useState(false);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
@@ -29,11 +30,13 @@ export default function BudgetTab({ period, openModal, showToast }) {
   const savingsRate = totalIn > 0 ? ((totalIn - totalOut) / totalIn) * 100 : 0;
   const dOut = prevOut ? ((totalOut - prevOut) / prevOut) * 100 : 0;
   const score = healthScore(savingsRate, dOut, periodTxs.filter((x) => x.anomaly).length);
-  const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
+  const totalBudget = Object.entries(editBudgets).reduce((s, [cat, v]) => s + budgetFor(v, budgetPeriods[cat], period), 0);
   const budgetUsed = totalBudget > 0 ? totalOut / totalBudget : 0;
 
   return (
     <Stack spacing={3}>
+      <BudgetAlertsBanner />
+
       <HealthSummaryCard score={score} totalBudget={totalBudget} totalOut={totalOut} totalIn={totalIn} budgetUsed={budgetUsed} />
 
       <BudgetCardsGrid cats={cats} period={period} onManage={() => setManageOpen(true)} showToast={showToast} />

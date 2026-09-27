@@ -1,17 +1,20 @@
 import { getToday } from "./index";
 import { messagesFor } from "../i18n/index";
 import { normalizeConcept } from "./suggest";
-import type { Account, Debt, Investment, Period, Subscription, Transaction } from "../types";
+import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction } from "../types";
 
 export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();
   if (period === "all") return txs;
 
+  // start: first day at 00:00; end: last day at 23:59:59.999. (It used to end at 00:00 of
+  // the last day, so that day's transactions fell out, and the week started Monday at
+  // the current time of day.)
   let start: Date, end: Date;
   if (period === "week") {
     const dow = (today.getDay() + 6) % 7;
-    start = new Date(today); start.setDate(today.getDate() - dow + offset * 7);
-    end = new Date(start); end.setDate(start.getDate() + 6);
+    start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow + offset * 7);
+    end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
   } else if (period === "month") {
     const raw = today.getMonth() + offset;
     const y = today.getFullYear() + Math.floor(raw / 12);
@@ -30,6 +33,7 @@ export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   } else {
     return []; // unknown period (JS callers aren't type-checked)
   }
+  end.setHours(23, 59, 59, 999);
 
   return txs.filter((t) => t.date >= start && t.date <= end);
 }
@@ -263,4 +267,33 @@ export function upcomingPayments(txs: Transaction[], subscriptions: Subscription
   }
 
   return out.sort((a, b) => (a.due?.getTime() ?? Infinity) - (b.due?.getTime() ?? Infinity))
+}
+
+// A budget of `amount` per `budgetPeriod`, expressed for the period being viewed. Uses
+// monthCount's month units (week = 0.25, quarter = 3, year = 12, "all" = 1 month), so a
+// monthly budget shows exactly what it always did.
+export function budgetFor(amount: number, budgetPeriod: BudgetPeriod = "month", viewPeriod: Period = "month") {
+  return (amount * monthCount(viewPeriod)) / monthCount(budgetPeriod)
+}
+
+export type BudgetAlert = { categoria: string; periodo: BudgetPeriod; spent: number; limit: number; pct: number; level: "warn" | "over" }
+
+// Budgets at 80 % or more of what was spent in their own current period (this week,
+// month or year), highest first.
+export function budgetAlerts(txs: Transaction[], budgets: Budgets, periods: Record<string, BudgetPeriod> = {}): BudgetAlert[] {
+  const out: BudgetAlert[] = []
+  const spentByPeriod = new Map<BudgetPeriod, Map<string, number>>()
+  for (const [categoria, limit] of Object.entries(budgets)) {
+    if (!(limit > 0)) continue
+    const periodo = periods[categoria] ?? "month"
+    if (!spentByPeriod.has(periodo)) {
+      const m = new Map<string, number>()
+      for (const tx of filterByPeriod(txs, periodo)) if (tx.tipo === "EGRESO") m.set(tx.categoria, (m.get(tx.categoria) ?? 0) + tx.valor)
+      spentByPeriod.set(periodo, m)
+    }
+    const spent = spentByPeriod.get(periodo)!.get(categoria) ?? 0
+    const pct = spent / limit
+    if (pct >= 0.8) out.push({ categoria, periodo, spent, limit, pct, level: pct >= 1 ? "over" : "warn" })
+  }
+  return out.sort((a, b) => b.pct - a.pct)
 }

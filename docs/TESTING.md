@@ -33,11 +33,11 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 159 tests en 17 archivos
+### Unitarios y componentes: 168 tests en 18 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
-| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo) |
+| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 31 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo); incluye que los períodos sean días completos |
 | [`src/data/currency.test.js`](../src/data/currency.test.js) | 16 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
@@ -49,10 +49,11 @@ npm run typecheck    # tsc --noEmit
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
 | [`src/data/suggest.test.js`](../src/data/suggest.test.js) | 11 | **Categoría sugerida:** normalización (mayúsculas, tildes, espacios); historial (la más usada, empate → la más reciente, categorías propias, filtro por tipo, gana al catálogo); catálogo (concepto o nombre como palabras completas, gana la que coincide en más palabras, empate → nada) |
 | [`src/data/import.test.js`](../src/data/import.test.js) | 25 | **Importar CSV:** RFC 4180 (comillas, saltos de línea, BOM, `;`), montos en varios formatos, fechas ISO y `DD/MM/AAAA` (e imposibles), columnas del export propio y de un banco, tipo por signo, categoría del archivo / sugerida / por defecto, líneas inválidas, **ida y vuelta con `transactionsToCsv`** y repetidas (una ya guardada absorbe una fila) |
+| [`src/data/budgets.test.js`](../src/data/budgets.test.js) | 5 | **Presupuestos por período:** `budgetFor` deja igual un presupuesto mensual y escala semanal/anual; `budgetAlerts` avisa al 80 % y al 100 % en el período del propio presupuesto, la semana empieza el lunes y un año nuevo empieza de cero |
 | [`src/data/upcoming.test.js`](../src/data/upcoming.test.js) | 6 | **Próximos pagos** con fechas fijas: pagado este mes → mes siguiente, pendiente → este mes, día pasado sin registrar → vencido, día 31 en febrero, el 1 del mes siguiente entra, suscripción unida a su recurrente, suscripciones fechadas por su último pago (mensual y anual) o sin fecha, ingresos nunca |
 | [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas, copia JSON con todas las tablas, nombres de archivo |
 | [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 6 | `fmt()` por moneda e idioma, **modo privacidad** (enmascara, cambia con la moneda, se guarda) e **inactividad** (2 min por defecto, valor inválido → 2, un cambio en otra pestaña llega a esta) |
-| [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 10 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama. `addTxs` inserta en lotes de 500 y, si uno falla, informa cuántas se guardaron |
+| [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 12 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama. `addTxs` inserta en lotes de 500 y, si uno falla, informa cuántas se guardaron. **Papelera:** la lista activa pide `deleted_at IS NULL` y la papelera el resto; borrar hace `update` de `deleted_at`, restaurar lo vuelve a `null`, eliminar definitivamente y vaciar son `delete` solo de filas en la papelera, y al cargar se borran las de más de 30 días |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
 Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
@@ -78,7 +79,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 19 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 21 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse. Todos fallan si la consola registra una violación del CSP (`afterEach`).
 
@@ -88,7 +89,8 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
   - los ajustes;
   - el tema oscuro;
   - el cambio a inglés.
-- **Gasto de punta a punta:** el alta, la edición y el borrado llegan a la base con el `user_id` de la sesión.
+- **Gasto de punta a punta:** el alta, la edición y el borrado llegan a la base con el `user_id` de la sesión. El borrado deja `deleted_at` en la fila y "Deshacer" lo revierte.
+- **Papelera:** restaurar, eliminar definitivamente (con confirmación) y vaciar, comprobando la base simulada después de cada paso.
 - **Categoría sugerida:** "netflix" completa Streaming (historial) y "gasolina grifo" Gasolina (catálogo); un concepto sin coincidencias la quita; una categoría elegida a mano no cambia; la transacción se guarda con la categoría sugerida.
 - **Moneda:** en USD los montos se muestran convertidos y un gasto de $27 se guarda como S/100.
 - **Iconos:** una meta nueva y una categoría personalizada se guardan con su icono.
@@ -96,6 +98,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Presupuestos:**
   - editar el límite desde la tarjeta;
   - en "Gestionar", agregar uno nativo y uno de categoría propia, editar y cancelar, y borrar con confirmación.
+- **Presupuestos semanales:** el período se guarda en la base, la franja de Presupuesto lista los que están al límite, y un gasto que cruza el 80 % y luego el 100 % muestra su aviso.
 - **Próximos pagos:** los 4 gastos mensuales del seed, Netflix una sola vez (la suscripción se une al recurrente) y el promedio de MERCADO; "Registrar NETFLIX" abre el formulario con categoría, concepto y monto, y guarda.
 - **Perfil:** el nombre y las favoritas se guardan en `user_metadata`; una categoría propia se edita (nombre, color, tipo) y se borra con confirmación.
 - **Modo privacidad:** no queda ningún "S/<dígitos>" en las 5 pestañas, y se recuerda al recargar.

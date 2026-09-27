@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import {
   Box, Card, CardContent, Typography, Grid, Stack, Chip, LinearProgress,
   List, ListItem, ListItemAvatar, ListItemText, IconButton, Collapse,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
@@ -15,18 +14,19 @@ import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES, txByCategory, getTodayExpenses } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
-import { filterByPeriod, periodLabel, monthCount, daysCount } from "../data/helpers";
+import { filterByPeriod, periodLabel, daysCount, budgetFor } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
+import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, fmt } = useSettings();
-  const { txs, editBudgets, deleteTx, customCats } = useData();
+  const { txs, editBudgets, budgetPeriods, customCats } = useData();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const moveToTrash = useMoveToTrash(showToast);
   const [calFilter, setCalFilter] = useState(null);
 
   const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
@@ -188,7 +188,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                   <Stack spacing={1.5}>
                     {Object.keys(editBudgets).slice(0, 4).map((cat) => {
                       const spent = periodCats.find((c) => c.categoria === cat)?.total || 0;
-                      const limit = editBudgets[cat] * monthCount(period);
+                      const limit = budgetFor(editBudgets[cat], budgetPeriods[cat], period);
                       const pct = limit ? spent / limit : 0;
                       const isOver = pct > 1;
                       const { label: catName, color, Icon } = catMeta(cat);
@@ -228,7 +228,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     { label: t.expensesTab.dailyAvg, value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light", icon: DailyIcon, tone: "warning" },
                     { label: t.expensesTab.topExpense, value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light", icon: TopExpenseIcon, tone: "expense" },
                   ].map((item, idx) => {
-                    const totalBudget = Object.values(editBudgets).reduce((s, v) => s + v, 0) * monthCount(period);
+                    const totalBudget = Object.entries(editBudgets).reduce((s, [cat, v]) => s + budgetFor(v, budgetPeriods[cat], period), 0);
                     const maxExpense = expenseTxs.reduce((m, x) => Math.max(m, x.valor), 0);
                     const barVal = idx === 0
                       ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : 0)
@@ -313,7 +313,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton color="error" onClick={() => setDeleteTarget(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
+                        <IconButton color="error" onClick={() => moveToTrash(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
@@ -355,26 +355,6 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         showToast={showToast}
       />
     )}
-    <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>{t.common.deleteTransaction}</DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" color="text.secondary">
-          {deleteTarget?.concepto} · {deleteTarget ? fmt(deleteTarget.valor) : ""}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {t.common.thisActionCannotBeUndone}
-        </Typography>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={() => setDeleteTarget(null)} color="inherit">{t.common.cancel}</Button>
-        <Button
-          variant="contained" color="error"
-          onClick={async () => { try { await deleteTx(deleteTarget.id); showToast?.(t.common.transactionDeleted, "success"); } catch { showToast?.(t.common.errorDeleting, "error"); } finally { setDeleteTarget(null); } }}
-        >
-          {t.common.delete}
-        </Button>
-      </DialogActions>
-    </Dialog>
     </>
   );
 }

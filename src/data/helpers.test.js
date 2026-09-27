@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, afterEach } from "vitest"
 import {
   flagAnomalies,
   healthScore,
@@ -181,6 +181,29 @@ describe("filterByPeriod", () => {
     const lastYear = tx({ date: new Date(now.getFullYear() - 1, 5, 15) })
     expect(filterByPeriod([here, lastYear], "year")).toEqual([here])
     expect(filterByPeriod([here, lastYear], "year", -1)).toEqual([lastYear])
+  })
+
+  describe("los límites del período son días completos", () => {
+    afterEach(() => vi.useRealTimers())
+    const at = (...args) => tx({ date: new Date(...args) })
+
+    it("la semana va del lunes 00:00 al domingo 23:59, sea la hora que sea ahora", () => {
+      vi.useFakeTimers({ now: new Date(2026, 8, 17, 12, 0), toFake: ["Date"] }) // jueves 17 sep, 12:00
+      const mondayMorning = at(2026, 8, 14, 9, 0)
+      const sundayNight = at(2026, 8, 20, 22, 0)
+      const lastSunday = at(2026, 8, 13, 23, 0)
+      expect(filterByPeriod([mondayMorning, sundayNight, lastSunday], "week")).toEqual([mondayMorning, sundayNight])
+    })
+
+    it("el último día del mes, del trimestre y del año cuenta entero", () => {
+      vi.useFakeTimers({ now: new Date(2026, 8, 10, 8, 0), toFake: ["Date"] })
+      const sep30 = at(2026, 8, 30, 18, 30)
+      const oct1 = at(2026, 9, 1, 0, 0)
+      expect(filterByPeriod([sep30, oct1], "month")).toEqual([sep30])
+      expect(filterByPeriod([sep30, oct1], "quarter")).toEqual([sep30])
+      const dec31 = at(2026, 11, 31, 21, 0)
+      expect(filterByPeriod([dec31], "year")).toEqual([dec31])
+    })
   })
 })
 
