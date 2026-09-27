@@ -155,5 +155,6 @@ coincide con el header, **0 scripts sin proteger**, y los redirects del guard ll
 ## Próximas mejoras posibles
 
 - **Quitar `'unsafe-inline'` de `style-src-attr`:** habría que reemplazar los ~25 `style={{…}}`
-  por `sx` y confirmar que MUI no escribe atributos `style` en el HTML del servidor, algo que
-  hoy hace en las transiciones.
+  por `sx` o por clases (parte de T16, separar los estilos del código, en
+  [INVESTIGACION.md](INVESTIGACION.md#mejoras-técnicas)) y confirmar que MUI no escribe
+  atributos `style` en el HTML del servidor, algo que hoy hace en las transiciones.

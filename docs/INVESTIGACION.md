@@ -20,7 +20,7 @@
 Al 27 de septiembre de 2026, en el código:
 
 - **Ideas de producto:** 13 de 14 hechas (✅ en [la tabla](#ideas-priorizadas-para-gastos-app)). Falta la **4, totales en Postgres**, a propósito: con los índices, la consulta de un usuario con 200.000 transacciones tarda ~1,4 ms en la base, y lo que queda es el costo de llevar las filas al navegador. Conviene retomarla si la carga se vuelve lenta con datos reales.
-- **Mejoras técnicas:** T1 a T15 hechas ([tabla](#mejoras-técnicas)), con dos restos:
+- **Mejoras técnicas:** T1 a T15 hechas ([tabla](#mejoras-técnicas)); **T16, separar los estilos del código, queda pendiente**. Las hechas tienen dos restos:
   - T3: faltan tests contra un Supabase real (RLS, triggers y el esquema); los end-to-end usan uno simulado;
   - T8: `DataContext` y los componentes siguen en JSX; el resto de `src/` es TypeScript estricto.
 - **Límites conocidos:** presupuestos, metas, cuentas, inversiones, deudas y suscripciones guardan solo el monto en PEN, así que con la app en otra moneda se ven con la tasa de hoy. Detalle en [ARCHITECTURE.md](ARCHITECTURE.md#datos-y-supabase).
@@ -148,8 +148,9 @@ Revisión del código de la versión `0.0.1`, complementaria a las ideas de prod
 | T13 | ✅ Hecho: `fmtMoney(v, moneda, compacto, locale)` con `t.common.locale`, e inactividad de 2, 5, 15 o 30 min en Ajustes | UX | Formatear montos con el idioma elegido (`es-PE` / `en-US`) en vez del locale del navegador; hacer configurable el cierre por inactividad | `fmtMoney` usa `toLocaleString(undefined)`. Los 2 minutos de inactividad son agresivos para una app de consulta | `data/index.ts`, `DashboardStudio.jsx`, `SettingsContext.tsx` |
 | T14 | ✅ Hecho: `style-src-elem` con nonce (emotion lo recibe del layout), `style-src-attr 'unsafe-inline'` y `report-uri /api/csp-report` | Seguridad | Quitar `'unsafe-inline'` de `style-src` (nonce en el cache de emotion) y reportar violaciones del CSP | Detalle en [SECURITY-CSP.md](SECURITY-CSP.md#próximas-mejoras-posibles) | `proxy.ts`, `Providers.tsx` |
 | T15 | ✅ Hecho: React 19, `@supabase/ssr` 0.12 (el proxy manda los headers `no-store` que ahora recibe `setAll`), `vitest` 5; `npm audit` en 0 | Dependencias | `@supabase/ssr` 0.5 → 0.12 (revisar la API de cookies), `vitest` 3 → 5 (su aviso de seguridad solo afecta a dev), alinear React 18 con `@types/react` 19 o subir a React 19 | Versiones atrasadas o desalineadas | `package.json` |
+| T16 | ⏳ Pendiente (prioridad media) | Código / estilos | **Separar los estilos del código.** Los estilos repetidos (colores, radios, sombras, tarjetas, listas) van al tema de MUI (`styleOverrides` y variantes en `materialTheme.js`); los propios de cada pantalla, a un archivo junto al componente (p. ej. `OverviewTab.styles.ts`, como ya hace `authStyles.ts`) o a CSS Modules, que el CSP ya permite porque se sirven desde `'self'`. Se verifica con capturas antes y después, píxel a píxel, como en T7 | Hoy los estilos están mezclados con la lógica y el marcado: 766 `sx={…}` en 46 archivos (`OverviewTab` 88, `ExpensesTab` 62, `IncomeTab` 61) y 22 `style={{…}}` en 9. Los valores se repiten entre pantallas y cuesta cambiar el diseño en un solo lugar. Quitar los `style={{…}}` también acerca el CSP a no necesitar `'unsafe-inline'` en `style-src-attr` ([SECURITY-CSP.md](SECURITY-CSP.md#próximas-mejoras-posibles)) | `src/components/*`, páginas de auth en `src/app/`, `src/theme/materialTheme.js`, `src/app/components/auth/authStyles.ts` |
 
-**Orden sugerido:** todas las mejoras técnicas (T1 a T15) están hechas.
+**Orden sugerido:** T1 a T15 están hechas; queda T16.
 
 ## Próximos pasos de la investigación
 
