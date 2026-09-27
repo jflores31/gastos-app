@@ -7,7 +7,7 @@ import {
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { CATEGORIES } from "../../data/index";
+import { CATEGORIES, CURRENCIES, currencyOf } from "../../data/index";
 import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../../data/import";
 
 const PREVIEW_ROWS = 50;
@@ -17,14 +17,16 @@ const OPTIONAL = ["tipo", "categoria"];
 // Two steps: map the file's columns (skipped for the app's own export), then a preview
 // with counts, duplicates and errors before saving everything with addTxs().
 export function ImportDialog({ table, onClose, notify }) {
-  const { t, lang, currency, fmt } = useSettings();
-  const { txs, customCats, addTxs } = useData();
+  const { t, lang, currency, fmtTx } = useSettings();
+  const { txs, customCats, accounts, addTxs } = useData();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down("sm"));
   const appMap = useMemo(() => detectAppFormat(table.header), [table]);
 
   const [map, setMap] = useState(() => appMap ?? { fecha: -1, concepto: -1, monto: -1, tipo: -1, categoria: -1, ...guessColumns(table.header) });
   const [step, setStep] = useState(appMap ? "preview" : "map");
   const [includeDuplicates, setIncludeDuplicates] = useState(false);
+  // A generic file's amounts are all in one currency, the display one unless changed.
+  const [fileCurrency, setFileCurrency] = useState(() => currencyOf(currency).code);
   const [defaults, setDefaults] = useState({ EGRESO: "COMPRAS", INGRESO: Object.keys(CATEGORIES.income)[0] });
   const [saving, setSaving] = useState(false);
 
@@ -32,10 +34,10 @@ export function ImportDialog({ table, onClose, notify }) {
     if (step !== "preview") return null;
     const clean = Object.fromEntries(Object.entries(map).filter(([, v]) => v >= 0));
     return buildImport(table, clean, {
-      txs, currency, amountsInBase: !!appMap,
+      txs, currency: fileCurrency, amountsInBase: !!appMap, accounts,
       customCategoryIds: customCats.map((c) => `custom_${c.id}`),
     });
-  }, [step, map, table, txs, currency, appMap, customCats]);
+  }, [step, map, table, txs, fileCurrency, appMap, customCats, accounts]);
 
   const rows = result?.rows ?? [];
   const duplicates = rows.filter((r) => r.duplicate).length;
@@ -82,14 +84,20 @@ export function ImportDialog({ table, onClose, notify }) {
               </Select>
             </FormControl>
           ))}
+          <FormControl fullWidth size="small">
+            <InputLabel id="import-currency">{t.settingsPanel.fileCurrency}</InputLabel>
+            <Select labelId="import-currency" label={t.settingsPanel.fileCurrency} value={fileCurrency} onChange={(e) => setFileCurrency(e.target.value)}>
+              {Object.entries(CURRENCIES).map(([k, c]) => <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>)}
+            </Select>
+          </FormControl>
           <Alert severity="info" variant="outlined">
-            {t.settingsPanel.importAmountsIn(currency)} {t.settingsPanel.importSignHint}
+            {t.settingsPanel.importAmountsIn(fileCurrency)} {t.settingsPanel.importSignHint}
           </Alert>
         </DialogContent>
       ) : (
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1 } }}>
           <Alert severity="info" variant="outlined">
-            {appMap ? t.settingsPanel.importAppFormat : `${t.settingsPanel.importAmountsIn(currency)}${map.tipo >= 0 ? "" : ` ${t.settingsPanel.importSignHint}`}`}
+            {appMap ? t.settingsPanel.importAppFormat : `${t.settingsPanel.importAmountsIn(fileCurrency)}${map.tipo >= 0 ? "" : ` ${t.settingsPanel.importSignHint}`}`}
           </Alert>
           {result.truncated && <Alert severity="warning">{t.settingsPanel.importTruncated(MAX_IMPORT_ROWS)}</Alert>}
 
@@ -147,7 +155,7 @@ export function ImportDialog({ table, onClose, notify }) {
                         </TableCell>
                         <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>{catLabel(r.categoria ?? defaults[r.tipo], r.tipo)}</TableCell>
                         <TableCell align="right" sx={{ whiteSpace: "nowrap", fontWeight: 600, color: r.tipo === "INGRESO" ? "success.main" : "error.main" }}>
-                          {r.tipo === "INGRESO" ? "+" : "−"}{fmt(r.valor)}
+                          {r.tipo === "INGRESO" ? "+" : "−"}{fmtTx(r)}
                         </TableCell>
                       </TableRow>
                     ))}

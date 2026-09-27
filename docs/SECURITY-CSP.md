@@ -112,6 +112,8 @@ report-uri /api/csp-report
 
 `<NEXT_PUBLIC_SUPABASE_URL>` es el origen del proyecto configurado. En producción ya lo cubre `*.supabase.co`; se agrega para un dominio propio y para el Supabase simulado de los tests end-to-end (`http://127.0.0.1:54321`).
 
+Las tasas de cambio del día no agregan ningún origen: el navegador las pide a `/api/rates` (`'self'`), y es el servidor el que consulta a open.er-api.com.
+
 ## Cómo verificar
 
 ### Por HTTP (lo que ya se hizo en local, `npm run build && npm start`)
@@ -153,5 +155,6 @@ coincide con el header, **0 scripts sin proteger**, y los redirects del guard ll
 ## Próximas mejoras posibles
 
 - **Quitar `'unsafe-inline'` de `style-src-attr`:** habría que reemplazar los ~25 `style={{…}}`
-  por `sx` y confirmar que MUI no escribe atributos `style` en el HTML del servidor, algo que
-  hoy hace en las transiciones.
+  por `sx` o por clases (parte de T16, separar los estilos del código, en
+  [INVESTIGACION.md](INVESTIGACION.md#mejoras-técnicas)) y confirmar que MUI no escribe
+  atributos `style` en el HTML del servidor, algo que hoy hace en las transiciones.

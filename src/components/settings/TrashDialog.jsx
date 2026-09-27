@@ -17,7 +17,7 @@ const DAY = 24 * 60 * 60 * 1000;
 // Feedback goes to a snackbar inside the dialog: while a modal is open, the page behind
 // it (and the settings panel's snackbar) is hidden from screen readers.
 export function TrashDialog({ onClose }) {
-  const { t, lang, fmt } = useSettings();
+  const { t, lang, fmtTx, txOriginal } = useSettings();
   const { trash, restoreTx, purgeTx, emptyTrash, customCats } = useData();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down("sm"));
   const [confirm, setConfirm] = useState(null); // { tx } for one item, { all: true } for everything
@@ -59,14 +59,14 @@ export function TrashDialog({ onClose }) {
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="body2" fontWeight={600} noWrap>{tx.concepto}</Typography>
                       <Typography variant="caption" color="text.secondary" component="div" noWrap>
-                        {label} · {tx.date.toLocaleDateString(t.common.locale)}
+                        {label} · {tx.date.toLocaleDateString(t.common.locale)}{txOriginal(tx) && ` · ${txOriginal(tx)}`}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" component="div" noWrap>
                         {t.settingsPanel.deletedOn(tx.deletedAt.toLocaleDateString(t.common.locale, { day: "numeric", month: "short" }))} · {t.settingsPanel.purgeIn(daysLeft(tx))}
                       </Typography>
                     </Box>
                     <Typography variant="body2" fontWeight={700} sx={{ whiteSpace: "nowrap", color: tx.tipo === "INGRESO" ? "success.main" : "error.main" }}>
-                      {tx.tipo === "INGRESO" ? "+" : "−"}{fmt(tx.valor)}
+                      {tx.tipo === "INGRESO" ? "+" : "−"}{fmtTx(tx)}
                     </Typography>
                     <Tooltip title={t.settingsPanel.restore}>
                       <IconButton size="small" color="primary" disabled={busy} aria-label={t.settingsPanel.restoreItem(tx.concepto)}

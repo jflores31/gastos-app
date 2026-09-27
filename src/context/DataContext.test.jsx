@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { Buffer } from "node:buffer"
 import { renderHook, act, waitFor, cleanup } from "@testing-library/react"
 import { DataProvider, useData } from "./DataContext.jsx"
 
@@ -71,7 +72,7 @@ describe("DataContext", () => {
     vi.restoreAllMocks()
   })
 
-  it("con sesión carga las 8 tablas y mapea las transacciones; las borradas van a la papelera", async () => {
+  it("con sesión carga las 9 tablas y mapea las transacciones; las borradas van a la papelera", async () => {
     const loaded = []
     fake.respond = (table, calls) => {
       loaded.push(table)
@@ -86,13 +87,26 @@ describe("DataContext", () => {
     const { result } = renderHook(() => useData(), { wrapper: DataProvider })
     await act(async () => { fake.authCallback("INITIAL_SESSION", { user: { id: "u1" } }) })
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(new Set(loaded)).toEqual(new Set(["transactions", "budgets", "goals", "accounts", "investments", "debts", "subscriptions", "custom_categories"]))
+    expect(new Set(loaded)).toEqual(new Set(["transactions", "budgets", "goals", "accounts", "investments", "debts", "subscriptions", "custom_categories", "transfers"]))
     expect(result.current.txs).toHaveLength(1)
     expect(result.current.txs[0]).toMatchObject({ id: "t1", valor: 12.5, categoria: "COMIDA", deletedAt: null })
     expect(result.current.trash).toEqual([expect.objectContaining({ id: "t2", deletedAt: new Date("2026-09-20T10:00:00Z") })])
     // The active list excludes the trash; the trash query asks for deleted_at not null.
     const txQueries = fake.queries.filter((q) => q.table === "transactions" && has(q.calls, "select"))
     expect(txQueries.map((q) => has(q.calls, "is") ?? has(q.calls, "not"))).toEqual([["is", "deleted_at", null], ["not", "deleted_at", "is", null]])
+  })
+
+  it("con verificación en dos pasos no carga nada hasta el código (sesión aal2)", async () => {
+    const loaded = []
+    fake.respond = (table) => { loaded.push(table); return { data: [], error: null } }
+    const { result } = renderHook(() => useData(), { wrapper: DataProvider })
+    const user = { id: "u1", factors: [{ id: "f1", factor_type: "totp", status: "verified" }] }
+    const token = (aal) => `h.${Buffer.from(JSON.stringify({ sub: "u1", aal })).toString("base64url")}.s`
+    await act(async () => { fake.authCallback("SIGNED_IN", { user, access_token: token("aal1") }) })
+    expect(loaded).toEqual([])
+    await act(async () => { fake.authCallback("MFA_CHALLENGE_VERIFIED", { user, access_token: token("aal2") }) })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(loaded).toContain("transactions")
   })
 
   it("al cargar elimina de verdad lo que lleva más de 30 días en la papelera", async () => {
@@ -234,6 +248,72 @@ describe("DataContext", () => {
     await act(async () => { try { await result.current.addTxs(list) } catch (e) { err = e } })
     expect(err).toMatchObject({ message: "boom", saved: 500 })
     expect(result.current.txs).toHaveLength(500)
+  })
+
+  it("la moneda de cada transacción se lee de la fila y se envía en cada escritura; volver a PEN la limpia", async () => {
+    fake.respond = (table, calls) => {
+      if (table === "transactions" && has(calls, "range") && has(calls, "is")) {
+        return { data: [
+          { id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "CENA", valor: "100.00", moneda: "USD", monto_original: "26.00", tasa: "0.26000000", fecha: "2026-09-01T12:00:00Z", deleted_at: null },
+          { id: "t0", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "12.50", fecha: "2026-08-01T12:00:00Z", deleted_at: null },
+        ], error: null }
+      }
+      if (has(calls, "single")) return { data: { id: has(calls, "eq")?.[2] ?? "t9", ...(has(calls, "insert")?.[1] ?? has(calls, "update")?.[1]) }, error: null }
+      if (has(calls, "insert")) return { data: has(calls, "insert")[1].map((r, i) => ({ id: `n${i}`, ...r })), error: null }
+      return { data: [], error: null }
+    }
+    const { result } = await mountSignedIn("u1")
+    expect(result.current.txs.find((x) => x.id === "t1")).toMatchObject({ valor: 100, moneda: "USD", montoOriginal: 26, tasa: 0.26 })
+    expect(result.current.txs.find((x) => x.id === "t0")).toMatchObject({ moneda: "PEN", montoOriginal: null, tasa: null })
+
+    const date = new Date("2026-09-02T12:00:00Z")
+    await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "VIAJES", concepto: "HOTEL", valor: 400, moneda: "EUR", montoOriginal: 100, tasa: 0.25, date }))
+    expect(has(writes().at(-1).calls, "insert")[1]).toMatchObject({ valor: 400, moneda: "EUR", monto_original: 100, tasa: 0.25 })
+    await act(() => result.current.updateTx({ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "CENA", valor: 90, moneda: "PEN", montoOriginal: 90, tasa: 1, date }))
+    expect(has(writes().at(-1).calls, "update")[1]).toMatchObject({ valor: 90, moneda: "PEN", monto_original: null, tasa: null })
+    expect(result.current.txs.find((x) => x.id === "t1")).toMatchObject({ valor: 90, moneda: "PEN", montoOriginal: null })
+    await act(() => result.current.addTxs([{ tipo: "EGRESO", categoria: "COMIDA", concepto: "X", valor: 1, date }]))
+    expect(has(writes().at(-1).calls, "insert")[1][0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
+  })
+
+  it("cuentas: el saldo de hoy suma los movimientos posteriores a su saldo; transferir y borrar una cuenta", async () => {
+    const at = "2026-09-10T12:00:00Z"
+    fake.respond = (table, calls) => {
+      if (has(calls, "range")) {
+        if (table === "transactions" && has(calls, "is")) return { data: [
+          { id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "15", fecha: "2026-09-11T12:00:00Z", cuenta_id: "bcp", deleted_at: null },
+          { id: "t0", tipo: "EGRESO", categoria: "COMIDA", concepto: "VIEJO", valor: "99", fecha: "2026-09-01T12:00:00Z", cuenta_id: "bcp", deleted_at: null },
+        ], error: null }
+        if (table === "transfers") return { data: [{ id: "tr1", origen: "bcp", destino: "cash", monto: "200", fecha: "2026-09-12T12:00:00Z", nota: null }], error: null }
+        return { data: [], error: null }
+      }
+      if (table === "accounts" && has(calls, "order")) return { data: [
+        { id: "bcp", name: "BCP", type: "bank", balance: "1000", balance_at: at },
+        { id: "cash", name: "Efectivo", type: "cash", balance: "50", balance_at: at },
+      ], error: null }
+      if (has(calls, "single")) return { data: { id: has(calls, "eq")?.[2] ?? `${table}-new`, ...(has(calls, "insert")?.[1] ?? has(calls, "update")?.[1]) }, error: null }
+      return { data: [], error: null }
+    }
+    const { result } = await mountSignedIn("u1")
+    expect(result.current.txs.find((x) => x.id === "t1").cuentaId).toBe("bcp")
+    const balances = () => Object.fromEntries(result.current.accounts.map((a) => [a.id, a.current]))
+    expect(balances()).toEqual({ bcp: 785, cash: 250 }) // 1000 − 15 − 200 (VIEJO ya estaba en el saldo); 50 + 200
+    expect(result.current.accounts[0]).toMatchObject({ balance: 1000, balanceAt: new Date(at) })
+
+    const date = new Date("2026-09-13T12:00:00Z")
+    await act(() => result.current.saveTransfer({ origen: "cash", destino: "bcp", monto: 30, date, nota: "" }))
+    expect(has(writes().at(-1).calls, "insert")[1]).toEqual({ user_id: "u1", origen: "cash", destino: "bcp", monto: 30, fecha: date.toISOString(), nota: null })
+    expect(balances()).toEqual({ bcp: 815, cash: 220 })
+
+    await act(() => result.current.addTx({ tipo: "INGRESO", categoria: "SUELDO", concepto: "PAGO", valor: 500, cuentaId: "cash", date }))
+    expect(has(writes().at(-1).calls, "insert")[1]).toMatchObject({ cuenta_id: "cash", valor: 500 })
+    expect(balances()).toEqual({ bcp: 815, cash: 720 })
+
+    // Borrar BCP: sus transacciones quedan sin cuenta y sus transferencias sin ese lado.
+    await act(() => result.current.deleteAccount("bcp"))
+    expect(result.current.txs.find((x) => x.id === "t1").cuentaId).toBeNull()
+    expect(result.current.transfers.map((tr) => [tr.origen, tr.destino])).toEqual([[null, "cash"], ["cash", null]])
+    expect(balances()).toEqual({ cash: 720 })
   })
 
   it("transacciones y presupuestos también usan el usuario de la sesión", async () => {

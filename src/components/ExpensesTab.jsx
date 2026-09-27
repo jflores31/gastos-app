@@ -18,11 +18,13 @@ import { filterByPeriod, periodLabel, daysCount, budgetFor } from "../data/helpe
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
+import { useTxExtras } from "../hooks/useTxExtras.js";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
-  const { t, lang, fmt } = useSettings();
+  const { t, lang, fmt, fmtTx } = useSettings();
   const { txs, editBudgets, budgetPeriods, customCats } = useData();
+  const txExtras = useTxExtras();
   const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
@@ -119,9 +121,9 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         <CategoryAvatar icon={Icon} color={color} size={32} />
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography variant="body2" fontWeight={700} noWrap sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
-                          <Typography variant="caption" color="text.secondary">{catName} · {hour}</Typography>
+                          <Typography variant="caption" color="text.secondary">{catName} · {hour}{txExtras(tx)}</Typography>
                         </Box>
-                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmt(tx.valor)}</Typography>
+                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmtTx(tx)}</Typography>
                       </Box>
                     );
                   })}
@@ -308,7 +310,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     secondaryAction={
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <Typography variant="body1" fontWeight={700} color="error.main" sx={{ display: { xs: "none", sm: "block" } }}>
-                          −{fmt(x.valor, true)}
+                          −{fmtTx(x, true)}
                         </Typography>
                         <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                           <EditIcon fontSize="small" />
@@ -327,8 +329,9 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       secondary={
                         <Typography variant="caption" color="text.secondary" component="span">
                           {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
+                          {txExtras(x)}
                           <Typography variant="caption" fontWeight={700} color="error.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
-                            −{fmt(x.valor, true)}
+                            −{fmtTx(x, true)}
                           </Typography>
                         </Typography>
                       }

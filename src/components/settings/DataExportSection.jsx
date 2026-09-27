@@ -30,7 +30,8 @@ export function DataExportSection({ notify }) {
 
   const exportCsv = () => {
     const name = (cat, tipo) => resolveCategoryMeta(cat, data.customCats, lang, tipo).label;
-    downloadText(transactionsToCsv(data.txs, name), exportFileName(t.settingsPanel.exportCsvFile, "csv"), "text/csv;charset=utf-8");
+    const accountName = (id) => data.accounts.find((a) => a.id === id)?.name;
+    downloadText(transactionsToCsv(data.txs, name, accountName), exportFileName(t.settingsPanel.exportCsvFile, "csv"), "text/csv;charset=utf-8");
     notify(t.settingsPanel.fileDownloaded, "success");
   };
   const exportJson = () => {

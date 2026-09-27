@@ -14,13 +14,15 @@ import { filterByPeriod, periodLabel } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
+import { useTxExtras } from "../hooks/useTxExtras.js";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
-  const { t, lang, fmt } = useSettings();
+  const { t, lang, fmt, fmtTx } = useSettings();
   const { txs, customCats } = useData();
+  const txExtras = useTxExtras();
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
   const [calFilter, setCalFilter] = useState(null);
@@ -253,7 +255,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   secondaryAction={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body1" fontWeight={700} color="success.main" sx={{ display: { xs: "none", sm: "block" } }}>
-                        +{fmt(x.valor, true)}
+                        +{fmtTx(x, true)}
                       </Typography>
                       <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
                         <EditIcon fontSize="small" />
@@ -272,8 +274,9 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     secondary={
                       <Typography variant="caption" color="text.secondary" component="span">
                         {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
+                        {txExtras(x)}
                         <Typography variant="caption" fontWeight={700} color="success.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
-                          +{fmt(x.valor, true)}
+                          +{fmtTx(x, true)}
                         </Typography>
                       </Typography>
                     }

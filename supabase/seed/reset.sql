@@ -4,15 +4,17 @@
 --     Mantiene el schema y las cuentas de auth.users (solo quedan sin datos).
 --     Ejecutar en: Supabase Dashboard → SQL Editor del proyecto.
 --
--- Las 8 tablas solo referencian auth.users (no se referencian entre sí), por eso
--- no hace falta CASCADE. Las categorías "de fábrica" viven en el código
--- (src/data/index.js → CATEGORIES); aquí solo se borran las personalizadas.
+-- Las 9 tablas referencian auth.users, y transactions y transfers también a accounts:
+-- se vacían todas en el mismo TRUNCATE, por eso no hace falta CASCADE. Las categorías
+-- "de fábrica" viven en el código (src/data/index.ts → CATEGORIES); aquí solo se borran
+-- las personalizadas.
 
 -- ─── Paso 1 (opcional): conteo ANTES de borrar ───────────────────────────────
 SELECT 'transactions'      AS tabla, count(*) FROM transactions
 UNION ALL SELECT 'budgets',           count(*) FROM budgets
 UNION ALL SELECT 'goals',             count(*) FROM goals
 UNION ALL SELECT 'accounts',          count(*) FROM accounts
+UNION ALL SELECT 'transfers',         count(*) FROM transfers
 UNION ALL SELECT 'investments',       count(*) FROM investments
 UNION ALL SELECT 'debts',             count(*) FROM debts
 UNION ALL SELECT 'subscriptions',     count(*) FROM subscriptions
@@ -25,6 +27,7 @@ TRUNCATE TABLE
   budgets,
   goals,
   accounts,
+  transfers,
   investments,
   debts,
   subscriptions,
@@ -36,6 +39,7 @@ SELECT 'transactions'      AS tabla, count(*) FROM transactions
 UNION ALL SELECT 'budgets',           count(*) FROM budgets
 UNION ALL SELECT 'goals',             count(*) FROM goals
 UNION ALL SELECT 'accounts',          count(*) FROM accounts
+UNION ALL SELECT 'transfers',         count(*) FROM transfers
 UNION ALL SELECT 'investments',       count(*) FROM investments
 UNION ALL SELECT 'debts',             count(*) FROM debts
 UNION ALL SELECT 'subscriptions',     count(*) FROM subscriptions

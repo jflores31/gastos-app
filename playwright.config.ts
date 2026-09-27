@@ -33,6 +33,8 @@ export default defineConfig({
       env: {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? `http://127.0.0.1:${MOCK_PORT}`,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "e2e-anon-key",
+        // /api/rates asks the mock instead of open.er-api.com.
+        RATES_API_URL: `http://127.0.0.1:${MOCK_PORT}/__mock/rates`,
       },
     },
   ],

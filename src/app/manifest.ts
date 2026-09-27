@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next"
 
 // Web app manifest (/manifest.webmanifest): makes the app installable ("Install app" /
-// "Add to Home Screen"). No service worker on purpose — see README → "Solución de
-// problemas" (a stale cache after a deploy was the problem, not the lack of one).
+// "Add to Home Screen"). No service worker on purpose — see docs/DEPLOYMENT.md → "Solución
+// de problemas" (a stale cache after a deploy was the problem, not the lack of one).
 // Icons: public/icons/, generated from favicon.svg by scripts/generate-icons.mjs.
 export default function manifest(): MetadataRoute.Manifest {
   return {

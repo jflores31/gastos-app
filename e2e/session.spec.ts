@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test"
 import { login, mockDb, uniqueEmail, watchConsole } from "./helpers"
+import { totp } from "./mock-supabase/totp.mjs"
 
 // Flows behind the login, against the mock Supabase in e2e/mock-supabase.
 
@@ -180,24 +181,62 @@ test("el concepto sugiere la categoría (historial y catálogo) sin pisar una el
   expect(new Set(netflix.map((t) => t.categoria))).toEqual(new Set(["STREAMING"]))
 })
 
-test("en USD los montos se muestran convertidos y se guardan en PEN", async ({ page, request }, info) => {
+test("en USD los montos se muestran con la tasa del día y se guardan en PEN junto con lo escrito", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
   await openSettings(page, "Ajustes")
   await dialog(page).getByRole("combobox", { name: /Moneda/ }).click()
   await page.getByRole("option", { name: /USD/ }).click()
+  // The mock provider answers USD 0.26 (the fixed rate is 0.27), dated 27 Sep 2026.
+  const ratesInfo = dialog(page).getByText(/^Tasas del día \(27 .*2026\) · 1 USD = S\/3\.85 · Rates By Exchange Rate API$/)
+  await expect(ratesInfo).toBeVisible()
+  // The free endpoint asks for this attribution where its rates are shown.
+  await expect(ratesInfo.getByRole("link", { name: "Rates By Exchange Rate API" })).toHaveAttribute("href", "https://www.exchangerate-api.com")
   await page.getByRole("button", { name: "Cerrar" }).click()
-  await expect(page.getByText("$945").first()).toBeVisible() // S/3,500 × 0.27
+  await expect(page.getByText("$910").first()).toBeVisible() // S/3,500 × 0.26
 
   await page.getByRole("button", { name: "Nueva transacción" }).click()
   await dialog(page).getByRole("button", { name: "Egresos" }).click()
   await pickCategory(page, "Comida")
   await dialog(page).getByLabel("Concepto").fill("CENA")
-  await dialog(page).getByLabel("Monto").fill("27")
+  await expect(dialog(page).getByRole("combobox", { name: "Moneda" })).toHaveText("USD")
+  await dialog(page).getByLabel("Monto").fill("26")
   await dialog(page).getByRole("button", { name: "Guardar" }).click()
   await expect(toast(page, "Transacción guardada")).toBeVisible()
   const { tables } = await mockDb(request, email)
-  expect(tables.transactions.find((t) => t.concepto === "CENA")).toMatchObject({ valor: 100 })
+  expect(tables.transactions.find((t) => t.concepto === "CENA")).toMatchObject({ valor: 100, moneda: "USD", monto_original: 26, tasa: 0.26 })
+  expect(tables.transactions.find((t) => t.concepto === "SUELDO POR PLANILLA")).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
+})
+
+test("una transacción en otra moneda que la de la app muestra ambos montos y se edita en su moneda", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const hotel = async () => (await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "HOTEL")
+
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await dialog(page).getByRole("button", { name: "Egresos" }).click()
+  await pickCategory(page, "Viajes")
+  await dialog(page).getByLabel("Concepto").fill("HOTEL")
+  await dialog(page).getByRole("combobox", { name: "Moneda" }).click()
+  await page.getByRole("option", { name: /EUR/ }).click()
+  await dialog(page).getByLabel("Monto").fill("50")
+  await expect(dialog(page).getByText("≈ S/200")).toBeVisible()
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect(await hotel()).toEqual([expect.objectContaining({ valor: 200, moneda: "EUR", monto_original: 50, tasa: 0.25 })])
+
+  // The list shows it in soles, with the euros next to the date; editing opens it in euros.
+  await page.getByRole("tab", { name: "Gastos" }).click()
+  const row = page.getByRole("listitem").filter({ hasText: "HOTEL" })
+  await expect(row).toContainText("€50")
+  await expect(row).toContainText("S/200")
+  await row.getByRole("button", { name: "Editar" }).click()
+  await expect(dialog(page).getByLabel("Monto")).toHaveValue("50")
+  await expect(dialog(page).getByRole("combobox", { name: "Moneda" })).toHaveText("EUR")
+  await dialog(page).getByLabel("Monto").fill("60")
+  await dialog(page).getByRole("button", { name: "Actualizar" }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  expect(await hotel()).toEqual([expect.objectContaining({ valor: 240, moneda: "EUR", monto_original: 60, tasa: 0.25 })])
 })
 
 test("una meta nueva y una categoría personalizada se guardan con su icono", async ({ page, request }, info) => {
@@ -298,6 +337,71 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   await expect(dialog(page)).toHaveCount(0)
   await expect(page.getByRole("button", { name: /Spotify/ })).toHaveCount(0)
   await expect.poll(async () => (await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
+})
+
+test("cuentas: un gasto asociado y una transferencia mueven los saldos; borrar una cuenta no cambia la otra", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const db = async () => (await mockDb(request, email)).tables
+  const accountRow = (name: string) => page.locator("div").filter({ hasText: name }).filter({ has: page.getByRole("button", { name: "Editar" }) }).last()
+  await page.getByRole("tab", { name: "Metas" }).click()
+  await expect(page.getByRole("button", { name: "Nueva transferencia" })).toBeDisabled() // una sola cuenta
+
+  await page.getByRole("button", { name: "Nueva cuenta" }).click()
+  await dialog(page).getByLabel("Nombre").fill("Efectivo")
+  await dialog(page).getByLabel("Saldo").fill("100")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Cuenta guardada")).toBeVisible()
+  const { accounts } = await db()
+  const bcp = accounts.find((a) => a.name === "BCP")!
+  const cash = accounts.find((a) => a.name === "Efectivo")!
+
+  // A 500 expense paid from BCP (seed: 2,500).
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await dialog(page).getByRole("button", { name: "Egresos" }).click()
+  await pickCategory(page, "Comida")
+  await dialog(page).getByLabel("Concepto").fill("MENU")
+  await dialog(page).getByLabel("Monto").fill("500")
+  await dialog(page).getByRole("combobox", { name: "Cuenta" }).click()
+  await page.getByRole("option", { name: "BCP" }).click()
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect((await db()).transactions.find((t) => t.concepto === "MENU")).toMatchObject({ cuenta_id: bcp.id })
+  await expect(accountRow("BCP")).toContainText("+S/2.0k")
+  await accountRow("BCP").getByRole("button", { name: "Editar" }).click()
+  await expect(dialog(page).getByLabel("Saldo")).toHaveValue("2000")
+  await dialog(page).getByRole("button", { name: "Cancelar" }).click()
+
+  // Transfer 300 from BCP to Efectivo: neither income nor expense.
+  await page.getByRole("button", { name: "Nueva transferencia" }).click()
+  await expect(dialog(page).getByRole("combobox", { name: "Desde" })).toContainText("BCP")
+  await expect(dialog(page).getByRole("combobox", { name: "Hacia" })).toContainText("Efectivo")
+  await dialog(page).getByLabel("Monto").fill("300")
+  await dialog(page).getByLabel("Nota (opcional)").fill("retiro")
+  await dialog(page).getByRole("button", { name: "Transferir" }).click()
+  await expect(toast(page, "Transferencia registrada")).toBeVisible()
+  expect((await db()).transfers).toEqual([expect.objectContaining({ origen: bcp.id, destino: cash.id, monto: 300, nota: "retiro" })])
+  await expect(accountRow("BCP")).toContainText("+S/1.7k")
+  await expect(accountRow("Efectivo")).toContainText("+S/400")
+  await expect(page.getByRole("region", { name: "Transferencias" })).toContainText("BCP → Efectivo")
+
+  // Typing a balance makes it today's: stored with the current time, later movements add to it.
+  await accountRow("Efectivo").getByRole("button", { name: "Editar" }).click()
+  await dialog(page).getByLabel("Saldo").fill("350")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(accountRow("Efectivo")).toContainText("+S/350")
+  const efectivo = (await db()).accounts.find((a) => a.name === "Efectivo")!
+  expect(efectivo.balance).toBe(350)
+  expect(Date.parse(String(efectivo.balance_at))).toBeGreaterThan(Date.parse(String(cash.balance_at)))
+
+  // Deleting BCP unlinks its expense and its side of the transfer; Efectivo keeps its balance.
+  await accountRow("BCP").getByRole("button", { name: "Eliminar" }).click()
+  await expect(toast(page, "Cuenta eliminada")).toBeVisible()
+  await expect(accountRow("Efectivo")).toContainText("+S/350")
+  await expect(page.getByRole("region", { name: "Transferencias" })).toContainText("(cuenta borrada) → Efectivo")
+  const after = await db()
+  expect(after.transactions.find((t) => t.concepto === "MENU")).toMatchObject({ cuenta_id: null })
+  expect(after.transfers).toEqual([expect.objectContaining({ origen: null, destino: cash.id })])
 })
 
 test("Presupuestos: editar en la tarjeta, agregar (también de una categoría propia) y borrar", async ({ page, request }, info) => {
@@ -480,14 +584,16 @@ test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON",
   const csv = await read("Transacciones (CSV)")
   expect(csv.name).toMatch(/^finanzas-transacciones-\d{4}-\d{2}-\d{2}\.csv$/)
   const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n")
-  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen")
+  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa,cuenta")
   expect(lines).toHaveLength(tables.transactions.length + 1)
-  expect(lines).toContain(lines.find((l) => l.includes(",SUPERMERCADO,900")))
+  expect(lines).toContain(lines.find((l) => l.endsWith(",SUPERMERCADO,900,PEN,900,1,")))
   expect(csv.text).toContain(",COMIDA,Comida,")
 
   const json = JSON.parse((await read("Copia completa (JSON)")).text)
   expect(json).toMatchObject({ app: "gastos-app", version: 1, currency: "PEN" })
   expect(json.transactions).toHaveLength(tables.transactions.length)
+  expect(json.transactions[0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null, cuenta_id: null })
+  expect(json.transfers).toEqual([])
   expect(json.budgets).toEqual(expect.arrayContaining([{ categoria: "COMIDA", monto: 600 }]))
   expect(json.custom_categories.map((c: { nombre: string }) => c.nombre)).toEqual(["Gatos"])
   await expect(toast(page, "Archivo descargado")).toBeVisible()
@@ -620,6 +726,51 @@ test("con el token vencido, el proxy renueva la sesión y la respuesta no se pue
       .sort((a, b) => a.name.localeCompare(b.name, "en", { numeric: true }))
       .map((c) => c.value).join("").replace(/^base64-/, ""), "base64url").toString())
   expect(renewed.refresh_token).not.toBe(oldRefresh)
+})
+
+test("verificación en dos pasos: se activa con el QR, se pide al entrar y los datos esperan el código", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await openSettings(page, "Perfil")
+  await dialog(page).getByRole("button", { name: "Activar" }).click()
+  await expect(dialog(page).getByRole("img", { name: "Código QR para la app de autenticación" })).toBeVisible()
+  const secret = (await dialog(page).getByTestId("totp-secret").textContent())!.trim()
+  const wrong = (code: string) => (code === "000000" ? "111111" : "000000")
+  await dialog(page).getByLabel("Código de 6 dígitos").fill(wrong(totp(secret)))
+  await dialog(page).getByRole("button", { name: "Verificar" }).click()
+  await expect(dialog(page).getByText("Código incorrecto. Intenta de nuevo.")).toBeVisible()
+  await dialog(page).getByLabel("Código de 6 dígitos").fill(totp(secret))
+  await dialog(page).getByRole("button", { name: "Verificar" }).click()
+  await expect(toast(page, "Verificación en dos pasos activada")).toBeVisible()
+  expect((await mockDb(request, email)).user.factors).toEqual([expect.objectContaining({ factor_type: "totp", status: "verified" })])
+
+  // Sign out and in again: after the password, the code.
+  await page.getByRole("button", { name: "Cerrar" }).click()
+  await page.getByRole("button", { name: "Cerrar sesión" }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await page.getByLabel(/correo|email/i).first().fill(email)
+  await page.getByLabel(/contraseña|password/i).first().fill("secret123")
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click()
+  const step = page.getByRole("form", { name: "Verificación en dos pasos" })
+  await expect(step).toBeVisible()
+  // Skipping it isn't possible: any page sends the session back to the code.
+  await page.goto("/")
+  await expect(page).toHaveURL(/\/login\?mfa=1$/)
+  await expect(step).toBeVisible()
+  await step.getByLabel("Código").fill(wrong(totp(secret)))
+  await step.getByRole("button", { name: "Verificar" }).click()
+  await expect(page.getByText("Código incorrecto. Intenta de nuevo.")).toBeVisible()
+  await step.getByLabel("Código").fill(totp(secret))
+  await step.getByRole("button", { name: "Verificar" }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByText("S/3,500").first()).toBeVisible() // the data loads after the code
+
+  // Turning it off asks for confirmation; the next sign-in only needs the password.
+  await openSettings(page, "Perfil")
+  await dialog(page).getByRole("button", { name: "Desactivar" }).click()
+  await page.getByRole("dialog").filter({ hasText: "¿Desactivar la verificación" }).getByRole("button", { name: "Desactivar" }).click()
+  await expect(toast(page, "Verificación en dos pasos desactivada")).toBeVisible()
+  expect((await mockDb(request, email)).user.factors).toEqual([])
 })
 
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {

@@ -156,4 +156,8 @@ test("/api/client-error rechaza cuerpos inválidos y otras rutas /api siguen pro
   const other = await request.post("/api/otra-cosa", { maxRedirects: 0 })
   expect(other.status()).toBe(307)
   expect(other.headers()["location"]).toMatch(/\/login$/)
+  // Today's exchange rates too: only signed-in users ask for them.
+  const rates = await request.get("/api/rates", { maxRedirects: 0 })
+  expect(rates.status()).toBe(307)
+  expect(rates.headers()["location"]).toMatch(/\/login$/)
 })

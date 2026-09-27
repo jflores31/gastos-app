@@ -1,8 +1,9 @@
-import { Box, Card, CardContent, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, FormControl, FormHelperText, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Subscriptions as SubIcon } from "../../theme/icons";
 import { CATEGORIES, toBase, fromBase } from "../../data/index";
-import { GradientIcon } from "../../theme/GradientIcon.jsx";
+import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
+import { suggestCategory } from "../../data/suggest";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";
@@ -16,7 +17,7 @@ const monthlyTotal = (subs) => subs.reduce((s, sub) => s + (sub.cycle === "yearl
 
 export function SubscriptionsCard({ showToast }) {
   const { t, lang, currency, fmt } = useSettings();
-  const { subscriptions, saveSubscription, deleteSubscription, customCats } = useData();
+  const { txs, subscriptions, saveSubscription, deleteSubscription, customCats } = useData();
   const dialog = useEntityDialog({
     empty: EMPTY_SUB,
     toForm: (s) => ({ ...s, price: String(fromBase(s.price, currency)) }),
@@ -26,9 +27,16 @@ export function SubscriptionsCard({ showToast }) {
     messages: t.goalsTab.subscriptionToasts,
   });
   const { form, update } = dialog;
-  const categoryName = (cat) => cat?.startsWith("custom_")
-    ? (customCats.find((c) => c.id === cat.slice("custom_".length))?.nombre || cat)
-    : (CATEGORIES.expense[cat]?.[lang] || cat || "—");
+  const expenseCategories = [...Object.keys(CATEGORIES.expense), ...customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => `custom_${cc.id}`)];
+
+  // The name fills in the category, as in a transaction: "Netflix" → Streaming (from the
+  // catalog, or the category most used with that concept). A category picked by hand stays.
+  const changeName = (name) => {
+    if (form.category && !form.categorySuggested) return update({ name });
+    const s = suggestCategory(name, txs, "EGRESO");
+    const category = s && expenseCategories.includes(s.categoria) ? s.categoria : "";
+    update({ name, category, categorySuggested: !!category });
+  };
 
   return (
     <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "secondary.main" }}>
@@ -51,12 +59,10 @@ export function SubscriptionsCard({ showToast }) {
               <Stack spacing={1.5}>
                 {subscriptions.map((sub) => (
                   <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => dialog.openEdit(sub)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && dialog.openEdit(sub)}>
-                    <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: "secondary.light", color: "secondary.dark", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
-                      {sub.name.charAt(0).toUpperCase()}
-                    </Box>
+                    <SubscriptionAvatar sub={sub} />
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body2" fontWeight={600}>{sub.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{categoryName(sub.category)}</Typography>
+                      <Typography variant="caption" color="text.secondary">{sub.category ? resolveCategoryMeta(sub.category, customCats, lang, "EGRESO").label : "—"}</Typography>
                     </Box>
                     <Typography variant="body2" fontWeight={700}>{fmt(sub.price, true)}</Typography>
                   </Box>
@@ -79,7 +85,7 @@ export function SubscriptionsCard({ showToast }) {
         canSave={form.name && form.price && parseFloat(form.price) > 0}
         onSave={() => dialog.submit({ ...form, price: toBase(parseFloat(form.price), currency) })}
       >
-        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => changeName(e.target.value)} fullWidth />
         <TextField
           label={t.goalsTab.price}
           type="number"
@@ -100,8 +106,8 @@ export function SubscriptionsCard({ showToast }) {
         </FormControl>
         <FormControl fullWidth>
           <InputLabel id="subscription-category-label">{t.common.category}</InputLabel>
-          <Select labelId="subscription-category-label" value={form.category} onChange={(e) => update({ category: e.target.value })} label={t.common.category}>
-            {[...Object.keys(CATEGORIES.expense), ...customCats.filter((cc) => cc.tipo === "EGRESO").map((cc) => `custom_${cc.id}`)].map((cat) => {
+          <Select labelId="subscription-category-label" value={form.category} onChange={(e) => update({ category: e.target.value, categorySuggested: false })} label={t.common.category}>
+            {expenseCategories.map((cat) => {
               const { label, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
               return (
                 <MenuItem key={cat} value={cat}>
@@ -113,8 +119,25 @@ export function SubscriptionsCard({ showToast }) {
               );
             })}
           </Select>
+          {form.categorySuggested && <FormHelperText>{t.txModal.suggestedFromConcept}</FormHelperText>}
         </FormControl>
       </EntityDialog>
     </Card>
+  );
+}
+
+// Instead of a logo (which would tell a third-party service what the user pays for), the
+// icon and colour of its category; the initial when it has none.
+function SubscriptionAvatar({ sub }) {
+  const { lang } = useSettings();
+  const { customCats } = useData();
+  if (sub.category) {
+    const { color, Icon } = resolveCategoryMeta(sub.category, customCats, lang, "EGRESO");
+    return <CategoryAvatar icon={Icon} color={color} size={40} />;
+  }
+  return (
+    <Box aria-hidden sx={{ width: 40, height: 40, borderRadius: 2, flexShrink: 0, bgcolor: "secondary.light", color: "secondary.dark", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
+      {sub.name.charAt(0).toUpperCase()}
+    </Box>
   );
 }

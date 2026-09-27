@@ -112,6 +112,7 @@ export { default as Star } from "@mui/icons-material/StarRounded";
 export { default as Storefront } from "@mui/icons-material/StorefrontRounded";
 export { default as Subscriptions } from "@mui/icons-material/SubscriptionsRounded";
 export { default as SupportAgent } from "@mui/icons-material/SupportAgentRounded";
+export { default as SwapHoriz } from "@mui/icons-material/SwapHorizRounded";
 export { default as RestoreFromTrash } from "@mui/icons-material/RestoreFromTrashRounded";
 export { default as TableChart } from "@mui/icons-material/TableChartRounded";
 export { default as UploadFile } from "@mui/icons-material/UploadFileRounded";

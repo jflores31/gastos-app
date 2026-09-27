@@ -31,5 +31,5 @@ type Row = Record<string, unknown>
 export async function mockDb(request: APIRequestContext, email: string) {
   const res = await request.get(`${MOCK_SUPABASE_URL}/__mock/db?email=${encodeURIComponent(email)}`)
   expect(res.ok()).toBe(true)
-  return (await res.json()) as { user: { id: string; user_metadata: Row }; tables: Record<string, Row[]> }
+  return (await res.json()) as { user: { id: string; user_metadata: Row; factors: Row[] }; tables: Record<string, Row[]> }
 }
