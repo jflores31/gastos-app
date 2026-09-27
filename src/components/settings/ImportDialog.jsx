@@ -18,7 +18,7 @@ const OPTIONAL = ["tipo", "categoria"];
 // with counts, duplicates and errors before saving everything with addTxs().
 export function ImportDialog({ table, onClose, notify }) {
   const { t, lang, currency, fmtTx } = useSettings();
-  const { txs, customCats, addTxs } = useData();
+  const { txs, customCats, accounts, addTxs } = useData();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down("sm"));
   const appMap = useMemo(() => detectAppFormat(table.header), [table]);
 
@@ -34,10 +34,10 @@ export function ImportDialog({ table, onClose, notify }) {
     if (step !== "preview") return null;
     const clean = Object.fromEntries(Object.entries(map).filter(([, v]) => v >= 0));
     return buildImport(table, clean, {
-      txs, currency: fileCurrency, amountsInBase: !!appMap,
+      txs, currency: fileCurrency, amountsInBase: !!appMap, accounts,
       customCategoryIds: customCats.map((c) => `custom_${c.id}`),
     });
-  }, [step, map, table, txs, fileCurrency, appMap, customCats]);
+  }, [step, map, table, txs, fileCurrency, appMap, customCats, accounts]);
 
   const rows = result?.rows ?? [];
   const duplicates = rows.filter((r) => r.duplicate).length;

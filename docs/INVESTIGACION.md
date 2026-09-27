@@ -89,6 +89,7 @@
 - **Importar y exportar** es casi universal: CSV como mínimo, OFX/QIF en los más completos. gastos-app no tiene ninguno de los dos.
 - **App instalable/offline:** ezBookkeeping y Cashew la ofrecen.
 - **Transferencias entre cuentas con saldo derivado:** Firefly (doble partida) y expense-budget-tracker. En gastos-app el saldo de `accounts` se edita a mano.
+  - ✅ **Hecho (idea 12):** el saldo escrito vale desde una fecha y la app le suma las transacciones asociadas a la cuenta y las transferencias posteriores. Las transferencias van en su propia tabla, así no cuentan como ingreso ni gasto.
 
 **5. Next.js + Supabase.** GeorgeDanicico agrega en la base de datos. gastos-app sigue trayendo todas las transacciones al cliente (`DataContext.load()`, ahora paginado con `fetchAllRows`) y calcula todo en JS. Con miles de filas conviene mover los totales a vistas o funciones RPC de Postgres.
 
@@ -109,7 +110,7 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | 9 | ✅ **App instalable** (manifest + iconos) | Medio | Bajo | ezBookkeeping, Cashew | `src/app/manifest.ts`; reutilizar `public/favicon.svg`; revisar el CSP |
 | 10 | ✅ **Presupuestos por período** (semanal/anual) y alerta al 80 % / 100 % | Medio | Medio | JagadishPS, Cashew | `budgets` (columna `periodo`); `BudgetTab`; `monthCount` en `helpers.ts` |
 | 11 | ✅ **Papelera** (borrado lógico con `deleted_at`) y "deshacer" | Medio | Medio | valiance | una migración nueva; los `delete*` de `DataContext` pasan a `update` |
-| 12 | **Transferencias entre cuentas** y saldo calculado | Alto | Alto | Firefly, expense-budget-tracker | `accounts` + tipo `TRANSFER`; `GoalsTab` |
+| 12 | ✅ **Transferencias entre cuentas** y saldo calculado (saldo a una fecha + movimientos posteriores) | Alto | Alto | Firefly, expense-budget-tracker | `accounts.balance_at`, `transactions.cuenta_id` y tabla `transfers` (`20260927040000_accounts_transfers.sql`), en vez de un tipo `TRANSFER` que los totales contarían como gasto; `AccountsCard` y `TransferDialog` en `GoalsTab` |
 | 13 | **2FA** con el MFA TOTP de Supabase Auth | Medio | Medio | Firefly, ezBookkeeping | Pestaña Perfil de `SettingsPanel`; `/login` |
 | 14 | **Logos de suscripciones** | Bajo | Medio | Wallos | `GoalsTab` (suscripciones); `img-src` del CSP |
 

@@ -68,6 +68,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - **CalendarFilter:** interactive heat map — day and month views with proportional intensity; click filters the list, footer shows filtered total with "(filtered)" label
 - Footer total updates in real time when any filter is applied
 - Full date and time per transaction
+- **Account per transaction (optional):** the form has an account selector when there are accounts; its balance includes the transaction, and the list shows it next to the date ("· BCP")
 - **Currency per transaction:** the form has a currency selector next to the amount (the one from Settings by default) and shows the equivalent ("≈ S/200"). It saves the amount in PEN plus the currency, what was typed and that day's rate. The list shows what was typed next to the date ("· €50") when the app is set to another currency, and exactly what was typed when it's the same one. Editing opens it in its currency and keeps its rate, unless the currency is changed
 
 ### Income (IncomeTab)
@@ -88,7 +89,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 
 ### Goals & Finances (GoalsTab)
 - Savings goal CRUD with deadline, color and a selectable icon (`IconPicker`) — form with single name field
-- Bank account / card / cash management
+- Bank accounts / cards / cash with a **calculated balance**: the balance typed in holds from that moment, and the app adds the income and subtracts the expenses linked to the account, plus **transfers** (⇄ button), which move money between accounts without counting as income or expense. The last 5 are listed with their note and can be deleted. Deleting an account leaves its movements without one, without changing the other accounts' balances
 - Real-time net worth (`netWorthOf()`): assets (positive account balances + investments) − debts (negative balances + loans)
 - Investment tracking (AFP, DPF, crypto, etc.) — form with single name field
 - Debt and loan tracking with installments — form with single name field (saves in both languages automatically)
@@ -106,7 +107,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 ### Privacy, export and installable app
 - **Privacy mode:** the eye button in the top bar hides every amount ("S/••••") and is remembered in the browser. Amounts go through `fmt()` from `useSettings()`, which already knows the currency and this mode.
 - **Your data (Profile):**
-  - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN next to each one's currency, typed amount and rate, cells guarded against formulas);
+  - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN next to each one's currency, typed amount, rate and account, cells guarded against formulas); when imported, the account is matched by name;
   - everything downloads as a full JSON backup (`src/data/export.ts`).
 - **Trash (Profile → Your data):**
   - deleting a transaction asks for no confirmation: it goes to the trash (`deleted_at`) and a notice offers "Undo" for 6 seconds;
@@ -170,7 +171,7 @@ Drawer with **two tabs** that separate Profile from Settings:
 └── supabase/
     ├── config.toml
     ├── migrations/YYYYMMDDHHMMSS_*.sql # Dated, idempotent migrations, in order (the first is the base schema)
-    └── seed/reset.sql              # Empties the 8 tables — destructive
+    └── seed/reset.sql              # Empties the 9 tables — destructive
 ```
 
 ```
@@ -200,8 +201,8 @@ src/
 │   ├── budget/                     # One card per file (health, budgets, distribution, comparison,
 │   │                               #   budget vs actual, recurring) + Manage dialog
 │   ├── GoalsTab.jsx                # Goals: layout of the sections
-│   ├── goals/                      # One section per file (goals, accounts, forecast, investments,
-│   │                               #   debts, subscriptions, evolution) + useEntityDialog and EntityDialog
+│   ├── goals/                      # One section per file (goals, accounts and transfers, forecast,
+│   │                               #   investments, debts, subscriptions, evolution) + useEntityDialog and EntityDialog
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # New/edit transaction modal
@@ -209,8 +210,8 @@ src/
 │   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
 │   └── LoginModal.jsx              # In-app login modal
 ├── context/
-│   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts,
-│   │                               #   investments, debts, subscriptions, customCats
+│   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts (with today's balance),
+│   │                               #   transfers, investments, debts, subscriptions, customCats
 │   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES; fmt, fmtTx, today's rates
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
@@ -255,7 +256,8 @@ All tables use RLS with `auth.uid() = user_id`.
 | `transactions` | Transactions (type, category, concept, amount in PEN, date) |
 | `budgets` | Monthly budgets per category (amount in PEN) |
 | `goals` | Savings goals with target, progress, deadline, color and icon (an `ICON_CHOICES` key; older goals store a text glyph) |
-| `accounts` | Bank accounts / cards / cash |
+| `accounts` | Bank accounts / cards / cash, with their balance as of a date (`balance_at`) |
+| `transfers` | Transfers between two of the user's accounts (`origen`, `destino`, amount in PEN, date, note) |
 | `investments` | Investments with rate of return |
 | `debts` | Loans with installments and remaining months |
 | `subscriptions` | Recurring subscriptions |
@@ -280,8 +282,9 @@ All tables use RLS with `auth.uid() = user_id`.
 | `20260927010100_trash.sql` | Trash: `transactions.deleted_at` column and a partial `(user_id, deleted_at)` index for deleted rows |
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` or `year`; existing ones become `month`) with its `CHECK` |
 | `20260927030000_tx_currency.sql` | `transactions.moneda` (one of the 8; existing ones become `PEN`), `monto_original` and `tasa`, with their `CHECK`s |
+| `20260927040000_accounts_transfers.sql` | `accounts.balance_at` (the typed balance holds from that date; existing ones, from the migration), `transactions.cuenta_id` and the `transfers` table with RLS. Foreign keys use `(id, user_id)`, so nobody can link anything to someone else's account, and `ON DELETE SET NULL (col)` (Postgres 15+) |
 
-> **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
+> **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 9 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
 ## Quick Start
 
@@ -340,7 +343,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 ### Data and Supabase
 
-**Data loading:** `DataContext.load()` runs on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` or `USER_UPDATED`) and is deduplicated by `session.user.id`, so periodic token refreshes don't re-run the 8 queries. It isn't called on mount (that duplicated the queries). On failure the flag is reset so the next event retries. This removed the "you have to refresh twice" bug, where an `INITIAL_SESSION` without a usable session was never retried. The queries rely on RLS (`select("*")` with no `.eq("user_id")`).
+**Data loading:** `DataContext.load()` runs on the first `onAuthStateChange` event that carries `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` or `USER_UPDATED`) and is deduplicated by `session.user.id`, so periodic token refreshes don't re-run the loading queries. It isn't called on mount (that duplicated the queries). On failure the flag is reset so the next event retries. This removed the "you have to refresh twice" bug, where an `INITIAL_SESSION` without a usable session was never retried. The queries rely on RLS (`select("*")` with no `.eq("user_id")`).
 
 **More than 1000 transactions:** PostgREST caps every response at `max_rows` (1000). `transactions` is fetched with `fetchAllRows()` (`src/data/fetchAllRows.ts`), which pages with `.range()` ordered by `fecha` + `id`. It's all or nothing: if a page fails, no partial result is shown.
 
@@ -480,15 +483,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ### Data flow: Supabase → tabs
 
 ```
-Supabase DB (8 tables, RLS auth.uid() = user_id)
-  └── DataProvider.load() — Promise.all of 8 queries (DataContext.jsx)
+Supabase DB (9 tables, RLS auth.uid() = user_id)
+  └── DataProvider.load() — Promise.all of 10 queries (DataContext.jsx)
         ├── fetchAllRows(transactions) → mapRow() → flagAnomalies() → txs[]
-        ├── mapGoal() / mapAccount() / mapInvestment() / mapDebt() / mapSubscription()
+        ├── mapGoal() / mapAccount() / mapTransfer() / mapInvestment() / mapDebt() / mapSubscription()
+        ├── accountBalance() → accounts[].current (today's balance)
         └── unmapped → customCats[], editBudgets{}
               │
               └── useData()
                     ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
-                    └── GoalsTab  (goals + accounts + investments + debts + subscriptions)
+                    └── GoalsTab  (goals + accounts + transfers + investments + debts + subscriptions)
 
 Each tab: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Category label / color / icon: resolveCategoryMeta()  (theme/categoryIcons.js)

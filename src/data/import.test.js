@@ -54,6 +54,8 @@ describe("columnas", () => {
     expect(detectAppFormat(base)).toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 })
     expect(detectAppFormat([...base, "moneda", "monto_original", "tasa"]))
       .toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5, moneda: 6, montoOriginal: 7, tasa: 8 })
+    expect(detectAppFormat([...base, "moneda", "monto_original", "tasa", "cuenta"]))
+      .toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5, moneda: 6, montoOriginal: 7, tasa: 8, cuenta: 9 })
     expect(detectAppFormat(["fecha", "concepto", "monto"])).toBeNull()
   })
 
@@ -122,13 +124,16 @@ describe("buildImport", () => {
       tx("EGRESO", "COMIDA", "=CAFE", 12.5, new Date(2026, 0, 3, 8, 15)),
       tx("INGRESO", "SUELDO", "SUELDO, ENERO", 3500, new Date(2026, 0, 1, 9, 0)),
       tx("EGRESO", "custom_7", 'ARENA "PREMIUM"', 30, new Date(2026, 0, 5, 20, 0)),
-      tx("EGRESO", "VIAJES", "HOTEL", 384.62, new Date(2026, 0, 7, 22, 0), { moneda: "USD", montoOriginal: 100, tasa: 0.26 }),
+      tx("EGRESO", "VIAJES", "HOTEL", 384.62, new Date(2026, 0, 7, 22, 0), { moneda: "USD", montoOriginal: 100, tasa: 0.26, cuentaId: "visa" }),
     ]
-    const csv = transactionsToCsv(txs, (k) => k)
+    const accounts = [{ id: "visa", name: "Visa Oro" }]
+    const csv = transactionsToCsv(txs, (k) => k, (id) => accounts.find((a) => a.id === id)?.name)
     const table = parseCsv(csv)
     const map = detectAppFormat(table.header)
-    const fresh = buildImport(table, map, { ...opts, amountsInBase: true })
-    const key = (r) => [r.date.getTime(), r.tipo, r.categoria, r.concepto, r.valor, r.moneda, r.montoOriginal, r.tasa].join("|")
+    // The account is found by name, ignoring case and accents; in a user without it, none.
+    const fresh = buildImport(table, map, { ...opts, amountsInBase: true, accounts: [{ id: "otra-visa", name: "visa oro" }] })
+    expect(buildImport(table, map, { ...opts, amountsInBase: true }).rows.every((r) => r.cuentaId === null)).toBe(true)
+    const key = (r) => [r.date.getTime(), r.tipo, r.categoria, r.concepto, r.valor, r.moneda, r.montoOriginal, r.tasa, r.cuentaId && "visa"].join("|")
     expect(fresh.rows.map(key).sort()).toEqual(txs.map(key).sort())
     expect(fresh.rows.every((r) => !r.duplicate && r.categorySource === "file")).toBe(true)
 
@@ -136,7 +141,7 @@ describe("buildImport", () => {
     expect(again.rows.every((r) => r.duplicate)).toBe(true)
 
     // An export from before the currency columns still imports, all in PEN.
-    const old = parseCsv(csv.replace(/,moneda,monto_original,tasa|,(PEN|USD),[\d.]+,[\d.]+(?=\r\n)/g, ""))
+    const old = parseCsv(csv.replace(/,moneda,monto_original,tasa,cuenta|,(PEN|USD),[\d.]+,[\d.]+,[^\r\n]*(?=\r\n)/g, ""))
     expect(buildImport(old, detectAppFormat(old.header), { ...opts, amountsInBase: true }).rows.map((r) => [r.valor, r.moneda, r.montoOriginal]))
       .toContainEqual([384.62, "PEN", null])
   })

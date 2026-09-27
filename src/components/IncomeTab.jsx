@@ -14,13 +14,15 @@ import { filterByPeriod, periodLabel } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
+import { useTxExtras } from "../hooks/useTxExtras.js";
 import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
-  const { t, lang, fmt, fmtTx, txOriginal } = useSettings();
+  const { t, lang, fmt, fmtTx } = useSettings();
   const { txs, customCats } = useData();
+  const txExtras = useTxExtras();
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
   const [calFilter, setCalFilter] = useState(null);
@@ -272,7 +274,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     secondary={
                       <Typography variant="caption" color="text.secondary" component="span">
                         {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
-                        {txOriginal(x) && ` · ${txOriginal(x)}`}
+                        {txExtras(x)}
                         <Typography variant="caption" fontWeight={700} color="success.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
                           +{fmtTx(x, true)}
                         </Typography>

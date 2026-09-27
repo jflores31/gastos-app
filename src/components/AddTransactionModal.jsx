@@ -27,7 +27,7 @@ const MAX_AMOUNT_BASE = 10_000_000;
 
 export default function AddTransactionModal({ initialCategory = "", initialConcept = "", initialAmount = null, mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency, fmt } = useSettings();
-  const { txs, addTx, updateTx, customCats } = useData();
+  const { txs, addTx, updateTx, customCats, accounts = [] } = useData();
   const user = useSupabaseUser();
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
@@ -46,6 +46,8 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
   const amount = parseFloat(valor);
   const amountBase = amount > 0 ? toBase(amount, moneda, rate) : 0;
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
+  // Optional: the account it was paid from or received into (its balance follows).
+  const [cuentaId, setCuentaId] = useState(editTx?.cuentaId ?? "");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -151,6 +153,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         moneda,
         montoOriginal: Math.round(amount * 100) / 100,
         tasa: rate,
+        cuentaId: cuentaId || null,
       };
       if (editTx) {
         await updateTx({ ...tx, id: editTx.id });
@@ -257,6 +260,13 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
             slotProps={{ textField: { fullWidth: true } }}
           />
         </LocalizationProvider>
+
+        {accounts.length > 0 && (
+          <TextField select label={t.txModal.account} value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} fullWidth>
+            <MenuItem value="">{t.txModal.noAccount}</MenuItem>
+            {accounts.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)}
+          </TextField>
+        )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit" disabled={saving}>{t.cancel}</Button>

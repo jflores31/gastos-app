@@ -38,7 +38,7 @@ export function seedFor(userId, schema) {
   // 900 > 3 × the COMIDA median: flagged as unusual.
   transactions.push(tx("EGRESO", "COMIDA", "SUPERMERCADO", 900, at(0, 1)))
 
-  return {
+  const seeded = {
     transactions,
     budgets: [row("budgets", { categoria: "COMIDA", monto: 600 }), row("budgets", { categoria: "TRANSPORTE", monto: 200 })],
     goals: [row("goals", { label_es: "Fondo de emergencia", label_en: "Emergency fund", target: 5000, current_amount: 1500, color: "#38BDF8", icon: "Savings" })],
@@ -48,4 +48,7 @@ export function seedFor(userId, schema) {
     subscriptions: [row("subscriptions", { name: "Netflix", price: 45, cycle: "monthly", category: "STREAMING" })],
     custom_categories: [row("custom_categories", { nombre: "Gatos", tipo: "EGRESO", color: "#8B5CF6", icon: "Pets" })],
   }
+  // Tables without starting data (e.g. transfers) start empty.
+  for (const table of Object.keys(schema)) seeded[table] ??= []
+  return seeded
 }

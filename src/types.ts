@@ -21,6 +21,8 @@ export type Transaction = {
   moneda?: string
   montoOriginal?: number | null
   tasa?: number | null
+  // The account it was paid from or received into (optional; see accountBalance).
+  cuentaId?: string | null
 }
 
 export type Period = "week" | "month" | "quarter" | "year" | "all"
@@ -44,9 +46,22 @@ export type Account = {
   id?: string
   name: string
   type: string
-  balance: number
+  balance: number // as typed, as of balanceAt: what moved later is added on top
+  balanceAt?: Date
+  current?: number // today's balance (accountBalance), filled in by DataContext
   color?: string
   limit?: number
+}
+
+// Money moved between two of the user's accounts: neither income nor expense. A side is
+// null once its account is deleted (the other account's balance stays as it was).
+export type Transfer = {
+  id?: string
+  origen: string | null
+  destino: string | null
+  monto: number // PEN, > 0
+  date: Date
+  nota?: string | null
 }
 
 export type Investment = {

@@ -1,7 +1,7 @@
 import { getToday } from "./index";
 import { messagesFor } from "../i18n/index";
 import { normalizeConcept } from "./suggest";
-import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction } from "../types";
+import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction, Transfer } from "../types";
 
 export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();
@@ -199,11 +199,31 @@ export function insightsList(
 // investment. Debt: negative account balances (e.g. a used credit card) plus the
 // outstanding balance of every loan.
 export function netWorthOf(accounts: Account[] = [], debts: Debt[] = [], investments: Investment[] = []) {
-  const assets = accounts.filter((a) => a.balance > 0).reduce((s, a) => s + a.balance, 0)
+  const balances = accounts.map((a) => a.current ?? a.balance);
+  const assets = balances.filter((b) => b > 0).reduce((s, b) => s + b, 0)
     + investments.reduce((s, i) => s + (i.value || 0), 0);
-  const debt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))
+  const debt = Math.abs(balances.filter((b) => b < 0).reduce((s, b) => s + b, 0))
     + debts.reduce((s, d) => s + (d.balance || 0), 0);
   return { assets, debt, net: assets - debt };
+}
+
+// An account's balance today: the one typed in, as of `balanceAt`, plus what moved after
+// that. Its income adds and its expenses subtract; transfers subtract from the origin and
+// add to the destination. Movements dated up to `balanceAt` are already in the typed
+// balance (so typing today's balance "resets" it).
+export function accountBalance(account: Account, txs: Transaction[], transfers: Transfer[] = []) {
+  const since = account.balanceAt?.getTime() ?? -Infinity;
+  let b = account.balance;
+  for (const t of txs) {
+    if (t.cuentaId !== account.id || t.date.getTime() <= since) continue;
+    b += t.tipo === "INGRESO" ? t.valor : -t.valor;
+  }
+  for (const tr of transfers) {
+    if (tr.date.getTime() <= since) continue;
+    if (tr.origen === account.id) b -= tr.monto;
+    if (tr.destino === account.id) b += tr.monto;
+  }
+  return Math.round(b * 100) / 100;
 }
 
 // Upcoming payments, from today until the same day next month: every monthly payment

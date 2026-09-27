@@ -27,6 +27,7 @@ describe("AddTransactionModal — moneda", () => {
   beforeEach(() => {
     data.addTx = vi.fn(() => Promise.resolve())
     data.updateTx = vi.fn(() => Promise.resolve())
+    data.accounts = []
   })
   afterEach(() => { cleanup(); setLiveRates({}) })
 
@@ -96,6 +97,33 @@ describe("AddTransactionModal — moneda", () => {
     fireEvent.click(screen.getByRole("button", { name: "Actualizar" }))
     await waitFor(() => expect(data.updateTx).toHaveBeenCalledTimes(1))
     expect(data.updateTx.mock.calls[0][0]).toMatchObject({ valor: 400, moneda: "EUR", montoOriginal: 100, tasa: 0.25 })
+  })
+
+  it("sin cuentas no muestra el selector; con cuentas se puede asociar una y al editar viene elegida", async () => {
+    settings.current = as("PEN")
+    renderModal()
+    expect(screen.queryByRole("combobox", { name: "Cuenta" })).toBeNull()
+    cleanup()
+
+    data.accounts = [{ id: "bcp", name: "BCP" }, { id: "cash", name: "Efectivo" }]
+    renderModal()
+    fill(/Concepto/, "menu")
+    fill(/Monto/, "15")
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Cuenta" }))
+    fireEvent.click(screen.getByRole("option", { name: "BCP" }))
+    fireEvent.click(screen.getByRole("button", { name: "Guardar" }))
+    await waitFor(() => expect(data.addTx).toHaveBeenCalledTimes(1))
+    expect(data.addTx.mock.calls[0][0]).toMatchObject({ valor: 15, cuentaId: "bcp" })
+    cleanup()
+
+    const editTx = { id: "t4", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 15, moneda: "PEN", cuentaId: "cash", date: new Date() }
+    renderModal({ editTx })
+    expect(screen.getByRole("combobox", { name: "Cuenta" }).textContent).toBe("Efectivo")
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Cuenta" }))
+    fireEvent.click(screen.getByRole("option", { name: "Sin cuenta" }))
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar" }))
+    await waitFor(() => expect(data.updateTx).toHaveBeenCalledTimes(1))
+    expect(data.updateTx.mock.calls[0][0]).toMatchObject({ id: "t4", cuentaId: null })
   })
 
   it("valida el tope de 10,000,000 en PEN, no en la moneda del formulario", async () => {

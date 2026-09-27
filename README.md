@@ -68,6 +68,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - **CalendarFilter:** mapa de calor interactivo — vista por día y mes con intensidad proporcional; click filtra la lista, el footer muestra el total filtrado con etiqueta "(filtrado)"
 - Footer total actualiza en tiempo real al aplicar cualquier filtro
 - Fecha y hora completa en cada transacción
+- **Cuenta de cada transacción (opcional):** el formulario tiene un selector de cuenta cuando hay alguna; su saldo la incluye, y la lista la muestra junto a la fecha ("· BCP")
 - **Moneda de cada transacción:** el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente ("≈ S/200"). Se guarda el monto en PEN y, además, la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha ("· €50") cuando la app está en otra moneda, y exactamente lo escrito cuando está en la misma. Al editar se abre en su moneda y conserva su tasa, salvo que se cambie la moneda
 
 ### Ingresos (IncomeTab)
@@ -88,7 +89,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 
 ### Metas y Finanzas (GoalsTab)
 - CRUD de metas de ahorro con fecha límite, color e icono elegible (`IconPicker`) — formulario con nombre único
-- Gestión de cuentas bancarias/tarjetas/efectivo
+- Cuentas bancarias/tarjetas/efectivo con **saldo calculado**: el saldo que se escribe vale desde ese momento, y la app le suma los ingresos y le resta los gastos asociados a la cuenta y las **transferencias** (botón ⇄), que mueven dinero entre cuentas sin contar como ingreso ni gasto. Las últimas 5 se listan con su nota y se pueden borrar. Borrar una cuenta deja sus movimientos sin cuenta, sin cambiar el saldo de las otras
 - Patrimonio neto en tiempo real (`netWorthOf()`): activos (saldos positivos de cuentas + inversiones) − deudas (saldos negativos + préstamos)
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.) — formulario con nombre único
 - Control de deudas y préstamos con cuotas — formulario con campo de nombre único (guarda en ambos idiomas automáticamente)
@@ -106,7 +107,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 ### Privacidad, exportación y app instalable
 - **Modo privacidad:** el botón del ojo en la barra superior oculta todos los montos ("S/••••"). Se recuerda en el navegador. Los montos se formatean con `fmt()` de `useSettings()`, que ya conoce la moneda y este modo.
 - **Tus datos (Perfil):**
-  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN junto con la moneda, lo escrito y la tasa de cada una, celdas protegidas contra fórmulas);
+  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN junto con la moneda, lo escrito, la tasa y la cuenta de cada una, celdas protegidas contra fórmulas); al importarlo, la cuenta se reconoce por su nombre;
   - todo se descarga como copia completa en JSON (`src/data/export.ts`).
 - **Papelera (Perfil → Tus datos):**
   - borrar una transacción no pide confirmación: va a la papelera (`deleted_at`) y un aviso ofrece "Deshacer" durante 6 segundos;
@@ -170,7 +171,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 └── supabase/
     ├── config.toml
     ├── migrations/AAAAMMDDHHMMSS_*.sql # Migraciones fechadas e idempotentes, en orden (la primera es el esquema base)
-    └── seed/reset.sql              # Vacía las 8 tablas — destructivo
+    └── seed/reset.sql              # Vacía las 9 tablas — destructivo
 ```
 
 ```
@@ -200,8 +201,8 @@ src/
 │   ├── budget/                     # Una tarjeta por archivo (salud, presupuestos, distribución,
 │   │                               #   comparación, presupuesto vs real, recurrentes) + diálogo Gestionar
 │   ├── GoalsTab.jsx                # Metas: layout de las secciones
-│   ├── goals/                      # Una sección por archivo (metas, cuentas, pronóstico, inversiones,
-│   │                               #   deudas, suscripciones, evolución) + useEntityDialog y EntityDialog
+│   ├── goals/                      # Una sección por archivo (metas, cuentas y transferencias, pronóstico,
+│   │                               #   inversiones, deudas, suscripciones, evolución) + useEntityDialog y EntityDialog
 │   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
@@ -209,8 +210,8 @@ src/
 │   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
 │   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
-│   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts,
-│   │                               #   investments, debts, subscriptions, customCats
+│   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts (con su saldo de hoy),
+│   │                               #   transfers, investments, debts, subscriptions, customCats
 │   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES; fmt, fmtTx, tasas del día
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
@@ -255,7 +256,8 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `transactions` | Transacciones (tipo, categoria, concepto, valor en PEN, fecha) |
 | `budgets` | Presupuestos mensuales por categoría (monto en PEN) |
 | `goals` | Metas de ahorro con target, progreso, deadline, color e icono (clave de `ICON_CHOICES`; las metas viejas guardan un glifo de texto) |
-| `accounts` | Cuentas bancarias/tarjetas/efectivo |
+| `accounts` | Cuentas bancarias/tarjetas/efectivo, con su saldo a una fecha (`balance_at`) |
+| `transfers` | Transferencias entre dos cuentas del usuario (`origen`, `destino`, monto en PEN, fecha, nota) |
 | `investments` | Inversiones con tasa de retorno |
 | `debts` | Préstamos con cuotas y meses restantes |
 | `subscriptions` | Suscripciones recurrentes |
@@ -280,8 +282,9 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `20260927010100_trash.sql` | Papelera: columna `transactions.deleted_at` e índice parcial `(user_id, deleted_at)` para las borradas |
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` o `year`; los existentes quedan como `month`) con su `CHECK` |
 | `20260927030000_tx_currency.sql` | `transactions.moneda` (una de las 8; las existentes quedan en `PEN`), `monto_original` y `tasa`, con sus `CHECK` |
+| `20260927040000_accounts_transfers.sql` | `accounts.balance_at` (el saldo escrito vale desde esa fecha; las existentes, desde la migración), `transactions.cuenta_id` y la tabla `transfers` con RLS. Las claves foráneas usan `(id, user_id)`, así nadie asocia algo a la cuenta de otro, y `ON DELETE SET NULL (col)` (Postgres 15+) |
 
-> **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
+> **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 9 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
 ## Inicio Rápido
 
@@ -340,7 +343,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 ### Datos y Supabase
 
-**Carga de datos:** `DataContext.load()` corre con el primer evento de `onAuthStateChange` que traiga `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` o `USER_UPDATED`) y se deduplica por `session.user.id`, así los refrescos periódicos del token no repiten las 8 queries. No se llama al montar (eso duplicaba las queries). Si falla, se resetea el flag para reintentar con el siguiente evento. Esto elimina el bug de "hay que refrescar 2 veces", cuando un `INITIAL_SESSION` sin sesión utilizable no tenía reintento. Las queries dependen de RLS (`select("*")` sin `.eq("user_id")`).
+**Carga de datos:** `DataContext.load()` corre con el primer evento de `onAuthStateChange` que traiga `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` o `USER_UPDATED`) y se deduplica por `session.user.id`, así los refrescos periódicos del token no repiten las consultas de carga. No se llama al montar (eso duplicaba las queries). Si falla, se resetea el flag para reintentar con el siguiente evento. Esto elimina el bug de "hay que refrescar 2 veces", cuando un `INITIAL_SESSION` sin sesión utilizable no tenía reintento. Las queries dependen de RLS (`select("*")` sin `.eq("user_id")`).
 
 **Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/data/fetchAllRows.ts`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
 
@@ -480,15 +483,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ### Flujo de datos: Supabase → pestañas
 
 ```
-Supabase DB (8 tablas, RLS auth.uid() = user_id)
-  └── DataProvider.load() — Promise.all de 8 queries (DataContext.jsx)
+Supabase DB (9 tablas, RLS auth.uid() = user_id)
+  └── DataProvider.load() — Promise.all de 10 queries (DataContext.jsx)
         ├── fetchAllRows(transactions) → mapRow() → flagAnomalies() → txs[]
-        ├── mapGoal() / mapAccount() / mapInvestment() / mapDebt() / mapSubscription()
+        ├── mapGoal() / mapAccount() / mapTransfer() / mapInvestment() / mapDebt() / mapSubscription()
+        ├── accountBalance() → accounts[].current (saldo de hoy)
         └── sin mapear → customCats[], editBudgets{}
               │
               └── useData()
                     ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
-                    └── GoalsTab  (goals + accounts + investments + debts + subscriptions)
+                    └── GoalsTab  (goals + accounts + transfers + investments + debts + subscriptions)
 
 Cada pestaña: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Nombre / color / icono de categoría: resolveCategoryMeta()  (theme/categoryIcons.js)

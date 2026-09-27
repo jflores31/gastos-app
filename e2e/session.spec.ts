@@ -338,6 +338,71 @@ test("Metas: cuentas, inversiones, deudas y suscripciones se crean, editan y bor
   await expect.poll(async () => (await db()).subscriptions.map((s) => s.name)).toEqual(["Netflix"])
 })
 
+test("cuentas: un gasto asociado y una transferencia mueven los saldos; borrar una cuenta no cambia la otra", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const db = async () => (await mockDb(request, email)).tables
+  const accountRow = (name: string) => page.locator("div").filter({ hasText: name }).filter({ has: page.getByRole("button", { name: "Editar" }) }).last()
+  await page.getByRole("tab", { name: "Metas" }).click()
+  await expect(page.getByRole("button", { name: "Nueva transferencia" })).toBeDisabled() // una sola cuenta
+
+  await page.getByRole("button", { name: "Nueva cuenta" }).click()
+  await dialog(page).getByLabel("Nombre").fill("Efectivo")
+  await dialog(page).getByLabel("Saldo").fill("100")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Cuenta guardada")).toBeVisible()
+  const { accounts } = await db()
+  const bcp = accounts.find((a) => a.name === "BCP")!
+  const cash = accounts.find((a) => a.name === "Efectivo")!
+
+  // A 500 expense paid from BCP (seed: 2,500).
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await dialog(page).getByRole("button", { name: "Egresos" }).click()
+  await pickCategory(page, "Comida")
+  await dialog(page).getByLabel("Concepto").fill("MENU")
+  await dialog(page).getByLabel("Monto").fill("500")
+  await dialog(page).getByRole("combobox", { name: "Cuenta" }).click()
+  await page.getByRole("option", { name: "BCP" }).click()
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect((await db()).transactions.find((t) => t.concepto === "MENU")).toMatchObject({ cuenta_id: bcp.id })
+  await expect(accountRow("BCP")).toContainText("+S/2.0k")
+  await accountRow("BCP").getByRole("button", { name: "Editar" }).click()
+  await expect(dialog(page).getByLabel("Saldo")).toHaveValue("2000")
+  await dialog(page).getByRole("button", { name: "Cancelar" }).click()
+
+  // Transfer 300 from BCP to Efectivo: neither income nor expense.
+  await page.getByRole("button", { name: "Nueva transferencia" }).click()
+  await expect(dialog(page).getByRole("combobox", { name: "Desde" })).toContainText("BCP")
+  await expect(dialog(page).getByRole("combobox", { name: "Hacia" })).toContainText("Efectivo")
+  await dialog(page).getByLabel("Monto").fill("300")
+  await dialog(page).getByLabel("Nota (opcional)").fill("retiro")
+  await dialog(page).getByRole("button", { name: "Transferir" }).click()
+  await expect(toast(page, "Transferencia registrada")).toBeVisible()
+  expect((await db()).transfers).toEqual([expect.objectContaining({ origen: bcp.id, destino: cash.id, monto: 300, nota: "retiro" })])
+  await expect(accountRow("BCP")).toContainText("+S/1.7k")
+  await expect(accountRow("Efectivo")).toContainText("+S/400")
+  await expect(page.getByRole("region", { name: "Transferencias" })).toContainText("BCP → Efectivo")
+
+  // Typing a balance makes it today's: stored with the current time, later movements add to it.
+  await accountRow("Efectivo").getByRole("button", { name: "Editar" }).click()
+  await dialog(page).getByLabel("Saldo").fill("350")
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(accountRow("Efectivo")).toContainText("+S/350")
+  const efectivo = (await db()).accounts.find((a) => a.name === "Efectivo")!
+  expect(efectivo.balance).toBe(350)
+  expect(Date.parse(String(efectivo.balance_at))).toBeGreaterThan(Date.parse(String(cash.balance_at)))
+
+  // Deleting BCP unlinks its expense and its side of the transfer; Efectivo keeps its balance.
+  await accountRow("BCP").getByRole("button", { name: "Eliminar" }).click()
+  await expect(toast(page, "Cuenta eliminada")).toBeVisible()
+  await expect(accountRow("Efectivo")).toContainText("+S/350")
+  await expect(page.getByRole("region", { name: "Transferencias" })).toContainText("(cuenta borrada) → Efectivo")
+  const after = await db()
+  expect(after.transactions.find((t) => t.concepto === "MENU")).toMatchObject({ cuenta_id: null })
+  expect(after.transfers).toEqual([expect.objectContaining({ origen: null, destino: cash.id })])
+})
+
 test("Presupuestos: editar en la tarjeta, agregar (también de una categoría propia) y borrar", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
@@ -518,15 +583,16 @@ test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON",
   const csv = await read("Transacciones (CSV)")
   expect(csv.name).toMatch(/^finanzas-transacciones-\d{4}-\d{2}-\d{2}\.csv$/)
   const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n")
-  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa")
+  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa,cuenta")
   expect(lines).toHaveLength(tables.transactions.length + 1)
-  expect(lines).toContain(lines.find((l) => l.endsWith(",SUPERMERCADO,900,PEN,900,1")))
+  expect(lines).toContain(lines.find((l) => l.endsWith(",SUPERMERCADO,900,PEN,900,1,")))
   expect(csv.text).toContain(",COMIDA,Comida,")
 
   const json = JSON.parse((await read("Copia completa (JSON)")).text)
   expect(json).toMatchObject({ app: "gastos-app", version: 1, currency: "PEN" })
   expect(json.transactions).toHaveLength(tables.transactions.length)
-  expect(json.transactions[0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
+  expect(json.transactions[0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null, cuenta_id: null })
+  expect(json.transfers).toEqual([])
   expect(json.budgets).toEqual(expect.arrayContaining([{ categoria: "COMIDA", monto: 600 }]))
   expect(json.custom_categories.map((c: { nombre: string }) => c.nombre)).toEqual(["Gatos"])
   await expect(toast(page, "Archivo descargado")).toBeVisible()

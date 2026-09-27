@@ -45,8 +45,8 @@ export const unguardCell = (s: string) => (/^'[=+\-@\t\r]/.test(s) ? s.slice(1) 
 
 export type ColumnMap = {
   fecha: number; concepto: number; monto: number; tipo?: number; categoria?: number
-  // Only in the app's own export: the currency each one was entered in.
-  moneda?: number; montoOriginal?: number; tasa?: number
+  // Only in the app's own export: the currency each one was entered in, and its account.
+  moneda?: number; montoOriginal?: number; tasa?: number; cuenta?: number
 }
 
 export const APP_EXPORT_HEADER = ["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen"]
@@ -59,6 +59,7 @@ export function detectAppFormat(header: string[]): ColumnMap | null {
   if (APP_EXPORT_HEADER.some((name, i) => h[i] !== name)) return null
   const map: ColumnMap = { fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 }
   if (APP_EXPORT_CURRENCY.every((name, i) => h[6 + i] === name)) Object.assign(map, { moneda: 6, montoOriginal: 7, tasa: 8 })
+  if (h[9] === "cuenta") map.cuenta = 9
   return map
 }
 
@@ -144,6 +145,7 @@ export type ImportRow = {
   moneda: string
   montoOriginal: number | null
   tasa: number | null
+  cuentaId: string | null // the account with the file's `cuenta` name, if there is one
   tipo: TxType
   categoria: string | null // null: needs the default category chosen in the preview
   categorySource: "file" | "suggested" | "default"
@@ -156,6 +158,7 @@ export type BuildOptions = {
   customCategoryIds: string[] // "custom_<id>" keys that exist
   currency: string // amounts of a generic file are all in this currency
   amountsInBase: boolean // true for the app's own export (monto_pen)
+  accounts?: { id?: string; name: string }[] // to link rows by the account's name
 }
 
 const isKnownCategory = (cat: string, tipo: TxType, custom: Set<string>) =>
@@ -212,10 +215,13 @@ export function buildImport(table: CsvTable, map: ColumnMap, opts: BuildOptions)
       if (s && isKnownCategory(s.categoria, tipo, custom)) { categoria = s.categoria; categorySource = "suggested" }
     }
 
+    const accountName = normalizeConcept(cell(map.cuenta))
+    const cuentaId = (accountName && opts.accounts?.find((a) => normalizeConcept(a.name) === accountName)?.id) || null
+
     const k = txKey(date, concepto, money, tipo)
     const left = existing.get(k) ?? 0
     if (left > 0) existing.set(k, left - 1)
-    rows.push({ line, date, concepto, ...money, tipo, categoria, categorySource, duplicate: left > 0 })
+    rows.push({ line, date, concepto, ...money, cuentaId, tipo, categoria, categorySource, duplicate: left > 0 })
   })
   return { rows, invalid, truncated: table.rows.length > MAX_IMPORT_ROWS }
 }

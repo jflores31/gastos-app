@@ -187,6 +187,13 @@ function prepareRow(table, input, userId, { partial = false } = {}) {
     }
   }
   if (partial && "user_id" in row && row.user_id !== userId) return [null, [403, "42501", `new row violates row-level security policy for table "${table}"`]]
+  // Foreign keys (col, user_id) → (id, user_id): the row must exist and be the user's.
+  for (const [name, value] of Object.entries(row)) {
+    const ref = cols[name].references
+    if (ref && value != null && !db.get(userId)?.[ref]?.some((r) => r.id === value)) {
+      return [null, [409, "23503", `insert or update on table "${table}" violates foreign key constraint "${table}_${name}_fkey"`]]
+    }
+  }
   return [row, null]
 }
 
@@ -263,6 +270,13 @@ async function handleRest(req, res, url) {
   if (req.method === "DELETE") {
     const rows = selected()
     tables[table] = all.filter((r) => !rows.includes(r))
+    // ON DELETE SET NULL: e.g. a deleted account leaves its transactions without one.
+    const ids = new Set(rows.map((r) => r.id))
+    for (const [other, cols] of Object.entries(schema)) {
+      for (const [name, col] of Object.entries(cols)) {
+        if (col.references === table) for (const r of tables[other]) if (ids.has(r[name])) r[name] = null
+      }
+    }
     return returning ? reply(rows) : send(res, 204)
   }
 

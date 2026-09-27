@@ -30,6 +30,13 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Saldo calculado y transferencias entre cuentas (Metas):**
+  - una transacción puede asociarse a una cuenta (selector opcional en el formulario), y la lista la muestra junto a la fecha;
+  - el saldo que se escribe en una cuenta vale desde ese momento, y la app le suma los ingresos y le resta los gastos asociados posteriores; las cuentas existentes no cambian hasta que se asocie algo;
+  - las transferencias (botón ⇄) mueven dinero entre dos cuentas sin contar como ingreso ni gasto, con fecha y nota opcional; las últimas 5 se listan y se pueden borrar;
+  - borrar una cuenta deja sus movimientos sin cuenta, sin cambiar el saldo de las otras;
+  - el CSV suma la columna `cuenta` (al importarlo se reconoce por el nombre) y la copia JSON trae las transferencias.
+  - ⚠ Ejecutar `supabase/migrations/20260927040000_accounts_transfers.sql` antes de desplegar (requiere Postgres 15+).
 - **Moneda de cada transacción y tasas del día:**
   - el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente;
   - se guarda el monto en PEN, como siempre, y además la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha, y al editar se abre en su moneda con la tasa con que se guardó;
@@ -49,6 +56,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
+- **Saldo a una fecha y transferencias:** `20260927040000_accounts_transfers.sql` agrega `accounts.balance_at` (las existentes quedan con la fecha de la migración), `transactions.cuenta_id` y la tabla `transfers` (RLS, `updated_at`, índices). Las claves foráneas usan `(id, user_id)`: nadie puede asociar una transacción o una transferencia a la cuenta de otro usuario. Al borrar una cuenta, `ON DELETE SET NULL (col)` deja sus transacciones sin cuenta y sus transferencias sin ese lado. `supabase/seed/reset.sql` vacía también `transfers` (sin ella, el `TRUNCATE` fallaba por la clave foránea). Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos; rechaza la cuenta de otro usuario, una transferencia a la misma cuenta y un monto de 0; RLS aísla las transferencias.
 - **Moneda de cada transacción:** `20260927030000_tx_currency.sql` agrega `transactions.moneda` (una de las 8 monedas, `PEN` por defecto: las existentes quedan así), `monto_original` y `tasa`, con `CHECK` de moneda válida y montos positivos. Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos, y RLS sigue aislando a cada usuario.
 - **Sin la columna `anomaly`:** `20260927010000_drop_anomaly.sql` la borra; siempre valía `false` y el código ya no la escribe.
 - **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las 8 tablas tienen `updated_at`, que mantiene un trigger. El código ya no escribe la columna `anomaly` (siempre `false`); se borra en una migración posterior, una vez desplegado este código. ⚠ Ejecutar `supabase/migrations/20260927000000_schema_hygiene.sql` antes de desplegar.

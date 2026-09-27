@@ -3,7 +3,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createClient } from "../lib/supabase"
-import { flagAnomalies } from "../data/helpers"
+import { accountBalance, flagAnomalies } from "../data/helpers"
 import { fetchAllRows } from "../data/fetchAllRows"
 import { reportError } from "../lib/reportError"
 
@@ -22,6 +22,7 @@ function mapRow(row) {
     moneda: row.moneda ?? "PEN",
     montoOriginal: row.monto_original == null ? null : Number(row.monto_original),
     tasa: row.tasa == null ? null : Number(row.tasa),
+    cuentaId: row.cuenta_id ?? null,
     date: d,
     dia: d.getDate(),
     mes: d.getMonth(),
@@ -60,7 +61,9 @@ function mapAccount(row) {
     id: row.id,
     name: row.name,
     type: row.type,
+    // As typed, as of balanceAt; the current balance adds what moved later (accountBalance).
     balance: Number(row.balance),
+    balanceAt: row.balance_at ? new Date(row.balance_at) : undefined,
     color: row.color,
     limit: row.account_limit != null ? Number(row.account_limit) : undefined,
   }
@@ -115,8 +118,28 @@ const accountToRow = (a) => ({
   name: a.name,
   type: a.type,
   balance: a.balance,
+  // Set by the browser, like the dates of the transactions it is compared with.
+  balance_at: a.balanceAt?.toISOString(),
   color: a.color,
   account_limit: a.limit ?? null,
+})
+
+function mapTransfer(row) {
+  return {
+    id: row.id,
+    origen: row.origen ?? null,
+    destino: row.destino ?? null,
+    monto: Number(row.monto),
+    date: new Date(row.fecha),
+    nota: row.nota ?? null,
+  }
+}
+const transferToRow = (tr) => ({
+  origen: tr.origen,
+  destino: tr.destino,
+  monto: tr.monto,
+  fecha: tr.date.toISOString(),
+  nota: tr.nota || null,
 })
 const investmentToRow = (inv) => ({
   label_es: inv.es,
@@ -190,6 +213,7 @@ export function DataProvider({ children }) {
   const [budgetPeriods, setBudgetPeriods] = useState({}) // { categoria: "week" | "month" | "year" }
   const [goals, setGoals] = useState([])
   const [accounts, setAccounts] = useState([])
+  const [transfers, setTransfers] = useState([])
   const [investments, setInvestments] = useState([])
   const [debts, setDebts] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
@@ -213,7 +237,7 @@ export function DataProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    // Dedupe: the 8 queries should run once per signed-in user, not on every
+    // Dedupe: the load queries should run once per signed-in user, not on every
     // auth event (TOKEN_REFRESHED fires periodically). Reset on sign-out and on
     // a failed load so the next event retries.
     let loadedForUser = null
@@ -242,6 +266,8 @@ export function DataProvider({ children }) {
           fetchAllRows(() =>
             supabase.from("transactions").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }).order("id", { ascending: true })
           ),
+          // Every transfer counts for the balances, so all pages.
+          fetchAllRows(() => supabase.from("transfers").select("*").order("fecha", { ascending: true }).order("id", { ascending: true })),
         ])
 
         const [
@@ -254,9 +280,10 @@ export function DataProvider({ children }) {
           { data: subsData, error: e7 },
           { data: customCatsData, error: e8 },
           { data: trashData, error: e9 },
+          { data: transfersData, error: e10 },
         ] = results
 
-        const errors = [e1, e2, e3, e4, e5, e6, e7, e8, e9].filter(Boolean)
+        const errors = [e1, e2, e3, e4, e5, e6, e7, e8, e9, e10].filter(Boolean)
         errors.forEach((e, i) => console.error(`[DataContext] query error [${i}]:`, e.message))
         if (errors.length > 0) reportError(errors[0], { where: "DataContext.load", failedQueries: errors.length })
         if (errors.length > 0) {
@@ -276,6 +303,7 @@ export function DataProvider({ children }) {
         if (subsData) setSubscriptions(subsData.map(mapSubscription))
         if (customCatsData) setCustomCats(customCatsData)
         if (trashData) setTrash(trashData.map(mapRow))
+        if (transfersData) setTransfers(transfersData.map(mapTransfer))
       } catch (err) {
         console.error("[DataContext] load() uncaught error:", err)
         reportError(err, { where: "DataContext.load" })
@@ -296,6 +324,7 @@ export function DataProvider({ children }) {
         setBudgetPeriods({})
         setGoals([])
         setAccounts([])
+        setTransfers([])
         setInvestments([])
         setDebts([])
         setSubscriptions([])
@@ -308,7 +337,7 @@ export function DataProvider({ children }) {
       // the session. Load from whichever event first brings a usable session
       // (not only INITIAL_SESSION, which can arrive empty on the first init and
       // never retry → the "refresh twice" bug). Dedupe so periodic token
-      // refreshes don't re-run the 8 queries.
+      // refreshes don't re-run the load queries.
       const sessionUser = session?.user
       userIdRef.current = sessionUser?.id ?? null
       if (sessionUser) {
@@ -335,6 +364,7 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         ...currencyColumns(tx),
+        cuenta_id: tx.cuentaId ?? null,
         fecha: tx.date.toISOString(),
       })
       .select()
@@ -358,6 +388,7 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         ...currencyColumns(tx),
+        cuenta_id: tx.cuentaId ?? null,
         fecha: tx.date.toISOString(),
       }))
       const { data, error } = await supabase.from("transactions").insert(rows).select()
@@ -377,6 +408,7 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         ...currencyColumns(tx),
+        cuenta_id: tx.cuentaId ?? null,
         fecha: tx.date.toISOString(),
       })
       .eq("id", tx.id)
@@ -477,8 +509,22 @@ export function DataProvider({ children }) {
   const { save: saveGoal, remove: deleteGoal } = useTableCrud({
     ...crud, table: "goals", setList: setGoals, toRow: goalToRow, fromRow: mapGoal,
   })
-  const { save: saveAccount, remove: deleteAccount } = useTableCrud({
+  const { save: saveAccount, remove: removeAccount } = useTableCrud({
     ...crud, table: "accounts", setList: setAccounts, toRow: accountToRow, fromRow: mapAccount,
+  })
+  // The database unlinks the deleted account's transactions and transfers (ON DELETE SET
+  // NULL); mirror that, so the other accounts' balances stay as they were.
+  const deleteAccount = useCallback(async (id) => {
+    await removeAccount(id)
+    const unlink = (list) => list.map((t) => (t.cuentaId === id ? { ...t, cuentaId: null } : t))
+    setTxs(unlink)
+    setTrash(unlink)
+    setTransfers((prev) => prev.map((tr) => (tr.origen === id || tr.destino === id
+      ? { ...tr, origen: tr.origen === id ? null : tr.origen, destino: tr.destino === id ? null : tr.destino }
+      : tr)))
+  }, [removeAccount])
+  const { save: saveTransfer, remove: deleteTransfer } = useTableCrud({
+    ...crud, table: "transfers", setList: setTransfers, toRow: transferToRow, fromRow: mapTransfer,
   })
   const { save: saveInvestment, remove: deleteInvestment } = useTableCrud({
     ...crud, table: "investments", setList: setInvestments, toRow: investmentToRow, fromRow: mapInvestment,
@@ -493,6 +539,11 @@ export function DataProvider({ children }) {
   // Outlier detection lives client-side (the DB anomaly column is always false).
   // Recomputed whenever txs change so the score, insights and the ⚠ row flag agree.
   const flaggedTxs = useMemo(() => flagAnomalies(txs), [txs])
+  // Each account with its balance today (`current`); `balance` stays the typed one.
+  const accountsWithBalance = useMemo(
+    () => accounts.map((a) => ({ ...a, current: accountBalance(a, txs, transfers) })),
+    [accounts, txs, transfers],
+  )
 
   const value = useMemo(
     () => ({
@@ -501,7 +552,8 @@ export function DataProvider({ children }) {
       editBudgets, budgetPeriods, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
-      accounts, saveAccount, deleteAccount,
+      accounts: accountsWithBalance, saveAccount, deleteAccount,
+      transfers, saveTransfer, deleteTransfer,
       investments, saveInvestment, deleteInvestment,
       debts, saveDebt, deleteDebt,
       subscriptions, saveSubscription, deleteSubscription,
@@ -513,7 +565,8 @@ export function DataProvider({ children }) {
       editBudgets, budgetPeriods, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
-      accounts, saveAccount, deleteAccount,
+      accountsWithBalance, saveAccount, deleteAccount,
+      transfers, saveTransfer, deleteTransfer,
       investments, saveInvestment, deleteInvestment,
       debts, saveDebt, deleteDebt,
       subscriptions, saveSubscription, deleteSubscription,
