@@ -24,7 +24,8 @@ export function TrashDialog({ onClose }) {
   const [busy, setBusy] = useState(false);
   const [now] = useState(() => Date.now());
   const [snack, setSnack] = useState(null);
-  const notify = (msg, severity) => setSnack({ msg, severity, id: Date.now() });
+  // A new id per message restarts the snackbar's timer (see its `key`).
+  const notify = (msg, severity) => setSnack((prev) => ({ msg, severity, id: (prev?.id ?? 0) + 1 }));
 
   const daysLeft = (tx) => Math.max(1, TRASH_DAYS - Math.floor((now - tx.deletedAt.getTime()) / DAY));
   const run = async (action, okMsg, errMsg) => {
