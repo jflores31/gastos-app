@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { needsSecondStep } from "./lib/mfa"
 
 // Per-request CSP. The nonce must be unique per response, so the policy lives here
 // (middleware) instead of the static next.config.mjs headers. Next.js reads the nonce
@@ -81,6 +82,10 @@ export default async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  // Two-step verification on and only the password given: the session stays on /login,
+  // which asks for the code (?mfa=1). getUser() just validated this session's token.
+  const secondStepPending = !!user &&
+    needsSecondStep(user, (await supabase.auth.getSession()).data.session?.access_token)
 
   const { pathname } = request.nextUrl
   const isAuthPage =
@@ -101,7 +106,14 @@ export default async function proxy(request: NextRequest) {
     return withCsp(NextResponse.redirect(url), csp)
   }
 
-  if (user && isAuthPage && !pathname.startsWith("/reset-password")) {
+  if (secondStepPending && !pathname.startsWith("/login") && !isErrorReport && !isManifest) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/login"
+    url.search = "?mfa=1"
+    return withCsp(NextResponse.redirect(url), csp)
+  }
+
+  if (user && !secondStepPending && isAuthPage && !pathname.startsWith("/reset-password")) {
     const url = request.nextUrl.clone()
     url.pathname = "/"
     return withCsp(NextResponse.redirect(url), csp)

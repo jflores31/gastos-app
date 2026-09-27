@@ -6,16 +6,22 @@
 // - Every row is scoped to the user in the JWT, like the RLS policies.
 // - Each user starts with the dataset in seed.mjs; use a distinct email per test to isolate.
 // - Test helpers: GET /__mock/health, GET /__mock/db?email=… (that user's rows).
+// - Two-step verification (MFA TOTP): factors, challenge and verify with real codes; the
+//   session's JWT carries its level (aal1/aal2), and a user with a verified factor gets no
+//   rows at aal1, like the RESTRICTIVE policies of 20260927050000_mfa_aal2.sql.
 import http from "node:http"
 import { randomUUID } from "node:crypto"
 import { loadSchema } from "./schema.mjs"
 import { seedFor } from "./seed.mjs"
+import { randomSecret, totpMatches } from "./totp.mjs"
 
 const PORT = Number(process.env.MOCK_SUPABASE_PORT ?? 54321)
 const schema = loadSchema()
 
 const users = new Map() // email → user
 const db = new Map() // user id → { [table]: rows[] }
+const factorSecrets = new Map() // factor id → TOTP secret
+const challenges = new Map() // challenge id → factor id
 
 const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url")
 const decodeJwt = (token) => {
@@ -32,33 +38,38 @@ function userFor(email) {
       app_metadata: { provider: "email", providers: ["email"] },
       user_metadata: { full_name: email.split("@")[0] },
       identities: [],
+      factors: [],
     })
     db.set(id, seedFor(id, schema))
   }
   return users.get(email)
 }
 
-function session(user) {
+// `aal`: "aal1" with the password, "aal2" once a TOTP code was verified. A refresh keeps it.
+function session(user, aal = "aal1") {
   const now = Math.floor(Date.now() / 1000)
   const expiresIn = 3600
   const header = b64url({ alg: "HS256", typ: "JWT" })
-  const payload = b64url({ sub: user.id, email: user.email, aud: "authenticated", role: "authenticated", iat: now, exp: now + expiresIn, session_id: randomUUID() })
+  const amr = [{ method: "password", timestamp: now }, ...(aal === "aal2" ? [{ method: "totp", timestamp: now }] : [])]
+  const payload = b64url({ sub: user.id, email: user.email, aud: "authenticated", role: "authenticated", iat: now, exp: now + expiresIn, session_id: randomUUID(), aal, amr })
   return {
     access_token: `${header}.${payload}.mock-signature`,
     token_type: "bearer",
     expires_in: expiresIn,
     expires_at: now + expiresIn,
-    refresh_token: `${user.email}|${randomUUID()}`,
+    refresh_token: `${user.email}|${aal}|${randomUUID()}`,
     user,
   }
 }
 
-function userFromRequest(req) {
+function authFromRequest(req) {
   const token = (req.headers.authorization ?? "").replace(/^Bearer /i, "")
   const claims = decodeJwt(token)
-  if (!claims?.sub || claims.exp * 1000 < Date.now()) return null
-  return [...users.values()].find((u) => u.id === claims.sub) ?? null
+  if (!claims?.sub || claims.exp * 1000 < Date.now()) return { user: null, claims: null }
+  return { user: [...users.values()].find((u) => u.id === claims.sub) ?? null, claims }
 }
+const userFromRequest = (req) => authFromRequest(req).user
+const hasVerifiedFactor = (user) => user.factors.some((f) => f.status === "verified")
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 function send(res, status, body, headers = {}) {
@@ -87,9 +98,9 @@ async function handleAuth(req, res, url) {
       return send(res, 200, session(userFor(String(body.email).toLowerCase())))
     }
     if (grant === "refresh_token") {
-      const email = String(body.refresh_token ?? "").split("|")[0]
+      const [email, aal] = String(body.refresh_token ?? "").split("|")
       if (!users.has(email)) return authError(res, 400, "refresh_token_not_found", "Invalid Refresh Token")
-      return send(res, 200, session(users.get(email)))
+      return send(res, 200, session(users.get(email), aal === "aal2" ? "aal2" : "aal1"))
     }
     return authError(res, 400, "unsupported_grant_type", "Unsupported grant type")
   }
@@ -103,6 +114,7 @@ async function handleAuth(req, res, url) {
     }
     return send(res, 200, user)
   }
+  if (route.startsWith("/factors")) return handleFactors(req, res, route)
   if (route === "/logout") return send(res, 204)
   if (route === "/signup" && req.method === "POST") {
     const body = await readBody(req)
@@ -111,6 +123,53 @@ async function handleAuth(req, res, url) {
   }
   if (route === "/recover") return send(res, 200, {})
   if (route === "/settings") return send(res, 200, { external: { email: true }, disable_signup: false, mailer_autoconfirm: false })
+  return authError(res, 404, "not_found", `mock: ${req.method} ${route} not implemented`)
+}
+
+// MFA with TOTP: POST /factors (enroll), POST /factors/:id/challenge, POST /factors/:id/verify
+// (returns an aal2 session), DELETE /factors/:id (a verified one needs aal2).
+async function handleFactors(req, res, route) {
+  const { user, claims } = authFromRequest(req)
+  if (!user) return authError(res, 401, "bad_jwt", "invalid JWT")
+  const [, , factorId, action] = route.split("/")
+  const factor = factorId && user.factors.find((f) => f.id === factorId)
+  if (factorId && !factor) return authError(res, 404, "mfa_factor_not_found", "Factor not found")
+  const now = new Date().toISOString()
+
+  if (!factorId && req.method === "POST") {
+    const body = await readBody(req)
+    if (hasVerifiedFactor(user) && claims.aal !== "aal2") return authError(res, 403, "insufficient_aal", "AAL2 required to enroll a new factor")
+    if (user.factors.some((f) => f.friendly_name === body.friendly_name)) {
+      return authError(res, 422, "mfa_factor_name_conflict", `A factor with the friendly name "${body.friendly_name}" for this user already exists`)
+    }
+    const id = randomUUID()
+    const secret = randomSecret()
+    factorSecrets.set(id, secret)
+    user.factors.push({ id, friendly_name: body.friendly_name, factor_type: "totp", status: "unverified", created_at: now, updated_at: now })
+    const uri = `otpauth://totp/${encodeURIComponent(body.issuer ?? "mock")}:${encodeURIComponent(user.email)}?secret=${secret}&issuer=${encodeURIComponent(body.issuer ?? "mock")}`
+    const qr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="white"/><rect x="2" y="2" width="6" height="6"/></svg>`
+    return send(res, 200, { id, type: "totp", friendly_name: body.friendly_name, totp: { qr_code: qr, secret, uri } })
+  }
+  if (action === "challenge" && req.method === "POST") {
+    const id = randomUUID()
+    challenges.set(id, factor.id)
+    return send(res, 200, { id, type: "totp", expires_at: Math.floor(Date.now() / 1000) + 300 })
+  }
+  if (action === "verify" && req.method === "POST") {
+    const body = await readBody(req)
+    if (challenges.get(body.challenge_id) !== factor.id) return authError(res, 404, "mfa_factor_not_found", "Challenge not found")
+    challenges.delete(body.challenge_id)
+    if (!totpMatches(factorSecrets.get(factor.id), body.code)) return authError(res, 422, "mfa_verification_failed", "Invalid TOTP code entered")
+    factor.status = "verified"
+    factor.updated_at = now
+    return send(res, 200, session(user, "aal2"))
+  }
+  if (!action && req.method === "DELETE") {
+    if (factor.status === "verified" && claims.aal !== "aal2") return authError(res, 403, "insufficient_aal", "AAL2 required to unenroll verified factor")
+    user.factors = user.factors.filter((f) => f.id !== factor.id)
+    factorSecrets.delete(factor.id)
+    return send(res, 200, { id: factor.id })
+  }
   return authError(res, 404, "not_found", `mock: ${req.method} ${route} not implemented`)
 }
 
@@ -209,8 +268,14 @@ function coerce(type, value) {
 async function handleRest(req, res, url) {
   const table = url.pathname.replace("/rest/v1/", "")
   if (!schema[table]) return pgError(res, 404, "PGRST205", `Could not find the table 'public.${table}' in the schema cache`)
-  const user = userFromRequest(req)
+  const { user, claims } = authFromRequest(req)
   if (!user) return pgError(res, 401, "PGRST301", "JWT expired or missing")
+  // RESTRICTIVE "mfa aal2" policies: with a verified factor, an aal1 session sees no rows
+  // and can't write any.
+  if (hasVerifiedFactor(user) && claims.aal !== "aal2") {
+    if (req.method === "GET" || req.method === "HEAD") return send(res, 200, [], { "content-range": "*/0" })
+    return pgError(res, 403, "42501", `new row violates row-level security policy for table "${table}"`)
+  }
 
   const tables = db.get(user.id)
   const all = tables[table]

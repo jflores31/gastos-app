@@ -14,6 +14,12 @@ import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"
 import { darkFieldSx } from "../components/auth/authStyles"
 import { OAUTH_ENABLED } from "../../lib/featureFlags"
+import { needsSecondStep, verifiedTotp } from "../../lib/mfa"
+import type { Session } from "@supabase/supabase-js"
+
+// The TOTP factor still to verify when the session owes the second step, else null.
+const pendingFactor = (session: Session | null) =>
+  session && needsSecondStep(session.user, session.access_token) ? verifiedTotp(session.user)?.id ?? null : null
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,6 +31,9 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  // Two-step verification: after the password, the factor whose code is asked for.
+  const [mfaFactor, setMfaFactor] = useState<string | null>(null)
+  const [mfaCode, setMfaCode] = useState("")
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -33,6 +42,10 @@ export default function LoginPage() {
     // Reads the URL once after hydration (the server can't see the hash).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (code === "otp_expired") setError("El enlace de recuperación expiró. Solicita uno nuevo.")
+    // Sent back by the proxy: signed in with the password, the code is still owed.
+    if (params.get("mfa") === "1") {
+      createClient().auth.getSession().then(({ data }) => setMfaFactor(pendingFactor(data.session)))
+    }
   }, [])
 
   const handleOAuth = (provider: "google" | "github") => {
@@ -47,18 +60,44 @@ export default function LoginPage() {
     setError("")
     try {
       const supabase = createClient()
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
       if (authError) {
         const msg = authError.message?.toLowerCase() ?? ""
         setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
       } else {
-        router.push("/")
+        const factor = pendingFactor(data.session)
+        if (factor) setMfaFactor(factor)
+        else router.push("/")
       }
     } catch {
       setError("Error de conexión. Intenta de nuevo.")
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleMfa = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaFactor) return
+    setLoading(true)
+    setError("")
+    try {
+      const { error: mfaError } = await createClient().auth.mfa.challengeAndVerify({ factorId: mfaFactor, code: mfaCode.trim() })
+      if (mfaError) setError("Código incorrecto. Intenta de nuevo.")
+      else router.push("/")
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Leaves the half-open session and goes back to the email and password.
+  const cancelMfa = async () => {
+    await createClient().auth.signOut()
+    setMfaFactor(null)
+    setMfaCode("")
+    setError("")
   }
 
   const darkField = darkFieldSx(isDark, { accent: "#6366f1", labelAccent: "#a5b4fc" })
@@ -126,6 +165,29 @@ export default function LoginPage() {
         {/* Error */}
         <AuthErrorAlert error={error} />
 
+        {mfaFactor ? (
+          <form onSubmit={handleMfa} aria-label="Verificación en dos pasos" aria-busy={loading}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1, color: isDark ? "#f1f5f9" : "text.primary" }}>
+              Verificación en dos pasos
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2.5, color: isDark ? "rgba(255,255,255,0.55)" : "text.secondary" }}>
+              Escribe el código de 6 dígitos de tu app de autenticación.
+            </Typography>
+            <TextField
+              fullWidth label="Código" value={mfaCode} onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+              required autoFocus autoComplete="one-time-code"
+              slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 6, pattern: "[0-9]{6}" } }}
+              sx={{ mb: 3, ...darkField }}
+            />
+            <Button fullWidth type="submit" variant="contained" disabled={loading || mfaCode.length !== 6}
+              sx={{ py: 1.4, borderRadius: "10px", fontWeight: 700, textTransform: "none", mb: 1.5 }}>
+              {loading ? <CircularProgress size={20} color="inherit" /> : "Verificar"}
+            </Button>
+            <Button fullWidth color="inherit" onClick={cancelMfa} disabled={loading} sx={{ textTransform: "none" }}>
+              Usar otra cuenta
+            </Button>
+          </form>
+        ) : (<>
         {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.ts */}
         {OAUTH_ENABLED && (
           <>
@@ -238,6 +300,7 @@ export default function LoginPage() {
             </Typography>
           </Link>
         </Typography>
+        </>)}
       </AuthCard>
     </Box>
   )

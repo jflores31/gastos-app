@@ -30,6 +30,8 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Verificación en dos pasos (Perfil):** con una app de autenticación (TOTP). Se activa escaneando un QR (o escribiendo la clave) y confirmando con un código; desde entonces, al entrar se pide el código después de la contraseña. Se desactiva con confirmación. ⚠ Ejecutar `supabase/migrations/20260927050000_mfa_aal2.sql` antes de desplegar.
+- **Suscripciones con el icono de su categoría:** en vez de la inicial, cada una muestra el icono y el color de su categoría, sin pedir logos a servicios externos (sabrían qué suscripciones hay). El nombre sugiere la categoría ("Netflix" → Streaming).
 - **Saldo calculado y transferencias entre cuentas (Metas):**
   - una transacción puede asociarse a una cuenta (selector opcional en el formulario), y la lista la muestra junto a la fecha;
   - el saldo que se escribe en una cuenta vale desde ese momento, y la app le suma los ingresos y le resta los gastos asociados posteriores; las cuentas existentes no cambian hasta que se asocie algo;
@@ -56,6 +58,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
+- **La verificación en dos pasos protege los datos:** `20260927050000_mfa_aal2.sql` agrega una política `RESTRICTIVE` por tabla. Quien la activó solo ve y escribe sus filas con una sesión `aal2`, es decir, después del código. La condición está en `public.mfa_satisfied()`, `SECURITY DEFINER` porque lee `auth.mfa_factors`, y solo la puede ejecutar `authenticated`. Probado en Postgres 16: se puede ejecutar dos veces; con solo la contraseña no se ve ni se escribe nada; con el código, solo lo propio; quien no la activó sigue igual.
 - **Saldo a una fecha y transferencias:** `20260927040000_accounts_transfers.sql` agrega `accounts.balance_at` (las existentes quedan con la fecha de la migración), `transactions.cuenta_id` y la tabla `transfers` (RLS, `updated_at`, índices). Las claves foráneas usan `(id, user_id)`: nadie puede asociar una transacción o una transferencia a la cuenta de otro usuario. Al borrar una cuenta, `ON DELETE SET NULL (col)` deja sus transacciones sin cuenta y sus transferencias sin ese lado. `supabase/seed/reset.sql` vacía también `transfers` (sin ella, el `TRUNCATE` fallaba por la clave foránea). Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos; rechaza la cuenta de otro usuario, una transferencia a la misma cuenta y un monto de 0; RLS aísla las transferencias.
 - **Moneda de cada transacción:** `20260927030000_tx_currency.sql` agrega `transactions.moneda` (una de las 8 monedas, `PEN` por defecto: las existentes quedan así), `monto_original` y `tasa`, con `CHECK` de moneda válida y montos positivos. Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos, y RLS sigue aislando a cada usuario.
 - **Sin la columna `anomaly`:** `20260927010000_drop_anomaly.sql` la borra; siempre valía `false` y el código ya no la escribe.
@@ -63,6 +66,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.
 
 ### Seguridad
+- **Verificación en dos pasos de punta a punta:** el proxy deja una sesión que todavía debe el código solo en `/login?mfa=1`, `DataContext` no carga hasta el código y la base no devuelve filas sin `aal2`. Así no se salta ni abriendo otra página ni usando la API de Supabase directamente.
 - **CSP de estilos:** los `<style>` necesitan el nonce de la respuesta, como los scripts. Emotion lo recibe del layout y lo pone en cada `<style>`. Solo los atributos `style="…"` siguen permitidos inline. Un `<style>` inyectado ya no se aplica.
 - **Reporte de violaciones del CSP:** el navegador las envía a `/api/csp-report`, que las escribe en los logs sin la query de las URLs.
 

@@ -93,13 +93,13 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Patrimonio neto en tiempo real (`netWorthOf()`): activos (saldos positivos de cuentas + inversiones) − deudas (saldos negativos + préstamos)
 - Seguimiento de inversiones (AFP, DPF, cripto, etc.) — formulario con nombre único
 - Control de deudas y préstamos con cuotas — formulario con campo de nombre único (guarda en ambos idiomas automáticamente)
-- Suscripciones recurrentes con selector de categoría (nativas + personalizadas); botón "Agregar / Add" bilingüe en estados vacíos
+- Suscripciones recurrentes con selector de categoría (nativas + personalizadas); botón "Agregar / Add" bilingüe en estados vacíos. Cada una muestra el icono y el color de su categoría en vez de un logo (un servicio de logos sabría qué pagas), y el nombre sugiere la categoría ("Netflix" → Streaming), sin reemplazar una elegida a mano
 - **Pronóstico de 3 meses** basado en tendencia lineal real (slope de los últimos 6 meses de netos reales); 3 estados según historial disponible: "Sin datos" (0 meses), "Se necesitan al menos 2 meses" + promedio actual (1 mes), barras reales con `+trend×i` (2+ meses); nota "Tendencia estable · N meses" si `|trend| < 1`; total proyectado = suma real de los 3 meses
 - **Evolución del patrimonio** reconstruye historial real trabajando hacia atrás desde `netWorth` actual
 
 ### Perfil y Configuración (SettingsPanel)
 Drawer con **dos pestañas** que separan Perfil de Ajustes:
-- **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color e icono — en Supabase)
+- **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color e icono — en Supabase); **Verificación en dos pasos** (TOTP: se activa con un código QR o la clave y un primer código, y se desactiva con confirmación)
 - **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN y se muestran con las **tasas del día** (`/api/rates`; si el proveedor no responde, las fijas de `CURRENCIES`). Debajo de la moneda se ve de qué día son y la cotización ("1 USD = S/3.85")
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
@@ -207,7 +207,7 @@ src/
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
 │   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes (pestañas y snackbar)
-│   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
+│   ├── settings/                   # ProfileTab, CustomCategoriesSection, TwoFactorSection, PreferencesTab
 │   └── LoginModal.jsx              # Modal de login in-app
 ├── context/
 │   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts (con su saldo de hoy),
@@ -241,6 +241,7 @@ src/
 ├── lib/
 │   ├── featureFlags.ts             # OAUTH_ENABLED (login, registro y LoginModal)
 │   ├── rates.ts                    # fetchRates(): tasas del día de open.er-api.com, o las fijas
+│   ├── mfa.ts                      # Verificación en dos pasos: nivel de la sesión (aal1/aal2) y factor TOTP
 │   ├── reportError.ts              # Envía errores del navegador a /api/client-error
 │   ├── supabase.ts                 # Cliente browser (createBrowserClient)
 │   └── supabase-server.ts          # Cliente server
@@ -283,6 +284,7 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` o `year`; los existentes quedan como `month`) con su `CHECK` |
 | `20260927030000_tx_currency.sql` | `transactions.moneda` (una de las 8; las existentes quedan en `PEN`), `monto_original` y `tasa`, con sus `CHECK` |
 | `20260927040000_accounts_transfers.sql` | `accounts.balance_at` (el saldo escrito vale desde esa fecha; las existentes, desde la migración), `transactions.cuenta_id` y la tabla `transfers` con RLS. Las claves foráneas usan `(id, user_id)`, así nadie asocia algo a la cuenta de otro, y `ON DELETE SET NULL (col)` (Postgres 15+) |
+| `20260927050000_mfa_aal2.sql` | Una política `RESTRICTIVE` por tabla: quien activó la verificación en dos pasos solo ve y escribe sus filas con una sesión `aal2` (después del código). La condición vive en `public.mfa_satisfied()`, `SECURITY DEFINER` porque lee `auth.mfa_factors` |
 
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 9 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
@@ -327,6 +329,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 | Medida | Detalle |
 |---|---|
 | HTTP Security Headers | CSP **con nonce por request** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, sin `'unsafe-inline'`; los `<style>` de emotion también llevan el nonce) generada en `proxy.ts`, con las violaciones reportadas a `/api/csp-report`; resto de headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) en `next.config.mjs` |
+| Verificación en dos pasos | TOTP con el MFA de Supabase (Perfil). Con ella activa, al entrar se pide el código; `proxy.ts` deja una sesión `aal1` solo en `/login?mfa=1`, `DataContext` no carga hasta el código y la base (políticas `RESTRICTIVE`, `20260927050000_mfa_aal2.sql`) no devuelve ni acepta filas sin `aal2`, así tampoco se salta usando la API de Supabase directamente |
 | RLS en Supabase | Todas las tablas con políticas owner-only `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Política de contraseñas | `minimum_password_length = 8` en `supabase/config.toml` |
 | Guardas en DELETE/UPDATE | Cada mutación captura `{ error }` y hace `throw error` si falla — el estado local nunca se muta ante error |

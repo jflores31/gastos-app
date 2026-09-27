@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test"
 import { login, mockDb, uniqueEmail, watchConsole } from "./helpers"
+import { totp } from "./mock-supabase/totp.mjs"
 
 // Flows behind the login, against the mock Supabase in e2e/mock-supabase.
 
@@ -725,6 +726,51 @@ test("con el token vencido, el proxy renueva la sesión y la respuesta no se pue
       .sort((a, b) => a.name.localeCompare(b.name, "en", { numeric: true }))
       .map((c) => c.value).join("").replace(/^base64-/, ""), "base64url").toString())
   expect(renewed.refresh_token).not.toBe(oldRefresh)
+})
+
+test("verificación en dos pasos: se activa con el QR, se pide al entrar y los datos esperan el código", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await openSettings(page, "Perfil")
+  await dialog(page).getByRole("button", { name: "Activar" }).click()
+  await expect(dialog(page).getByRole("img", { name: "Código QR para la app de autenticación" })).toBeVisible()
+  const secret = (await dialog(page).getByTestId("totp-secret").textContent())!.trim()
+  const wrong = (code: string) => (code === "000000" ? "111111" : "000000")
+  await dialog(page).getByLabel("Código de 6 dígitos").fill(wrong(totp(secret)))
+  await dialog(page).getByRole("button", { name: "Verificar" }).click()
+  await expect(dialog(page).getByText("Código incorrecto. Intenta de nuevo.")).toBeVisible()
+  await dialog(page).getByLabel("Código de 6 dígitos").fill(totp(secret))
+  await dialog(page).getByRole("button", { name: "Verificar" }).click()
+  await expect(toast(page, "Verificación en dos pasos activada")).toBeVisible()
+  expect((await mockDb(request, email)).user.factors).toEqual([expect.objectContaining({ factor_type: "totp", status: "verified" })])
+
+  // Sign out and in again: after the password, the code.
+  await page.getByRole("button", { name: "Cerrar" }).click()
+  await page.getByRole("button", { name: "Cerrar sesión" }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await page.getByLabel(/correo|email/i).first().fill(email)
+  await page.getByLabel(/contraseña|password/i).first().fill("secret123")
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click()
+  const step = page.getByRole("form", { name: "Verificación en dos pasos" })
+  await expect(step).toBeVisible()
+  // Skipping it isn't possible: any page sends the session back to the code.
+  await page.goto("/")
+  await expect(page).toHaveURL(/\/login\?mfa=1$/)
+  await expect(step).toBeVisible()
+  await step.getByLabel("Código").fill(wrong(totp(secret)))
+  await step.getByRole("button", { name: "Verificar" }).click()
+  await expect(page.getByText("Código incorrecto. Intenta de nuevo.")).toBeVisible()
+  await step.getByLabel("Código").fill(totp(secret))
+  await step.getByRole("button", { name: "Verificar" }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByText("S/3,500").first()).toBeVisible() // the data loads after the code
+
+  // Turning it off asks for confirmation; the next sign-in only needs the password.
+  await openSettings(page, "Perfil")
+  await dialog(page).getByRole("button", { name: "Desactivar" }).click()
+  await page.getByRole("dialog").filter({ hasText: "¿Desactivar la verificación" }).getByRole("button", { name: "Desactivar" }).click()
+  await expect(toast(page, "Verificación en dos pasos desactivada")).toBeVisible()
+  expect((await mockDb(request, email)).user.factors).toEqual([])
 })
 
 test("una pestaña nueva no cierra la sesión; Salir sí", async ({ page, context }, info) => {

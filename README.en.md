@@ -93,13 +93,13 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - Real-time net worth (`netWorthOf()`): assets (positive account balances + investments) − debts (negative balances + loans)
 - Investment tracking (AFP, DPF, crypto, etc.) — form with single name field
 - Debt and loan tracking with installments — form with single name field (saves in both languages automatically)
-- Recurring subscriptions with category selector (native + custom); bilingual "Add" button in empty states
+- Recurring subscriptions with category selector (native + custom); bilingual "Add" button in empty states. Each one shows its category's icon and colour instead of a logo (a logo service would learn what you pay for), and the name suggests the category ("Netflix" → Streaming) without replacing one picked by hand
 - **3-month forecast** based on real linear trend (OLS slope of last 6 months of net values); 3 states based on available history: "No data" (0 months), "At least 2 months needed" + current average (1 month), real bars with `+trend×i` (2+ months); "Stable trend · N months" note if `|trend| < 1`; projected total = real sum of the 3 months
 - **Net worth evolution** reconstructs real history working backward from current `netWorth`
 
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
-- **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color and icon — in Supabase)
+- **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color and icon — in Supabase); **Two-step verification** (TOTP: turned on with a QR code or the key plus a first code, turned off with a confirmation)
 - **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN and shown with **today's rates** (`/api/rates`; if the provider doesn't answer, the fixed ones from `CURRENCIES`). Under the currency you see which day they're from and the quote ("1 USD = S/3.85")
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
@@ -207,7 +207,7 @@ src/
 │   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
 │   ├── AddTransactionModal.jsx     # New/edit transaction modal
 │   ├── SettingsPanel.jsx           # Profile/settings drawer (tabs and snackbar)
-│   ├── settings/                   # ProfileTab, CustomCategoriesSection, PreferencesTab
+│   ├── settings/                   # ProfileTab, CustomCategoriesSection, TwoFactorSection, PreferencesTab
 │   └── LoginModal.jsx              # In-app login modal
 ├── context/
 │   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts (with today's balance),
@@ -241,6 +241,7 @@ src/
 ├── lib/
 │   ├── featureFlags.ts             # OAUTH_ENABLED (login, register and LoginModal)
 │   ├── rates.ts                    # fetchRates(): today's rates from open.er-api.com, or the fixed ones
+│   ├── mfa.ts                      # Two-step verification: session level (aal1/aal2) and TOTP factor
 │   ├── reportError.ts              # Sends browser errors to /api/client-error
 │   ├── supabase.ts                 # Browser client (createBrowserClient)
 │   └── supabase-server.ts          # Server client
@@ -283,6 +284,7 @@ All tables use RLS with `auth.uid() = user_id`.
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` or `year`; existing ones become `month`) with its `CHECK` |
 | `20260927030000_tx_currency.sql` | `transactions.moneda` (one of the 8; existing ones become `PEN`), `monto_original` and `tasa`, with their `CHECK`s |
 | `20260927040000_accounts_transfers.sql` | `accounts.balance_at` (the typed balance holds from that date; existing ones, from the migration), `transactions.cuenta_id` and the `transfers` table with RLS. Foreign keys use `(id, user_id)`, so nobody can link anything to someone else's account, and `ON DELETE SET NULL (col)` (Postgres 15+) |
+| `20260927050000_mfa_aal2.sql` | One `RESTRICTIVE` policy per table: whoever turned on two-step verification only sees and writes their rows with an `aal2` session (after the code). The condition lives in `public.mfa_satisfied()`, `SECURITY DEFINER` because it reads `auth.mfa_factors` |
 
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 9 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
@@ -327,6 +329,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 | Measure | Detail |
 |---|---|
 | HTTP Security Headers | CSP **with a per-request nonce** (`script-src 'self' 'nonce-…' 'strict-dynamic'`, no `'unsafe-inline'`; emotion's `<style>` tags carry the nonce too) generated in `proxy.ts`, with violations reported to `/api/csp-report`; the rest (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) in `next.config.mjs` |
+| Two-step verification | TOTP with Supabase MFA (Profile). Once on, signing in asks for the code; `proxy.ts` keeps an `aal1` session on `/login?mfa=1` only, `DataContext` doesn't load until the code, and the database (`RESTRICTIVE` policies, `20260927050000_mfa_aal2.sql`) returns and accepts no rows without `aal2`, so it can't be skipped by calling the Supabase API directly either |
 | RLS in Supabase | All tables with owner-only policies `FOR ALL TO authenticated USING / WITH CHECK (auth.uid() = user_id)` |
 | Password policy | `minimum_password_length = 8` in `supabase/config.toml` |
 | Guards in DELETE/UPDATE | Every mutation captures `{ error }` and does `throw error` on failure — local state is never mutated on error |

@@ -111,8 +111,8 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | 10 | ✅ **Presupuestos por período** (semanal/anual) y alerta al 80 % / 100 % | Medio | Medio | JagadishPS, Cashew | `budgets` (columna `periodo`); `BudgetTab`; `monthCount` en `helpers.ts` |
 | 11 | ✅ **Papelera** (borrado lógico con `deleted_at`) y "deshacer" | Medio | Medio | valiance | una migración nueva; los `delete*` de `DataContext` pasan a `update` |
 | 12 | ✅ **Transferencias entre cuentas** y saldo calculado (saldo a una fecha + movimientos posteriores) | Alto | Alto | Firefly, expense-budget-tracker | `accounts.balance_at`, `transactions.cuenta_id` y tabla `transfers` (`20260927040000_accounts_transfers.sql`), en vez de un tipo `TRANSFER` que los totales contarían como gasto; `AccountsCard` y `TransferDialog` en `GoalsTab` |
-| 13 | **2FA** con el MFA TOTP de Supabase Auth | Medio | Medio | Firefly, ezBookkeeping | Pestaña Perfil de `SettingsPanel`; `/login` |
-| 14 | **Logos de suscripciones** | Bajo | Medio | Wallos | `GoalsTab` (suscripciones); `img-src` del CSP |
+| 13 | ✅ **2FA** con el MFA TOTP de Supabase Auth (Perfil → Verificación en dos pasos; el código se pide al entrar y la base exige `aal2`) | Medio | Medio | Firefly, ezBookkeeping | `TwoFactorSection` en Perfil; `/login`; `proxy.ts`; `20260927050000_mfa_aal2.sql` |
+| 14 | ✅ **Logos de suscripciones**, resuelto con el icono y el color de la categoría (sin servicios externos: no se filtra qué suscripciones hay) y la categoría sugerida por el nombre | Bajo | Medio | Wallos | `SubscriptionsCard`; el CSP no cambia |
 
 **Orden sugerido** (máximo valor por esfuerzo): 6 → 7 → 9 → 1 → 4 → 5 → 3 → 2.
 

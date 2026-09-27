@@ -6,6 +6,7 @@ import { createClient } from "../lib/supabase"
 import { accountBalance, flagAnomalies } from "../data/helpers"
 import { fetchAllRows } from "../data/fetchAllRows"
 import { reportError } from "../lib/reportError"
+import { needsSecondStep } from "../lib/mfa"
 
 const DataContext = createContext(null)
 
@@ -341,6 +342,9 @@ export function DataProvider({ children }) {
       const sessionUser = session?.user
       userIdRef.current = sessionUser?.id ?? null
       if (sessionUser) {
+        // Two-step verification: the data waits for the code (MFA_CHALLENGE_VERIFIED
+        // brings the aal2 session); before it the database would return nothing.
+        if (needsSecondStep(sessionUser, session.access_token)) return
         if (loadedForUser !== sessionUser.id) {
           loadedForUser = sessionUser.id
           load()

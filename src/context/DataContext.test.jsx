@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { Buffer } from "node:buffer"
 import { renderHook, act, waitFor, cleanup } from "@testing-library/react"
 import { DataProvider, useData } from "./DataContext.jsx"
 
@@ -93,6 +94,19 @@ describe("DataContext", () => {
     // The active list excludes the trash; the trash query asks for deleted_at not null.
     const txQueries = fake.queries.filter((q) => q.table === "transactions" && has(q.calls, "select"))
     expect(txQueries.map((q) => has(q.calls, "is") ?? has(q.calls, "not"))).toEqual([["is", "deleted_at", null], ["not", "deleted_at", "is", null]])
+  })
+
+  it("con verificación en dos pasos no carga nada hasta el código (sesión aal2)", async () => {
+    const loaded = []
+    fake.respond = (table) => { loaded.push(table); return { data: [], error: null } }
+    const { result } = renderHook(() => useData(), { wrapper: DataProvider })
+    const user = { id: "u1", factors: [{ id: "f1", factor_type: "totp", status: "verified" }] }
+    const token = (aal) => `h.${Buffer.from(JSON.stringify({ sub: "u1", aal })).toString("base64url")}.s`
+    await act(async () => { fake.authCallback("SIGNED_IN", { user, access_token: token("aal1") }) })
+    expect(loaded).toEqual([])
+    await act(async () => { fake.authCallback("MFA_CHALLENGE_VERIFIED", { user, access_token: token("aal2") }) })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(loaded).toContain("transactions")
   })
 
   it("al cargar elimina de verdad lo que lleva más de 30 días en la papelera", async () => {
