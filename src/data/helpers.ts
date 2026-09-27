@@ -7,11 +7,14 @@ export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();
   if (period === "all") return txs;
 
+  // start: first day at 00:00; end: last day at 23:59:59.999. (It used to end at 00:00 of
+  // the last day, so that day's transactions fell out, and the week started Monday at
+  // the current time of day.)
   let start: Date, end: Date;
   if (period === "week") {
     const dow = (today.getDay() + 6) % 7;
-    start = new Date(today); start.setDate(today.getDate() - dow + offset * 7);
-    end = new Date(start); end.setDate(start.getDate() + 6);
+    start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow + offset * 7);
+    end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
   } else if (period === "month") {
     const raw = today.getMonth() + offset;
     const y = today.getFullYear() + Math.floor(raw / 12);
@@ -30,6 +33,7 @@ export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   } else {
     return []; // unknown period (JS callers aren't type-checked)
   }
+  end.setHours(23, 59, 59, 999);
 
   return txs.filter((t) => t.date >= start && t.date <= end);
 }
