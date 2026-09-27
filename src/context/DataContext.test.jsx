@@ -245,8 +245,16 @@ describe("DataContext", () => {
     expect(has(insertTx.calls, "insert")[1]).toMatchObject({ user_id: "u1", valor: 15, fecha: "2026-09-02T12:00:00.000Z" })
     // The anomaly column is on its way out: nothing writes it any more.
     expect(has(insertTx.calls, "insert")[1]).not.toHaveProperty("anomaly")
-    expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500 }])
+    expect(has(upsert.calls, "upsert")[1]).toEqual([{ user_id: "u1", categoria: "COMIDA", monto: 500, periodo: "month" }])
     expect(result.current.editBudgets).toEqual({ COMIDA: 500 })
+
+    // A period update is saved with every row and kept in state.
+    await act(() => result.current.setEditBudgets((b) => ({ ...b, VIAJES: 1200 }), { VIAJES: "year" }))
+    expect(has(writes().at(-1).calls, "upsert")[1]).toEqual([
+      { user_id: "u1", categoria: "COMIDA", monto: 500, periodo: "month" },
+      { user_id: "u1", categoria: "VIAJES", monto: 1200, periodo: "year" },
+    ])
+    expect(result.current.budgetPeriods).toEqual({ COMIDA: "month", VIAJES: "year" })
     expect(fake.getUser).not.toHaveBeenCalled()
   })
 })

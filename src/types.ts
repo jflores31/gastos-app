@@ -19,8 +19,9 @@ export type Transaction = {
 
 export type Period = "week" | "month" | "quarter" | "year" | "all"
 
-// Category key → monthly limit.
+// Category key → limit for the budget's period (BudgetPeriod; "month" by default).
 export type Budgets = Record<string, number>
+export type BudgetPeriod = "week" | "month" | "year"
 
 export type Goal = {
   id?: string

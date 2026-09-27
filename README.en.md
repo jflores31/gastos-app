@@ -132,6 +132,14 @@ Drawer with **two tabs** that separate Profile from Settings:
   - **Subscriptions:** one named like a repeated expense (Netflix) merges with it, using the subscription's price. The rest are dated from their last payment (+1 month or +1 year); a monthly one never paid shows as "No date".
   - **Record:** opens the form with the category, concept and amount filled in.
 
+### Budgets by period
+- **Period:** each budget is weekly, monthly or yearly, chosen in "Gestionar" when creating or editing it.
+- **Scaled to the period being viewed:** `budgetFor()` uses `monthCount`'s months (week 0.25, quarter 3, year 12), so a monthly budget looks as it always did. The card of a budget whose period isn't the one on screen also shows its own amount ("S/100/semana").
+- **Alerts at 80 % and 100 %:** `budgetAlerts()` measures spending in the budget's own period (this week, month or year):
+  - the Budget tab shows a strip at the top with the ones at their limit;
+  - saving, editing or importing an expense that crosses a threshold shows a notice ("Llegaste al 85 % del presupuesto de Salud y farmacias");
+  - anything already over the line when the data loads doesn't notify.
+
 ### Responsive Design
 - Tab navigation on desktop, fixed `BottomNavigation` on mobile
 - Period chips with `flexWrap: "wrap"` — no overflow on iPhone SE (320px)
@@ -267,6 +275,7 @@ All tables use RLS with `auth.uid() = user_id`.
 | `20260927000000_schema_hygiene.sql` | `transactions` checks `tipo IN ('INGRESO','EGRESO')` and `valor > 0` in the database; all 8 tables get `updated_at`, kept by a trigger. It includes a query to check beforehand for rows that would fail |
 | `20260927010000_drop_anomaly.sql` | Drops `transactions.anomaly`, which was always `false` (detection runs in the browser). Only once the code that no longer writes it is deployed |
 | `20260927010100_trash.sql` | Trash: `transactions.deleted_at` column and a partial `(user_id, deleted_at)` index for deleted rows |
+| `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` or `year`; existing ones become `month`) with its `CHECK` |
 
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 

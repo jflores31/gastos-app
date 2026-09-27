@@ -9,15 +9,18 @@ import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 
-// "Gestionar presupuestos": edit or delete existing monthly budgets and add new ones
-// (native or custom expense categories). Deleting asks for confirmation.
+// "Gestionar presupuestos": edit or delete existing budgets and add new ones (native or
+// custom expense categories), each weekly, monthly or yearly. Deleting asks for confirmation.
+const PERIODS = ["week", "month", "year"];
 export function ManageBudgetsDialog({ open, onClose, showToast }) {
   const { t, lang, currency, fmt } = useSettings();
-  const { editBudgets, setEditBudgets, deleteBudgetCat, customCats } = useData();
+  const { editBudgets, budgetPeriods, setEditBudgets, deleteBudgetCat, customCats } = useData();
   const [newCat, setNewCat] = useState("");
   const [newBudget, setNewBudget] = useState("");
+  const [newPeriod, setNewPeriod] = useState("month");
   const [editExisting, setEditExisting] = useState(null);
   const [editExistingVal, setEditExistingVal] = useState("");
+  const [editExistingPeriod, setEditExistingPeriod] = useState("month");
   const [deletingCat, setDeletingCat] = useState(null);
 
   const catMeta = (cat) => resolveCategoryMeta(cat, customCats, lang, "EGRESO");
@@ -28,10 +31,11 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
     const v = toBase(parseFloat(newBudget), currency);
     if (!newCat || !(v > 0)) return;
     try {
-      await setEditBudgets((b) => ({ ...b, [newCat]: v }));
+      await setEditBudgets((b) => ({ ...b, [newCat]: v }), { [newCat]: newPeriod });
       showToast?.(t.budgetTab.budgetAdded);
       setNewCat("");
       setNewBudget("");
+      setNewPeriod("month");
     } catch {
       showToast?.(t.budgetTab.errorAddingBudget, "error");
     }
@@ -40,13 +44,14 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
   const startEditExisting = (cat) => {
     setEditExisting(cat);
     setEditExistingVal(String(fromBase(editBudgets[cat], currency)));
+    setEditExistingPeriod(budgetPeriods[cat] ?? "month");
   };
 
   const saveEditExisting = async () => {
     const v = toBase(parseFloat(editExistingVal), currency);
     if (!(v > 0)) { setEditExisting(null); return; }
     try {
-      await setEditBudgets((b) => ({ ...b, [editExisting]: v }));
+      await setEditBudgets((b) => ({ ...b, [editExisting]: v }), { [editExisting]: editExistingPeriod });
       showToast?.(t.budgetTab.budgetUpdated);
     } catch {
       showToast?.(t.budgetTab.errorUpdatingBudget, "error");
@@ -85,13 +90,17 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
                   <ListItem key={cat} sx={{ py: 0.5 }}>
                     {editExisting === cat ? (
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
-                        <TextField size="small" type="number" value={editExistingVal} onChange={(e) => setEditExistingVal(e.target.value)} sx={{ flex: 1 }} autoFocus />
+                        <TextField size="small" type="number" value={editExistingVal} onChange={(e) => setEditExistingVal(e.target.value)} sx={{ flex: 1 }} autoFocus
+                          slotProps={{ htmlInput: { "aria-label": t.budgetTab.budgetAmount } }} />
+                        <Select size="small" value={editExistingPeriod} onChange={(e) => setEditExistingPeriod(e.target.value)} inputProps={{ "aria-label": t.budgetTab.budgetPeriod }}>
+                          {PERIODS.map((p) => <MenuItem key={p} value={p}>{t.budgetTab.periodName(p)}</MenuItem>)}
+                        </Select>
                         <IconButton size="small" color="success" onClick={saveEditExisting} aria-label={t.common.save}><CheckIcon fontSize="small" /></IconButton>
                         <IconButton size="small" onClick={() => setEditExisting(null)} aria-label={t.common.cancel}><CloseIcon fontSize="small" /></IconButton>
                       </Box>
                     ) : (
                       <>
-                        <ListItemText primary={getCatName(cat)} secondary={fmt(amount, true) + (t.common.perMonth)} />
+                        <ListItemText primary={getCatName(cat)} secondary={fmt(amount, true) + t.budgetTab.perPeriod(budgetPeriods[cat] ?? "month")} />
                         <ListItemSecondaryAction>
                           <IconButton size="small" onClick={() => startEditExisting(cat)} aria-label={t.budgetTab.editBudget}><EditIcon fontSize="small" /></IconButton>
                           <IconButton size="small" color="error" onClick={() => setDeletingCat(cat)} aria-label={t.budgetTab.deleteBudget}><DeleteIcon fontSize="small" /></IconButton>
@@ -120,7 +129,15 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
               })}
             </Select>
           </FormControl>
-          <TextField label={t.budgetTab.monthlyAmount} type="number" value={newBudget} onChange={(e) => setNewBudget(e.target.value)} fullWidth />
+          <Box sx={{ display: "flex", gap: 1.5 }}>
+            <TextField label={t.budgetTab.budgetAmount} type="number" value={newBudget} onChange={(e) => setNewBudget(e.target.value)} sx={{ flex: 1 }} />
+            <FormControl sx={{ minWidth: 130 }}>
+              <InputLabel id="budget-period-label">{t.budgetTab.budgetPeriod}</InputLabel>
+              <Select labelId="budget-period-label" label={t.budgetTab.budgetPeriod} value={newPeriod} onChange={(e) => setNewPeriod(e.target.value)}>
+                {PERIODS.map((p) => <MenuItem key={p} value={p}>{t.budgetTab.periodName(p)}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
           <Button variant="outlined" onClick={handleAddBudget} disabled={!newCat || !newBudget} startIcon={<AddIcon />}>
             {t.common.add}
           </Button>

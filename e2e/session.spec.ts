@@ -320,7 +320,7 @@ test("Presupuestos: editar en la tarjeta, agregar (también de una categoría pr
   const add = async (cat: string, amount: string) => {
     await manage.getByRole("combobox", { name: /Categoría/ }).click()
     await page.getByRole("option", { name: cat, exact: true }).click()
-    await manage.getByLabel("Monto mensual").fill(amount)
+    await manage.getByLabel("Monto", { exact: true }).fill(amount)
     await manage.getByRole("button", { name: "Agregar" }).click()
     await expect(manage.getByText(cat, { exact: true })).toBeVisible()
   }
@@ -367,6 +367,43 @@ test("Presupuesto: próximos pagos sin duplicar la suscripción, y Registrar abr
   await form.getByRole("button", { name: "Guardar" }).click()
   await expect(toast(page, "Transacción guardada")).toBeVisible()
   expect((await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "NETFLIX")).toHaveLength(5)
+})
+
+test("Presupuestos semanales: el período se guarda, la franja avisa y un gasto que cruza el 80 % y el 100 % muestra un aviso", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("tab", { name: "Presupuesto" }).click()
+  // Seed: COMIDA (600/month) already has 1,050 spent this month, so the banner lists it
+  // (and nothing toasts on load).
+  const banner = page.getByRole("alert").filter({ hasText: "Presupuestos al límite" })
+  await expect(banner).toContainText("Comida: 175 % del presupuesto mensual")
+
+  await page.getByRole("button", { name: "Gestionar" }).click()
+  const manage = page.getByRole("dialog").filter({ hasText: "Gestionar Presupuestos" })
+  await manage.getByRole("combobox", { name: /Categoría/ }).click()
+  await page.getByRole("option", { name: "Salud y farmacias", exact: true }).click()
+  await manage.getByLabel("Monto", { exact: true }).fill("100")
+  await manage.getByRole("combobox", { name: "Período" }).click()
+  await page.getByRole("option", { name: "Semanal" }).click()
+  await manage.getByRole("button", { name: "Agregar" }).click()
+  await expect(manage.getByRole("listitem").filter({ hasText: "Salud y farmacias" })).toContainText("S/100/semana")
+  await expect.poll(async () => (await mockDb(request, email)).tables.budgets.find((b) => b.categoria === "SALUD")).toMatchObject({ monto: 100, periodo: "week" })
+  await manage.getByRole("button", { name: "Cerrar" }).click()
+
+  const spend = async (amount: string) => {
+    await page.getByRole("button", { name: "Nueva transacción" }).click()
+    await pickCategory(page, "Salud y farmacias")
+    await dialog(page).getByLabel("Concepto").fill("FARMACIA")
+    await dialog(page).getByLabel("Monto").fill(amount)
+    await dialog(page).getByRole("button", { name: "Guardar" }).click()
+    await expect(dialog(page)).toHaveCount(0)
+  }
+  await spend("85")
+  await expect(toast(page, "Llegaste al 85 % del presupuesto de Salud y farmacias")).toBeVisible()
+  await expect(banner).toContainText("Salud y farmacias: 85 % del presupuesto semanal")
+  await spend("20")
+  await expect(toast(page, "Superaste el presupuesto de Salud y farmacias")).toBeVisible()
+  await expect(banner).toContainText("Salud y farmacias: 105 % del presupuesto semanal")
 })
 
 test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {

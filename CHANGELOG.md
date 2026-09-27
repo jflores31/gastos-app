@@ -30,6 +30,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral. ⚠ Ejecutar `supabase/migrations/20260927020000_budget_periods.sql` antes de desplegar.
 - **Papelera:** borrar una transacción la manda a la papelera, con "Deshacer" en el aviso. Desde Perfil → Tus datos → Papelera se restaura o se elimina definitivamente; a los 30 días se eliminan solas. ⚠ Ejecutar `supabase/migrations/20260927010100_trash.sql` antes de desplegar.
 - **Próximos pagos (Presupuesto):** lo que vence hasta el mismo día del mes que viene, a partir de los gastos que se repiten y de las suscripciones (sin contarlas dos veces). Los que ya pasaron sin registrarse salen como vencidos, y "Registrar" abre el formulario lleno.
 - **Importar CSV (Perfil → Tus datos):** el export propio o un archivo de banco con columnas a elegir. Vista previa con filas nuevas, ya registradas y con errores; reimportar un archivo no duplica nada.

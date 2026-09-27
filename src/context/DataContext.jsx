@@ -176,6 +176,7 @@ export function DataProvider({ children }) {
   const [txs, setTxs] = useState([])
   const [trash, setTrash] = useState([]) // deleted transactions, newest deletion first
   const [editBudgets, setEditBudgetsState] = useState({})
+  const [budgetPeriods, setBudgetPeriods] = useState({}) // { categoria: "week" | "month" | "year" }
   const [goals, setGoals] = useState([])
   const [accounts, setAccounts] = useState([])
   const [investments, setInvestments] = useState([])
@@ -255,6 +256,7 @@ export function DataProvider({ children }) {
         if (txData) setTxs(txData.map(mapRow))
         if (budgetData) {
           setEditBudgetsState(Object.fromEntries(budgetData.map((b) => [b.categoria, Number(b.monto)])))
+          setBudgetPeriods(Object.fromEntries(budgetData.map((b) => [b.categoria, b.periodo ?? "month"])))
         }
         if (goalsData) setGoals(goalsData.map(mapGoal))
         if (accountsData) setAccounts(accountsData.map(mapAccount))
@@ -280,6 +282,7 @@ export function DataProvider({ children }) {
         setTxs([])
         setTrash([])
         setEditBudgetsState({})
+        setBudgetPeriods({})
         setGoals([])
         setAccounts([])
         setInvestments([])
@@ -411,30 +414,40 @@ export function DataProvider({ children }) {
     setTrash([])
   }, [supabase, requireUserId])
 
-  // Budgets: one row per category, stored as { categoria: monto } in state.
+  // Budgets: one row per category, stored as { categoria: monto } plus
+  // budgetPeriods { categoria: periodo } in state. `periodUpdates` changes the period of
+  // some categories (new ones default to "month").
   const setEditBudgets = useCallback(
-    async (updater) => {
+    async (updater, periodUpdates = {}) => {
       const newBudgets = typeof updater === "function" ? updater(editBudgets) : updater
+      const newPeriods = { ...budgetPeriods, ...periodUpdates }
       const userId = requireUserId()
 
       const rows = Object.entries(newBudgets).map(([categoria, monto]) => ({
         user_id: userId,
         categoria,
         monto: Number(monto),
+        periodo: newPeriods[categoria] ?? "month",
       }))
       if (rows.length > 0) {
         const { error } = await supabase.from("budgets").upsert(rows, { onConflict: "user_id,categoria" })
         if (error) throw error
       }
       setEditBudgetsState(newBudgets)
+      setBudgetPeriods(Object.fromEntries(rows.map((r) => [r.categoria, r.periodo])))
     },
-    [supabase, requireUserId, editBudgets]
+    [supabase, requireUserId, editBudgets, budgetPeriods]
   )
 
   const deleteBudgetCat = useCallback(async (cat) => {
     const { error } = await supabase.from("budgets").delete().eq("user_id", requireUserId()).eq("categoria", cat)
     if (error) throw error
     setEditBudgetsState((prev) => {
+      const n = { ...prev }
+      delete n[cat]
+      return n
+    })
+    setBudgetPeriods((prev) => {
       const n = { ...prev }
       delete n[cat]
       return n
@@ -471,7 +484,7 @@ export function DataProvider({ children }) {
     () => ({
       txs: flaggedTxs, addTx, addTxs, updateTx, deleteTx,
       trash, restoreTx, purgeTx, emptyTrash,
-      editBudgets, setEditBudgets, deleteBudgetCat,
+      editBudgets, budgetPeriods, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,
@@ -483,7 +496,7 @@ export function DataProvider({ children }) {
     [
       flaggedTxs, addTx, addTxs, updateTx, deleteTx,
       trash, restoreTx, purgeTx, emptyTrash,
-      editBudgets, setEditBudgets, deleteBudgetCat,
+      editBudgets, budgetPeriods, setEditBudgets, deleteBudgetCat,
       customCats, saveCustomCat, deleteCustomCat,
       goals, saveGoal, deleteGoal,
       accounts, saveAccount, deleteAccount,

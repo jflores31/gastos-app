@@ -25,6 +25,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
 import { createClient } from "../lib/supabase";
+import { useBudgetAlertToasts } from "../hooks/useBudgetAlertToasts.js";
 import OverviewTab from "./OverviewTab.jsx";
 import ExpensesTab from "./ExpensesTab.jsx";
 import IncomeTab from "./IncomeTab.jsx";
@@ -67,6 +68,8 @@ export default function DashboardStudio() {
     setToast({ msg, severity, duration, action, id: Date.now() });
     toastTimer.current = setTimeout(() => setToast(null), duration);
   }, []);
+
+  useBudgetAlertToasts(showToast);
 
   const handleAddTx = useCallback(() => {
     showToast(t.dashboard.transactionSaved, "success");

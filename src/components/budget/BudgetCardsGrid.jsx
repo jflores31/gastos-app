@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, Button, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon } from "../../theme/icons";
 import { toBase, fromBase } from "../../data/index";
-import { monthCount } from "../../data/helpers";
+import { budgetFor } from "../../data/helpers";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";
@@ -42,10 +42,11 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
 
 function BudgetCard({ cat, spent, period, showToast }) {
   const { t, lang, currency, fmt } = useSettings();
-  const { editBudgets, setEditBudgets, customCats } = useData();
+  const { editBudgets, budgetPeriods, setEditBudgets, customCats } = useData();
   const [editing, setEditing] = useState(false);
   const [editVal, setEditVal] = useState("");
-  const limit = editBudgets[cat] * monthCount(period);
+  const budgetPeriod = budgetPeriods[cat] ?? "month";
+  const limit = budgetFor(editBudgets[cat], budgetPeriod, period);
   const pct = limit ? spent / limit : 0;
   const { label: catName, color, Icon } = resolveCategoryMeta(cat, customCats, lang, "EGRESO");
   const isOver = pct > 1;
@@ -72,7 +73,15 @@ function BudgetCard({ cat, spent, period, showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <CategoryAvatar icon={Icon} color={color} size={36} />
-              <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
+                {/* The budget's own amount and period when it isn't the one being viewed. */}
+                {budgetPeriod !== period && (
+                  <Typography variant="caption" color="text.secondary" noWrap component="div">
+                    {fmt(editBudgets[cat], true)}{t.budgetTab.perPeriod(budgetPeriod)}
+                  </Typography>
+                )}
+              </Box>
             </Box>
             {isWarning && !isOver && <Chip size="small" label="80%" color="warning" sx={{ height: 20, fontSize: 10 }} />}
             {isOver && <Chip size="small" label="!" color="error" sx={{ height: 20, fontWeight: 700 }} />}

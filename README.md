@@ -132,6 +132,14 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
   - **Suscripciones:** una con el mismo nombre que un gasto repetido (Netflix) se une a él, con el precio de la suscripción. Las demás se fechan con su último pago (+1 mes o +1 año); una mensual nunca pagada aparece "Sin fecha".
   - **Registrar:** abre el formulario con la categoría, el concepto y el monto ya puestos.
 
+### Presupuestos por período
+- **Período:** cada presupuesto es semanal, mensual o anual; se elige en "Gestionar" al crearlo o editarlo.
+- **Escala al período que se ve:** `budgetFor()` usa los meses de `monthCount` (semana 0,25, trimestre 3, año 12), así un presupuesto mensual se ve como siempre. La tarjeta de uno que no es del período que se ve muestra también su monto propio ("S/100/semana").
+- **Alertas al 80 % y al 100 %:** `budgetAlerts()` mide lo gastado en el período del propio presupuesto (esta semana, este mes o este año):
+  - Presupuesto muestra arriba una franja con los que están al límite;
+  - al guardar, editar o importar un gasto que cruza uno de esos umbrales aparece un aviso ("Llegaste al 85 % del presupuesto de Salud y farmacias");
+  - lo que ya estaba pasado al cargar los datos no avisa.
+
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
 - Chips de período con `flexWrap: "wrap"` — no desbordan en iPhone SE (320px)
@@ -267,6 +275,7 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `20260927000000_schema_hygiene.sql` | `transactions` valida en la base `tipo IN ('INGRESO','EGRESO')` y `valor > 0`; las 8 tablas tienen `updated_at`, que actualiza un trigger. Trae una consulta para revisar antes si hay filas que no cumplen |
 | `20260927010000_drop_anomaly.sql` | Borra `transactions.anomaly`, que siempre valía `false` (la detección vive en el navegador). Solo con el código que ya no la escribe desplegado |
 | `20260927010100_trash.sql` | Papelera: columna `transactions.deleted_at` e índice parcial `(user_id, deleted_at)` para las borradas |
+| `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` o `year`; los existentes quedan como `month`) con su `CHECK` |
 
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
