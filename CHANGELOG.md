@@ -58,6 +58,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - `npm audit`: 0 vulnerabilidades.
 
 ### Corregido
+- **Transacciones que no contaban en su período:** el mes, el trimestre y el año terminaban a las 00:00 del último día, así que lo registrado ese día después de medianoche no entraba en los totales (el 30 de septiembre por la tarde no contaba en septiembre). La semana empezaba el lunes a la hora actual, no a las 00:00. Ahora los límites son días completos.
 - **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
 - **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.
 - **Error de hidratación intermitente (React #418):**

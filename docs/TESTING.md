@@ -33,11 +33,11 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 166 tests en 18 archivos
+### Unitarios y componentes: 168 tests en 18 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
-| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 29 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo) |
+| [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 31 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo); incluye que los períodos sean días completos |
 | [`src/data/currency.test.js`](../src/data/currency.test.js) | 16 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
