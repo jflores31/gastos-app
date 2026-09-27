@@ -260,6 +260,7 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 |---|---|
 | `20260618000000_init.sql` | Las 8 tablas, índices `(user_id, …)` y políticas RLS con `(select auth.uid())` |
 | `20260927000000_schema_hygiene.sql` | `transactions` valida en la base `tipo IN ('INGRESO','EGRESO')` y `valor > 0`; las 8 tablas tienen `updated_at`, que actualiza un trigger. Trae una consulta para revisar antes si hay filas que no cumplen |
+| `20260927010000_drop_anomaly.sql` | Borra `transactions.anomaly`, que siempre valía `false` (la detección vive en el navegador). Solo con el código que ya no la escribe desplegado |
 
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
