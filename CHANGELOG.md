@@ -33,7 +33,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Moneda de cada transacción y tasas del día:**
   - el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente;
   - se guarda el monto en PEN, como siempre, y además la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha, y al editar se abre en su moneda con la tasa con que se guardó;
-  - los montos se convierten con las tasas del día de open.er-api.com, pedidas desde el servidor (`/api/rates`, caché de 12 h). Si no responde, se usan las fijas de antes. Ajustes muestra de qué día son y la cotización ("1 USD = S/3.85");
+  - los montos se convierten con las tasas del día de open.er-api.com, pedidas desde el servidor (`/api/rates`, caché de 12 h). Si no responde, se usan las fijas de antes. Ajustes muestra de qué día son, la cotización ("1 USD = S/3.85") y la atribución que pide el proveedor;
   - el CSV exportado suma las columnas `moneda`, `monto_original` y `tasa`, y la importación las lee (los CSV anteriores siguen sirviendo). Un CSV de banco se importa en la moneda que se elija.
   - ⚠ Ejecutar `supabase/migrations/20260927030000_tx_currency.sql` antes de desplegar.
 - **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral. ⚠ Ejecutar `supabase/migrations/20260927020000_budget_periods.sql` antes de desplegar.

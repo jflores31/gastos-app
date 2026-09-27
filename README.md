@@ -350,8 +350,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
   - `src/lib/rates.ts` las pide a [open.er-api.com](https://open.er-api.com) (gratis, sin clave, se actualiza a diario) desde el servidor, con caché de 12 h;
   - el navegador solo habla con `/api/rates` (detrás del login), así que el CSP sigue en `'self'` y el proveedor no ve quién pregunta;
   - si el proveedor falla o responde algo raro (otra base, una tasa que falta, 0), se usan las fijas de `CURRENCIES`, igual que hasta que llegan: el render del servidor siempre usa las fijas;
-  - `RATES_API_URL` apunta a otro proveedor con el mismo formato (los e2e usan el Supabase simulado).
+  - `RATES_API_URL` apunta a otro proveedor con el mismo formato (los e2e usan el Supabase simulado);
+  - el acceso gratuito sin clave pide atribución donde se muestran las tasas: Ajustes enlaza "Rates By Exchange Rate API" junto a la fecha.
 - **Transacciones:** guardan también `moneda`, `monto_original` (lo escrito) y `tasa` (unidades de esa moneda por 1 PEN, la de ese día); en PEN, los dos últimos quedan en `null`. Así una transacción en la misma moneda que la app se muestra exactamente como se escribió (`fmtTx()`), y en otra, con lo escrito aparte (`txOriginal()`). Al importar un CSV, las repetidas se comparan por lo escrito, así reimportar un archivo en dólares otro día (con otra tasa) las sigue detectando.
+- **Límites conocidos (con la app en otra moneda que PEN):**
+  - los totales suman `valor` en PEN y lo convierten con la tasa de hoy, como Cashew: un total en dólares puede diferir unos centavos de la suma de lo escrito en cada fila si la tasa cambió desde entonces;
+  - presupuestos, metas, cuentas, inversiones, deudas y suscripciones guardan solo el monto en PEN, así que en dólares se ven con la tasa de hoy: un presupuesto de $100 puede verse como $96 si el dólar subió. Guardar la moneda también en esas tablas sería otro cambio de esquema.
 
 **Tipo de transacción derivado de la categoría (no del toggle):** en `AddTransactionModal`, el `tipo` (INGRESO/EGRESO) que se guarda es el de la **categoría seleccionada** (`categoria.type`). Las categorías personalizadas se muestran sin importar el toggle, y guardar el `tipo` del toggle hacía que un ingreso personalizado se registrara como gasto. El `onChange` del Autocomplete también sincroniza el toggle. Backfill de datos viejos: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 

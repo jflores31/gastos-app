@@ -94,7 +94,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Papelera:** restaurar, eliminar definitivamente (con confirmación) y vaciar, comprobando la base simulada después de cada paso.
 - **Categoría sugerida:** "netflix" completa Streaming (historial) y "gasolina grifo" Gasolina (catálogo); un concepto sin coincidencias la quita; una categoría elegida a mano no cambia; la transacción se guarda con la categoría sugerida.
 - **Moneda y tasas del día:**
-  - en USD, Ajustes muestra las tasas del día del proveedor simulado ("1 USD = S/3.85") y los montos se convierten con ellas; un gasto de $26 se guarda como S/100 con `moneda`, `monto_original` y `tasa`;
+  - en USD, Ajustes muestra las tasas del día del proveedor simulado ("1 USD = S/3.85"), con el enlace de atribución, y los montos se convierten con ellas; un gasto de $26 se guarda como S/100 con `moneda`, `monto_original` y `tasa`;
   - con la app en soles, un gasto en euros muestra el equivalente en el formulario y ambos montos en la lista, y se edita en euros con la tasa con que se guardó.
 - **Iconos:** una meta nueva y una categoría personalizada se guardan con su icono.
 - **Metas:** cuentas, inversiones, deudas y suscripciones se crean, editan y borran. Incluye una suscripción con categoría propia.

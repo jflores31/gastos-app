@@ -1,9 +1,13 @@
-import { Box, Chip, Divider, FormControl, FormHelperText, InputLabel, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
+import { Box, Chip, Divider, FormControl, FormHelperText, InputLabel, Link, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "../../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "../../context/SettingsContext";
 import { CURRENCIES, rateLabel } from "../../data/index";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
+
+// The free (no key) open.er-api.com endpoint that src/lib/rates.ts uses asks for this
+// attribution wherever its rates are shown.
+const RATES_ATTRIBUTION = { text: "Rates By Exchange Rate API", href: "https://www.exchangerate-api.com" };
 
 // "Ajustes" tab of the settings panel: theme, density, accent colour, language, currency,
 // inactivity timeout.
@@ -79,7 +83,15 @@ export function PreferencesTab() {
               <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
             ))}
           </Select>
-          <FormHelperText>{ratesInfo}</FormHelperText>
+          <FormHelperText>
+            {ratesInfo}
+            {rates.source === "live" && (
+              <>
+                {" · "}
+                <Link href={RATES_ATTRIBUTION.href} target="_blank" rel="noopener noreferrer" color="inherit">{RATES_ATTRIBUTION.text}</Link>
+              </>
+            )}
+          </FormHelperText>
         </FormControl>
       </ListItem>
 

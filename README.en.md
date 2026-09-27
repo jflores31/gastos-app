@@ -350,8 +350,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
   - `src/lib/rates.ts` fetches them from [open.er-api.com](https://open.er-api.com) (free, no key, updated daily) on the server, cached for 12 h;
   - the browser only talks to `/api/rates` (behind the login), so the CSP stays `'self'` and the provider never sees who is asking;
   - if the provider fails or answers something odd (another base, a missing rate, 0), the fixed ones from `CURRENCIES` are used, as they are until the answer arrives: server rendering always uses the fixed ones;
-  - `RATES_API_URL` points it at another provider with the same format (the e2e tests use the mock Supabase).
+  - `RATES_API_URL` points it at another provider with the same format (the e2e tests use the mock Supabase);
+  - the free no-key access asks for attribution where the rates are shown: Settings links "Rates By Exchange Rate API" next to the date.
 - **Transactions:** they also store `moneda` (currency), `monto_original` (what was typed) and `tasa` (units of that currency per 1 PEN, that day's); in PEN the last two stay `null`. So a transaction in the app's current currency shows exactly what was typed (`fmtTx()`), and one in another currency shows what was typed next to it (`txOriginal()`). When importing a CSV, duplicates are compared by what was typed, so importing a dollar file again on another day (at another rate) still detects them.
+- **Known limits (with the app in a currency other than PEN):**
+  - totals add up `valor` in PEN and convert it at today's rate, like Cashew: a dollar total can differ by a few cents from the sum of what was typed in each row if the rate moved since;
+  - budgets, goals, accounts, investments, debts and subscriptions only store the PEN amount, so in dollars they show at today's rate: a $100 budget can show as $96 if the dollar went up. Storing the currency in those tables too would be another schema change.
 
 **Transaction type derived from the category (not the toggle):** in `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) is the **selected category's** type (`categoria.type`). Custom categories are shown regardless of the toggle, and saving the toggle's `tipo` recorded a custom income as an expense. The Autocomplete's `onChange` also syncs the toggle. Backfill for old data: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 

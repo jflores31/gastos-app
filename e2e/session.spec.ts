@@ -187,7 +187,10 @@ test("en USD los montos se muestran con la tasa del día y se guardan en PEN jun
   await dialog(page).getByRole("combobox", { name: /Moneda/ }).click()
   await page.getByRole("option", { name: /USD/ }).click()
   // The mock provider answers USD 0.26 (the fixed rate is 0.27), dated 27 Sep 2026.
-  await expect(dialog(page).getByText(/^Tasas del día \(27 .*2026\) · 1 USD = S\/3\.85$/)).toBeVisible()
+  const ratesInfo = dialog(page).getByText(/^Tasas del día \(27 .*2026\) · 1 USD = S\/3\.85 · Rates By Exchange Rate API$/)
+  await expect(ratesInfo).toBeVisible()
+  // The free endpoint asks for this attribution where its rates are shown.
+  await expect(ratesInfo.getByRole("link", { name: "Rates By Exchange Rate API" })).toHaveAttribute("href", "https://www.exchangerate-api.com")
   await page.getByRole("button", { name: "Cerrar" }).click()
   await expect(page.getByText("$910").first()).toBeVisible() // S/3,500 × 0.26
 
