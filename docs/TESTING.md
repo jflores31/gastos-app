@@ -33,27 +33,28 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 168 tests en 18 archivos
+### Unitarios y componentes: 193 tests en 19 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
 | [`src/data/helpers.test.js`](../src/data/helpers.test.js) | 31 | [`helpers.ts`](../src/data/helpers.ts), el eslabón que tocan las pestañas (detalle abajo); incluye que los períodos sean días completos |
-| [`src/data/currency.test.js`](../src/data/currency.test.js) | 16 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos |
+| [`src/data/currency.test.js`](../src/data/currency.test.js) | 21 | `toBase` / `fromBase`: PEN sin conversión, redondeo, que lo escrito sea lo que muestra `fmtMoney`, ida y vuelta en cada moneda, moneda desconocida, strings numéricos. `fmtMoney` usa el locale del idioma (no el del navegador) y redondea igual los negativos. **Tasas del día:** `setLiveRates` reemplaza las fijas (lo que falta o no es válido sigue fijo), `toBase` con la tasa de una transacción, `rateLabel` ("1 USD = S/3.85", "S/1 = 1,100 COP") y `fmtAmount` (un monto ya en su moneda) |
 | [`src/data/fetchAllRows.test.js`](../src/data/fetchAllRows.test.js) | 5 | Paginación de más de 1000 filas: sin duplicados, total múltiplo exacto de la página, tabla vacía, `pageSize` propio, error → todo o nada |
 | [`src/theme/categoryIcons.test.js`](../src/theme/categoryIcons.test.js) | 11 | Toda categoría tiene icono y no hay claves huérfanas. `iconByName` y `resolveCategoryMeta` con categorías nativas, repetidas (`REGALOS`), personalizadas, borradas y desconocidas |
 | [`src/lib/reportError.test.js`](../src/lib/reportError.test.js) | 8 | Reporte de errores del navegador: recorte de campos, solo el pathname (sin query), sin repetidos, tope de 10, `fetch` si no hay `sendBeacon`, nunca lanza |
 | [`src/app/api/client-error/route.test.js`](../src/app/api/client-error/route.test.js) | 4 | La ruta escribe una línea JSON y responde 204. Descarta campos desconocidos, 400 si el JSON es inválido, 413 si pasa de 8 KB |
 | [`src/app/api/csp-report/route.test.js`](../src/app/api/csp-report/route.test.js) | 4 | **Reportes del CSP:** formato `report-uri` y de la Reporting API, URLs sin query ni hash, campos desconocidos descartados, máximo 10 por envío, 400 y 413 |
-| [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 4 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27`; editar precarga el monto en la moneda elegida; el tope se valida en PEN |
+| [`src/app/api/rates/route.test.js`](../src/app/api/rates/route.test.js) | 8 | **Tasas del día:** del proveedor, solo las monedas de la app y con su fecha; `RATES_API_URL`; las fijas si el proveedor falla (error HTTP, respuesta de error, otra base, una tasa que falta o absurda, sin respuesta) |
+| [`src/components/AddTransactionModal.test.jsx`](../src/components/AddTransactionModal.test.jsx) | 7 | **Moneda en el modal:** PEN tal cual; en USD guarda `100 / 0.27` con lo escrito y la tasa; en otra moneda que la de la app usa la tasa del día y muestra el equivalente; editar precarga la moneda y el monto de la transacción y conserva su tasa, salvo que cambie la moneda; el tope se valida en PEN |
 | [`src/theme/IconPicker.test.jsx`](../src/theme/IconPicker.test.jsx) | 3 | Una opción por icono con su nombre traducido, marca la seleccionada, devuelve la clave, un glifo viejo no marca nada |
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
 | [`src/data/suggest.test.js`](../src/data/suggest.test.js) | 11 | **Categoría sugerida:** normalización (mayúsculas, tildes, espacios); historial (la más usada, empate → la más reciente, categorías propias, filtro por tipo, gana al catálogo); catálogo (concepto o nombre como palabras completas, gana la que coincide en más palabras, empate → nada) |
-| [`src/data/import.test.js`](../src/data/import.test.js) | 25 | **Importar CSV:** RFC 4180 (comillas, saltos de línea, BOM, `;`), montos en varios formatos, fechas ISO y `DD/MM/AAAA` (e imposibles), columnas del export propio y de un banco, tipo por signo, categoría del archivo / sugerida / por defecto, líneas inválidas, **ida y vuelta con `transactionsToCsv`** y repetidas (una ya guardada absorbe una fila) |
+| [`src/data/import.test.js`](../src/data/import.test.js) | 27 | **Importar CSV:** RFC 4180 (comillas, saltos de línea, BOM, `;`), montos en varios formatos, fechas ISO y `DD/MM/AAAA` (e imposibles), columnas del export propio (con o sin las de moneda) y de un banco, tipo por signo, categoría del archivo / sugerida / por defecto, líneas inválidas, **ida y vuelta con `transactionsToCsv`** (también la moneda, lo escrito y la tasa) y repetidas (una ya guardada absorbe una fila). Un archivo en otra moneda guarda lo escrito y la tasa del día, y reimportarlo con otra tasa sigue detectando las repetidas |
 | [`src/data/budgets.test.js`](../src/data/budgets.test.js) | 5 | **Presupuestos por período:** `budgetFor` deja igual un presupuesto mensual y escala semanal/anual; `budgetAlerts` avisa al 80 % y al 100 % en el período del propio presupuesto, la semana empieza el lunes y un año nuevo empieza de cero |
 | [`src/data/upcoming.test.js`](../src/data/upcoming.test.js) | 6 | **Próximos pagos** con fechas fijas: pagado este mes → mes siguiente, pendiente → este mes, día pasado sin registrar → vencido, día 31 en febrero, el 1 del mes siguiente entra, suscripción unida a su recurrente, suscripciones fechadas por su último pago (mensual y anual) o sin fecha, ingresos nunca |
-| [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas, copia JSON con todas las tablas, nombres de archivo |
-| [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 6 | `fmt()` por moneda e idioma, **modo privacidad** (enmascara, cambia con la moneda, se guarda) e **inactividad** (2 min por defecto, valor inválido → 2, un cambio en otra pestaña llega a esta) |
-| [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 12 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama. `addTxs` inserta en lotes de 500 y, si uno falla, informa cuántas se guardaron. **Papelera:** la lista activa pide `deleted_at IS NULL` y la papelera el resto; borrar hace `update` de `deleted_at`, restaurar lo vuelve a `null`, eliminar definitivamente y vaciar son `delete` solo de filas en la papelera, y al cargar se borran las de más de 30 días |
+| [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas (con la moneda, lo escrito y la tasa de cada una), copia JSON con todas las tablas, nombres de archivo |
+| [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 12 | `fmt()` por moneda e idioma, **modo privacidad** (enmascara, cambia con la moneda, se guarda) e **inactividad** (2 min por defecto, valor inválido → 2, un cambio en otra pestaña llega a esta). **Moneda de cada transacción:** `fmtTx` muestra exactamente lo escrito si la app está en esa moneda y `txOriginal` lo muestra aparte si no. **Tasas del día:** sin sesión no se piden; con sesión vienen de `/api/rates` y convierten los montos; si la ruta falla quedan las fijas |
+| [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 13 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama. `addTxs` inserta en lotes de 500 y, si uno falla, informa cuántas se guardaron. La moneda de cada transacción se lee de la fila y se envía en cada escritura; volver a PEN limpia lo escrito y la tasa. **Papelera:** la lista activa pide `deleted_at IS NULL` y la papelera el resto; borrar hace `update` de `deleted_at`, restaurar lo vuelve a `null`, eliminar definitivamente y vaciar son `delete` solo de filas en la papelera, y al cargar se borran las de más de 30 días |
 | [`src/hooks/useLocalStorage.test.jsx`](../src/hooks/useLocalStorage.test.jsx) | 4 | **Hidratación del tema:** el primer render usa el valor por defecto aunque haya uno guardado. También cubre la persistencia, el updater funcional y un valor inválido |
 
 Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintroduciendo el código anterior**: con él fallan 3 de 4, 1 de 4 y 4 de 8, respectivamente. En `DataContext`, los 4 que siguen pasando describen comportamiento que no cambió.
@@ -77,9 +78,9 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
 - **Reporte de errores:**
   - un error no capturado llega a `/api/client-error` (204), sin la query de la URL;
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
-  - las demás rutas `/api` siguen protegidas (307 → `/login`).
+  - las demás rutas `/api` siguen protegidas (307 → `/login`), incluida `/api/rates`.
 
-### End-to-end con sesión: 21 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 22 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse. Todos fallan si la consola registra una violación del CSP (`afterEach`).
 
@@ -92,7 +93,9 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Gasto de punta a punta:** el alta, la edición y el borrado llegan a la base con el `user_id` de la sesión. El borrado deja `deleted_at` en la fila y "Deshacer" lo revierte.
 - **Papelera:** restaurar, eliminar definitivamente (con confirmación) y vaciar, comprobando la base simulada después de cada paso.
 - **Categoría sugerida:** "netflix" completa Streaming (historial) y "gasolina grifo" Gasolina (catálogo); un concepto sin coincidencias la quita; una categoría elegida a mano no cambia; la transacción se guarda con la categoría sugerida.
-- **Moneda:** en USD los montos se muestran convertidos y un gasto de $27 se guarda como S/100.
+- **Moneda y tasas del día:**
+  - en USD, Ajustes muestra las tasas del día del proveedor simulado ("1 USD = S/3.85") y los montos se convierten con ellas; un gasto de $26 se guarda como S/100 con `moneda`, `monto_original` y `tasa`;
+  - con la app en soles, un gasto en euros muestra el equivalente en el formulario y ambos montos en la lista, y se edita en euros con la tasa con que se guardó.
 - **Iconos:** una meta nueva y una categoría personalizada se guardan con su icono.
 - **Metas:** cuentas, inversiones, deudas y suscripciones se crean, editan y borran. Incluye una suscripción con categoría propia.
 - **Presupuestos:**
@@ -125,10 +128,11 @@ Un servidor Node sin dependencias que imita lo que la app usa de Supabase:
   - `select` con filtros (`eq`, `in`, `gt`…), `order` y paginación;
   - `insert`, `update`, `delete` y `upsert`;
   - `.single()`.
-- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`, aplicadas en el orden de sus nombres (fechas), igual que en Supabase. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK` (`col IN (…)` y `col > 0`, en la tabla o con `ADD CONSTRAINT`).
+- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`, aplicadas en el orden de sus nombres (fechas), igual que en Supabase. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK` (`col IN (…)` y `col > 0`, en la tabla o con `ADD CONSTRAINT`, en una o varias líneas).
 - **RLS:** cada usuario solo ve y escribe sus filas. Insertar con otro `user_id` devuelve `42501`.
 - **Datos iniciales ([`seed.mjs`](../e2e/mock-supabase/seed.mjs)):** cuatro meses de movimientos (con una anomalía este mes) y una fila en cada tabla. Las fechas son relativas a hoy.
 - **Para los tests:** `GET /__mock/db?email=…` devuelve las filas de ese usuario, para comprobar qué se guardó.
+- **Tasas de cambio:** `GET /__mock/rates` responde como open.er-api.com, con USD a 0.26 (la fija es 0.27) para distinguir unas de otras. Playwright apunta `RATES_API_URL` ahí.
 
 Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento exacto de Postgres. Para eso sigue haciendo falta probar en el preview de Vercel.
 

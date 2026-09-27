@@ -73,6 +73,7 @@
   - las tasas no se actualizan;
   - redondear a 2 decimales en PEN introduce un error de hasta ~5 unidades en COP (medio céntimo × 1100).
 - ⚠ Al elegir la fuente de tasas, verificar que cubra **PEN, COP, ARS y CLP**: las tasas de referencia del BCE (base de varias APIs gratuitas) no publican esas monedas.
+- ✅ **Hecho (ideas 2 y 3):** cada transacción guarda su moneda, lo escrito y la tasa de ese día, y los montos se muestran con las tasas del día de open.er-api.com, que sí publica las 8 monedas. Las fijas quedan de respaldo. El redondeo en PEN sigue, pero lo escrito ya no se pierde.
 
 **2. Presupuesto y recurrentes.**
 - Actual usa sobres; el resto, presupuestos por categoría y período.
@@ -98,8 +99,8 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | # | Idea | Impacto | Esfuerzo | Inspirado en | Dónde tocaría gastos-app |
 |---|---|---|---|---|---|
 | 1 | ✅ **Importar CSV** de movimientos, con mapeo de columnas (Perfil → Tus datos) | Alto | Medio | ezBookkeeping, Cashew, Usmansagemode | Nuevo `src/data/import/`; botón en `ExpensesTab` / `IncomeTab`; `addTx` en lote en `DataContext` |
-| 2 | **Moneda por transacción** + tasa guardada al registrar | Alto | Alto | expense-budget-tracker, ezBookkeeping | Columnas `moneda` y `tasa` en `transactions` (`schema.sql`); `AddTransactionModal`; `fmtMoney` y todos los totales |
-| 3 | **Tasas de cambio actualizadas** (una vez al día, con caché) | Medio | Medio | ezBookkeeping, Wallos | Route handler `src/app/api/rates/route.ts`; `CURRENCIES.rate` pasa a ser el respaldo; `connect-src` del CSP en `src/proxy.ts` |
+| 2 | ✅ **Moneda por transacción** + tasa guardada al registrar (selector junto al monto; la lista muestra lo escrito) | Alto | Alto | expense-budget-tracker, ezBookkeeping | Columnas `moneda`, `monto_original` y `tasa` en `transactions` (`20260927030000_tx_currency.sql`); `AddTransactionModal`; `fmtTx` / `txOriginal` en `SettingsContext`; export e importación CSV |
+| 3 | ✅ **Tasas de cambio actualizadas** (una vez al día, con caché): open.er-api.com desde el servidor, caché de 12 h | Medio | Medio | ezBookkeeping, Wallos | Route handler `src/app/api/rates/route.ts` + `src/lib/rates.ts`; `CURRENCIES.rate` pasa a ser el respaldo; el CSP no cambia (el navegador solo habla con `/api/rates`) |
 | 4 | **Totales agregados en Postgres** (vistas o RPC por mes y categoría) | Alto | Medio | GeorgeDanicico | una migración nueva (vistas / `rpc`); `DataContext`; `txByMonth` y `txByCategory` en `src/data/index.ts` |
 | 5 | ✅ **Recurrentes programados** (próximos pagos, generar la transacción): tarjeta "Próximos pagos" con "Registrar" | Alto | Medio | Firefly, Cashew, BudgetBee | Unificar `subscriptions` y `recurringList`; nueva sección en `BudgetTab` |
 | 6 | ✅ **Exportar CSV/JSON** | Medio | Bajo | valiance, Usmansagemode | Botón en `SettingsPanel`; serializar `txs` de `DataContext` |

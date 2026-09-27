@@ -30,6 +30,12 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
+- **Moneda de cada transacción y tasas del día:**
+  - el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente;
+  - se guarda el monto en PEN, como siempre, y además la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha, y al editar se abre en su moneda con la tasa con que se guardó;
+  - los montos se convierten con las tasas del día de open.er-api.com, pedidas desde el servidor (`/api/rates`, caché de 12 h). Si no responde, se usan las fijas de antes. Ajustes muestra de qué día son y la cotización ("1 USD = S/3.85");
+  - el CSV exportado suma las columnas `moneda`, `monto_original` y `tasa`, y la importación las lee (los CSV anteriores siguen sirviendo). Un CSV de banco se importa en la moneda que se elija.
+  - ⚠ Ejecutar `supabase/migrations/20260927030000_tx_currency.sql` antes de desplegar.
 - **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral. ⚠ Ejecutar `supabase/migrations/20260927020000_budget_periods.sql` antes de desplegar.
 - **Papelera:** borrar una transacción la manda a la papelera, con "Deshacer" en el aviso. Desde Perfil → Tus datos → Papelera se restaura o se elimina definitivamente; a los 30 días se eliminan solas. ⚠ Ejecutar `supabase/migrations/20260927010100_trash.sql` antes de desplegar.
 - **Próximos pagos (Presupuesto):** lo que vence hasta el mismo día del mes que viene, a partir de los gastos que se repiten y de las suscripciones (sin contarlas dos veces). Los que ya pasaron sin registrarse salen como vencidos, y "Registrar" abre el formulario lleno.
@@ -43,6 +49,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
+- **Moneda de cada transacción:** `20260927030000_tx_currency.sql` agrega `transactions.moneda` (una de las 8 monedas, `PEN` por defecto: las existentes quedan así), `monto_original` y `tasa`, con `CHECK` de moneda válida y montos positivos. Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos, y RLS sigue aislando a cada usuario.
 - **Sin la columna `anomaly`:** `20260927010000_drop_anomaly.sql` la borra; siempre valía `false` y el código ya no la escribe.
 - **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las 8 tablas tienen `updated_at`, que mantiene un trigger. El código ya no escribe la columna `anomaly` (siempre `false`); se borra en una migración posterior, una vez desplegado este código. ⚠ Ejecutar `supabase/migrations/20260927000000_schema_hygiene.sql` antes de desplegar.
 - **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.

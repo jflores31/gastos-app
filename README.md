@@ -68,6 +68,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - **CalendarFilter:** mapa de calor interactivo — vista por día y mes con intensidad proporcional; click filtra la lista, el footer muestra el total filtrado con etiqueta "(filtrado)"
 - Footer total actualiza en tiempo real al aplicar cualquier filtro
 - Fecha y hora completa en cada transacción
+- **Moneda de cada transacción:** el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente ("≈ S/200"). Se guarda el monto en PEN y, además, la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha ("· €50") cuando la app está en otra moneda, y exactamente lo escrito cuando está en la misma. Al editar se abre en su moneda y conserva su tasa, salvo que se cambie la moneda
 
 ### Ingresos (IncomeTab)
 - Tarjeta de ingresos totales con sparkline; chip `+X.X% vs ant.` oculto cuando no hay período anterior (`dIn = null`)
@@ -98,14 +99,14 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 ### Perfil y Configuración (SettingsPanel)
 Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - **Perfil:** hero con avatar, nombre y email; **Datos personales** (editar nombre y apellidos — se guardan como `first_name`/`last_name` + `full_name` sincronizado); **Categorías Favoritas** (aparecen primero en el selector de transacciones) y **Mis Categorías** (CRUD de categorías propias — nombre, tipo, color e icono — en Supabase)
-- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN: los formularios convierten con `toBase()` al guardar y `fromBase()` al editar (`src/data/index.ts`), con tasas fijas
+- **Ajustes:** tema claro/oscuro, paletas de acento (puntos con `flexWrap` en mobile), densidad Comfy/Compact, idioma Español/Inglés, 8 monedas (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Los montos se guardan siempre en PEN y se muestran con las **tasas del día** (`/api/rates`; si el proveedor no responde, las fijas de `CURRENCIES`). Debajo de la moneda se ve de qué día son y la cotización ("1 USD = S/3.85")
 - El **avatar** de la AppBar abre Perfil; el **engranaje** abre Ajustes (prop `initialTab`)
 - **Toggle día/noche en el login** (`AuthThemeToggle`): el usuario elige tema antes de entrar; persiste en `localStorage`
 
 ### Privacidad, exportación y app instalable
 - **Modo privacidad:** el botón del ojo en la barra superior oculta todos los montos ("S/••••"). Se recuerda en el navegador. Los montos se formatean con `fmt()` de `useSettings()`, que ya conoce la moneda y este modo.
 - **Tus datos (Perfil):**
-  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN, celdas protegidas contra fórmulas);
+  - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN junto con la moneda, lo escrito y la tasa de cada una, celdas protegidas contra fórmulas);
   - todo se descarga como copia completa en JSON (`src/data/export.ts`).
 - **Papelera (Perfil → Tus datos):**
   - borrar una transacción no pide confirmación: va a la papelera (`deleted_at`) y un aviso ofrece "Deshacer" durante 6 segundos;
@@ -184,6 +185,7 @@ src/
 │   ├── auth/callback/route.ts      # Canje del código PKCE de OAuth (OAuth desactivado por ahora)
 │   ├── api/client-error/route.ts   # Recibe errores del navegador y los escribe en los logs del servidor
 │   ├── api/csp-report/route.ts     # Recibe las violaciones del CSP y las escribe en los logs
+│   ├── api/rates/route.ts          # Tasas de cambio del día (detrás del login)
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
@@ -209,10 +211,10 @@ src/
 ├── context/
 │   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
-│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES
+│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES; fmt, fmtTx, tasas del día
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
+│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase, setLiveRates
 │   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   upcomingPayments, insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
@@ -237,6 +239,7 @@ src/
 │   └── useLocalStorage.ts          # Valor por defecto en el primer render; el guardado, tras montar
 ├── lib/
 │   ├── featureFlags.ts             # OAUTH_ENABLED (login, registro y LoginModal)
+│   ├── rates.ts                    # fetchRates(): tasas del día de open.er-api.com, o las fijas
 │   ├── reportError.ts              # Envía errores del navegador a /api/client-error
 │   ├── supabase.ts                 # Cliente browser (createBrowserClient)
 │   └── supabase-server.ts          # Cliente server
@@ -276,6 +279,7 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 | `20260927010000_drop_anomaly.sql` | Borra `transactions.anomaly`, que siempre valía `false` (la detección vive en el navegador). Solo con el código que ya no la escribe desplegado |
 | `20260927010100_trash.sql` | Papelera: columna `transactions.deleted_at` e índice parcial `(user_id, deleted_at)` para las borradas |
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` o `year`; los existentes quedan como `month`) con su `CHECK` |
+| `20260927030000_tx_currency.sql` | `transactions.moneda` (una de las 8; las existentes quedan en `PEN`), `monto_original` y `tasa`, con sus `CHECK` |
 
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
@@ -340,7 +344,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 **Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/data/fetchAllRows.ts`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
 
-**Moneda:** los montos se guardan siempre en PEN. `fmtMoney(v, currency)` multiplica por la `rate` fija de `CURRENCIES` al mostrar, y los formularios convierten con `toBase()` al guardar y `fromBase()` al precargar una edición (transacciones, presupuestos, metas, cuentas, inversiones, deudas y suscripciones; las tasas % y los meses no se convierten). El tope de 10,000,000 se valida en PEN. Límite conocido: redondear a 2 decimales en PEN puede mover un monto en COP hasta unas 5 unidades.
+**Moneda:** los montos se guardan siempre en PEN. `fmtMoney(v, currency)` multiplica por la tasa al mostrar, y los formularios convierten con `toBase()` al guardar y `fromBase()` al precargar una edición (presupuestos, metas, cuentas, inversiones, deudas y suscripciones; las tasas % y los meses no se convierten). El tope de 10,000,000 se valida en PEN. Límite conocido: redondear a 2 decimales en PEN puede mover un monto en COP hasta unas 5 unidades.
+
+- **Tasas del día:**
+  - `src/lib/rates.ts` las pide a [open.er-api.com](https://open.er-api.com) (gratis, sin clave, se actualiza a diario) desde el servidor, con caché de 12 h;
+  - el navegador solo habla con `/api/rates` (detrás del login), así que el CSP sigue en `'self'` y el proveedor no ve quién pregunta;
+  - si el proveedor falla o responde algo raro (otra base, una tasa que falta, 0), se usan las fijas de `CURRENCIES`, igual que hasta que llegan: el render del servidor siempre usa las fijas;
+  - `RATES_API_URL` apunta a otro proveedor con el mismo formato (los e2e usan el Supabase simulado).
+- **Transacciones:** guardan también `moneda`, `monto_original` (lo escrito) y `tasa` (unidades de esa moneda por 1 PEN, la de ese día); en PEN, los dos últimos quedan en `null`. Así una transacción en la misma moneda que la app se muestra exactamente como se escribió (`fmtTx()`), y en otra, con lo escrito aparte (`txOriginal()`). Al importar un CSV, las repetidas se comparan por lo escrito, así reimportar un archivo en dólares otro día (con otra tasa) las sigue detectando.
 
 **Tipo de transacción derivado de la categoría (no del toggle):** en `AddTransactionModal`, el `tipo` (INGRESO/EGRESO) que se guarda es el de la **categoría seleccionada** (`categoria.type`). Las categorías personalizadas se muestran sin importar el toggle, y guardar el `tipo` del toggle hacía que un ingreso personalizado se registrara como gasto. El `onChange` del Autocomplete también sincroniza el toggle. Backfill de datos viejos: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 
@@ -477,7 +488,8 @@ Supabase DB (8 tablas, RLS auth.uid() = user_id)
 
 Cada pestaña: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Nombre / color / icono de categoría: resolveCategoryMeta()  (theme/categoryIcons.js)
-Montos: guardados en PEN → fmtMoney(v, currency) al mostrar; toBase()/fromBase() en formularios
+Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) → fmtMoney(v, currency) al mostrar,
+        con las tasas del día (/api/rates → setLiveRates); toBase()/fromBase() en formularios
 ```
 
 ### Módulos clave
@@ -508,7 +520,7 @@ Mergear a `main` publica el cambio en producción. Los pasos, en la página del 
 
 1. **Revisar:** la pestaña *Files changed* muestra el diff. El preview de Vercel (enlazado en los checks del PR) permite probar el cambio con datos reales antes de mergear.
 2. **Esperar la CI en verde:** el check *CI* del último commit debe estar en ✓.
-3. **Migrar la DB, si hace falta:** si el PR trae un `supabase/migrations/upgrade_*.sql`, ejecutarlo en el SQL Editor de Supabase **antes** de mergear. Los scripts son idempotentes.
+3. **Migrar la DB, si hace falta:** si el PR trae archivos nuevos en `supabase/migrations/`, ejecutarlos en orden en el SQL Editor de Supabase **antes** de mergear. Los scripts son idempotentes.
 4. **Sacarlo de borrador:** un PR en *Draft* no se puede mergear. Pulsar **Ready for review** al final de la conversación del PR.
 5. **Mergear:** **Merge pull request** → **Confirm merge**. Vercel despliega `main` en uno o dos minutos.
 6. **Opcional:** **Delete branch** borra la rama del PR.

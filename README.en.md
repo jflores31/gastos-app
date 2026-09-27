@@ -68,6 +68,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - **CalendarFilter:** interactive heat map — day and month views with proportional intensity; click filters the list, footer shows filtered total with "(filtered)" label
 - Footer total updates in real time when any filter is applied
 - Full date and time per transaction
+- **Currency per transaction:** the form has a currency selector next to the amount (the one from Settings by default) and shows the equivalent ("≈ S/200"). It saves the amount in PEN plus the currency, what was typed and that day's rate. The list shows what was typed next to the date ("· €50") when the app is set to another currency, and exactly what was typed when it's the same one. Editing opens it in its currency and keeps its rate, unless the currency is changed
 
 ### Income (IncomeTab)
 - Total income card with sparkline; `+X.X% vs prev.` chip hidden when no previous period (`dIn = null`)
@@ -98,14 +99,14 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 ### Profile & Settings (SettingsPanel)
 Drawer with **two tabs** that separate Profile from Settings:
 - **Profile:** hero with avatar, name and email; **Personal info** (edit first/last name — stored as `first_name`/`last_name` + synced `full_name`); **Favorite Categories** (appear first in the transaction selector) and **My Categories** (CRUD for custom categories — name, type, color and icon — in Supabase)
-- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN: forms convert with `toBase()` on save and `fromBase()` on edit (`src/data/index.ts`), using fixed rates
+- **Settings:** light/dark theme, accent palettes (dots with `flexWrap` on mobile), Comfy/Compact density, Spanish/English language, 8 currencies (PEN, USD, EUR, MXN, COP, ARS, CLP, BRL). Amounts are always stored in PEN and shown with **today's rates** (`/api/rates`; if the provider doesn't answer, the fixed ones from `CURRENCIES`). Under the currency you see which day they're from and the quote ("1 USD = S/3.85")
 - The AppBar **avatar** opens Profile; the **gear** opens Settings (via the `initialTab` prop)
 - **Day/night toggle on the login screen** (`AuthThemeToggle`): the user picks the theme before signing in; it persists in `localStorage`
 
 ### Privacy, export and installable app
 - **Privacy mode:** the eye button in the top bar hides every amount ("S/••••") and is remembered in the browser. Amounts go through `fmt()` from `useSettings()`, which already knows the currency and this mode.
 - **Your data (Profile):**
-  - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN, cells guarded against formulas);
+  - transactions download as CSV (UTF-8 with BOM for Excel, amounts in PEN next to each one's currency, typed amount and rate, cells guarded against formulas);
   - everything downloads as a full JSON backup (`src/data/export.ts`).
 - **Trash (Profile → Your data):**
   - deleting a transaction asks for no confirmation: it goes to the trash (`deleted_at`) and a notice offers "Undo" for 6 seconds;
@@ -184,6 +185,7 @@ src/
 │   ├── auth/callback/route.ts      # OAuth PKCE code exchange (OAuth disabled for now)
 │   ├── api/client-error/route.ts   # Receives browser errors and writes them to the server logs
 │   ├── api/csp-report/route.ts     # Receives CSP violation reports and writes them to the logs
+│   ├── api/rates/route.ts          # Today's exchange rates (behind the login)
 │   └── components/
 │       ├── Providers.tsx           # UserContext → Settings → Data → Theme
 │       ├── DynamicThemeProvider.tsx
@@ -209,10 +211,10 @@ src/
 ├── context/
 │   ├── DataContext.jsx             # Loading and CRUD: txs, budgets, goals, accounts,
 │   │                               #   investments, debts, subscriptions, customCats
-│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES
+│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES; fmt, fmtTx, today's rates
 │   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
 ├── data/
-│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
+│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase, setLiveRates
 │   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
 │   │                               #   upcomingPayments, insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Pagination with .range() (Supabase caps responses at 1000 rows)
@@ -237,6 +239,7 @@ src/
 │   └── useLocalStorage.ts          # Default value on first render; stored value applied after mount
 ├── lib/
 │   ├── featureFlags.ts             # OAUTH_ENABLED (login, register and LoginModal)
+│   ├── rates.ts                    # fetchRates(): today's rates from open.er-api.com, or the fixed ones
 │   ├── reportError.ts              # Sends browser errors to /api/client-error
 │   ├── supabase.ts                 # Browser client (createBrowserClient)
 │   └── supabase-server.ts          # Server client
@@ -276,6 +279,7 @@ All tables use RLS with `auth.uid() = user_id`.
 | `20260927010000_drop_anomaly.sql` | Drops `transactions.anomaly`, which was always `false` (detection runs in the browser). Only once the code that no longer writes it is deployed |
 | `20260927010100_trash.sql` | Trash: `transactions.deleted_at` column and a partial `(user_id, deleted_at)` index for deleted rows |
 | `20260927020000_budget_periods.sql` | `budgets.periodo` (`week`, `month` or `year`; existing ones become `month`) with its `CHECK` |
+| `20260927030000_tx_currency.sql` | `transactions.moneda` (one of the 8; existing ones become `PEN`), `monto_original` and `tasa`, with their `CHECK`s |
 
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
@@ -340,7 +344,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 **More than 1000 transactions:** PostgREST caps every response at `max_rows` (1000). `transactions` is fetched with `fetchAllRows()` (`src/data/fetchAllRows.ts`), which pages with `.range()` ordered by `fecha` + `id`. It's all or nothing: if a page fails, no partial result is shown.
 
-**Currency:** amounts are always stored in PEN. `fmtMoney(v, currency)` multiplies by the fixed `rate` from `CURRENCIES` for display, and forms convert with `toBase()` on save and `fromBase()` when pre-filling an edit (transactions, budgets, goals, accounts, investments, debts and subscriptions; % rates and months are not converted). The 10,000,000 cap is validated in PEN. Known limit: rounding to 2 PEN decimals can move a COP amount by up to about 5 units.
+**Currency:** amounts are always stored in PEN. `fmtMoney(v, currency)` multiplies by the rate for display, and forms convert with `toBase()` on save and `fromBase()` when pre-filling an edit (budgets, goals, accounts, investments, debts and subscriptions; % rates and months are not converted). The 10,000,000 cap is validated in PEN. Known limit: rounding to 2 PEN decimals can move a COP amount by up to about 5 units.
+
+- **Today's rates:**
+  - `src/lib/rates.ts` fetches them from [open.er-api.com](https://open.er-api.com) (free, no key, updated daily) on the server, cached for 12 h;
+  - the browser only talks to `/api/rates` (behind the login), so the CSP stays `'self'` and the provider never sees who is asking;
+  - if the provider fails or answers something odd (another base, a missing rate, 0), the fixed ones from `CURRENCIES` are used, as they are until the answer arrives: server rendering always uses the fixed ones;
+  - `RATES_API_URL` points it at another provider with the same format (the e2e tests use the mock Supabase).
+- **Transactions:** they also store `moneda` (currency), `monto_original` (what was typed) and `tasa` (units of that currency per 1 PEN, that day's); in PEN the last two stay `null`. So a transaction in the app's current currency shows exactly what was typed (`fmtTx()`), and one in another currency shows what was typed next to it (`txOriginal()`). When importing a CSV, duplicates are compared by what was typed, so importing a dollar file again on another day (at another rate) still detects them.
 
 **Transaction type derived from the category (not the toggle):** in `AddTransactionModal`, the saved `tipo` (INGRESO/EGRESO) is the **selected category's** type (`categoria.type`). Custom categories are shown regardless of the toggle, and saving the toggle's `tipo` recorded a custom income as an expense. The Autocomplete's `onChange` also syncs the toggle. Backfill for old data: `UPDATE transactions t SET tipo = cc.tipo FROM custom_categories cc WHERE t.categoria = 'custom_' || cc.id::text AND t.tipo <> cc.tipo;`.
 
@@ -477,7 +488,8 @@ Supabase DB (8 tables, RLS auth.uid() = user_id)
 
 Each tab: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
 Category label / color / icon: resolveCategoryMeta()  (theme/categoryIcons.js)
-Amounts: stored in PEN → fmtMoney(v, currency) for display; toBase()/fromBase() in forms
+Amounts: stored in PEN (+ each transaction's currency, typed amount and rate) → fmtMoney(v, currency) for display,
+         with today's rates (/api/rates → setLiveRates); toBase()/fromBase() in forms
 ```
 
 ### Key modules
@@ -508,7 +520,7 @@ Merging into `main` ships the change to production. The steps, on the PR's page 
 
 1. **Review:** the *Files changed* tab shows the diff. The Vercel preview (linked from the PR's checks) lets you try the change with real data before merging.
 2. **Wait for green CI:** the *CI* check on the latest commit must show ✓.
-3. **Migrate the DB if needed:** if the PR adds a `supabase/migrations/upgrade_*.sql`, run it in the Supabase SQL Editor **before** merging. The scripts are idempotent.
+3. **Migrate the DB if needed:** if the PR adds new files to `supabase/migrations/`, run them in order in the Supabase SQL Editor **before** merging. The scripts are idempotent.
 4. **Take it out of draft:** a *Draft* PR can't be merged. Click **Ready for review** at the bottom of the PR conversation.
 5. **Merge:** **Merge pull request** → **Confirm merge**. Vercel deploys `main` within a minute or two.
 6. **Optional:** **Delete branch** removes the PR's branch.
