@@ -122,6 +122,11 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
   - **Vista previa:** cuántas filas son nuevas, cuántas ya estaban registradas (mismo día, concepto, monto y tipo) y cuáles tienen errores, con su número de línea. Las ya registradas se omiten salvo que se pida lo contrario, así que reimportar un archivo no duplica nada.
   - **Guardado:** `addTxs()` inserta en lotes de 500; si uno falla, avisa cuántas se guardaron. Límites: 5 MB y 10.000 filas. Código: `src/data/import.ts` y `ImportDialog.jsx`.
 
+- **Próximos pagos (Presupuesto):** lo que vence desde hoy hasta el mismo día del mes que viene (`upcomingPayments()` en `helpers.ts`), así cada pago mensual aparece una sola vez:
+  - **Gastos que se repiten 3 meses o más:** vencen el día en que sueles pagarlos. Si ya lo registraste este mes, pasan al mes siguiente; si el día pasó y no está registrado, salen como "Vencido".
+  - **Suscripciones:** una con el mismo nombre que un gasto repetido (Netflix) se une a él, con el precio de la suscripción. Las demás se fechan con su último pago (+1 mes o +1 año); una mensual nunca pagada aparece "Sin fecha".
+  - **Registrar:** abre el formulario con la categoría, el concepto y el monto ya puestos.
+
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
 - Chips de período con `flexWrap: "wrap"` — no desbordan en iPhone SE (320px)
@@ -197,7 +202,7 @@ src/
 ├── data/
 │   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
 │   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
-│   │                               #   insightsList, linearRegressionSlope…
+│   │                               #   upcomingPayments, insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
 │   ├── export.ts                   # CSV y copia JSON de "Tus datos"
 │   ├── suggest.ts                  # Categoría sugerida por el concepto (historial y catálogo)

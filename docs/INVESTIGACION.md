@@ -101,7 +101,7 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 | 2 | **Moneda por transacción** + tasa guardada al registrar | Alto | Alto | expense-budget-tracker, ezBookkeeping | Columnas `moneda` y `tasa` en `transactions` (`schema.sql`); `AddTransactionModal`; `fmtMoney` y todos los totales |
 | 3 | **Tasas de cambio actualizadas** (una vez al día, con caché) | Medio | Medio | ezBookkeeping, Wallos | Route handler `src/app/api/rates/route.ts`; `CURRENCIES.rate` pasa a ser el respaldo; `connect-src` del CSP en `src/proxy.ts` |
 | 4 | **Totales agregados en Postgres** (vistas o RPC por mes y categoría) | Alto | Medio | GeorgeDanicico | `schema.sql` (vistas / `rpc`); `DataContext`; `txByMonth` y `txByCategory` en `src/data/index.ts` |
-| 5 | **Recurrentes programados** (próximos pagos, generar la transacción) | Alto | Medio | Firefly, Cashew, BudgetBee | Unificar `subscriptions` y `recurringList`; nueva sección en `BudgetTab` |
+| 5 | ✅ **Recurrentes programados** (próximos pagos, generar la transacción): tarjeta "Próximos pagos" con "Registrar" | Alto | Medio | Firefly, Cashew, BudgetBee | Unificar `subscriptions` y `recurringList`; nueva sección en `BudgetTab` |
 | 6 | ✅ **Exportar CSV/JSON** | Medio | Bajo | valiance, Usmansagemode | Botón en `SettingsPanel`; serializar `txs` de `DataContext` |
 | 7 | ✅ **Modo privacidad** (ocultar montos) | Medio | Bajo | valiance | Opción en `SettingsContext`; `fmtMoney` devuelve `••••` |
 | 8 | ✅ **Reglas de auto-categorización** por concepto (`suggestCategory`: historial y catálogo) | Medio | Medio | Firefly, Fintonic | Reutilizar `CATEGORIES[*].concepts`; sugerir categoría en `AddTransactionModal` |

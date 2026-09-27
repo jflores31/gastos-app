@@ -1,6 +1,7 @@
 import { getToday } from "./index";
 import { messagesFor } from "../i18n/index";
-import type { Account, Debt, Investment, Period, Transaction } from "../types";
+import { normalizeConcept } from "./suggest";
+import type { Account, Debt, Investment, Period, Subscription, Transaction } from "../types";
 
 export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();
@@ -199,4 +200,67 @@ export function netWorthOf(accounts: Account[] = [], debts: Debt[] = [], investm
   const debt = Math.abs(accounts.filter((a) => a.balance < 0).reduce((s, a) => s + a.balance, 0))
     + debts.reduce((s, d) => s + (d.balance || 0), 0);
   return { assets, debt, net: assets - debt };
+}
+
+// Upcoming payments, from today until the same day next month: every monthly payment
+// shows up exactly once in that window.
+// - Detected recurring expenses (recurringList): due on their usual day. Paid this month
+//   → next month; not paid and the day already passed → overdue (still this month).
+// - Subscriptions: one that matches a recurring concept by name ("Netflix" / NETFLIX) is
+//   merged into it with the subscription's price. Otherwise the date comes from its last
+//   payment + 1 month or + 1 year; a monthly one never paid is listed without a date.
+export type UpcomingPayment = {
+  concepto: string
+  categoria: string
+  amount: number
+  due: Date | null // null: monthly subscription with no payment to date it from
+  overdue: boolean
+  source: "recurring" | "subscription"
+}
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+// Same day `n` months later, clamped to the month's length (Jan 31 + 1 → Feb 28).
+const addMonths = (d: Date, n: number, day = d.getDate()) => {
+  const last = new Date(d.getFullYear(), d.getMonth() + n + 1, 0).getDate()
+  return new Date(d.getFullYear(), d.getMonth() + n, Math.min(day, last))
+}
+const sameWords = (a: string, b: string) => ` ${a} `.includes(` ${b} `) || ` ${b} `.includes(` ${a} `)
+
+export function upcomingPayments(txs: Transaction[], subscriptions: Subscription[], today: Date = new Date()): UpcomingPayment[] {
+  const start = startOfDay(today)
+  const end = addMonths(start, 1)
+  const out: UpcomingPayment[] = []
+  const subs = subscriptions.map((sub) => ({ sub, key: normalizeConcept(sub.name) }))
+  const merged = new Set<Subscription>()
+
+  for (const r of recurringList(txs)) {
+    const key = normalizeConcept(r.concepto)
+    const match = subs.find((s) => s.key && sameWords(key, s.key) && !merged.has(s.sub))
+    if (match) merged.add(match.sub)
+    const paid = txs.some((tx) => tx.tipo === "EGRESO" && tx.categoria === r.categoria && tx.concepto === r.concepto
+      && tx.año === start.getFullYear() && tx.mes === start.getMonth())
+    const thisMonth = addMonths(start, 0, r.day)
+    const due = paid ? addMonths(start, 1, r.day) : thisMonth
+    if (due > end) continue
+    out.push({
+      concepto: r.concepto, categoria: r.categoria, amount: match ? match.sub.price : r.avg,
+      due, overdue: !paid && thisMonth < start, source: "recurring",
+    })
+  }
+
+  for (const { sub, key } of subs) {
+    if (merged.has(sub) || !key) continue
+    const payments = txs.filter((tx) => tx.tipo === "EGRESO" && sameWords(normalizeConcept(tx.concepto), key))
+    const last = payments.reduce<Date | null>((acc, tx) => (!acc || tx.date > acc ? tx.date : acc), null)
+    const step = sub.cycle === "yearly" ? 12 : 1
+    if (!last) {
+      if (step === 1) out.push({ concepto: sub.name, categoria: sub.category, amount: sub.price, due: null, overdue: false, source: "subscription" })
+      continue
+    }
+    let due = addMonths(startOfDay(last), step)
+    while (due < start) due = addMonths(due, step, last.getDate())
+    if (due <= end) out.push({ concepto: sub.name, categoria: sub.category, amount: sub.price, due, overdue: false, source: "subscription" })
+  }
+
+  return out.sort((a, b) => (a.due?.getTime() ?? Infinity) - (b.due?.getTime() ?? Infinity))
 }

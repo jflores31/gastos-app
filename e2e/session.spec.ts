@@ -295,6 +295,29 @@ test("Presupuestos: editar en la tarjeta, agregar (también de una categoría pr
   await expect.poll(budgets).toEqual({ COMIDA: 700, STREAMING: 60, [`custom_${catId}`]: 80 })
 })
 
+test("Presupuesto: próximos pagos sin duplicar la suscripción, y Registrar abre el formulario lleno", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  await page.getByRole("tab", { name: "Presupuesto" }).click()
+  const card = page.locator(".MuiCard-root").filter({ has: page.getByText("Próximos pagos", { exact: true }) })
+  // Seed: 4 expenses repeat every month; the Netflix subscription merges with NETFLIX.
+  const items = card.getByRole("listitem")
+  await expect(items).toHaveCount(4)
+  await expect(items.filter({ hasText: "Netflix" })).toHaveCount(1)
+  await expect(items.filter({ hasText: "MERCADO" })).toContainText("S/165") // average of 150…180
+  await expect(card.getByText(/^Total: S\//)).toBeVisible()
+
+  await card.getByRole("button", { name: "Registrar NETFLIX" }).click()
+  const form = dialog(page)
+  await expect(form.getByText("Registrar Gasto Diario")).toBeVisible()
+  await expect(form.getByLabel("Categoría")).toHaveValue("Streaming")
+  await expect(form.getByLabel("Concepto")).toHaveValue("NETFLIX")
+  await expect(form.getByLabel("Monto")).toHaveValue("45")
+  await form.getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect((await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "NETFLIX")).toHaveLength(5)
+})
+
 test("Perfil: nombre, favoritas y categorías personalizadas (editar y borrar)", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)

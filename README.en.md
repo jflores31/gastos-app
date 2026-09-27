@@ -122,6 +122,11 @@ Drawer with **two tabs** that separate Profile from Settings:
   - **Preview:** how many rows are new, how many are already recorded (same day, concept, amount and type) and which have errors, with their line number. Already-recorded rows are skipped unless you ask otherwise, so re-importing a file duplicates nothing.
   - **Saving:** `addTxs()` inserts in batches of 500; if one fails, it says how many were saved. Limits: 5 MB and 10,000 rows. Code: `src/data/import.ts` and `ImportDialog.jsx`.
 
+- **Upcoming payments (Budget):** what's due from today until the same day next month (`upcomingPayments()` in `helpers.ts`), so every monthly payment shows up exactly once:
+  - **Expenses that repeat for 3+ months:** due on the day you usually pay them. If it's already recorded this month, it moves to next month; if the day passed and it isn't recorded, it shows as "Overdue".
+  - **Subscriptions:** one named like a repeated expense (Netflix) merges with it, using the subscription's price. The rest are dated from their last payment (+1 month or +1 year); a monthly one never paid shows as "No date".
+  - **Record:** opens the form with the category, concept and amount filled in.
+
 ### Responsive Design
 - Tab navigation on desktop, fixed `BottomNavigation` on mobile
 - Period chips with `flexWrap: "wrap"` — no overflow on iPhone SE (320px)
@@ -197,7 +202,7 @@ src/
 ├── data/
 │   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase
 │   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
-│   │                               #   insightsList, linearRegressionSlope…
+│   │                               #   upcomingPayments, insightsList, linearRegressionSlope…
 │   ├── fetchAllRows.ts             # Pagination with .range() (Supabase caps responses at 1000 rows)
 │   ├── export.ts                   # CSV and JSON backup for "Tus datos"
 │   ├── suggest.ts                  # Category suggested from the concept (history and catalog)

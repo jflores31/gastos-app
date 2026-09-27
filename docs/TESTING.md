@@ -33,7 +33,7 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 153 tests en 16 archivos
+### Unitarios y componentes: 159 tests en 17 archivos
 
 | Archivo | Tests | Qué cubre |
 |---|---|---|
@@ -49,6 +49,7 @@ npm run typecheck    # tsc --noEmit
 | [`src/i18n/messages.test.js`](../src/i18n/messages.test.js) | 6 | **Diccionario:** mismas claves, tipos y aridad en es/en; ningún texto vacío; ningún `lang === "es" ?` fuera de `src/i18n/`; nombres de iconos y paletas; plurales e interpolaciones |
 | [`src/data/suggest.test.js`](../src/data/suggest.test.js) | 11 | **Categoría sugerida:** normalización (mayúsculas, tildes, espacios); historial (la más usada, empate → la más reciente, categorías propias, filtro por tipo, gana al catálogo); catálogo (concepto o nombre como palabras completas, gana la que coincide en más palabras, empate → nada) |
 | [`src/data/import.test.js`](../src/data/import.test.js) | 25 | **Importar CSV:** RFC 4180 (comillas, saltos de línea, BOM, `;`), montos en varios formatos, fechas ISO y `DD/MM/AAAA` (e imposibles), columnas del export propio y de un banco, tipo por signo, categoría del archivo / sugerida / por defecto, líneas inválidas, **ida y vuelta con `transactionsToCsv`** y repetidas (una ya guardada absorbe una fila) |
+| [`src/data/upcoming.test.js`](../src/data/upcoming.test.js) | 6 | **Próximos pagos** con fechas fijas: pagado este mes → mes siguiente, pendiente → este mes, día pasado sin registrar → vencido, día 31 en febrero, el 1 del mes siguiente entra, suscripción unida a su recurrente, suscripciones fechadas por su último pago (mensual y anual) o sin fecha, ingresos nunca |
 | [`src/data/export.test.js`](../src/data/export.test.js) | 7 | **Exportación:** celdas CSV (comillas RFC 4180, protección contra fórmulas), CSV con BOM, cabecera y filas ordenadas, copia JSON con todas las tablas, nombres de archivo |
 | [`src/context/SettingsContext.test.jsx`](../src/context/SettingsContext.test.jsx) | 6 | `fmt()` por moneda e idioma, **modo privacidad** (enmascara, cambia con la moneda, se guarda) e **inactividad** (2 min por defecto, valor inválido → 2, un cambio en otra pestaña llega a esta) |
 | [`src/context/DataContext.test.jsx`](../src/context/DataContext.test.jsx) | 10 | **Carga y mutaciones con un Supabase simulado:** las 8 tablas, alta con el `user_id` de la sesión, edición por `id`, borrado por `id` + `user_id`, un error no cambia el estado, sin sesión lanza, reintento sin `icon` ante `PGRST204`, y `auth.getUser()` nunca se llama. `addTxs` inserta en lotes de 500 y, si uno falla, informa cuántas se guardaron |
@@ -77,7 +78,7 @@ Los tests de moneda, `useLocalStorage` y `DataContext` se verificaron **reintrod
   - la ruta rechaza cuerpos inválidos (400) o grandes (413);
   - las demás rutas `/api` siguen protegidas (307 → `/login`).
 
-### End-to-end con sesión: 18 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
+### End-to-end con sesión: 19 tests en [`e2e/session.spec.ts`](../e2e/session.spec.ts)
 
 Corren contra el Supabase simulado. Cada test usa su propio usuario, así que corren en paralelo sin pisarse. Todos fallan si la consola registra una violación del CSP (`afterEach`).
 
@@ -95,6 +96,7 @@ Corren contra el Supabase simulado. Cada test usa su propio usuario, así que co
 - **Presupuestos:**
   - editar el límite desde la tarjeta;
   - en "Gestionar", agregar uno nativo y uno de categoría propia, editar y cancelar, y borrar con confirmación.
+- **Próximos pagos:** los 4 gastos mensuales del seed, Netflix una sola vez (la suscripción se une al recurrente) y el promedio de MERCADO; "Registrar NETFLIX" abre el formulario con categoría, concepto y monto, y guarda.
 - **Perfil:** el nombre y las favoritas se guardan en `user_metadata`; una categoría propia se edita (nombre, color, tipo) y se borra con confirmación.
 - **Modo privacidad:** no queda ningún "S/<dígitos>" en las 5 pestañas, y se recuerda al recargar.
 - **Tus datos:** descarga el CSV y el JSON y compara su contenido con la base simulada.

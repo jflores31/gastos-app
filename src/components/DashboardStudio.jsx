@@ -50,6 +50,7 @@ export default function DashboardStudio() {
   const [showModal, setShowModal] = useState(false);
   const [modalCat, setModalCat] = useState("");
   const [modalMode, setModalMode] = useState("all");
+  const [modalPrefill, setModalPrefill] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsTab, setSettingsTab] = useState("perfil");
   const openSettings = (tab) => { setSettingsTab(tab); setShowSettings(true); };
@@ -58,7 +59,8 @@ export default function DashboardStudio() {
   const toastTimer = useRef(null);
   const [period, setPeriod] = useState("month");
 
-  const openModal = useCallback((cat = "", mode = "all") => { setModalCat(cat); setModalMode(mode); setShowModal(true); }, []);
+  // `prefill` ({ concepto, valor } with valor in PEN) comes from "Registrar" on an upcoming payment.
+  const openModal = useCallback((cat = "", mode = "all", prefill = null) => { setModalCat(cat); setModalMode(mode); setModalPrefill(prefill); setShowModal(true); }, []);
   const showToast = useCallback((msg, severity = "success", duration = 3000) => {
     clearTimeout(toastTimer.current);
     setToast({ msg, severity, duration });
@@ -337,7 +339,7 @@ export default function DashboardStudio() {
         {activeTab === 0 && <OverviewTab period={period} setPeriod={setPeriod} />}
         {activeTab === 1 && <ExpensesTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 2 && <IncomeTab period={period} openModal={openModal} showToast={showToast} />}
-        {activeTab === 3 && <BudgetTab period={period} showToast={showToast} />}
+        {activeTab === 3 && <BudgetTab period={period} openModal={openModal} showToast={showToast} />}
         {activeTab === 4 && <GoalsTab showToast={showToast} />}
       </Box>
 
@@ -345,7 +347,7 @@ export default function DashboardStudio() {
         {toast && <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>{toast.msg}</Alert>}
       </Snackbar>
 
-      {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}
+      {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} initialConcept={modalPrefill?.concepto} initialAmount={modalPrefill?.valor} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} initialTab={settingsTab} />
       <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </Box>

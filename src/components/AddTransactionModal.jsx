@@ -25,15 +25,16 @@ const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;
 // Per-transaction cap, in the base currency (PEN).
 const MAX_AMOUNT_BASE = 10_000_000;
 
-export default function AddTransactionModal({ initialCategory = "", mode = "all", onAdd, onClose, editTx = null, showToast }) {
+export default function AddTransactionModal({ initialCategory = "", initialConcept = "", initialAmount = null, mode = "all", onAdd, onClose, editTx = null, showToast }) {
   const { t, lang, currency, fmt } = useSettings();
   const { txs, addTx, updateTx, customCats } = useData();
   const user = useSupabaseUser();
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
-  const [concepto, setConcepto] = useState(editTx?.concepto || "");
+  const [concepto, setConcepto] = useState(editTx?.concepto || initialConcept);
   // Stored amounts are in PEN; the form works in the selected currency.
-  const [valor, setValor] = useState(editTx?.valor != null ? String(fromBase(editTx.valor, currency)) : "");
+  const baseAmount = editTx?.valor ?? initialAmount;
+  const [valor, setValor] = useState(baseAmount != null ? String(fromBase(baseAmount, currency)) : "");
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
