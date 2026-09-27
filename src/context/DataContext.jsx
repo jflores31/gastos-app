@@ -21,8 +21,8 @@ function mapRow(row) {
     dia: d.getDate(),
     mes: d.getMonth(),
     año: d.getFullYear(),
-    // Detection lives client-side in flagAnomalies() (see flaggedTxs below); the
-    // DB column is always false, so seed false and let flagAnomalies be the source of truth.
+    // Detection lives client-side in flagAnomalies() (see flaggedTxs below). The DB's
+    // `anomaly` column is no longer written and will be dropped by a later migration.
     anomaly: false,
   }
 }
@@ -304,7 +304,6 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         fecha: tx.date.toISOString(),
-        anomaly: false,
       })
       .select()
       .single()
@@ -327,7 +326,6 @@ export function DataProvider({ children }) {
         concepto: tx.concepto,
         valor: tx.valor,
         fecha: tx.date.toISOString(),
-        anomaly: false,
       }))
       const { data, error } = await supabase.from("transactions").insert(rows).select()
       if (error) throw Object.assign(new Error(error.message), { saved })

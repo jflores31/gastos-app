@@ -256,6 +256,11 @@ Todas las tablas usan RLS con `auth.uid() = user_id`.
 - **Rendimiento:** con 200.000 transacciones, la carga de un usuario bajó de ~120 ms (recorrido completo de la tabla) a ~1,4 ms gracias a los índices `(user_id, …)` de la 0.0.1.
 - **En los tests:** el Supabase simulado de los e2e lee estos mismos archivos, en el mismo orden.
 
+| Migración | Qué hace |
+|---|---|
+| `20260618000000_init.sql` | Las 8 tablas, índices `(user_id, …)` y políticas RLS con `(select auth.uid())` |
+| `20260927000000_schema_hygiene.sql` | `transactions` valida en la base `tipo IN ('INGRESO','EGRESO')` y `valor > 0`; las 8 tablas tienen `updated_at`, que actualiza un trigger. Trae una consulta para revisar antes si hay filas que no cumplen |
+
 > **Mantenimiento — vaciar la base de datos:** `supabase/seed/reset.sql` deja las 8 tablas a cero (`count` → `TRUNCATE` → verificación) sin tocar el esquema ni las cuentas de `auth.users`. Es **destructivo e irreversible** — ejecútalo desde el SQL Editor de Supabase.
 
 ## Inicio Rápido

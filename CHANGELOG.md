@@ -41,6 +41,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
+- **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las 8 tablas tienen `updated_at`, que mantiene un trigger. El código ya no escribe la columna `anomaly` (siempre `false`); se borra en una migración posterior, una vez desplegado este código. ⚠ Ejecutar `supabase/migrations/20260927000000_schema_hygiene.sql` antes de desplegar.
 - **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.
 
 ### Seguridad

@@ -256,6 +256,11 @@ All tables use RLS with `auth.uid() = user_id`.
 - **Performance:** with 200,000 transactions, loading one user's data went from ~120 ms (full table scan) to ~1.4 ms thanks to the 0.0.1 `(user_id, …)` indexes.
 - **In tests:** the e2e tests' mock Supabase reads these same files, in the same order.
 
+| Migration | What it does |
+|---|---|
+| `20260618000000_init.sql` | The 8 tables, `(user_id, …)` indexes and RLS policies with `(select auth.uid())` |
+| `20260927000000_schema_hygiene.sql` | `transactions` checks `tipo IN ('INGRESO','EGRESO')` and `valor > 0` in the database; all 8 tables get `updated_at`, kept by a trigger. It includes a query to check beforehand for rows that would fail |
+
 > **Maintenance — wiping the database:** `supabase/seed/reset.sql` empties the 8 tables (`count` → `TRUNCATE` → verification) without touching the schema or the `auth.users` accounts. It is **destructive and irreversible** — run it from the Supabase SQL Editor.
 
 ## Quick Start
