@@ -97,7 +97,7 @@ Impacto y esfuerzo en escala Alto / Medio / Bajo. "Inspirado en" indica de dónd
 
 | # | Idea | Impacto | Esfuerzo | Inspirado en | Dónde tocaría gastos-app |
 |---|---|---|---|---|---|
-| 1 | **Importar CSV** de movimientos, con mapeo de columnas | Alto | Medio | ezBookkeeping, Cashew, Usmansagemode | Nuevo `src/data/import/`; botón en `ExpensesTab` / `IncomeTab`; `addTx` en lote en `DataContext` |
+| 1 | ✅ **Importar CSV** de movimientos, con mapeo de columnas (Perfil → Tus datos) | Alto | Medio | ezBookkeeping, Cashew, Usmansagemode | Nuevo `src/data/import/`; botón en `ExpensesTab` / `IncomeTab`; `addTx` en lote en `DataContext` |
 | 2 | **Moneda por transacción** + tasa guardada al registrar | Alto | Alto | expense-budget-tracker, ezBookkeeping | Columnas `moneda` y `tasa` en `transactions` (`schema.sql`); `AddTransactionModal`; `fmtMoney` y todos los totales |
 | 3 | **Tasas de cambio actualizadas** (una vez al día, con caché) | Medio | Medio | ezBookkeeping, Wallos | Route handler `src/app/api/rates/route.ts`; `CURRENCIES.rate` pasa a ser el respaldo; `connect-src` del CSP en `src/proxy.ts` |
 | 4 | **Totales agregados en Postgres** (vistas o RPC por mes y categoría) | Alto | Medio | GeorgeDanicico | `schema.sql` (vistas / `rpc`); `DataContext`; `txByMonth` y `txByCategory` en `src/data/index.ts` |

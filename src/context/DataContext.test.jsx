@@ -142,6 +142,38 @@ describe("DataContext", () => {
     expect(result.current.customCats).toEqual([{ id: "cc1", user_id: "u1", nombre: "Gatos", tipo: "EGRESO", color: "#123456" }])
   })
 
+  it("addTxs inserta en lotes de 500 con el user_id de la sesión y agrega todo al estado", async () => {
+    fake.respond = (table, calls) => {
+      const insert = has(calls, "insert")
+      if (insert) return { data: insert[1].map((r, i) => ({ id: `n${i}`, ...r })), error: null }
+      return { data: [], error: null }
+    }
+    const { result } = await mountSignedIn()
+    const list = Array.from({ length: 1200 }, (_, i) => ({ tipo: "EGRESO", categoria: "COMIDA", concepto: `X${i}`, valor: 1, date: new Date(2026, 0, 1 + (i % 28)) }))
+    let saved
+    await act(async () => { saved = await result.current.addTxs(list) })
+    expect(saved).toBe(1200)
+    expect(writes().map((q) => has(q.calls, "insert")[1].length)).toEqual([500, 500, 200])
+    expect(has(writes()[0].calls, "insert")[1][0]).toMatchObject({ user_id: "u1", concepto: "X0", fecha: list[0].date.toISOString() })
+    expect(result.current.txs).toHaveLength(1200)
+    expect(fake.getUser).not.toHaveBeenCalled()
+  })
+
+  it("addTxs: si falla un lote, lanza con cuántas filas ya se guardaron y conserva esas", async () => {
+    let n = 0
+    fake.respond = (table, calls) => {
+      const insert = has(calls, "insert")
+      if (!insert) return { data: [], error: null }
+      return ++n === 2 ? { data: null, error: { message: "boom" } } : { data: insert[1].map((r, i) => ({ id: `n${n}-${i}`, ...r })), error: null }
+    }
+    const { result } = await mountSignedIn()
+    const list = Array.from({ length: 700 }, (_, i) => ({ tipo: "EGRESO", categoria: "COMIDA", concepto: `X${i}`, valor: 1, date: new Date(2026, 0, 2) }))
+    let err
+    await act(async () => { try { await result.current.addTxs(list) } catch (e) { err = e } })
+    expect(err).toMatchObject({ message: "boom", saved: 500 })
+    expect(result.current.txs).toHaveLength(500)
+  })
+
   it("transacciones y presupuestos también usan el usuario de la sesión", async () => {
     const { result } = await mountSignedIn("u1")
     await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 15, date: new Date("2026-09-02T12:00:00Z") }))

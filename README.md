@@ -115,6 +115,12 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
   - si no hay historial, con la categoría del catálogo cuyo nombre o conceptos aparecen en el texto ("pago netflix" → Streaming);
   - si dos categorías empatan, no sugiere nada;
   - una categoría elegida a mano nunca se reemplaza, y debajo del campo se indica de dónde salió la sugerencia.
+- **Importar CSV (Perfil → Tus datos):**
+  - **Formatos:** el CSV que exporta la app se reconoce solo; en un archivo de banco o una planilla se elige qué columna es la fecha, el concepto y el monto (se proponen por el nombre de la cabecera).
+  - **Qué entiende:** separador `,` o `;`, fechas `AAAA-MM-DD` o `DD/MM/AAAA`, y montos como `1,234.56`, `1.234,56` o `-S/ 45`.
+  - **Tipo y categoría:** sin columna de tipo, el signo del monto decide si es ingreso o egreso. La categoría sale del archivo, de la sugerencia por concepto o de una categoría por defecto que se elige en la vista previa.
+  - **Vista previa:** cuántas filas son nuevas, cuántas ya estaban registradas (mismo día, concepto, monto y tipo) y cuáles tienen errores, con su número de línea. Las ya registradas se omiten salvo que se pida lo contrario, así que reimportar un archivo no duplica nada.
+  - **Guardado:** `addTxs()` inserta en lotes de 500; si uno falla, avisa cuántas se guardaron. Límites: 5 MB y 10.000 filas. Código: `src/data/import.ts` y `ImportDialog.jsx`.
 
 ### Diseño Responsivo
 - Navegación por tabs en desktop, `BottomNavigation` fija en móvil
@@ -195,6 +201,7 @@ src/
 │   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
 │   ├── export.ts                   # CSV y copia JSON de "Tus datos"
 │   ├── suggest.ts                  # Categoría sugerida por el concepto (historial y catálogo)
+│   ├── import.ts                   # Importar CSV: lectura, columnas, fechas, montos, repetidas
 │   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
 ├── i18n/
 │   ├── base.ts                     # Textos cortos compartidos (t.income, t.save, t.months…)
