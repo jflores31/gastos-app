@@ -2,7 +2,7 @@
 // password and reaches "aal2" once the code is verified. For a user with a verified
 // factor, only "aal2" counts: the proxy keeps an "aal1" session on /login, DataContext
 // waits for the second step and the database's RLS returns nothing before it
-// (20260927050000_mfa_aal2.sql).
+// ("mfa aal2" policies in supabase/schema.sql).
 
 type Factor = { id: string; factor_type?: string; status: string }
 type WithFactors = { factors?: Factor[] | null } | null | undefined

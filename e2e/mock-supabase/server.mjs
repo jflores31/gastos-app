@@ -1,14 +1,14 @@
 // Minimal stand-in for a Supabase project (Auth + PostgREST), for the e2e tests behind the
 // login. No dependencies: `node e2e/mock-supabase/server.mjs`.
 //
-// - Tables and columns come from supabase/migrations/*.sql, so writing a column the real
+// - Tables and columns come from supabase/schema.sql, so writing a column the real
 //   schema doesn't have fails here too (PGRST204), as it would in production.
 // - Every row is scoped to the user in the JWT, like the RLS policies.
 // - Each user starts with the dataset in seed.mjs; use a distinct email per test to isolate.
 // - Test helpers: GET /__mock/health, GET /__mock/db?email=… (that user's rows).
 // - Two-step verification (MFA TOTP): factors, challenge and verify with real codes; the
 //   session's JWT carries its level (aal1/aal2), and a user with a verified factor gets no
-//   rows at aal1, like the RESTRICTIVE policies of 20260927050000_mfa_aal2.sql.
+//   rows at aal1, like the RESTRICTIVE "mfa aal2" policies of supabase/schema.sql.
 import http from "node:http"
 import { randomUUID } from "node:crypto"
 import { loadSchema } from "./schema.mjs"

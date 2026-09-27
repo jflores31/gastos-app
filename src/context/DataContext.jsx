@@ -168,7 +168,7 @@ const customCatToRow = (c) => ({ nombre: c.nombre, tipo: c.tipo, color: c.color,
 const keepRow = (row) => row // custom categories are kept as raw rows
 
 // custom_categories.icon is missing in a DB created before 0.0.1 that hasn't run
-// supabase/migrations/20260618000000_init.sql again.
+// supabase/schema.sql yet.
 const CUSTOM_CAT_OPTIONAL_COLUMNS = ["icon"]
 
 // Save (update when the item has an id, insert otherwise) and delete for a table whose rows

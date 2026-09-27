@@ -6,6 +6,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 ## [Unreleased]
 
 ### Cambiado
+- **Licencia GPL-3.0** (antes MIT): archivo `LICENSE` y `"license": "GPL-3.0-only"` en `package.json`. Lo ya publicado bajo MIT sigue bajo MIT para quien lo obtuvo así.
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
 - **CRUD unificado:** metas, cuentas, inversiones, deudas, suscripciones y categorías personalizadas comparten `useTableCrud()`. Transacciones y presupuestos siguen aparte. `DataContext` pasó de 537 a 425 líneas, con la misma API.
@@ -30,7 +31,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Iconos en los marcadores que quedaban:** el selector de categoría de suscripciones, las barras de las mini cards de Overview y las leyendas de los donuts de Overview y Presupuestos muestran el icono de la categoría en vez de un punto o un cuadrado de color. Overview resuelve nombres y colores con `resolveCategoryMeta()`.
 
 ### Añadido (producto)
-- **Verificación en dos pasos (Perfil):** con una app de autenticación (TOTP). Se activa escaneando un QR (o escribiendo la clave) y confirmando con un código; desde entonces, al entrar se pide el código después de la contraseña. Se desactiva con confirmación. ⚠ Ejecutar `supabase/migrations/20260927050000_mfa_aal2.sql` antes de desplegar.
+- **Verificación en dos pasos (Perfil):** con una app de autenticación (TOTP). Se activa escaneando un QR (o escribiendo la clave) y confirmando con un código; desde entonces, al entrar se pide el código después de la contraseña. Se desactiva con confirmación.
 - **Suscripciones con el icono de su categoría:** en vez de la inicial, cada una muestra el icono y el color de su categoría, sin pedir logos a servicios externos (sabrían qué suscripciones hay). El nombre sugiere la categoría ("Netflix" → Streaming).
 - **Saldo calculado y transferencias entre cuentas (Metas):**
   - una transacción puede asociarse a una cuenta (selector opcional en el formulario), y la lista la muestra junto a la fecha;
@@ -38,15 +39,13 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - las transferencias (botón ⇄) mueven dinero entre dos cuentas sin contar como ingreso ni gasto, con fecha y nota opcional; las últimas 5 se listan y se pueden borrar;
   - borrar una cuenta deja sus movimientos sin cuenta, sin cambiar el saldo de las otras;
   - el CSV suma la columna `cuenta` (al importarlo se reconoce por el nombre) y la copia JSON trae las transferencias.
-  - ⚠ Ejecutar `supabase/migrations/20260927040000_accounts_transfers.sql` antes de desplegar (requiere Postgres 15+).
 - **Moneda de cada transacción y tasas del día:**
   - el formulario tiene un selector de moneda junto al monto (por defecto, la de Ajustes) y muestra el equivalente;
   - se guarda el monto en PEN, como siempre, y además la moneda, lo escrito y la tasa de ese día. La lista muestra lo escrito junto a la fecha, y al editar se abre en su moneda con la tasa con que se guardó;
   - los montos se convierten con las tasas del día de open.er-api.com, pedidas desde el servidor (`/api/rates`, caché de 12 h). Si no responde, se usan las fijas de antes. Ajustes muestra de qué día son, la cotización ("1 USD = S/3.85") y la atribución que pide el proveedor;
   - el CSV exportado suma las columnas `moneda`, `monto_original` y `tasa`, y la importación las lee (los CSV anteriores siguen sirviendo). Un CSV de banco se importa en la moneda que se elija.
-  - ⚠ Ejecutar `supabase/migrations/20260927030000_tx_currency.sql` antes de desplegar.
-- **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral. ⚠ Ejecutar `supabase/migrations/20260927020000_budget_periods.sql` antes de desplegar.
-- **Papelera:** borrar una transacción la manda a la papelera, con "Deshacer" en el aviso. Desde Perfil → Tus datos → Papelera se restaura o se elimina definitivamente; a los 30 días se eliminan solas. ⚠ Ejecutar `supabase/migrations/20260927010100_trash.sql` antes de desplegar.
+- **Presupuestos semanales, mensuales o anuales**, con avisos al 80 % y al 100 % de lo gastado en su período: una franja en Presupuesto y un aviso al guardar el gasto que cruza el umbral.
+- **Papelera:** borrar una transacción la manda a la papelera, con "Deshacer" en el aviso. Desde Perfil → Tus datos → Papelera se restaura o se elimina definitivamente; a los 30 días se eliminan solas.
 - **Próximos pagos (Presupuesto):** lo que vence hasta el mismo día del mes que viene, a partir de los gastos que se repiten y de las suscripciones (sin contarlas dos veces). Los que ya pasaron sin registrarse salen como vencidos, y "Registrar" abre el formulario lleno.
 - **Importar CSV (Perfil → Tus datos):** el export propio o un archivo de banco con columnas a elegir. Vista previa con filas nuevas, ya registradas y con errores; reimportar un archivo no duplica nada.
 - **Categoría sugerida por el concepto:** al escribir el concepto de una transacción nueva, la categoría se completa con la que más usaste con ese concepto o, sin historial, con la del catálogo que aparece en el texto. Nunca reemplaza una categoría elegida a mano.
@@ -58,12 +57,17 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **App instalable:** manifest, iconos (incluido uno `maskable`) y metadatos para iOS.
 
 ### Base de datos
-- **La verificación en dos pasos protege los datos:** `20260927050000_mfa_aal2.sql` agrega una política `RESTRICTIVE` por tabla. Quien la activó solo ve y escribe sus filas con una sesión `aal2`, es decir, después del código. La condición está en `public.mfa_satisfied()`, `SECURITY DEFINER` porque lee `auth.mfa_factors`, y solo la puede ejecutar `authenticated`. Probado en Postgres 16: se puede ejecutar dos veces; con solo la contraseña no se ve ni se escribe nada; con el código, solo lo propio; quien no la activó sigue igual.
-- **Saldo a una fecha y transferencias:** `20260927040000_accounts_transfers.sql` agrega `accounts.balance_at` (las existentes quedan con la fecha de la migración), `transactions.cuenta_id` y la tabla `transfers` (RLS, `updated_at`, índices). Las claves foráneas usan `(id, user_id)`: nadie puede asociar una transacción o una transferencia a la cuenta de otro usuario. Al borrar una cuenta, `ON DELETE SET NULL (col)` deja sus transacciones sin cuenta y sus transferencias sin ese lado. `supabase/seed/reset.sql` vacía también `transfers` (sin ella, el `TRUNCATE` fallaba por la clave foránea). Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos; rechaza la cuenta de otro usuario, una transferencia a la misma cuenta y un monto de 0; RLS aísla las transferencias.
-- **Moneda de cada transacción:** `20260927030000_tx_currency.sql` agrega `transactions.moneda` (una de las 8 monedas, `PEN` por defecto: las existentes quedan así), `monto_original` y `tasa`, con `CHECK` de moneda válida y montos positivos. Probado en Postgres 16: se puede ejecutar dos veces, en una DB nueva y en una con datos, y RLS sigue aislando a cada usuario.
-- **Sin la columna `anomaly`:** `20260927010000_drop_anomaly.sql` la borra; siempre valía `false` y el código ya no la escribe.
-- **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las 8 tablas tienen `updated_at`, que mantiene un trigger. El código ya no escribe la columna `anomaly` (siempre `false`); se borra en una migración posterior, una vez desplegado este código. ⚠ Ejecutar `supabase/migrations/20260927000000_schema_hygiene.sql` antes de desplegar.
-- **Migraciones fechadas e idempotentes (T10):** `schema.sql` y `upgrade_0.0.1.sql` pasan a ser `supabase/migrations/20260618000000_init.sql`, el primero de una serie de archivos con fecha en el nombre. Se puede ejecutar más de una vez (`DROP POLICY IF EXISTS` antes de cada `CREATE POLICY`) y va en una transacción. Probado en Postgres 16: en una DB nueva, en la de producción y en una anterior a la 0.0.1 deja el mismo esquema, y RLS sigue aislando a cada usuario.
+> ⚠ **Antes de desplegar:** ejecutar `supabase/schema.sql` en el SQL Editor de Supabase. Una sola vez cubre todos los cambios de esta sección, sea cual sea la versión de la base (requiere Postgres 15+).
+
+- **Un solo archivo de esquema:** las 8 migraciones fechadas de `supabase/migrations/` se reemplazan por `supabase/schema.sql`, que instala desde cero o pone al día una base de cualquier versión anterior, y se puede ejecutar más de una vez. Separa lo que es PostgreSQL estándar (tablas, restricciones, índices, triggers) de lo que depende de Supabase (`auth.users`, RLS, verificación en dos pasos), para poder llevar la base a otro sistema. Probado en Postgres 16: una base nueva queda idéntica a la que dejaban las 8 migraciones; copias de bases anteriores quedan con el mismo esquema y sin perder datos; en un Postgres sin Supabase, la parte estándar se aplica y la otra falla sin tocar nada. Guía en `docs/DATABASE.md`.
+- **La verificación en dos pasos protege los datos:** una política `RESTRICTIVE` por tabla. Quien la activó solo ve y escribe sus filas con una sesión `aal2`, es decir, después del código. La condición está en `public.mfa_satisfied()`, `SECURITY DEFINER` porque lee `auth.mfa_factors`, y solo la puede ejecutar `authenticated`. Probado en Postgres 16: con solo la contraseña no se ve ni se escribe nada; con el código, solo lo propio; quien no la activó sigue igual.
+- **Saldo a una fecha y transferencias:** `accounts.balance_at` (las existentes quedan con la fecha en que se ejecuta el esquema), `transactions.cuenta_id` y la tabla `transfers` (RLS, `updated_at`, índices). Las claves foráneas usan `(id, user_id)`: nadie puede asociar una transacción o una transferencia a la cuenta de otro usuario. Al borrar una cuenta, `ON DELETE SET NULL (col)` deja sus transacciones sin cuenta y sus transferencias sin ese lado. `supabase/seed/reset.sql` vacía también `transfers` (sin ella, el `TRUNCATE` fallaba por la clave foránea). Probado en Postgres 16: rechaza la cuenta de otro usuario, una transferencia a la misma cuenta y un monto de 0; RLS aísla las transferencias.
+- **Moneda de cada transacción:** `transactions.moneda` (una de las 8 monedas, `PEN` por defecto: las existentes quedan así), `monto_original` y `tasa`, con `CHECK` de moneda válida y montos positivos.
+- **Presupuestos por período:** `budgets.periodo` (`week`, `month` o `year`; los existentes quedan en `month`).
+- **Papelera:** `transactions.deleted_at` y un índice parcial para las borradas.
+- **Sin la columna `anomaly`:** siempre valía `false` y el código ya no la escribe.
+- **Validaciones en la base (T9):** `transactions` rechaza un `tipo` que no sea INGRESO/EGRESO y un `valor` de 0 o negativo (antes solo lo validaba el cliente), y las tablas tienen `updated_at`, que mantiene un trigger. El encabezado de `schema.sql` trae una consulta para encontrar antes las filas que no cumplen.
+- **Esquema idempotente (T10):** se puede ejecutar más de una vez (`IF NOT EXISTS`, `DROP … IF EXISTS` antes de cada restricción, política y trigger), y cada parte va en una transacción.
 
 ### Seguridad
 - **Verificación en dos pasos de punta a punta:** el proxy deja una sesión que todavía debe el código solo en `/login?mfa=1`, `DataContext` no carga hasta el código y la base no devuelve filas sin `aal2`. Así no se salta ni abriendo otra página ni usando la API de Supabase directamente.
@@ -111,12 +115,19 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - Perfil: nombre, favoritas y categorías propias;
   - la etiqueta flotante de los diálogos;
   - sesión entre pestañas y al reabrir el navegador.
-- El Supabase simulado lee las tablas de `supabase/migrations/*.sql` y aplica RLS por usuario. Escribir una columna inexistente falla (`PGRST204`) como en producción.
+- El Supabase simulado lee las tablas de `supabase/schema.sql` y aplica RLS por usuario. Escribir una columna inexistente falla (`PGRST204`) como en producción.
 - `src/context/DataContext.test.jsx`: 8 tests con un cliente de Supabase simulado (carga, alta, edición, borrado, errores, sin sesión, reintento sin `icon` y que nunca se llame a `auth.getUser()`). Con el `DataContext` anterior fallan los 4 que describen el comportamiento nuevo.
 
 ### Documentación
-- `README.en.md`: secciones "How to merge a PR" y "Versions and releases", como en el README en español, y la CI que también corre los tests end-to-end.
+- **Reorganizada:** el README queda como portada (qué hace, stack, inicio rápido, índice y licencia) y el detalle pasa a `docs/`: `FEATURES`, `ARCHITECTURE`, `DATABASE`, `SECURITY` y `DEPLOYMENT`, en español y en inglés (`.en.md`).
+- **`docs/DATABASE.md`** (nuevo): las tablas, cómo instalar o poner al día el esquema, qué depende de Supabase (en el SQL y en el código) y cómo migrar a otro sistema: base, datos, usuarios y código, con una lista de verificación.
+- **`docs/ICONS.md`** reemplaza a `ICONOS_Y_ESTRUCTURA.txt`, con el mapa de iconos y los iconos por archivo sacados del código actual (123 iconos). La estructura del proyecto vive en `docs/ARCHITECTURE.md`.
+- **`docs/INVESTIGACION.md`:** sección "Estado de la hoja de ruta" con lo hecho y lo pendiente.
 - `docs/TESTING.md`: el build de los tests end-to-end necesita las variables `NEXT_PUBLIC_SUPABASE_*`.
+
+### Eliminado
+- `supabase/migrations/` (reemplazadas por `supabase/schema.sql`; siguen en el historial de git).
+- `ICONOS_Y_ESTRUCTURA.txt` (ahora `docs/ICONS.md`).
 
 ## [0.0.1]
 

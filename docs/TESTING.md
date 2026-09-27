@@ -142,7 +142,7 @@ Un servidor Node sin dependencias que imita lo que la app usa de Supabase:
   - `select` con filtros (`eq`, `in`, `gt`…), `order` y paginación;
   - `insert`, `update`, `delete` y `upsert`;
   - `.single()`.
-- **Esquema real:** las tablas y columnas salen de `supabase/migrations/*.sql`, aplicadas en el orden de sus nombres (fechas), igual que en Supabase. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK` (`col IN (…)` y `col > 0`, en la tabla o con `ADD CONSTRAINT`, en una o varias líneas).
+- **Esquema real:** las tablas y columnas salen de `supabase/schema.sql`, el mismo archivo que instala la base de Supabase. Escribir una columna que no existe devuelve `PGRST204`, como en producción. También se aplican `NOT NULL` y los `CHECK` (`col IN (…)` y `col > 0`, en la tabla o con `ADD CONSTRAINT`, en una o varias líneas).
 - **RLS:** cada usuario solo ve y escribe sus filas. Insertar con otro `user_id` devuelve `42501`.
 - **Verificación en dos pasos (MFA TOTP):** `/factors` para activar, desafiar, verificar y borrar, con códigos TOTP reales (RFC 6238, en `totp.mjs`, que también usan los tests). El JWT lleva `aal` (`aal1` con la contraseña, `aal2` con el código) y un refresh lo conserva. Con un factor verificado y `aal1`, PostgREST no devuelve filas ni deja escribir, como las políticas `RESTRICTIVE`.
 - **Claves foráneas con `ON DELETE SET NULL`** (las de las cuentas): una referencia a una fila que no existe, o que no es del usuario, devuelve `23503`; al borrar la fila referenciada, la columna queda en `null`.
@@ -181,14 +181,14 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 5. **Textos nuevos:** van en `src/i18n/ui.ts`, en los dos idiomas. TypeScript (`en: typeof es`) y `messages.test.js` fallan si falta uno o si se escribe `lang === "es" ? …` en un componente.
 6. **End-to-end:** agregar casos en `e2e/`.
    - Para flujos con sesión, usar `login(page, uniqueEmail(info))` y `mockDb(request, email)` de [`e2e/helpers.ts`](../e2e/helpers.ts).
-   - Una columna nueva en la base va en su migración SQL: el Supabase simulado la lee de ahí.
+   - Una columna nueva en la base va en `supabase/schema.sql`, en su `CREATE TABLE` y como `ADD COLUMN IF NOT EXISTS` para las bases que ya existen: el Supabase simulado la lee de ahí.
 
 ## Gotchas
 
 - **`getToday()` devuelve `new Date()`** (hora real). Los tests de `filterByPeriod` deben **anclarse al "ahora"**, no a fechas fijas.
 - **El outlier cuenta como muestra en `flagAnomalies`:** cambia la paridad del conteo al calcular la mediana.
 - **Frontera estricta:** `flagAnomalies` marca solo si `valor > mediana × 3`. Probar ambos lados.
-- **`fmtMoney` depende del locale** (`toLocaleString(undefined, …)`). Usar montos sin separador de miles (p. ej. `$100`).
+- **`fmtMoney` formatea con el locale que recibe** (`es-PE` por defecto; la app pasa `t.common.locale`), no con el del navegador, así el resultado es el mismo en cualquier máquina.
 - **El redondeo de moneda acumula error:** la ida y vuelta puede desviarse hasta `0.005 × tasa + 0.005`.
 - **Importar iconos MUI en `node` funciona** (no se renderizan): `categoryIcons.test.js` compara referencias sin jsdom.
 - **Playwright no expone el cuerpo de `sendBeacon`:**
@@ -208,5 +208,5 @@ Lo que **no** cubre: las políticas RLS reales, los triggers y el comportamiento
 
 ## Pendiente / próximos candidatos
 
-- **Contra un Supabase real:** RLS, triggers y migraciones. Necesitan un proyecto de pruebas, con sus credenciales como secretos de la CI.
+- **Contra un Supabase real:** RLS, triggers y el esquema. Necesitan un proyecto de pruebas, con sus credenciales como secretos de la CI.
 - **Más componentes:** pestañas con datos simulados (p. ej. que "Resumen del periodo" use tonos válidos).
