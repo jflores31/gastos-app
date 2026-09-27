@@ -1,14 +1,17 @@
-import { Box, Chip, Divider, FormControl, InputLabel, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
+import { Box, Chip, Divider, FormControl, FormHelperText, InputLabel, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "../../theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "../../context/SettingsContext";
-import { CURRENCIES } from "../../data/index";
+import { CURRENCIES, rateLabel } from "../../data/index";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
 
 // "Ajustes" tab of the settings panel: theme, density, accent colour, language, currency,
 // inactivity timeout.
 export function PreferencesTab() {
-  const { t, theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency, idleMinutes, setIdleMinutes } = useSettings();
+  const { t, theme, setTheme, density, setDensity, palette, setPalette, lang, setLang, currency, setCurrency, idleMinutes, setIdleMinutes, rates } = useSettings();
+  // Which rates convert the amounts: today's (with their date) or the fixed ones.
+  const ratesDate = rates.date && new Date(`${rates.date}T12:00:00`).toLocaleDateString(t.common.locale, { day: "numeric", month: "short", year: "numeric" });
+  const ratesInfo = [rates.source === "live" ? t.settingsPanel.ratesLive(ratesDate) : t.settingsPanel.ratesFixed, rateLabel(currency, t.common.locale)].filter(Boolean).join(" · ");
   const sectionLabel = (text) => (
     <ListItemText primary={text} primaryTypographyProps={{ variant: "overline" }} />
   );
@@ -76,6 +79,7 @@ export function PreferencesTab() {
               <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
             ))}
           </Select>
+          <FormHelperText>{ratesInfo}</FormHelperText>
         </FormControl>
       </ListItem>
 

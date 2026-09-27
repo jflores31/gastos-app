@@ -1,10 +1,12 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, afterEach } from "vitest"
 import { parseCsv, parseAmount, parseDate, detectAppFormat, guessColumns, buildImport, unguardCell } from "./import"
 import { transactionsToCsv } from "./export"
+import { setLiveRates } from "./index"
 
-const tx = (tipo, categoria, concepto, valor, date) => ({
+const tx = (tipo, categoria, concepto, valor, date, currency = {}) => ({
   id: `${concepto}-${valor}`, tipo, categoria, concepto, valor, date,
   dia: date.getDate(), mes: date.getMonth(), año: date.getFullYear(), anomaly: false,
+  moneda: "PEN", montoOriginal: null, tasa: null, ...currency,
 })
 
 describe("parseCsv", () => {
@@ -47,9 +49,11 @@ describe("parseDate", () => {
 })
 
 describe("columnas", () => {
-  it("reconoce el formato de exportación de la app", () => {
-    expect(detectAppFormat(["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen"]))
-      .toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 })
+  it("reconoce el formato de exportación de la app, con y sin las columnas de moneda", () => {
+    const base = ["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen"]
+    expect(detectAppFormat(base)).toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 })
+    expect(detectAppFormat([...base, "moneda", "monto_original", "tasa"]))
+      .toEqual({ fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5, moneda: 6, montoOriginal: 7, tasa: 8 })
     expect(detectAppFormat(["fecha", "concepto", "monto"])).toBeNull()
   })
 
@@ -66,6 +70,7 @@ describe("columnas", () => {
 
 describe("buildImport", () => {
   const opts = { txs: [], customCategoryIds: ["custom_7"], currency: "PEN", amountsInBase: false }
+  afterEach(() => setLiveRates({}))
 
   it("archivo genérico: el signo decide el tipo, montos en la moneda elegida, concepto en mayúsculas", () => {
     const table = parseCsv("Fecha,Descripción,Importe\n01/02/2026,Netflix,-45\n02/02/2026,Sueldo febrero,3500")
@@ -73,6 +78,27 @@ describe("buildImport", () => {
     expect(invalid).toEqual([])
     expect(rows[0]).toMatchObject({ line: 2, concepto: "NETFLIX", tipo: "EGRESO", valor: 166.67, categoria: "STREAMING", categorySource: "suggested" })
     expect(rows[1]).toMatchObject({ tipo: "INGRESO", categoria: "SUELDO", categorySource: "suggested" })
+  })
+
+  it("archivo genérico en otra moneda: guarda lo escrito y la tasa del día; en PEN no hay original", () => {
+    setLiveRates({ USD: 0.26 })
+    const table = parseCsv("fecha,concepto,monto\n2026-02-01,Cena,-26")
+    expect(buildImport(table, { fecha: 0, concepto: 1, monto: 2 }, { ...opts, currency: "USD" }).rows[0])
+      .toMatchObject({ valor: 100, moneda: "USD", montoOriginal: 26, tasa: 0.26 })
+    expect(buildImport(table, { fecha: 0, concepto: 1, monto: 2 }, opts).rows[0])
+      .toMatchObject({ valor: 26, moneda: "PEN", montoOriginal: null, tasa: null })
+  })
+
+  it("reimportar un archivo en dólares otro día (con otra tasa) lo reconoce como repetido", () => {
+    const table = parseCsv("fecha,concepto,monto\n2026-02-01,Cena,-26")
+    const map = { fecha: 0, concepto: 1, monto: 2 }
+    setLiveRates({ USD: 0.26 })
+    const [first] = buildImport(table, map, { ...opts, currency: "USD" }).rows
+    const saved = [tx("EGRESO", "COMIDA", first.concepto, first.valor, first.date, { moneda: "USD", montoOriginal: first.montoOriginal, tasa: first.tasa })]
+    setLiveRates({ USD: 0.28 })
+    const [again] = buildImport(table, map, { ...opts, txs: saved, currency: "USD" }).rows
+    expect(again.valor).not.toBe(first.valor)
+    expect(again.duplicate).toBe(true)
   })
 
   it("filas sin categoría reconocible quedan para la categoría por defecto; las inválidas se informan con su línea", () => {
@@ -96,17 +122,23 @@ describe("buildImport", () => {
       tx("EGRESO", "COMIDA", "=CAFE", 12.5, new Date(2026, 0, 3, 8, 15)),
       tx("INGRESO", "SUELDO", "SUELDO, ENERO", 3500, new Date(2026, 0, 1, 9, 0)),
       tx("EGRESO", "custom_7", 'ARENA "PREMIUM"', 30, new Date(2026, 0, 5, 20, 0)),
+      tx("EGRESO", "VIAJES", "HOTEL", 384.62, new Date(2026, 0, 7, 22, 0), { moneda: "USD", montoOriginal: 100, tasa: 0.26 }),
     ]
     const csv = transactionsToCsv(txs, (k) => k)
     const table = parseCsv(csv)
     const map = detectAppFormat(table.header)
     const fresh = buildImport(table, map, { ...opts, amountsInBase: true })
-    const key = (r) => [r.date.getTime(), r.tipo, r.categoria, r.concepto, r.valor].join("|")
-    expect(fresh.rows.map(key).sort()).toEqual(txs.map((t) => [t.date.getTime(), t.tipo, t.categoria, t.concepto, t.valor].join("|")).sort())
+    const key = (r) => [r.date.getTime(), r.tipo, r.categoria, r.concepto, r.valor, r.moneda, r.montoOriginal, r.tasa].join("|")
+    expect(fresh.rows.map(key).sort()).toEqual(txs.map(key).sort())
     expect(fresh.rows.every((r) => !r.duplicate && r.categorySource === "file")).toBe(true)
 
     const again = buildImport(table, map, { ...opts, txs, amountsInBase: true })
     expect(again.rows.every((r) => r.duplicate)).toBe(true)
+
+    // An export from before the currency columns still imports, all in PEN.
+    const old = parseCsv(csv.replace(/,moneda,monto_original,tasa|,(PEN|USD),[\d.]+,[\d.]+(?=\r\n)/g, ""))
+    expect(buildImport(old, detectAppFormat(old.header), { ...opts, amountsInBase: true }).rows.map((r) => [r.valor, r.moneda, r.montoOriginal]))
+      .toContainEqual([384.62, "PEN", null])
   })
 
   it("dos filas idénticas en un archivo nuevo se importan las dos; una ya guardada solo absorbe una", () => {

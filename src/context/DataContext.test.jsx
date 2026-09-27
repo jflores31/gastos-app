@@ -236,6 +236,32 @@ describe("DataContext", () => {
     expect(result.current.txs).toHaveLength(500)
   })
 
+  it("la moneda de cada transacción se lee de la fila y se envía en cada escritura; volver a PEN la limpia", async () => {
+    fake.respond = (table, calls) => {
+      if (table === "transactions" && has(calls, "range") && has(calls, "is")) {
+        return { data: [
+          { id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "CENA", valor: "100.00", moneda: "USD", monto_original: "26.00", tasa: "0.26000000", fecha: "2026-09-01T12:00:00Z", deleted_at: null },
+          { id: "t0", tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: "12.50", fecha: "2026-08-01T12:00:00Z", deleted_at: null },
+        ], error: null }
+      }
+      if (has(calls, "single")) return { data: { id: has(calls, "eq")?.[2] ?? "t9", ...(has(calls, "insert")?.[1] ?? has(calls, "update")?.[1]) }, error: null }
+      if (has(calls, "insert")) return { data: has(calls, "insert")[1].map((r, i) => ({ id: `n${i}`, ...r })), error: null }
+      return { data: [], error: null }
+    }
+    const { result } = await mountSignedIn("u1")
+    expect(result.current.txs.find((x) => x.id === "t1")).toMatchObject({ valor: 100, moneda: "USD", montoOriginal: 26, tasa: 0.26 })
+    expect(result.current.txs.find((x) => x.id === "t0")).toMatchObject({ moneda: "PEN", montoOriginal: null, tasa: null })
+
+    const date = new Date("2026-09-02T12:00:00Z")
+    await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "VIAJES", concepto: "HOTEL", valor: 400, moneda: "EUR", montoOriginal: 100, tasa: 0.25, date }))
+    expect(has(writes().at(-1).calls, "insert")[1]).toMatchObject({ valor: 400, moneda: "EUR", monto_original: 100, tasa: 0.25 })
+    await act(() => result.current.updateTx({ id: "t1", tipo: "EGRESO", categoria: "COMIDA", concepto: "CENA", valor: 90, moneda: "PEN", montoOriginal: 90, tasa: 1, date }))
+    expect(has(writes().at(-1).calls, "update")[1]).toMatchObject({ valor: 90, moneda: "PEN", monto_original: null, tasa: null })
+    expect(result.current.txs.find((x) => x.id === "t1")).toMatchObject({ valor: 90, moneda: "PEN", montoOriginal: null })
+    await act(() => result.current.addTxs([{ tipo: "EGRESO", categoria: "COMIDA", concepto: "X", valor: 1, date }]))
+    expect(has(writes().at(-1).calls, "insert")[1][0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
+  })
+
   it("transacciones y presupuestos también usan el usuario de la sesión", async () => {
     const { result } = await mountSignedIn("u1")
     await act(() => result.current.addTx({ tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 15, date: new Date("2026-09-02T12:00:00Z") }))

@@ -269,6 +269,13 @@ async function handleRest(req, res, url) {
   return pgError(res, 405, "PGRST000", `mock: ${req.method} not supported`)
 }
 
+// Stand-in for open.er-api.com (RATES_API_URL in playwright.config.ts): today's rates as
+// units per 1 PEN. USD differs from the fixed 0.27 so the tests can tell which were used.
+const MOCK_RATES = {
+  result: "success", base_code: "PEN", time_last_update_unix: 1790467201, // 2026-09-27
+  rates: { PEN: 1, USD: 0.26, EUR: 0.25, MXN: 5, COP: 1100, ARS: 320, CLP: 250, BRL: 1.5 },
+}
+
 // ── Server ────────────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader("access-control-allow-origin", req.headers.origin ?? "*")
@@ -281,6 +288,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`)
   try {
     if (url.pathname === "/__mock/health") return send(res, 200, { ok: true })
+    if (url.pathname === "/__mock/rates") return send(res, 200, MOCK_RATES)
     if (url.pathname === "/__mock/db") {
       const user = users.get(String(url.searchParams.get("email")).toLowerCase())
       return user ? send(res, 200, { user, tables: db.get(user.id) }) : send(res, 404, { error: "unknown user" })

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest"
-import { CURRENCIES, toBase, fromBase, fmtMoney } from "./index"
+import { describe, it, expect, afterEach } from "vitest"
+import { CURRENCIES, toBase, fromBase, fmtMoney, fmtAmount, rateLabel, currencyOf, setLiveRates } from "./index"
 
 describe("toBase / fromBase", () => {
   it("PEN es la moneda base: no convierte", () => {
@@ -57,5 +57,49 @@ describe("fmtMoney — formato por idioma", () => {
     // Antes: -1234.56 salía con decimales porque se comparaba n >= 100 sin valor absoluto.
     expect(fmtMoney(-1234.56)).toBe("S/-1,235")
     expect(fmtMoney(-12.5)).toBe("S/-12.5")
+  })
+})
+
+describe("tasas del día (setLiveRates)", () => {
+  afterEach(() => setLiveRates({}))
+
+  it("reemplazan a las fijas para convertir y mostrar; lo que falta o no es válido sigue fijo", () => {
+    setLiveRates({ USD: 0.26, EUR: -1, XXX: 5, BRL: "1.4" })
+    expect(currencyOf("USD").rate).toBe(0.26)
+    expect(currencyOf("EUR").rate).toBe(0.25)
+    expect(currencyOf("BRL").rate).toBe(1.5)
+    expect(toBase(26, "USD")).toBe(100)
+    expect(fromBase(100, "USD")).toBe(26)
+    expect(fmtMoney(3500, "USD")).toBe("$910")
+  })
+
+  it("setLiveRates({}) vuelve a las fijas", () => {
+    setLiveRates({ USD: 0.3 })
+    setLiveRates({})
+    expect(currencyOf("USD").rate).toBe(0.27)
+  })
+
+  it("toBase acepta la tasa con que se guardó una transacción en vez de la de hoy", () => {
+    setLiveRates({ USD: 0.25 })
+    expect(toBase(100, "USD")).toBe(400)
+    expect(toBase(100, "USD", 0.27)).toBe(370.37)
+  })
+
+  it("rateLabel cotiza con la moneda más fuerte como unidad, con la tasa vigente", () => {
+    expect(rateLabel("PEN")).toBe("")
+    expect(rateLabel("USD")).toBe("1 USD = S/3.7")
+    expect(rateLabel("EUR")).toBe("1 EUR = S/4")
+    expect(rateLabel("COP")).toBe("S/1 = 1,100 COP")
+    expect(rateLabel("BRL", "en-US")).toBe("S/1 = 1.5 BRL")
+    setLiveRates({ USD: 0.26 })
+    expect(rateLabel("USD")).toBe("1 USD = S/3.85")
+  })
+})
+
+describe("fmtAmount — un monto ya en su moneda", () => {
+  it("no convierte: formatea lo escrito con el símbolo de esa moneda", () => {
+    expect(fmtAmount(26, "USD")).toBe("$26")
+    expect(fmtAmount(1500, "EUR", true)).toBe("€1.5k")
+    expect(fmtAmount(12.5, "BRL", false, "en-US")).toBe("R$12.5")
   })
 })

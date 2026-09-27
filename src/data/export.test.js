@@ -27,20 +27,25 @@ describe("csvCell", () => {
 describe("transactionsToCsv", () => {
   it("BOM, cabecera, filas ordenadas por fecha en hora local y nombre de categoría", () => {
     const csv = transactionsToCsv(
-      [tx({ id: "b", date: new Date(2026, 8, 5, 9, 0), concepto: "PAN, LECHE" }), tx({ id: "a", tipo: "INGRESO", categoria: "SUELDO", concepto: "SUELDO", valor: 3500 })],
+      [
+        tx({ id: "b", date: new Date(2026, 8, 5, 9, 0), concepto: "PAN, LECHE" }),
+        tx({ id: "a", tipo: "INGRESO", categoria: "SUELDO", concepto: "SUELDO", valor: 3500 }),
+        tx({ id: "c", date: new Date(2026, 8, 6, 20, 0), concepto: "CENA", valor: 100, moneda: "USD", montoOriginal: 26, tasa: 0.26 }),
+      ],
       (cat) => ({ COMIDA: "Comida", SUELDO: "Sueldo" })[cat],
     )
     expect(csv.startsWith("﻿")).toBe(true)
     expect(csv.slice(1).split("\r\n")).toEqual([
-      "fecha,tipo,categoria,categoria_nombre,concepto,monto_pen",
-      "2026-09-03 14:05,INGRESO,SUELDO,Sueldo,SUELDO,3500",
-      '2026-09-05 09:00,EGRESO,COMIDA,Comida,"PAN, LECHE",12.5',
+      "fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa",
+      "2026-09-03 14:05,INGRESO,SUELDO,Sueldo,SUELDO,3500,PEN,3500,1",
+      '2026-09-05 09:00,EGRESO,COMIDA,Comida,"PAN, LECHE",12.5,PEN,12.5,1',
+      "2026-09-06 20:00,EGRESO,COMIDA,Comida,CENA,100,USD,26,0.26",
       "",
     ])
   })
 
   it("sin transacciones queda solo la cabecera", () => {
-    expect(transactionsToCsv([], () => "")).toBe("﻿fecha,tipo,categoria,categoria_nombre,concepto,monto_pen\r\n")
+    expect(transactionsToCsv([], () => "")).toBe("﻿fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa\r\n")
   })
 })
 
@@ -53,7 +58,7 @@ describe("backupToJson", () => {
     }
     const out = JSON.parse(backupToJson(data, new Date("2026-09-26T12:00:00Z")))
     expect(out).toMatchObject({ app: "gastos-app", version: 1, exported_at: "2026-09-26T12:00:00.000Z", currency: "PEN" })
-    expect(out.transactions).toEqual([{ id: "t1", fecha: tx().date.toISOString(), tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 12.5 }])
+    expect(out.transactions).toEqual([{ id: "t1", fecha: tx().date.toISOString(), tipo: "EGRESO", categoria: "COMIDA", concepto: "MENU", valor: 12.5, moneda: "PEN", monto_original: null, tasa: null }])
     expect(out.budgets).toEqual([{ categoria: "COMIDA", monto: 600 }])
     for (const k of ["goals", "accounts", "investments", "debts", "subscriptions", "custom_categories"]) expect(out[k]).toHaveLength(1)
   })

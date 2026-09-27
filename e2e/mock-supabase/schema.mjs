@@ -53,11 +53,11 @@ export function loadSchema() {
     for (const [, table, column] of sql.matchAll(/ALTER TABLE (?:IF EXISTS )?(\w+)\s+DROP COLUMN IF EXISTS (\w+)/gi)) {
       if (tables[table]) delete tables[table][column]
     }
-    for (const [, table, column, list] of sql.matchAll(/ALTER TABLE (?:IF EXISTS )?(\w+)\s+ADD CONSTRAINT \w+ CHECK \(\s*(\w+)\s+IN\s*\(([^)]*)\)\s*\)/gi)) {
+    for (const [, table, column, list] of sql.matchAll(/ALTER TABLE (?:IF EXISTS )?(\w+)\s+ADD CONSTRAINT \w+\s+CHECK \(\s*(\w+)\s+IN\s*\(([^)]*)\)\s*\)/gi)) {
       const col = tables[table]?.[column]
       if (col) col.check = list.split(",").map((s) => s.trim().replace(/^'|'$/g, ""))
     }
-    for (const [, table, column] of sql.matchAll(/ALTER TABLE (?:IF EXISTS )?(\w+)\s+ADD CONSTRAINT \w+ CHECK \(\s*(\w+)\s*>\s*0\s*\)/gi)) {
+    for (const [, table, column] of sql.matchAll(/ALTER TABLE (?:IF EXISTS )?(\w+)\s+ADD CONSTRAINT \w+\s+CHECK \(\s*(\w+)\s*>\s*0\s*\)/gi)) {
       const col = tables[table]?.[column]
       if (col) col.positive = true
     }

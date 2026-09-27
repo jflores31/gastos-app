@@ -17,6 +17,11 @@ function mapRow(row) {
     categoria: row.categoria,
     concepto: row.concepto,
     valor: Number(row.valor),
+    // The currency it was entered in, what was typed and that day's rate (units per
+    // 1 PEN). In PEN, and in rows from before the column existed, the original is `valor`.
+    moneda: row.moneda ?? "PEN",
+    montoOriginal: row.monto_original == null ? null : Number(row.monto_original),
+    tasa: row.tasa == null ? null : Number(row.tasa),
     date: d,
     dia: d.getDate(),
     mes: d.getMonth(),
@@ -30,6 +35,12 @@ function mapRow(row) {
 
 // Deleted transactions stay in the trash this long, then load() removes them for good.
 export const TRASH_DAYS = 30
+
+// The currency columns of a transaction being saved (see mapRow). Sent on every write,
+// so an edit back to PEN clears the original amount and the rate.
+const currencyColumns = (tx) => (tx.moneda && tx.moneda !== "PEN"
+  ? { moneda: tx.moneda, monto_original: tx.montoOriginal, tasa: tx.tasa }
+  : { moneda: "PEN", monto_original: null, tasa: null })
 
 function mapGoal(row) {
   return {
@@ -323,6 +334,7 @@ export function DataProvider({ children }) {
         categoria: tx.categoria,
         concepto: tx.concepto,
         valor: tx.valor,
+        ...currencyColumns(tx),
         fecha: tx.date.toISOString(),
       })
       .select()
@@ -345,6 +357,7 @@ export function DataProvider({ children }) {
         categoria: tx.categoria,
         concepto: tx.concepto,
         valor: tx.valor,
+        ...currencyColumns(tx),
         fecha: tx.date.toISOString(),
       }))
       const { data, error } = await supabase.from("transactions").insert(rows).select()
@@ -363,6 +376,7 @@ export function DataProvider({ children }) {
         categoria: tx.categoria,
         concepto: tx.concepto,
         valor: tx.valor,
+        ...currencyColumns(tx),
         fecha: tx.date.toISOString(),
       })
       .eq("id", tx.id)

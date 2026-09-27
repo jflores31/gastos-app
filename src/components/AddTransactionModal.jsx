@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress,
   ToggleButton, ToggleButtonGroup, TextField, Autocomplete, InputAdornment,
-  Slide, Box, Typography,
+  Slide, Box, Typography, MenuItem,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { Star, Label } from "../theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "../theme/categoryIcons.js";
-import { CATEGORIES, CURRENCIES, toBase, fromBase } from "../data/index";
+import { CATEGORIES, CURRENCIES, currencyOf, toBase, fromBase } from "../data/index";
 import { suggestCategory } from "../data/suggest";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
@@ -32,9 +32,19 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
 
   const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
   const [concepto, setConcepto] = useState(editTx?.concepto || initialConcept);
-  // Stored amounts are in PEN; the form works in the selected currency.
-  const baseAmount = editTx?.valor ?? initialAmount;
-  const [valor, setValor] = useState(baseAmount != null ? String(fromBase(baseAmount, currency)) : "");
+  // The amount is typed in `moneda`: the transaction's own when editing, otherwise the
+  // display currency. It is saved converted to PEN (`valor`) along with what was typed
+  // and the rate. An edit keeps the rate it was saved with while the currency stays.
+  const shown = currencyOf(currency).code;
+  const editForeign = editTx?.montoOriginal != null && editTx.moneda && editTx.moneda !== "PEN";
+  const [moneda, setMoneda] = useState(editTx ? (editForeign ? editTx.moneda : "PEN") : shown);
+  const [valor, setValor] = useState(
+    editTx ? String(editForeign ? editTx.montoOriginal : editTx.valor)
+    : initialAmount != null ? String(fromBase(initialAmount, shown)) : "",
+  );
+  const rate = editForeign && moneda === editTx.moneda && editTx.tasa ? editTx.tasa : currencyOf(moneda).rate;
+  const amount = parseFloat(valor);
+  const amountBase = amount > 0 ? toBase(amount, moneda, rate) : 0;
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -115,8 +125,8 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
     if (!categoria) errs.categoria = t.txModal.selectACategory;
     if (!concepto.trim()) errs.concepto = t.txModal.enterAConcept;
     // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
-    if (!valor || parseFloat(valor) <= 0 || toBase(parseFloat(valor), currency) <= 0) errs.valor = t.txModal.enterAValidAmount;
-    else if (toBase(parseFloat(valor), currency) > MAX_AMOUNT_BASE) errs.valor = t.txModal.maximumAmountIs(fmt(MAX_AMOUNT_BASE));
+    if (!(amountBase > 0)) errs.valor = t.txModal.enterAValidAmount;
+    else if (amountBase > MAX_AMOUNT_BASE) errs.valor = t.txModal.maximumAmountIs(fmt(MAX_AMOUNT_BASE));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -137,7 +147,10 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         mes: fecha.month(),
         año: fecha.year(),
         date: fecha.toDate(),
-        valor: toBase(parseFloat(valor), currency),
+        valor: amountBase,
+        moneda,
+        montoOriginal: Math.round(amount * 100) / 100,
+        tasa: rate,
       };
       if (editTx) {
         await updateTx({ ...tx, id: editTx.id });
@@ -152,7 +165,8 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
     }
   };
 
-  const currSymbol = (CURRENCIES[currency] || CURRENCIES.PEN).symbol;
+  // In another currency than the one on display, what it amounts to there.
+  const approx = moneda !== shown && amountBase > 0 ? `≈ ${fmt(amountBase)}` : undefined;
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm"
@@ -221,9 +235,17 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         <TextField label={t.concept} value={concepto} onChange={(e) => handleConceptChange(e.target.value)}
           error={!!errors.concepto} helperText={errors.concepto} fullWidth slotProps={{ htmlInput: { maxLength: 100 } }} />
 
-        <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
-          error={!!errors.valor} helperText={errors.valor} fullWidth
-          slotProps={{ input: { startAdornment: <InputAdornment position="start">{currSymbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, currency), step: "any" } } }} />
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+          <TextField label={t.amount} type="number" inputMode="decimal" value={valor} onChange={(e) => { setValor(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
+            error={!!errors.valor} helperText={errors.valor || approx} sx={{ flex: 1 }}
+            slotProps={{ input: { startAdornment: <InputAdornment position="start">{currencyOf(moneda).symbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, moneda), step: "any" } } }} />
+          <TextField select label={t.txModal.currency} value={moneda} onChange={(e) => { setMoneda(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
+            sx={{ width: 112, flexShrink: 0 }} slotProps={{ select: { renderValue: (code) => code } }}>
+            {Object.entries(CURRENCIES).map(([k, c]) => (
+              <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
+            ))}
+          </TextField>
+        </Box>
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
           <DatePicker

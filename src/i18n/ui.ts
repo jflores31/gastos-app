@@ -314,6 +314,8 @@ const es = {
     comfy: "Cómoda",
     compact: "Compacta",
     currency: "Moneda",
+    ratesLive: (date: string) => `Tasas del día (${date})`,
+    ratesFixed: "Tasas fijas de referencia",
     autoLock: "Cerrar sesión tras inactividad",
     minutes: (n: number) => `${n} min`,
     signInToSeeYour: "Inicia sesión para ver tu perfil y categorías.",
@@ -369,6 +371,7 @@ const es = {
     columnN: (n: number) => `Columna ${n}`,
     importSignHint: "Sin columna de tipo, los montos negativos se toman como egresos y los positivos como ingresos.",
     importAmountsIn: (code: string) => `Los montos del archivo se leen en ${code}.`,
+    fileCurrency: "Moneda del archivo",
     importAppFormat: "Archivo exportado desde la app: montos en PEN, con su tipo y categoría.",
     importNew: (n: number) => `${n} nuevas`,
     importDuplicates: (n: number) => `${n} ya registradas`,
@@ -417,6 +420,7 @@ const es = {
     update: "Actualizar",
     suggestedFromHistory: "Sugerida: la usaste antes con este concepto",
     suggestedFromConcept: "Sugerida por el concepto",
+    currency: "Moneda",
   },
 };
 
@@ -734,6 +738,8 @@ const en: typeof es = {
     comfy: "Comfy",
     compact: "Compact",
     currency: "Currency",
+    ratesLive: (date) => `Today's rates (${date})`,
+    ratesFixed: "Fixed reference rates",
     autoLock: "Sign out after inactivity",
     minutes: (n) => `${n} min`,
     signInToSeeYour: "Sign in to see your profile and categories.",
@@ -789,6 +795,7 @@ const en: typeof es = {
     columnN: (n) => `Column ${n}`,
     importSignHint: "Without a type column, negative amounts are read as expenses and positive ones as income.",
     importAmountsIn: (code) => `Amounts in the file are read in ${code}.`,
+    fileCurrency: "File currency",
     importAppFormat: "File exported from the app: amounts in PEN, with their type and category.",
     importNew: (n) => `${n} new`,
     importDuplicates: (n) => `${n} already recorded`,
@@ -837,6 +844,7 @@ const en: typeof es = {
     update: "Update",
     suggestedFromHistory: "Suggested: you used it before with this concept",
     suggestedFromConcept: "Suggested from the concept",
+    currency: "Currency",
   },
 };
 

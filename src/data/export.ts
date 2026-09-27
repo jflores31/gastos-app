@@ -1,6 +1,7 @@
 // Export of the user's data: transactions as CSV (for a spreadsheet) and everything as a
 // JSON backup. Pure functions; the download itself happens in the settings panel.
-// Amounts are exported in PEN, the currency they're stored in.
+// Amounts are exported in PEN, the currency they're stored in, next to the currency each
+// transaction was entered in, what was typed and the rate (in PEN: the same amount, 1).
 
 import type { Budgets, Transaction, TxType, Goal, Account, Investment, Debt, Subscription, CustomCategory } from "../types";
 
@@ -22,10 +23,13 @@ export const localDateTime = (d: Date) =>
 
 // `categoryName(key, tipo)` gives the category's label in the user's language.
 export function transactionsToCsv(txs: Transaction[], categoryName: (key: string, tipo: TxType) => string) {
-  const header = ["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen"];
+  const header = ["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen", "moneda", "monto_original", "tasa"];
   const rows = [...txs]
     .sort((a, b) => a.date.getTime() - b.date.getTime())
-    .map((tx) => [localDateTime(tx.date), tx.tipo, tx.categoria, categoryName(tx.categoria, tx.tipo), tx.concepto, tx.valor]);
+    .map((tx) => [
+      localDateTime(tx.date), tx.tipo, tx.categoria, categoryName(tx.categoria, tx.tipo), tx.concepto, tx.valor,
+      tx.moneda ?? "PEN", tx.montoOriginal ?? tx.valor, tx.tasa ?? 1,
+    ]);
   // BOM: Excel otherwise reads the UTF-8 file as Latin-1 and mangles accents.
   return "﻿" + [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
@@ -47,7 +51,10 @@ export function backupToJson({ txs, editBudgets, goals, accounts, investments, d
     version: 1,
     exported_at: now.toISOString(),
     currency: "PEN",
-    transactions: txs.map((tx) => ({ id: tx.id, fecha: tx.date.toISOString(), tipo: tx.tipo, categoria: tx.categoria, concepto: tx.concepto, valor: tx.valor })),
+    transactions: txs.map((tx) => ({
+      id: tx.id, fecha: tx.date.toISOString(), tipo: tx.tipo, categoria: tx.categoria, concepto: tx.concepto, valor: tx.valor,
+      moneda: tx.moneda ?? "PEN", monto_original: tx.montoOriginal ?? null, tasa: tx.tasa ?? null,
+    })),
     budgets: Object.entries(editBudgets).map(([categoria, monto]) => ({ categoria, monto })),
     goals,
     accounts,

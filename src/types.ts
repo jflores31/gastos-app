@@ -15,6 +15,12 @@ export type Transaction = {
   mes: number // 0-11, as Date.getMonth()
   año: number
   anomaly: boolean
+  // The currency it was entered in, what was typed and that day's rate (units per 1 PEN).
+  // PEN transactions, and those from before the column existed, have no original amount:
+  // it is `valor`.
+  moneda?: string
+  montoOriginal?: number | null
+  tasa?: number | null
 }
 
 export type Period = "week" | "month" | "quarter" | "year" | "all"

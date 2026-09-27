@@ -1,4 +1,4 @@
-import { CATEGORIES, toBase } from "./index"
+import { CATEGORIES, CURRENCIES, currencyOf, toBase } from "./index"
 import { normalizeConcept, suggestCategory } from "./suggest"
 import type { Transaction, TxType } from "../types"
 
@@ -43,20 +43,28 @@ export function parseCsv(text: string): CsvTable {
 // The export prefixes a ' to cells that Excel would run as a formula: undo it.
 export const unguardCell = (s: string) => (/^'[=+\-@\t\r]/.test(s) ? s.slice(1) : s)
 
-export type ColumnMap = { fecha: number; concepto: number; monto: number; tipo?: number; categoria?: number }
+export type ColumnMap = {
+  fecha: number; concepto: number; monto: number; tipo?: number; categoria?: number
+  // Only in the app's own export: the currency each one was entered in.
+  moneda?: number; montoOriginal?: number; tasa?: number
+}
 
 export const APP_EXPORT_HEADER = ["fecha", "tipo", "categoria", "categoria_nombre", "concepto", "monto_pen"]
+// Added after the first version of the export, so they are optional.
+const APP_EXPORT_CURRENCY = ["moneda", "monto_original", "tasa"]
 
 // The app's own export: amounts are already in PEN.
 export function detectAppFormat(header: string[]): ColumnMap | null {
   const h = header.map((x) => x.toLowerCase())
   if (APP_EXPORT_HEADER.some((name, i) => h[i] !== name)) return null
-  return { fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 }
+  const map: ColumnMap = { fecha: 0, tipo: 1, categoria: 2, concepto: 4, monto: 5 }
+  if (APP_EXPORT_CURRENCY.every((name, i) => h[6 + i] === name)) Object.assign(map, { moneda: 6, montoOriginal: 7, tasa: 8 })
+  return map
 }
 
 // Best guess for a generic file, from common header names in Spanish and English.
 export function guessColumns(header: string[]): Partial<ColumnMap> {
-  const names: Record<keyof ColumnMap, RegExp> = {
+  const names: Record<"fecha" | "concepto" | "monto" | "tipo" | "categoria", RegExp> = {
     fecha: /^(fecha|date|fecha de operaci[oó]n|dia|día)/i,
     concepto: /^(concepto|descripci[oó]n|description|detalle|glosa|memo|concept)/i,
     monto: /^(monto|importe|amount|valor|cargo\/abono|value)/i,
@@ -64,7 +72,7 @@ export function guessColumns(header: string[]): Partial<ColumnMap> {
     categoria: /^(categor[ií]a|category)$/i,
   }
   const out: Partial<ColumnMap> = {}
-  for (const key of Object.keys(names) as (keyof ColumnMap)[]) {
+  for (const key of Object.keys(names) as (keyof typeof names)[]) {
     const i = header.findIndex((h) => names[key].test(h.trim()))
     if (i >= 0) out[key] = i
   }
@@ -118,14 +126,24 @@ function parseTipo(raw: string | undefined): TxType | null {
 }
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
-const txKey = (date: Date, concepto: string, valor: number, tipo: TxType) =>
-  `${dayKey(date)}|${normalizeConcept(concepto)}|${valor.toFixed(2)}|${tipo}`
+type Money = Pick<Transaction, "valor" | "moneda" | "montoOriginal">
+// The amount as it was entered: in another currency, what was typed, so a file imported
+// again on a day with another rate still matches.
+const amountKey = (m: Money) =>
+  m.moneda && m.moneda !== "PEN" && m.montoOriginal != null ? `${m.moneda}:${m.montoOriginal.toFixed(2)}` : `PEN:${m.valor.toFixed(2)}`
+const txKey = (date: Date, concepto: string, money: Money, tipo: TxType) =>
+  `${dayKey(date)}|${normalizeConcept(concepto)}|${amountKey(money)}|${tipo}`
+const round2 = (n: number) => Math.round(n * 100) / 100
 
 export type ImportRow = {
   line: number // 1-based line in the file, header = 1
   date: Date
   concepto: string
   valor: number // PEN, > 0
+  // The currency it was entered in, what was typed and the rate (see Transaction).
+  moneda: string
+  montoOriginal: number | null
+  tasa: number | null
   tipo: TxType
   categoria: string | null // null: needs the default category chosen in the preview
   categorySource: "file" | "suggested" | "default"
@@ -136,7 +154,7 @@ export type InvalidRow = { line: number; reason: "date" | "amount" | "concept" }
 export type BuildOptions = {
   txs: Transaction[]
   customCategoryIds: string[] // "custom_<id>" keys that exist
-  currency: string // amounts of a generic file are in the currency chosen in Settings
+  currency: string // amounts of a generic file are all in this currency
   amountsInBase: boolean // true for the app's own export (monto_pen)
 }
 
@@ -150,7 +168,7 @@ export function buildImport(table: CsvTable, map: ColumnMap, opts: BuildOptions)
   // file are both imported.
   const existing = new Map<string, number>()
   for (const tx of opts.txs) {
-    const k = txKey(tx.date, tx.concepto, tx.valor, tx.tipo)
+    const k = txKey(tx.date, tx.concepto, tx, tx.tipo)
     existing.set(k, (existing.get(k) ?? 0) + 1)
   }
 
@@ -167,8 +185,23 @@ export function buildImport(table: CsvTable, map: ColumnMap, opts: BuildOptions)
     if (!concepto) return void invalid.push({ line, reason: "concept" })
 
     const tipo = parseTipo(cell(map.tipo)) ?? (amount < 0 ? "EGRESO" : "INGRESO")
-    const valor = opts.amountsInBase ? Math.round(Math.abs(amount) * 100) / 100 : toBase(Math.abs(amount), opts.currency)
+    const valor = opts.amountsInBase ? round2(Math.abs(amount)) : toBase(Math.abs(amount), opts.currency)
     if (valor <= 0) return void invalid.push({ line, reason: "amount" })
+
+    // The app's export says per row what was typed and in which currency; a generic file
+    // is all in opts.currency, at today's rate. PEN keeps no original (it is `valor`).
+    let money: Pick<ImportRow, "valor" | "moneda" | "montoOriginal" | "tasa"> = { valor, moneda: "PEN", montoOriginal: null, tasa: null }
+    if (opts.amountsInBase) {
+      const code = cell(map.moneda).toUpperCase()
+      const original = parseAmount(cell(map.montoOriginal))
+      if (code !== "PEN" && code in CURRENCIES && original != null && original > 0) {
+        const rate = parseAmount(cell(map.tasa))
+        money = { valor, moneda: code, montoOriginal: round2(original), tasa: rate != null && rate > 0 ? rate : original / valor }
+      }
+    } else if (currencyOf(opts.currency).code !== "PEN") {
+      const c = currencyOf(opts.currency)
+      money = { valor, moneda: c.code, montoOriginal: round2(Math.abs(amount)), tasa: c.rate }
+    }
 
     let categoria: string | null = null
     let categorySource: ImportRow["categorySource"] = "default"
@@ -179,10 +212,10 @@ export function buildImport(table: CsvTable, map: ColumnMap, opts: BuildOptions)
       if (s && isKnownCategory(s.categoria, tipo, custom)) { categoria = s.categoria; categorySource = "suggested" }
     }
 
-    const k = txKey(date, concepto, valor, tipo)
+    const k = txKey(date, concepto, money, tipo)
     const left = existing.get(k) ?? 0
     if (left > 0) existing.set(k, left - 1)
-    rows.push({ line, date, concepto, valor, tipo, categoria, categorySource, duplicate: left > 0 })
+    rows.push({ line, date, concepto, ...money, tipo, categoria, categorySource, duplicate: left > 0 })
   })
   return { rows, invalid, truncated: table.rows.length > MAX_IMPORT_ROWS }
 }

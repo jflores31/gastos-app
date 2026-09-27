@@ -180,24 +180,59 @@ test("el concepto sugiere la categoría (historial y catálogo) sin pisar una el
   expect(new Set(netflix.map((t) => t.categoria))).toEqual(new Set(["STREAMING"]))
 })
 
-test("en USD los montos se muestran convertidos y se guardan en PEN", async ({ page, request }, info) => {
+test("en USD los montos se muestran con la tasa del día y se guardan en PEN junto con lo escrito", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)
   await openSettings(page, "Ajustes")
   await dialog(page).getByRole("combobox", { name: /Moneda/ }).click()
   await page.getByRole("option", { name: /USD/ }).click()
+  // The mock provider answers USD 0.26 (the fixed rate is 0.27), dated 27 Sep 2026.
+  await expect(dialog(page).getByText(/^Tasas del día \(27 .*2026\) · 1 USD = S\/3\.85$/)).toBeVisible()
   await page.getByRole("button", { name: "Cerrar" }).click()
-  await expect(page.getByText("$945").first()).toBeVisible() // S/3,500 × 0.27
+  await expect(page.getByText("$910").first()).toBeVisible() // S/3,500 × 0.26
 
   await page.getByRole("button", { name: "Nueva transacción" }).click()
   await dialog(page).getByRole("button", { name: "Egresos" }).click()
   await pickCategory(page, "Comida")
   await dialog(page).getByLabel("Concepto").fill("CENA")
-  await dialog(page).getByLabel("Monto").fill("27")
+  await expect(dialog(page).getByRole("combobox", { name: "Moneda" })).toHaveText("USD")
+  await dialog(page).getByLabel("Monto").fill("26")
   await dialog(page).getByRole("button", { name: "Guardar" }).click()
   await expect(toast(page, "Transacción guardada")).toBeVisible()
   const { tables } = await mockDb(request, email)
-  expect(tables.transactions.find((t) => t.concepto === "CENA")).toMatchObject({ valor: 100 })
+  expect(tables.transactions.find((t) => t.concepto === "CENA")).toMatchObject({ valor: 100, moneda: "USD", monto_original: 26, tasa: 0.26 })
+  expect(tables.transactions.find((t) => t.concepto === "SUELDO POR PLANILLA")).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
+})
+
+test("una transacción en otra moneda que la de la app muestra ambos montos y se edita en su moneda", async ({ page, request }, info) => {
+  const email = uniqueEmail(info)
+  await login(page, email)
+  const hotel = async () => (await mockDb(request, email)).tables.transactions.filter((t) => t.concepto === "HOTEL")
+
+  await page.getByRole("button", { name: "Nueva transacción" }).click()
+  await dialog(page).getByRole("button", { name: "Egresos" }).click()
+  await pickCategory(page, "Viajes")
+  await dialog(page).getByLabel("Concepto").fill("HOTEL")
+  await dialog(page).getByRole("combobox", { name: "Moneda" }).click()
+  await page.getByRole("option", { name: /EUR/ }).click()
+  await dialog(page).getByLabel("Monto").fill("50")
+  await expect(dialog(page).getByText("≈ S/200")).toBeVisible()
+  await dialog(page).getByRole("button", { name: "Guardar" }).click()
+  await expect(toast(page, "Transacción guardada")).toBeVisible()
+  expect(await hotel()).toEqual([expect.objectContaining({ valor: 200, moneda: "EUR", monto_original: 50, tasa: 0.25 })])
+
+  // The list shows it in soles, with the euros next to the date; editing opens it in euros.
+  await page.getByRole("tab", { name: "Gastos" }).click()
+  const row = page.getByRole("listitem").filter({ hasText: "HOTEL" })
+  await expect(row).toContainText("€50")
+  await expect(row).toContainText("S/200")
+  await row.getByRole("button", { name: "Editar" }).click()
+  await expect(dialog(page).getByLabel("Monto")).toHaveValue("50")
+  await expect(dialog(page).getByRole("combobox", { name: "Moneda" })).toHaveText("EUR")
+  await dialog(page).getByLabel("Monto").fill("60")
+  await dialog(page).getByRole("button", { name: "Actualizar" }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  expect(await hotel()).toEqual([expect.objectContaining({ valor: 240, moneda: "EUR", monto_original: 60, tasa: 0.25 })])
 })
 
 test("una meta nueva y una categoría personalizada se guardan con su icono", async ({ page, request }, info) => {
@@ -480,14 +515,15 @@ test("Tus datos: exporta las transacciones en CSV y una copia completa en JSON",
   const csv = await read("Transacciones (CSV)")
   expect(csv.name).toMatch(/^finanzas-transacciones-\d{4}-\d{2}-\d{2}\.csv$/)
   const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n")
-  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen")
+  expect(lines[0]).toBe("fecha,tipo,categoria,categoria_nombre,concepto,monto_pen,moneda,monto_original,tasa")
   expect(lines).toHaveLength(tables.transactions.length + 1)
-  expect(lines).toContain(lines.find((l) => l.includes(",SUPERMERCADO,900")))
+  expect(lines).toContain(lines.find((l) => l.endsWith(",SUPERMERCADO,900,PEN,900,1")))
   expect(csv.text).toContain(",COMIDA,Comida,")
 
   const json = JSON.parse((await read("Copia completa (JSON)")).text)
   expect(json).toMatchObject({ app: "gastos-app", version: 1, currency: "PEN" })
   expect(json.transactions).toHaveLength(tables.transactions.length)
+  expect(json.transactions[0]).toMatchObject({ moneda: "PEN", monto_original: null, tasa: null })
   expect(json.budgets).toEqual(expect.arrayContaining([{ categoria: "COMIDA", monto: 600 }]))
   expect(json.custom_categories.map((c: { nombre: string }) => c.nombre)).toEqual(["Gatos"])
   await expect(toast(page, "Archivo descargado")).toBeVisible()
