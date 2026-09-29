@@ -1,7 +1,7 @@
 import { getToday } from "./index";
 import { messagesFor } from "../i18n/index";
 import { normalizeConcept } from "./suggest";
-import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction, Transfer } from "../types";
+import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction, Transfer } from "@/types/domain";
 
 export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
   const today = getToday();

@@ -1,4 +1,4 @@
-import type { Transaction, TxType } from "../types";
+import type { Transaction, TxType } from "@/types/domain";
 
 // A built-in category: labels in both languages, colour, and concept suggestions.
 export type CategoryDef = { es: string; en: string; color: string; concepts: string[] };

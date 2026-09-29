@@ -3,7 +3,7 @@
 // Amounts are exported in PEN, the currency they're stored in, next to the currency each
 // transaction was entered in, what was typed and the rate (in PEN: the same amount, 1).
 
-import type { Budgets, Transaction, TxType, Goal, Account, Investment, Debt, Subscription, CustomCategory, Transfer } from "../types";
+import type { Budgets, Transaction, TxType, Goal, Account, Investment, Debt, Subscription, CustomCategory, Transfer } from "@/types/domain";
 
 // Excel runs a cell that starts with one of these as a formula ("CSV injection").
 const FORMULA_START = /^[=+\-@\t\r]/;

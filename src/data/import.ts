@@ -1,6 +1,6 @@
 import { CATEGORIES, CURRENCIES, currencyOf, toBase } from "./index"
 import { normalizeConcept, suggestCategory } from "./suggest"
-import type { Transaction, TxType } from "../types"
+import type { Transaction, TxType } from "@/types/domain"
 
 // CSV import: the app's own export (src/data/export.ts) or a bank/spreadsheet file whose
 // columns the user maps. Pure functions; the dialog (ImportDialog) reads the file and

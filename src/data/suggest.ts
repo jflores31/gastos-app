@@ -1,5 +1,5 @@
 import { CATEGORIES } from "./index"
-import type { Transaction, TxType } from "../types"
+import type { Transaction, TxType } from "@/types/domain"
 
 // Category suggestion for the concept typed in the transaction form.
 // 1. History: the category the user picked most often for the same concept (ties go to
