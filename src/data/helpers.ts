@@ -59,10 +59,6 @@ export function recurringList(txs: Transaction[] = []): Recurring[] {
     .sort((a, b) => a.day - b.day);
 }
 
-export function fmtDate(date: Date) {
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
-
 // Ordinary least-squares slope for an evenly-spaced series [y0, y1, …, yn-1].
 // More stable than (last - first) / (n - 1) because it uses all points.
 export function linearRegressionSlope(values: number[]) {

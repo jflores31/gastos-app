@@ -28,25 +28,6 @@ export function txByCategory(txs: Transaction[], tipo: TxType = "EGRESO") {
   return [...m.values()].sort((a, b) => b.total - a.total);
 }
 
-export function txByCategoryToday(txs: Transaction[]) {
-  const today = getToday();
-  const todayTx = txs.filter((t) => t.date.toDateString() === today.toDateString());
-  type Concept = { concepto: string; total: number };
-  const m = new Map<string, CategorySummary & { concepts: Map<string, Concept> }>();
-  for (const t of todayTx) if (t.tipo === "EGRESO") {
-    if (!m.has(t.categoria)) m.set(t.categoria, { categoria: t.categoria, total: 0, count: 0, concepts: new Map(), txs: [] });
-    const cat = m.get(t.categoria)!;
-    cat.total += t.valor; cat.count++; cat.txs.push(t);
-    if (!cat.concepts.has(t.concepto)) cat.concepts.set(t.concepto, { concepto: t.concepto, total: 0 });
-    cat.concepts.get(t.concepto)!.total += t.valor;
-  }
-  return [...m.values()].map((cat) => ({
-    ...cat,
-    concepts: [...cat.concepts.values()].sort((a, b) => b.total - a.total),
-    txs: cat.txs.sort((a, b) => a.date.getTime() - b.date.getTime()),
-  })).sort((a, b) => b.total - a.total);
-}
-
 export function getTodayExpenses(txs: Transaction[]) {
   const today = getToday();
   return txs.filter((t) => t.tipo === "EGRESO" && t.date.toDateString() === today.toDateString())

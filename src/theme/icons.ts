@@ -44,7 +44,6 @@ export { default as Diamond } from "@mui/icons-material/DiamondRounded";
 export { default as DirectionsBike } from "@mui/icons-material/DirectionsBikeRounded";
 export { default as DirectionsBus } from "@mui/icons-material/DirectionsBusRounded";
 export { default as DirectionsCar } from "@mui/icons-material/DirectionsCarRounded";
-export { default as Download } from "@mui/icons-material/DownloadRounded";
 export { default as DeleteForever } from "@mui/icons-material/DeleteForeverRounded";
 export { default as DeleteSweep } from "@mui/icons-material/DeleteSweepRounded";
 export { default as Edit } from "@mui/icons-material/EditRounded";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { flagAnomalies, linearRegressionSlope, recurringList, fmtDate, accountBalance, insightsList } from "./helpers"
+import { flagAnomalies, linearRegressionSlope, recurringList, accountBalance, insightsList } from "./helpers"
 
 // Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
 function tx({ tipo = "EGRESO", categoria = "comida", concepto = "x", valor = 10, date = new Date() } = {}) {
@@ -108,12 +108,6 @@ describe("recurringList", () => {
       tx({ tipo: "INGRESO", concepto: "sueldo", date: new Date(2026, 2, 1) }),
     ]
     expect(recurringList(ingresos)).toHaveLength(0)
-  })
-})
-describe("fmtDate", () => {
-  it("fmtDate formatea dd/mm con padding", () => {
-    expect(fmtDate(new Date(2026, 0, 5))).toBe("05/01")
-    expect(fmtDate(new Date(2026, 11, 25))).toBe("25/12")
   })
 })
 

@@ -1,10 +1,8 @@
 import { useState, useMemo } from "react";
-import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
+import { Box, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
 import { Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
-import { GradientIcon } from "./ui/GradientIcon";
 import { EmptyState } from "./ui/EmptyState";
-import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { useSettings } from "@/contexts/SettingsContext";
 
 export function NoTransactions({ type = "expense" }) {
@@ -16,69 +14,6 @@ export function NoTransactions({ type = "expense" }) {
       title={isExpense ? t.sharedUi.noExpenses : t.sharedUi.noIncome}
       subtitle={t.sharedUi.addYourFirstTransaction}
     />
-  );
-}
-
-export function StatsCard({ title, subtitle, icon, iconColor = "primary", tone, children, borderColor = "divider", topBorderColor = "primary.main", minHeight = "auto", onClick }) {
-  return (
-    <Card 
-      onClick={onClick}
-      sx={{ 
-        borderRadius: 2, 
-        border: "1px solid", 
-        borderColor: borderColor,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        transition: "transform 0.3s, box-shadow 0.3s",
-        "&:hover": onClick ? { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-2px)", cursor: "pointer" } : {},
-        borderTop: "4px solid",
-        borderTopColor: topBorderColor,
-        bgcolor: "background.paper",
-        minHeight: minHeight,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column", "&:last-child": { pb: 2.5 } }}>
-        {(title || icon) && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-            {icon && (
-              <GradientIcon tone={tone || TONE_BY_PALETTE[iconColor] || "neutral"} bubble bubbleSize={40} size={22}>
-                {icon}
-              </GradientIcon>
-            )}
-            <Box sx={{ flex: 1 }}>
-              {title && <Typography variant="subtitle1" fontWeight={700}>{title}</Typography>}
-              {subtitle && <Typography variant="caption" color="text.secondary">{subtitle}</Typography>}
-            </Box>
-          </Box>
-        )}
-        <Box sx={{ flex: 1 }}>{children}</Box>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function Delta({ value, invert }) {
-  const positive = invert ? value < 0 : value > 0;
-  const sign = value > 0 ? "+" : "";
-  const arrow = value > 0 ? "▲" : value < 0 ? "▼" : "—";
-  return (
-    <span className="delta" data-positive={positive} data-zero={value === 0}>
-      <span className="delta-arrow">{arrow}</span> {sign}{value.toFixed(1)}%
-    </span>
-  );
-}
-
-export function SummaryCard({ label, value, delta, sub, invert, color, icon }) {
-  return (
-    <div className="st-sum" data-color={color}>
-      <div className="st-sum-top"><span className="st-sum-icon">{icon}</span><span className="st-sum-label">{label}</span></div>
-      <div className="st-sum-value">{value}</div>
-      <div className="st-sum-meta">
-        {delta != null && <Delta value={delta} invert={invert} />}
-        {sub && <span className="st-sum-sub">{sub}</span>}
-      </div>
-    </div>
   );
 }
 
