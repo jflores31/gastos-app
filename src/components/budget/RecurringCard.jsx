@@ -4,8 +4,8 @@ import { Event as EventIcon } from "@/theme/icons";
 import { recurringList } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // Payments that repeat in 3+ months (recurringList), first 5 with "show more".
 export function RecurringCard() {

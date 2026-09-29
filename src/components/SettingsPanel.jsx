@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Alert, Box, Drawer, IconButton, Snackbar, Tab, Tabs, Typography } from "@mui/material";
 import { Close as CloseIcon, Person as PersonIcon, Settings as SettingsIcon } from "@/theme/icons";
-import { useSettings } from "../context/SettingsContext";
-import { useSupabaseUser } from "../context/UserContext";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useSupabaseUser } from "@/contexts/UserContext";
 import { ProfileTab } from "./settings/ProfileTab.jsx";
 import { PreferencesTab } from "./settings/PreferencesTab.jsx";
 

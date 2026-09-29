@@ -1,6 +1,6 @@
 import { Box, Chip, Divider, FormControl, FormHelperText, InputLabel, Link, List, ListItem, ListItemText, MenuItem, Select } from "@mui/material";
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "@/theme/icons";
-import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "../../context/SettingsContext";
+import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "@/contexts/SettingsContext";
 import { CURRENCIES, rateLabel } from "@/domain/money";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));

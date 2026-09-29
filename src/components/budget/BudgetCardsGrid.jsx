@@ -5,8 +5,8 @@ import { toBase, fromBase } from "@/domain/money";
 import { budgetFor } from "../../data/helpers";
 import { CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // "Presupuestos": one card per budgeted category (spent vs limit, limit editable inline)
 // plus the "add budget" card. `cats` is txByCategory() of the period.

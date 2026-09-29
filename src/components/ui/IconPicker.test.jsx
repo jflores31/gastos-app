@@ -5,7 +5,7 @@ import { IconPicker } from "./IconPicker"
 import { ICON_CHOICES } from "@/theme/categoryIcons"
 import { MESSAGES } from "@/i18n"
 
-vi.mock("@/context/SettingsContext", () => ({ useSettings: () => ({ t: MESSAGES.es }) }))
+vi.mock("@/contexts/SettingsContext", () => ({ useSettings: () => ({ t: MESSAGES.es }) }))
 
 describe("IconPicker", () => {
   afterEach(cleanup)

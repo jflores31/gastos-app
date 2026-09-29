@@ -4,8 +4,8 @@ import { periodLabel } from "@/domain/period";
 import { budgetFor } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // One bar per budgeted category, plus totals restricted to budgeted categories.
 export function BudgetVsActualCard({ cats, period, totalBudget }) {

@@ -16,9 +16,9 @@ import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "@/theme/c
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf, toBase, fromBase } from "@/domain/money";
 import { suggestCategory } from "@/domain/categories/suggest";
-import { useSettings } from "../context/SettingsContext";
-import { useData } from "../context/DataContext.jsx";
-import { useSupabaseUser } from "../context/UserContext";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
+import { useSupabaseUser } from "@/contexts/UserContext";
 
 // Category icon in the picker, tinted with the category color.
 const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;

@@ -6,8 +6,8 @@ import {
 import { RestoreFromTrash as RestoreIcon, DeleteForever as DeleteForeverIcon, DeleteSweep as EmptyIcon } from "@/theme/icons";
 import { CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData, TRASH_DAYS } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData, TRASH_DAYS } from "@/contexts/DataContext";
 
 const DAY = 24 * 60 * 60 * 1000;
 

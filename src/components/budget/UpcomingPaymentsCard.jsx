@@ -4,8 +4,8 @@ import { CalendarMonth as UpcomingIcon } from "@/theme/icons";
 import { upcomingPayments } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 const DAY = 24 * 60 * 60 * 1000;
 

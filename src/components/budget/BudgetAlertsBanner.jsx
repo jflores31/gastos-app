@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { Alert, AlertTitle, Box } from "@mui/material";
 import { budgetAlerts } from "../../data/helpers";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // Budgets at 80 % or more of their own current period (budgetAlerts), on top of the tab.
 export function BudgetAlertsBanner() {

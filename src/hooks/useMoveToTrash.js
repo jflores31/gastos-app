@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useSettings } from "../context/SettingsContext";
-import { useData } from "../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // Deleting a transaction moves it to the trash at once (no confirmation: it can be
 // recovered) and shows a toast with "Deshacer" for a few seconds.

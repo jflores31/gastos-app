@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { Buffer } from "node:buffer"
 import { renderHook, act, waitFor, cleanup } from "@testing-library/react"
-import { DataProvider, useData } from "./DataContext.jsx"
+import { DataProvider, useData } from "./DataContext"
 
 // Stand-in for the supabase-js client. `from(table)` returns a chainable, awaitable builder
 // that records its calls; `fake.respond(table, calls)` decides what each query resolves to.

@@ -7,8 +7,8 @@ import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteI
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { toBase, fromBase } from "@/domain/money";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // "Gestionar presupuestos": edit or delete existing budgets and add new ones (native or
 // custom expense categories), each weekly, monthly or yearly. Deleting asks for confirmation.

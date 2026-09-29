@@ -3,8 +3,8 @@ import { Box, Card, CardContent, FormControl, Grid, IconButton, InputLabel, Menu
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, SwapHoriz as SwapIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
 import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 import { useEntityDialog } from "../forms/useEntityDialog";
 import { EntityDialog } from "../forms/EntityDialog";
 import { EmptySection } from "../ui/EmptySection";

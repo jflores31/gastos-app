@@ -3,7 +3,7 @@ import { AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, Trending
 import { healthLabel, healthTone } from "@/domain/health";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { GradientIcon } from "../ui/GradientIcon";
-import { useSettings } from "../../context/SettingsContext";
+import { useSettings } from "@/contexts/SettingsContext";
 
 // Financial health gauge + budget, spent, usage and income for the period.
 export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budgetUsed }) {

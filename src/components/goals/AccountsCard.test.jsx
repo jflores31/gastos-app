@@ -8,8 +8,8 @@ import { TransferDialog } from "./TransferDialog.jsx"
 // Settings and data come from stubs: the tests choose the accounts and inspect what is saved.
 const settings = { current: { t: MESSAGES.es, lang: "es", currency: "PEN", fmt: (v) => `S/${v}` } }
 const data = {}
-vi.mock("../../context/SettingsContext", () => ({ useSettings: () => settings.current }))
-vi.mock("../../context/DataContext.jsx", () => ({ useData: () => data }))
+vi.mock("@/contexts/SettingsContext", () => ({ useSettings: () => settings.current }))
+vi.mock("@/contexts/DataContext", () => ({ useData: () => data }))
 
 const at = new Date("2026-09-10T12:00:00Z")
 const worth = { net: 0, assets: 0, debt: 0 }

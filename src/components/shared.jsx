@@ -5,7 +5,7 @@ import { useTheme, alpha } from "@mui/material/styles";
 import { GradientIcon } from "./ui/GradientIcon";
 import { EmptyState } from "./ui/EmptyState";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
-import { useSettings } from "../context/SettingsContext";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export function NoTransactions({ type = "expense" }) {
   const { t } = useSettings();

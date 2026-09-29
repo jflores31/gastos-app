@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { Box, Button, ListItem, ListItemText } from "@mui/material";
 import { TableChart as CsvIcon, DataObject as JsonIcon, UploadFile as ImportIcon, RestoreFromTrash as TrashIcon } from "@/theme/icons";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export";
 import { parseCsv, MAX_IMPORT_BYTES } from "../../data/import";

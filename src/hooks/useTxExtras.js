@@ -1,5 +1,5 @@
-import { useSettings } from "../context/SettingsContext";
-import { useData } from "../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 
 // What a transaction row adds after its date: " · €50 · BCP" — the amount typed in
 // another currency and the account, when there are.

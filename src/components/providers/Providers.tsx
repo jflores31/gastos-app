@@ -1,8 +1,8 @@
 "use client"
 
-import { SettingsProvider } from "@/context/SettingsContext"
-import { DataProvider } from "@/context/DataContext"
-import { UserProvider } from "@/context/UserContext"
+import { SettingsProvider } from "@/contexts/SettingsContext"
+import { DataProvider } from "@/contexts/DataContext"
+import { UserProvider } from "@/contexts/UserContext"
 import DynamicThemeProvider from "./DynamicThemeProvider"
 import ErrorReporter from "./ErrorReporter"
 

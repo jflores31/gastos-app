@@ -4,8 +4,8 @@ import {
   FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Typography, useMediaQuery, useTheme,
 } from "@mui/material";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf } from "@/domain/money";

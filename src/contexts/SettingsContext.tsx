@@ -2,8 +2,8 @@
 
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from "react";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { messagesFor, type Lang, type Messages } from "../i18n/index";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { messagesFor, type Lang, type Messages } from "@/i18n";
 import { currencyOf, fmtAmount, fmtMoney, setLiveRates } from "@/domain/money";
 import type { Transaction } from "@/types/domain";
 import { useSupabaseUser } from "./UserContext";

@@ -10,9 +10,9 @@ import AddTransactionModal from "./AddTransactionModal.jsx"
 const as = (currency) => ({ t: MESSAGES.es, lang: "es", currency, fmt: (v) => `PEN ${v}` })
 const settings = { current: as("PEN") }
 const data = { addTx: vi.fn(), updateTx: vi.fn(), customCats: [] }
-vi.mock("../context/SettingsContext", () => ({ useSettings: () => settings.current }))
-vi.mock("../context/DataContext.jsx", () => ({ useData: () => data }))
-vi.mock("../context/UserContext", () => ({ useSupabaseUser: () => null }))
+vi.mock("@/contexts/SettingsContext", () => ({ useSettings: () => settings.current }))
+vi.mock("@/contexts/DataContext", () => ({ useData: () => data }))
+vi.mock("@/contexts/UserContext", () => ({ useSupabaseUser: () => null }))
 
 const renderModal = (props = {}) =>
   render(<AddTransactionModal initialCategory="COMIDA" mode="expense" onClose={vi.fn()} showToast={vi.fn()} {...props} />)

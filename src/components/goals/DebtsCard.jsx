@@ -2,8 +2,8 @@ import { Box, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextFie
 import { Add as AddIcon, CreditScore as DebtIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
 import { GradientIcon } from "../ui/GradientIcon";
-import { useSettings } from "../../context/SettingsContext";
-import { useData } from "../../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
 import { useEntityDialog } from "../forms/useEntityDialog";
 import { EntityDialog } from "../forms/EntityDialog";
 import { EmptySection } from "../ui/EmptySection";

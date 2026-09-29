@@ -21,9 +21,9 @@ import {
   VisibilityOff as HideAmountsIcon,
 } from "@/theme/icons";
 import { accentGradient } from "@/theme/materialTheme";
-import { useSettings } from "../context/SettingsContext";
-import { useSupabaseUser } from "../context/UserContext";
-import { useData } from "../context/DataContext.jsx";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useSupabaseUser } from "@/contexts/UserContext";
+import { useData } from "@/contexts/DataContext";
 import { createClient } from "@/lib/supabase/client";
 import { useBudgetAlertToasts } from "../hooks/useBudgetAlertToasts.js";
 import OverviewTab from "./OverviewTab.jsx";

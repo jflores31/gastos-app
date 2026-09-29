@@ -6,7 +6,7 @@ import { txByCategory } from "../data/index";
 import { filterByPeriod } from "@/domain/period";
 import { healthScore } from "@/domain/health";
 import { budgetFor } from "../data/helpers";
-import { useData } from "../context/DataContext.jsx";
+import { useData } from "@/contexts/DataContext";
 import { HealthSummaryCard } from "./budget/HealthSummaryCard.jsx";
 import { BudgetCardsGrid } from "./budget/BudgetCardsGrid.jsx";
 import { DistributionCard } from "./budget/DistributionCard.jsx";

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Box, CircularProgress, Grid, Stack } from "@mui/material";
 import { txByMonth } from "../data/index";
 import { netWorthOf } from "@/domain/netWorth";
-import { useData } from "../context/DataContext.jsx";
+import { useData } from "@/contexts/DataContext";
 import { GoalsSection } from "./goals/GoalsSection.jsx";
 import { AccountsCard } from "./goals/AccountsCard.jsx";
 import { ForecastCard } from "./goals/ForecastCard.jsx";

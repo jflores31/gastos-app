@@ -3,7 +3,7 @@
 import { IconButton, Tooltip } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { LightMode, DarkMode } from "@/theme/icons"
-import { useSettings } from "../../../context/SettingsContext"
+import { useSettings } from "@/contexts/SettingsContext"
 
 // Floating sun/moon toggle for the auth screens — lets a user pick light/dark
 // before signing in. Persists through useSettings (gastos-theme in localStorage).

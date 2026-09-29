@@ -6,8 +6,8 @@ import { SubscriptionsCard } from "./SubscriptionsCard.jsx"
 
 const settings = { t: MESSAGES.es, lang: "es", currency: "PEN", fmt: (v) => `S/${v}` }
 const data = {}
-vi.mock("../../context/SettingsContext", () => ({ useSettings: () => settings }))
-vi.mock("../../context/DataContext.jsx", () => ({ useData: () => data }))
+vi.mock("@/contexts/SettingsContext", () => ({ useSettings: () => settings }))
+vi.mock("@/contexts/DataContext", () => ({ useData: () => data }))
 
 const fill = (label, value) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const categoryCombo = () => screen.getByRole("combobox", { name: "Categoría" })
