@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, vi } from "vitest"
 import { renderHook, act, cleanup, waitFor } from "@testing-library/react"
 import { SettingsProvider, useSettings } from "./SettingsContext"
-import { setLiveRates } from "../data/index"
+import { setLiveRates } from "@/domain/money"
 
 // Today's rates are fetched only once signed in: the tests choose whether there is a user.
 const session = vi.hoisted(() => ({ user: null }))

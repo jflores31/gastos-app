@@ -4,7 +4,7 @@
 import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { messagesFor, type Lang, type Messages } from "../i18n/index";
-import { currencyOf, fmtAmount, fmtMoney, setLiveRates } from "../data/index";
+import { currencyOf, fmtAmount, fmtMoney, setLiveRates } from "@/domain/money";
 import type { Transaction } from "@/types/domain";
 import { useSupabaseUser } from "./UserContext";
 import { ACCENT_ALIASES } from "../theme/materialTheme.js";

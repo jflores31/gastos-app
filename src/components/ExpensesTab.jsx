@@ -11,10 +11,12 @@ import {
   TrendingDown as SpentIcon, Receipt as TxCountIcon, CalendarMonth as DailyIcon, Warning as TopExpenseIcon,
 } from "../theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
-import { CATEGORIES, txByCategory, getTodayExpenses } from "../data/index";
+import { CATEGORIES } from "@/domain/categories/catalog";
+import { txByCategory, getTodayExpenses } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
-import { filterByPeriod, periodLabel, daysCount, budgetFor } from "../data/helpers";
+import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
+import { budgetFor } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";

@@ -1,4 +1,4 @@
-import { CATEGORIES } from "./index"
+import { CATEGORIES } from "./catalog"
 import type { Transaction, TxType } from "@/types/domain"
 
 // Category suggestion for the concept typed in the transaction form.

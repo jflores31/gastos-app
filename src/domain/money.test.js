@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest"
-import { CURRENCIES, toBase, fromBase, fmtMoney, fmtAmount, rateLabel, currencyOf, setLiveRates } from "./index"
+import { CURRENCIES, toBase, fromBase, fmtMoney, fmtAmount, rateLabel, currencyOf, setLiveRates } from "./money"
 
 describe("toBase / fromBase", () => {
   it("PEN es la moneda base: no convierte", () => {

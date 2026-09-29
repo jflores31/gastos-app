@@ -14,7 +14,7 @@ import {
   SupportAgent, Theaters, TireRepair, TrendingUp, TwoWheeler, Videocam, Warning,
   WaterDrop, Wifi, Work,
 } from "./icons";
-import { CATEGORIES } from "../data/index";
+import { CATEGORIES } from "@/domain/categories/catalog";
 
 export const EXPENSE_ICONS = {
   VIVIENDA: Home,

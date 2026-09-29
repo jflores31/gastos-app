@@ -1,4 +1,4 @@
-import { CURRENCIES, type CurrencyCode } from "../data/index"
+import { CURRENCIES, type CurrencyCode } from "@/domain/money"
 
 // Today's exchange rates for the app's currencies, as units of each currency per 1 PEN
 // (the base the amounts are stored in). Fetched server-side from open.er-api.com (free,

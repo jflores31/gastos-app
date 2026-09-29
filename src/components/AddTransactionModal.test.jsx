@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react"
 import { MESSAGES } from "../i18n/index"
-import { setLiveRates } from "../data/index"
+import { setLiveRates } from "@/domain/money"
 import AddTransactionModal from "./AddTransactionModal.jsx"
 
 // The modal reads settings, data and the user from contexts: replace them with stubs so the

@@ -3,7 +3,9 @@
 import { useState, useMemo } from "react";
 import { Grid, Stack } from "@mui/material";
 import { txByCategory } from "../data/index";
-import { filterByPeriod, healthScore, budgetFor } from "../data/helpers";
+import { filterByPeriod } from "@/domain/period";
+import { healthScore } from "@/domain/health";
+import { budgetFor } from "../data/helpers";
 import { useData } from "../context/DataContext.jsx";
 import { HealthSummaryCard } from "./budget/HealthSummaryCard.jsx";
 import { BudgetCardsGrid } from "./budget/BudgetCardsGrid.jsx";

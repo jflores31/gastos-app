@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Grid, Typography } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, TrendingUp as TrendUpIcon, TrendingDown as TrendDownIcon, CheckCircle as HealthIcon, Warning as WarningIcon } from "../../theme/icons";
-import { healthLabel, healthTone } from "../../data/helpers";
+import { healthLabel, healthTone } from "@/domain/health";
 import { TONE_BY_PALETTE } from "../../theme/iconTones.js";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";

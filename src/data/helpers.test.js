@@ -1,20 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest"
-import {
-  flagAnomalies,
-  healthScore,
-  healthLabel,
-  healthTone,
-  linearRegressionSlope,
-  recurringList,
-  filterByPeriod,
-  periodLabel,
-  monthCount,
-  daysCount,
-  fmtDate,
-  netWorthOf,
-  accountBalance,
-  insightsList,
-} from "./helpers"
+import { describe, it, expect } from "vitest"
+import { flagAnomalies, linearRegressionSlope, recurringList, fmtDate, accountBalance, insightsList } from "./helpers"
 
 // Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
 function tx({ tipo = "EGRESO", categoria = "comida", concepto = "x", valor = 10, date = new Date() } = {}) {
@@ -83,42 +68,6 @@ describe("flagAnomalies", () => {
   })
 })
 
-describe("healthScore", () => {
-  it("alcanza 100 con ahorro alto, gasto a la baja y sin anomalías", () => {
-    expect(healthScore(50, -10, 0)).toBe(100) // 50 + 40(cap) + 10
-  })
-
-  it("nunca baja de 0", () => {
-    expect(healthScore(0, 1000, 10)).toBe(0)
-  })
-
-  it("topa el bonus de ahorro en +40", () => {
-    expect(healthScore(100, 0, 0)).toBe(90) // 50 + 40(cap), sin bonus de gasto
-  })
-
-  it("penaliza -5 por cada anomalía", () => {
-    expect(healthScore(0, 0, 1)).toBe(45)
-    expect(healthScore(0, 0, 2)).toBe(40)
-  })
-
-  it("topa la penalización por subida de gasto en -15", () => {
-    expect(healthScore(0, 100, 0)).toBe(35)
-    expect(healthScore(0, 1000, 0)).toBe(35)
-  })
-})
-
-describe("healthLabel / healthTone", () => {
-  it("usa los umbrales 75 / 50", () => {
-    expect(healthLabel(80, "es")).toBe("Excelente")
-    expect(healthLabel(80, "en")).toBe("Excellent")
-    expect(healthLabel(60, "es")).toBe("Regular")
-    expect(healthLabel(40, "en")).toBe("Critical")
-    expect(healthTone(75)).toBe("success")
-    expect(healthTone(50)).toBe("warning")
-    expect(healthTone(49)).toBe("error")
-  })
-})
-
 describe("linearRegressionSlope", () => {
   it("recupera una pendiente conocida", () => {
     expect(linearRegressionSlope([1, 2, 3, 4])).toBeCloseTo(1)
@@ -161,92 +110,10 @@ describe("recurringList", () => {
     expect(recurringList(ingresos)).toHaveLength(0)
   })
 })
-
-describe("filterByPeriod", () => {
-  const now = new Date()
-  const here = tx({ date: now })
-
-  it("'all' devuelve todas las transacciones", () => {
-    const txs = [here, tx({ date: new Date(2000, 0, 1) })]
-    expect(filterByPeriod(txs, "all")).toBe(txs)
-  })
-
-  it("'month' incluye hoy y excluye hace ~2 meses", () => {
-    const old = tx({ date: new Date(now.getFullYear(), now.getMonth() - 2, 15) })
-    const out = filterByPeriod([here, old], "month")
-    expect(out).toContain(here)
-    expect(out).not.toContain(old)
-  })
-
-  it("'year' filtra por año actual y respeta el offset", () => {
-    const lastYear = tx({ date: new Date(now.getFullYear() - 1, 5, 15) })
-    expect(filterByPeriod([here, lastYear], "year")).toEqual([here])
-    expect(filterByPeriod([here, lastYear], "year", -1)).toEqual([lastYear])
-  })
-
-  describe("los límites del período son días completos", () => {
-    afterEach(() => vi.useRealTimers())
-    const at = (...args) => tx({ date: new Date(...args) })
-
-    it("la semana va del lunes 00:00 al domingo 23:59, sea la hora que sea ahora", () => {
-      vi.useFakeTimers({ now: new Date(2026, 8, 17, 12, 0), toFake: ["Date"] }) // jueves 17 sep, 12:00
-      const mondayMorning = at(2026, 8, 14, 9, 0)
-      const sundayNight = at(2026, 8, 20, 22, 0)
-      const lastSunday = at(2026, 8, 13, 23, 0)
-      expect(filterByPeriod([mondayMorning, sundayNight, lastSunday], "week")).toEqual([mondayMorning, sundayNight])
-    })
-
-    it("el último día del mes, del trimestre y del año cuenta entero", () => {
-      vi.useFakeTimers({ now: new Date(2026, 8, 10, 8, 0), toFake: ["Date"] })
-      const sep30 = at(2026, 8, 30, 18, 30)
-      const oct1 = at(2026, 9, 1, 0, 0)
-      expect(filterByPeriod([sep30, oct1], "month")).toEqual([sep30])
-      expect(filterByPeriod([sep30, oct1], "quarter")).toEqual([sep30])
-      const dec31 = at(2026, 11, 31, 21, 0)
-      expect(filterByPeriod([dec31], "year")).toEqual([dec31])
-    })
-  })
-})
-
-describe("helpers triviales", () => {
-  it("periodLabel mapea cada período a su etiqueta i18n", () => {
-    const t = { week: "S", month: "M", quarter: "Q", year: "Y", all: "A" }
-    expect(periodLabel("week", t)).toBe("S")
-    expect(periodLabel("quarter", t)).toBe("Q")
-    expect(periodLabel("nope", t)).toBe("A")
-  })
-
-  it("monthCount y daysCount por período", () => {
-    expect(monthCount("year")).toBe(12)
-    expect(monthCount("week")).toBe(0.25)
-    expect(daysCount("quarter")).toBe(90)
-    expect(daysCount("week")).toBe(7)
-  })
-
+describe("fmtDate", () => {
   it("fmtDate formatea dd/mm con padding", () => {
     expect(fmtDate(new Date(2026, 0, 5))).toBe("05/01")
     expect(fmtDate(new Date(2026, 11, 25))).toBe("25/12")
-  })
-})
-
-describe("netWorthOf", () => {
-  it("activos = saldos positivos de cuentas + inversiones; deuda = saldos negativos + préstamos", () => {
-    const accounts = [{ balance: 2500 }, { balance: -300 }, { balance: 0 }]
-    const debts = [{ balance: 8000 }, { balance: null }]
-    const investments = [{ value: 3000 }, { value: 1200 }]
-    expect(netWorthOf(accounts, debts, investments)).toEqual({ assets: 6700, debt: 8300, net: -1600 })
-  })
-
-  it("las inversiones cuentan como activo (antes quedaban fuera del patrimonio)", () => {
-    expect(netWorthOf([], [], [{ value: 500 }])).toEqual({ assets: 500, debt: 0, net: 500 })
-  })
-
-  it("sin datos: todo en cero", () => {
-    expect(netWorthOf()).toEqual({ assets: 0, debt: 0, net: 0 })
-  })
-
-  it("usa el saldo de hoy de cada cuenta (current) cuando está calculado", () => {
-    expect(netWorthOf([{ balance: 1000, current: 700 }, { balance: 0, current: -50 }])).toEqual({ assets: 700, debt: 50, net: 650 })
   })
 })
 

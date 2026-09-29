@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "../../theme/icons";
-import { budgetFor, periodLabel } from "../../data/helpers";
+import { periodLabel } from "@/domain/period";
+import { budgetFor } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
 import { useSettings } from "../../context/SettingsContext";

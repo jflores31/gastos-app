@@ -10,7 +10,7 @@ import AddTransactionModal from "./AddTransactionModal.jsx";
 import { txByCategory, txByMonth } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../theme/categoryIcons.js";
-import { filterByPeriod, periodLabel } from "../data/helpers";
+import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";

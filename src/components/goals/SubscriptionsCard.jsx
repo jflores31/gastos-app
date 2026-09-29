@@ -1,9 +1,10 @@
 import { Box, Card, CardContent, FormControl, FormHelperText, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Subscriptions as SubIcon } from "../../theme/icons";
-import { CATEGORIES, toBase, fromBase } from "../../data/index";
+import { CATEGORIES } from "@/domain/categories/catalog";
+import { toBase, fromBase } from "@/domain/money";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { suggestCategory } from "../../data/suggest";
+import { suggestCategory } from "@/domain/categories/suggest";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { useEntityDialog } from "./useEntityDialog.js";

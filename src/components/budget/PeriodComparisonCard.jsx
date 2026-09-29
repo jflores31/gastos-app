@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "../../theme/icons";
-import { periodLabel } from "../../data/helpers";
+import { periodLabel } from "@/domain/period";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";
 

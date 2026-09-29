@@ -1,5 +1,6 @@
-import { CATEGORIES, CURRENCIES, currencyOf, toBase } from "./index"
-import { normalizeConcept, suggestCategory } from "./suggest"
+import { CATEGORIES } from "@/domain/categories/catalog"
+import { CURRENCIES, currencyOf, toBase } from "@/domain/money"
+import { normalizeConcept, suggestCategory } from "@/domain/categories/suggest"
 import type { Transaction, TxType } from "@/types/domain"
 
 // CSV import: the app's own export (src/data/export.ts) or a bank/spreadsheet file whose

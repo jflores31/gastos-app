@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Box, CircularProgress, Grid, Stack } from "@mui/material";
 import { txByMonth } from "../data/index";
-import { netWorthOf } from "../data/helpers";
+import { netWorthOf } from "@/domain/netWorth";
 import { useData } from "../context/DataContext.jsx";
 import { GoalsSection } from "./goals/GoalsSection.jsx";
 import { AccountsCard } from "./goals/AccountsCard.jsx";

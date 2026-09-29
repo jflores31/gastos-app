@@ -1,92 +1,7 @@
-import { getToday } from "./index";
 import { messagesFor } from "../i18n/index";
-import { normalizeConcept } from "./suggest";
-import type { Account, BudgetPeriod, Budgets, Debt, Investment, Period, Subscription, Transaction, Transfer } from "@/types/domain";
-
-export function filterByPeriod(txs: Transaction[], period: Period, offset = 0) {
-  const today = getToday();
-  if (period === "all") return txs;
-
-  // start: first day at 00:00; end: last day at 23:59:59.999. (It used to end at 00:00 of
-  // the last day, so that day's transactions fell out, and the week started Monday at
-  // the current time of day.)
-  let start: Date, end: Date;
-  if (period === "week") {
-    const dow = (today.getDay() + 6) % 7;
-    start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow + offset * 7);
-    end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
-  } else if (period === "month") {
-    const raw = today.getMonth() + offset;
-    const y = today.getFullYear() + Math.floor(raw / 12);
-    const mo = ((raw % 12) + 12) % 12;
-    start = new Date(y, mo, 1);
-    end = new Date(y, mo + 1, 0);
-  } else if (period === "quarter") {
-    const rawQ = Math.floor(today.getMonth() / 3) + offset;
-    const y = today.getFullYear() + Math.floor(rawQ / 4);
-    const q = ((rawQ % 4) + 4) % 4;
-    start = new Date(y, q * 3, 1);
-    end = new Date(y, q * 3 + 3, 0);
-  } else if (period === "year") {
-    start = new Date(today.getFullYear() + offset, 0, 1);
-    end = new Date(today.getFullYear() + offset, 11, 31);
-  } else {
-    return []; // unknown period (JS callers aren't type-checked)
-  }
-  end.setHours(23, 59, 59, 999);
-
-  return txs.filter((t) => t.date >= start && t.date <= end);
-}
-
-export function periodLabel(period: Period, t: Record<"week" | "month" | "quarter" | "year" | "all", string>) {
-  if (period === "week") return t.week;
-  if (period === "month") return t.month;
-  if (period === "quarter") return t.quarter;
-  if (period === "year") return t.year;
-  return t.all;
-}
-
-export function monthCount(period: Period) {
-  if (period === "year") return 12;
-  if (period === "quarter") return 3;
-  if (period === "month") return 1;
-  if (period === "week") return 0.25;
-  return 1;
-}
-
-export function daysCount(period: Period) {
-  if (period === "year") return 365;
-  if (period === "quarter") return 90;
-  if (period === "month") return 30;
-  if (period === "week") return 7;
-  return 30;
-}
-
-export function healthScore(savingsRate: number, spendingChange: number, anomalyCount: number) {
-  let score = 50;
-  // Savings: up to +40, reaching the cap at a 20% savings rate.
-  score += Math.min(40, savingsRate * 2);
-  // Spending trend vs previous period: flat bonus if down, graduated penalty if up.
-  if (spendingChange < 0) score += 10;
-  else score -= Math.min(15, spendingChange * 0.3);
-  // Unusual expenses flagged by flagAnomalies().
-  score -= anomalyCount * 5;
-  // Max reachable = 50 + 40 + 10 = 100.
-  return Math.max(0, Math.min(100, Math.round(score)));
-}
-
-// Label/colour for a health score. Single source of truth shared by the tabs;
-// thresholds match (>=75 good, >=50 fair, else critical).
-export function healthLabel(score: number, lang: string) {
-  const m = messagesFor(lang).healthLevels;
-  if (score >= 75) return m.excellent;
-  if (score >= 50) return m.fair;
-  return m.critical;
-}
-
-export function healthTone(score: number) {
-  return score >= 75 ? "success" : score >= 50 ? "warning" : "error";
-}
+import { normalizeConcept } from "@/domain/categories/suggest";
+import { daysCount, filterByPeriod, monthCount } from "@/domain/period";
+import type { Account, BudgetPeriod, Budgets, Period, Subscription, Transaction, Transfer } from "@/types/domain";
 
 // Flags EGRESO transactions whose amount is a strong outlier for their category.
 // Conservative: a category needs >= MIN_SAMPLES expenses to be scored, and a tx is
@@ -195,17 +110,6 @@ export function insightsList(
   return t;
 }
 
-// Net worth for the Goals tab. Assets: positive account balances plus the value of every
-// investment. Debt: negative account balances (e.g. a used credit card) plus the
-// outstanding balance of every loan.
-export function netWorthOf(accounts: Account[] = [], debts: Debt[] = [], investments: Investment[] = []) {
-  const balances = accounts.map((a) => a.current ?? a.balance);
-  const assets = balances.filter((b) => b > 0).reduce((s, b) => s + b, 0)
-    + investments.reduce((s, i) => s + (i.value || 0), 0);
-  const debt = Math.abs(balances.filter((b) => b < 0).reduce((s, b) => s + b, 0))
-    + debts.reduce((s, d) => s + (d.balance || 0), 0);
-  return { assets, debt, net: assets - debt };
-}
 
 // An account's balance today: the one typed in, as of `balanceAt`, plus what moved after
 // that. Its income adds and its expenses subtract; transfers subtract from the origin and

@@ -7,7 +7,8 @@ import {
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
-import { CATEGORIES, CURRENCIES, currencyOf } from "../../data/index";
+import { CATEGORIES } from "@/domain/categories/catalog";
+import { CURRENCIES, currencyOf } from "@/domain/money";
 import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../../data/import";
 
 const PREVIEW_ROWS = 50;

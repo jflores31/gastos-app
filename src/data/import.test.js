@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest"
 import { parseCsv, parseAmount, parseDate, detectAppFormat, guessColumns, buildImport, unguardCell } from "./import"
 import { transactionsToCsv } from "./export"
-import { setLiveRates } from "./index"
+import { setLiveRates } from "@/domain/money"
 
 const tx = (tipo, categoria, concepto, valor, date, currency = {}) => ({
   id: `${concepto}-${valor}`, tipo, categoria, concepto, valor, date,
