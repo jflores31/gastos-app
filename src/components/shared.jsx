@@ -1,33 +1,11 @@
 import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
-import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
+import { Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
 import { GradientIcon } from "./ui/GradientIcon";
+import { EmptyState } from "./ui/EmptyState";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { useSettings } from "../context/SettingsContext";
-
-
-export function EmptyState({ icon, title, subtitle, action }) {
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 6, px: 3, textAlign: "center" }}>
-      {/* Neutral bubble instead of a grey.100 Avatar, which stood out as a light disc in dark mode. */}
-      <Box sx={{ mb: 2 }}>
-        <GradientIcon tone="neutral" bubble bubbleSize={64} size={32}>
-          {icon || <InboxIcon />}
-        </GradientIcon>
-      </Box>
-      <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
-        {title}
-      </Typography>
-      {subtitle && (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: action ? 2 : 0 }}>
-          {subtitle}
-        </Typography>
-      )}
-      {action}
-    </Box>
-  );
-}
 
 export function NoTransactions({ type = "expense" }) {
   const { t } = useSettings();
