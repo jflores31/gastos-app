@@ -6,8 +6,8 @@ import {
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { CategoryAvatar } from "../ui/GradientIcon";
-import { IconPicker } from "../ui/IconPicker";
+import { CategoryAvatar } from "@/components/ui/GradientIcon";
+import { IconPicker } from "@/components/ui/IconPicker";
 import { DEFAULT_ICON, iconByName } from "@/theme/categoryIcons";
 
 const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];

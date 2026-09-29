@@ -6,7 +6,7 @@ import { useData } from "@/contexts/DataContext";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { createClient } from "@/lib/supabase/client";
-import { CustomCategoriesSection } from "./CustomCategoriesSection.jsx";
+import { CustomCategoriesSection } from "@/features/categories/components/CustomCategoriesSection";
 import { DataExportSection } from "./DataExportSection.jsx";
 import { TwoFactorSection } from "./TwoFactorSection.jsx";
 
