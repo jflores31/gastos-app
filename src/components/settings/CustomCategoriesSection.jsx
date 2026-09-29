@@ -3,12 +3,12 @@ import {
   Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, ListItem, ListItemText,
   TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../../theme/icons";
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
 import { IconPicker } from "../../theme/IconPicker.jsx";
-import { DEFAULT_ICON, iconByName } from "../../theme/categoryIcons.js";
+import { DEFAULT_ICON, iconByName } from "@/theme/categoryIcons";
 
 const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
 const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e", icon: "Category" };

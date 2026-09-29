@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Typography } from "@mui/material";
-import { History as HistoryIcon } from "../../theme/icons";
+import { History as HistoryIcon } from "@/theme/icons";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";
 

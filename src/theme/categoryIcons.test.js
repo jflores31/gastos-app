@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest"
 import { CATEGORIES } from "@/domain/categories/catalog"
 import {
   EXPENSE_ICONS, INCOME_ICONS, ICON_CHOICES, DEFAULT_ICON, iconByName, resolveCategoryMeta,
-} from "./categoryIcons.js"
+} from "./categoryIcons"
 
 describe("mapa de iconos por categoría", () => {
   it("cada categoría de egreso tiene icono", () => {

@@ -4,7 +4,7 @@ import { useState } from "react"
 import {
   Dialog, DialogContent, Box, Typography, TextField, Button, Avatar, Divider, Chip, IconButton, CircularProgress
 } from "@mui/material"
-import { Close, Google, GitHub } from "../theme/icons"
+import { Close, Google, GitHub } from "@/theme/icons"
 import { OAUTH_ENABLED } from "../lib/featureFlags"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"

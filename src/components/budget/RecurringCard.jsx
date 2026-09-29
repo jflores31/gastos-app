@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Box, Button, Card, CardContent, Stack, Typography } from "@mui/material";
-import { Event as EventIcon } from "../../theme/icons";
+import { Event as EventIcon } from "@/theme/icons";
 import { recurringList } from "../../data/helpers";
 import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
-import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 

@@ -2,7 +2,7 @@
 
 import { IconButton, Tooltip } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
-import { LightMode, DarkMode } from "../../../theme/icons"
+import { LightMode, DarkMode } from "@/theme/icons"
 import { useSettings } from "../../../context/SettingsContext"
 
 // Floating sun/moon toggle for the auth screens — lets a user pick light/dark

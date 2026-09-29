@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
-import { Add as AddIcon, CreditScore as DebtIcon } from "../../theme/icons";
+import { Add as AddIcon, CreditScore as DebtIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";

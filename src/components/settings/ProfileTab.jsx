@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { Autocomplete, Avatar, Box, Button, Chip, CircularProgress, Divider, List, ListItem, ListItemText, TextField, Typography } from "@mui/material";
-import { Person as PersonIcon } from "../../theme/icons";
+import { Person as PersonIcon } from "@/theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 import { CATEGORIES } from "@/domain/categories/catalog";
-import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { createClient } from "@/lib/supabase/client";
 import { CustomCategoriesSection } from "./CustomCategoriesSection.jsx";
 import { DataExportSection } from "./DataExportSection.jsx";

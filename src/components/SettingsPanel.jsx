@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Alert, Box, Drawer, IconButton, Snackbar, Tab, Tabs, Typography } from "@mui/material";
-import { Close as CloseIcon, Person as PersonIcon, Settings as SettingsIcon } from "../theme/icons";
+import { Close as CloseIcon, Person as PersonIcon, Settings as SettingsIcon } from "@/theme/icons";
 import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { ProfileTab } from "./settings/ProfileTab.jsx";

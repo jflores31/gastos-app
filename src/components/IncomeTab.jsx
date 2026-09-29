@@ -5,11 +5,11 @@ import {
   Box, Card, CardContent, Typography, Grid, Chip, Stack, List, ListItem, ListItemAvatar, ListItemText,
   IconButton,
 } from "@mui/material";
-import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "../theme/icons";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { txByCategory, txByMonth } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
-import { resolveCategoryMeta } from "../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";

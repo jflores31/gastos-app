@@ -3,10 +3,10 @@ import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel,
   List, ListItem, ListItemSecondaryAction, ListItemText, MenuItem, Select, TextField, Typography,
 } from "@mui/material";
-import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "../../theme/icons";
+import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Close as CloseIcon } from "@/theme/icons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { toBase, fromBase } from "@/domain/money";
-import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
 

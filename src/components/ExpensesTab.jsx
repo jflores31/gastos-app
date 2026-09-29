@@ -9,12 +9,12 @@ import {
   ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
   TrendingDown as SpentIcon, Receipt as TxCountIcon, CalendarMonth as DailyIcon, Warning as TopExpenseIcon,
-} from "../theme/icons";
+} from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { txByCategory, getTodayExpenses } from "../data/index";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
-import { resolveCategoryMeta } from "../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
 import { budgetFor } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";

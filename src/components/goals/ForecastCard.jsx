@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
-import { Timeline as ForecastIcon } from "../../theme/icons";
+import { Timeline as ForecastIcon } from "@/theme/icons";
 import { linearRegressionSlope } from "../../data/helpers";
 import { GradientIcon } from "../../theme/GradientIcon.jsx";
 import { useSettings } from "../../context/SettingsContext";

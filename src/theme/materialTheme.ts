@@ -1,6 +1,12 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, type Theme, type ThemeOptions } from "@mui/material/styles";
 
-const common = {
+// The accent (getTheme) adds its gradient to the primary colour.
+declare module "@mui/material/styles" {
+  interface PaletteColor { gradient?: string; gradientStops?: [string, string] }
+  interface SimplePaletteColorOptions { gradient?: string; gradientStops?: [string, string] }
+}
+
+const common: ThemeOptions = {
   typography: {
     // --font-ibm-plex-sans comes from next/font/local in src/app/layout.tsx.
     fontFamily: 'var(--font-ibm-plex-sans), "IBM Plex Sans", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -130,7 +136,9 @@ export const darkTheme = createTheme({
 });
 
 // Set de acentos alegre. Cada uno con main/light/dark por modo + 2 stops de gradiente.
-export const ACCENTS = {
+type AccentColors = { main: string; light: string; dark: string };
+type Accent = { light: AccentColors; dark: AccentColors; grad: [string, string] };
+export const ACCENTS: Record<string, Accent> = {
   coral: {
     light: { main: "#E94668", light: "#FFD9E1", dark: "#B11E47" },
     dark:  { main: "#FF8FA8", light: "#5A1730", dark: "#FFC2D0" },
@@ -159,12 +167,12 @@ export const ACCENTS = {
 };
 
 // Set de acentos anterior → nuevos, para no resetear `gastos-palette` guardado.
-export const ACCENT_ALIASES = { amber: "coral", indigo: "ocean", green: "mint" };
+export const ACCENT_ALIASES: Record<string, string> = { amber: "coral", indigo: "ocean", green: "mint" };
 
-export function getTheme(themeMode, palette) {
+export function getTheme(themeMode: string, palette: string) {
   const base = themeMode === "dark" ? darkTheme : lightTheme;
   const key = ACCENT_ALIASES[palette] || palette;
-  const accent = ACCENTS[key]?.[themeMode];
+  const accent = ACCENTS[key]?.[themeMode as "light" | "dark"];
   if (!accent) return base;
   const grad = ACCENTS[key].grad;
   return createTheme({
@@ -184,7 +192,7 @@ export function getTheme(themeMode, palette) {
 }
 
 // Gradiente del acento activo (cae a main→dark si no hay stops guardados).
-export function accentGradient(theme, angle = 135) {
+export function accentGradient(theme: Theme, angle = 135) {
   const p = theme.palette.primary;
   const [from, to] = p.gradientStops || [p.main, p.dark];
   return `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)`;

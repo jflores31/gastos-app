@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
-import { Add as AddIcon } from "../../theme/icons";
+import { Add as AddIcon } from "@/theme/icons";
 import { useSettings } from "../../context/SettingsContext";
 
 export function EmptySection({ label, onAdd }) {

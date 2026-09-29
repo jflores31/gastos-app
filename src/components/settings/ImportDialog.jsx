@@ -6,7 +6,7 @@ import {
 } from "@mui/material";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
-import { resolveCategoryMeta } from "../../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf } from "@/domain/money";
 import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../../data/import";

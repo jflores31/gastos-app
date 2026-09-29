@@ -1,6 +1,6 @@
 // Iconos de categorías — fuente única para el selector de categorías, las listas
 // y los avatares de las pestañas. Guarda componentes (no elementos) para que cada
-// uso elija tamaño y color. Los iconos salen de icons.js (variante Rounded).
+// uso elija tamaño y color. Los iconos salen de icons.ts (variante Rounded).
 import {
   AccountBalance, Album, Apartment, BeachAccess, Build, Campaign, CardGiftcard,
   Category, Celebration, CellTower, Checkroom, ChildCare, Code, Coffee, CorporateFare,
@@ -14,9 +14,11 @@ import {
   SupportAgent, Theaters, TireRepair, TrendingUp, TwoWheeler, Videocam, Warning,
   WaterDrop, Wifi, Work,
 } from "./icons";
+import type { SvgIconComponent } from "@mui/icons-material";
 import { CATEGORIES } from "@/domain/categories/catalog";
+import type { CustomCategory } from "@/types/domain";
 
-export const EXPENSE_ICONS = {
+export const EXPENSE_ICONS: Record<string, SvgIconComponent> = {
   VIVIENDA: Home,
   LUZ: Lightbulb,
   AGUA: WaterDrop,
@@ -52,7 +54,7 @@ export const EXPENSE_ICONS = {
   COMPRAS: ShoppingBag,
 };
 
-export const INCOME_ICONS = {
+export const INCOME_ICONS: Record<string, SvgIconComponent> = {
   SUELDO: Payments,
   HONORARIOS: Code,
   NEGOCIO: Work,
@@ -87,7 +89,7 @@ export const INCOME_ICONS = {
 
 // Iconos elegibles en los selectores (metas y categorías personalizadas).
 // En la DB se guarda la clave (p. ej. "Flight"), no el componente.
-export const ICON_CHOICES = {
+export const ICON_CHOICES: Record<string, SvgIconComponent> = {
   Flag, Savings, Home, Apartment, Flight, BeachAccess, DirectionsCar, TwoWheeler,
   DirectionsBike, School, Laptop, PhoneAndroid, Pets, ChildCare, FitnessCenter,
   SportsSoccer, SportsEsports, MusicNote, PhotoCamera, Movie, Restaurant, Coffee,
@@ -101,14 +103,16 @@ const FALLBACK_COLOR = "#9e9e9e";
 
 // Componente para una clave guardada en DB, o null si no es un icono conocido
 // (p. ej. metas viejas que guardaban un glifo de texto como "◉").
-export function iconByName(name) {
+export function iconByName(name?: string | null): SvgIconComponent | null {
   return (name && Object.prototype.hasOwnProperty.call(ICON_CHOICES, name) && ICON_CHOICES[name]) || null;
 }
 
 // Nombre, color e icono de una categoría: de fábrica (CATEGORIES) o personalizada
 // (`custom_<id>`). Si la personalizada fue borrada, cae en valores genéricos.
 // Algunas claves existen en ingresos y egresos (REGALOS): `tipo` desempata.
-export function resolveCategoryMeta(categoria, customCats = [], lang = "es", tipo) {
+export type CategoryMeta = { label: string; color: string; Icon: SvgIconComponent };
+
+export function resolveCategoryMeta(categoria: string, customCats: CustomCategory[] = [], lang = "es", tipo?: string): CategoryMeta {
   if (categoria?.startsWith("custom_")) {
     const id = categoria.slice("custom_".length);
     const c = customCats.find((cc) => cc.id === id);
@@ -124,7 +128,7 @@ export function resolveCategoryMeta(categoria, customCats = [], lang = "es", tip
   const def = useIncome ? inc : exp;
   const Icon = (useIncome ? INCOME_ICONS : EXPENSE_ICONS)[categoria] || DEFAULT_ICON;
   return {
-    label: def?.[lang] || categoria,
+    label: def?.[lang as "es" | "en"] || categoria,
     color: def?.color || FALLBACK_COLOR,
     Icon,
   };

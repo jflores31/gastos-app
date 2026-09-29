@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { budgetAlerts } from "../data/helpers";
-import { resolveCategoryMeta } from "../theme/categoryIcons.js";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 

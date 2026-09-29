@@ -1,8 +1,8 @@
 "use client";
 
 import { Box, IconButton, Typography } from "@mui/material";
-import { ICON_CHOICES } from "./categoryIcons.js";
-import { tint } from "./iconTones.js";
+import { ICON_CHOICES } from "./categoryIcons";
+import { tint } from "./iconTones";
 import { useSettings } from "../context/SettingsContext";
 
 // Rejilla de iconos elegibles (ICON_CHOICES) para metas y categorías personalizadas.

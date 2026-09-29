@@ -7,7 +7,7 @@ import { messagesFor, type Lang, type Messages } from "../i18n/index";
 import { currencyOf, fmtAmount, fmtMoney, setLiveRates } from "@/domain/money";
 import type { Transaction } from "@/types/domain";
 import { useSupabaseUser } from "./UserContext";
-import { ACCENT_ALIASES } from "../theme/materialTheme.js";
+import { ACCENT_ALIASES } from "@/theme/materialTheme";
 
 type Setter<T> = (value: T | ((prev: T) => T)) => void;
 type TxMoney = Pick<Transaction, "valor" | "moneda" | "montoOriginal">;

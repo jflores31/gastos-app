@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import { Box, Typography, TextField, Button, CircularProgress } from "@mui/material"
-import { ArrowBack, MarkEmailRead, LockReset } from "../../theme/icons"
+import { ArrowBack, MarkEmailRead, LockReset } from "@/theme/icons"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { AuthCard } from "../components/auth/AuthCard"

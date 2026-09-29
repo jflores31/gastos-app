@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { gradientBg, resolveTone, tint } from "./iconTones.js";
+import { gradientBg, resolveTone, tint } from "./iconTones";
 
 // Pinta cualquier icono de icons.js con un gradiente alegre (relleno SVG) y,
 // opcionalmente, lo monta en una burbuja squircle de tinte suave (light/dark aware).

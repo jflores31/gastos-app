@@ -9,7 +9,7 @@ import {
   Savings as SavingsIcon, Warning as WarningIcon,
   AccountBalanceWallet as WalletIcon, PieChart as PieIcon, Insights as InsightsIcon,
   CalendarMonth as CalendarIcon, ShowChart as ChartIcon, Timeline as ForecastIcon,
-} from "../theme/icons";
+} from "@/theme/icons";
 
 const INSIGHT_ICONS = {
   trend: <ChartIcon />,
@@ -27,8 +27,8 @@ import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
 import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
 import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
-import { TONE_BY_PALETTE } from "../theme/iconTones.js";
-import { resolveCategoryMeta } from "../theme/categoryIcons.js";
+import { TONE_BY_PALETTE } from "@/theme/iconTones";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
 
 function CategoryBars({ data, max = 5 }) {
   const { fmt } = useSettings();
