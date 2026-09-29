@@ -8,7 +8,7 @@ import {
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "../../theme/icons"
 import Link from "next/link"
-import { createClient } from "../../lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { AuthCard } from "../components/auth/AuthCard"
 import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
 import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"

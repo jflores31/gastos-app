@@ -24,7 +24,7 @@ import { accentGradient } from "../theme/materialTheme.js";
 import { useSettings } from "../context/SettingsContext";
 import { useSupabaseUser } from "../context/UserContext";
 import { useData } from "../context/DataContext.jsx";
-import { createClient } from "../lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useBudgetAlertToasts } from "../hooks/useBudgetAlertToasts.js";
 import OverviewTab from "./OverviewTab.jsx";
 import ExpensesTab from "./ExpensesTab.jsx";

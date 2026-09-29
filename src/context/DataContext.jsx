@@ -2,9 +2,9 @@
 
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { createClient } from "../lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { accountBalance, flagAnomalies } from "../data/helpers"
-import { fetchAllRows } from "../data/fetchAllRows"
+import { fetchAllRows } from "@/lib/supabase/fetchAllRows"
 import { reportError } from "../lib/reportError"
 import { needsSecondStep } from "../lib/mfa"
 

@@ -7,7 +7,7 @@ import {
 import { Close, Google, GitHub } from "../theme/icons"
 import { OAUTH_ENABLED } from "../lib/featureFlags"
 import Link from "next/link"
-import { createClient } from "../lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { useSettings } from "../context/SettingsContext"
 
 export default function LoginModal({ open, onClose }) {

@@ -32,7 +32,7 @@ const fake = vi.hoisted(() => {
   }
   return state
 })
-vi.mock("../lib/supabase", () => ({ createClient: () => fake.client }))
+vi.mock("@/lib/supabase/client", () => ({ createClient: () => fake.client }))
 
 const has = (calls, name) => calls.find((c) => c[0] === name)
 const writes = () => fake.queries.filter((q) => q.calls.some((c) => ["insert", "update", "delete", "upsert"].includes(c[0])))

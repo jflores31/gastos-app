@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, ListItem, ListItemText, TextField, Typography } from "@mui/material";
 import { useSettings } from "../../context/SettingsContext";
-import { createClient } from "../../lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 // Two-step verification with TOTP (Supabase MFA). Turning it on shows a QR code (and the
 // key, to type it in by hand) and asks for one code to confirm it. Once on, signing in asks

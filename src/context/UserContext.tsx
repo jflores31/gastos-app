@@ -3,7 +3,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { createClient } from "../lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 const UserContext = createContext<User | null | undefined>(undefined)
 
