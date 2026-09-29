@@ -1,0 +1,278 @@
+# Auditoría de arquitectura
+
+> Punto de partida del refactor arquitectónico: `main` en `be3d3ef` (29-09-2026).
+> Reúne lo que el plan pedía en tres documentos (auditoría, mapa de dependencias y plan de migración).
+> El resultado, con el mapa "después", se agrega al final cuando termina el refactor; la estructura resultante se documenta en `docs/PROJECT-STRUCTURE.md`.
+
+## Cómo se hizo
+
+- **Mapa de dependencias:** [`scripts/dependency-map.mjs`](../scripts/dependency-map.mjs) lee los `import` de `src/` y resuelve los relativos y el alias `@/`. Con eso arma el grafo, detecta ciclos, aplica las reglas de capas y lista los exports sin uso.
+- **Reglas en la CI:** `src/architecture.test.js` las aplica en cada `npm test`. Las violaciones que el código ya tenía van en una lista de excepciones, que el refactor solo puede vaciar.
+- **Responsabilidad de cada archivo:** leída en el código, no deducida por el nombre.
+
+## Baseline
+
+| Chequeo | Resultado en `be3d3ef` |
+|---|---|
+| `npm run lint` | PASS |
+| `npm run typecheck` | PASS |
+| `npm test` | PASS: 211 tests en 22 archivos |
+| `npm run build` (contra el Supabase simulado) | PASS |
+| `npm run test:e2e` | PASS: 36 de 36 |
+
+**Baseline visual:** capturas de cada pantalla, diálogo y panel (auth, las 5 pestañas, 13 diálogos, Perfil y Ajustes):
+- en claro y oscuro, español e inglés, escritorio y 390 px;
+- con el reloj del navegador fijo;
+- en cada comparación se toman de `be3d3ef` y de la rama en la misma corrida, porque los datos del Supabase simulado dependen de la fecha real;
+- el criterio es 0 píxeles distintos.
+
+## Estructura de partida
+
+| Carpeta | Archivos (sin tests) | Qué tiene |
+|---|---|---|
+| `app/` | 22 | Rutas, pero también `app/components/` (providers y UI de auth) y la implementación completa de las 4 pantallas de auth |
+| `components/` | 38 | Todas las pestañas, tarjetas y diálogos, agrupados en parte por pestaña (`budget/`, `goals/`, `settings/`) |
+| `context/` | 3 | `DataContext.jsx` (588 líneas), `SettingsContext.tsx`, `UserContext.tsx` |
+| `data/` | 6 | Lógica de dominio mezclada: `helpers.ts` (8 dominios), `index.ts` (3), importar y exportar, sugerencias, paginación |
+| `hooks/` | 4 | Tres de transacciones o presupuestos y uno genérico |
+| `lib/` | 6 | Clientes de Supabase, tasas, reporte de errores, 2FA, flags |
+| `theme/` | 6 | Tema, iconos y tonos, más 2 componentes (`GradientIcon`, `IconPicker`) |
+| `i18n/`, `types.ts`, `proxy.ts` | 5 | Textos, tipos del dominio, guard + CSP |
+
+**Lenguajes:**
+- 41 archivos `.ts`/`.tsx`: rutas, datos, textos, 2 contextos y la librería;
+- 8 archivos `.js` de lógica: tema, hooks y `useEntityDialog`;
+- 40 componentes `.jsx`;
+- tests en `.js`/`.jsx`.
+
+## Mapa de dependencias (antes)
+
+Cada fila es una carpeta y lo que importa de las demás (sin tests):
+
+| Área | Importa |
+|---|---|
+| `app` | `@supabase/supabase-js`, `components`, `context`, `lib`, `lib/supabase`, `theme` |
+| `app/auth` | `@supabase/ssr` |
+| `components` | `context`, `data`, `hooks`, `lib`, `lib/supabase`, `theme` |
+| `context` | `@supabase/supabase-js`, `data`, `hooks`, `i18n`, `lib`, `lib/supabase`, `theme`, `types` |
+| `data` | `i18n`, `types` |
+| `hooks` | `context`, `data`, `theme` |
+| `i18n` | — |
+| `lib` | `data` |
+| `lib/supabase` | `@supabase/ssr` |
+| `proxy` | `@supabase/ssr`, `lib` |
+| `theme` | `context`, `data` |
+| `types` | — |
+
+**Ciclos:** ninguno.
+
+**Violaciones de las reglas de capas: 10**, y todas son deuda de partida:
+- **9 archivos de UI llaman a Supabase directamente:**
+  - las 4 páginas de auth;
+  - `DashboardStudio` (logout), `LoginModal`, `ProfileTab` (nombre y favoritas) y `TwoFactorSection`;
+  - `login/page.tsx`, además, importa un tipo de `@supabase/supabase-js`.
+- **`theme/IconPicker.jsx` importa un contexto:** el tema depende de la capa de estado.
+
+### Qué hace que el mapa sea difícil de leer
+- **Nombres por tecnología:** `components/` depende de todo (`context`, `data`, `hooks`, `lib`, `lib/supabase`, `theme`). Desde fuera no se sabe qué pantalla usa qué dominio.
+- **`data/` mezcla dominios:** es a la vez catálogo, monedas, períodos, presupuestos, patrimonio e importación. Solo `data/index.ts` lo importan 23 archivos.
+- **`theme/` y `hooks/` dependen hacia arriba:** importan `context/` y `data/`, capas que deberían estar por encima de ellas.
+
+## Hotspots
+
+| Archivo | Problema | Riesgo al tocarlo | Qué lo protege |
+|---|---|---|---|
+| `context/DataContext.jsx` (588 líneas) | Estado, consultas, mutaciones y mappers de las 9 tablas en un componente. Es el único acceso a datos, pero también la única pieza que conoce las tablas | Alto | 8 tests con un cliente simulado que registra cada llamada, y los e2e con sesión |
+| `components/DashboardStudio.jsx` (366) | Shell de la app mezclado con ~150 líneas de seguridad de sesión (inactividad, 8 h, navegador reabierto, `BroadcastChannel`) | Alto | e2e de inactividad con `page.clock`, pestañas y navegador reabierto |
+| `data/helpers.ts` (319) | 17 funciones de 8 dominios; lo importan 15 archivos | Bajo (funciones puras) | `helpers.test.js`, `budgets.test.js`, `upcoming.test.js` |
+| `data/index.ts` (205) | Catálogo de categorías, monedas con tasas del día (estado de módulo) y agregaciones de transacciones | Bajo | `currency.test.js`, `categoryIcons.test.js` |
+| Páginas de auth (`app/*/page.tsx`, 190–320 líneas) | Implementación completa dentro de `app/`, llamando a Supabase | Medio | e2e de login, registro, recuperación, 2FA y CSP |
+| `ExpensesTab.jsx` / `IncomeTab.jsx` | ~147 líneas iguales: lista con editar y borrar, filtros de calendario y categoría, pie con el total | Medio | e2e de alta, edición y borrado, y capturas |
+| `components/shared.jsx` (337) | Mezcla UI genérica (`EmptyState`) con UI de transacciones (`CalendarFilter`, `NoTransactions`) y código muerto | Bajo | Capturas |
+
+## Código muerto y exports
+
+`node scripts/dependency-map.mjs --unused` en `be3d3ef`:
+
+- **Sin uso en ningún lado** (se borran en la limpieza):
+  - `StatsCard` y `SummaryCard` (`shared.jsx`), y `Delta`, que solo usaba `SummaryCard`;
+  - `txByCategoryToday` (`data/index.ts`);
+  - el icono `Download` (`theme/icons.js`);
+  - `createServerSupabaseClient` (`lib/supabase-server.ts`): se usa en vez de borrarse, porque el callback de OAuth repite su código.
+- **Solo lo usan tests:**
+  - `fmtDate` (`helpers.ts`), que se borra junto con su test;
+  - el resto (`csvCell`, `parseAmount`, `tokenAal`, `buildReport`…) son piezas internas que los tests prueban por separado, y se quedan.
+- **24 exports que solo se usan en su propio archivo:** en su mayoría tipos de retorno públicos (`BackupData`, `UpcomingPayment`…). Se quedan.
+
+## Fronteras server/client
+
+- **Client:**
+  - 27 archivos declaran `"use client"`: las páginas de auth y de error, el shell, las pestañas, los diálogos de primer nivel, los 3 contextos, los providers, `GradientIcon` e `IconPicker`;
+  - el resto de los componentes son cliente porque solo los importan componentes cliente.
+- **Servidor:**
+  - `layout.tsx`: lee el nonce;
+  - las rutas `app/api/*` y `app/auth/callback`;
+  - `proxy.ts`;
+  - `lib/supabase-server.ts` (`next/headers`).
+- **Isomorfos:** `data/*`, `lib/rates.ts`, `lib/mfa.ts` (la usan `proxy.ts` y el cliente), `i18n/*` y `types.ts`.
+- **Regla para el refactor:** mover un archivo no cambia su lado.
+  - Las páginas de auth pasan a ser server components que renderizan el componente `"use client"` de la feature, que es la misma frontera que hoy, un nivel más abajo.
+  - `window`, `localStorage` y `sessionStorage` solo se usan en componentes y hooks cliente (`useLocalStorage`, el shell).
+
+## Matriz de migración por archivo
+
+Columnas:
+- **Deps / Dep. de:** cuántos archivos de `src/` importa y cuántos lo importan (sin tests).
+- **Lado:** según `"use client"`, `next/headers` o su ubicación.
+- **Acciones:** KEEP, MOVE, SPLIT, MIGRATE JS→TS y DELETE.
+- **Tests:** se mueven con su módulo; los de `helpers.test.js` se reparten entre los módulos nuevos, con los mismos casos.
+
+| Archivo | Tipo | Responsabilidad real | Feature | Deps | Dep. de | Lado | Acción | Destino | Riesgo | Motivo |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `app/api/client-error/route.ts` | ts | Ruta: recibe errores del navegador y los escribe en los logs | observabilidad | 0 | 0 | server | KEEP | = (sin cambios) | Bajo | Es una ruta de Next: su lugar es app/ |
+| `app/api/csp-report/route.ts` | ts | Ruta: recibe las violaciones del CSP | seguridad | 0 | 0 | server | KEEP | = (sin cambios) | Bajo | Ruta de Next |
+| `app/api/rates/route.ts` | ts | Ruta: tasas de cambio del día (detrás del login) | moneda | 1 | 0 | server | KEEP | = (sin cambios) | Bajo | Ruta de Next; la lógica ya está en lib/rates.ts |
+| `app/auth/callback/route.ts` | ts | Ruta: canje PKCE de OAuth | auth | 0 | 0 | server | KEEP | = (sin cambios) | Medio | Repite el cliente de servidor: pasa a usar lib/supabase/server.ts |
+| `app/components/DynamicThemeProvider.tsx` | tsx | Aplica el tema MUI según los ajustes | compartido | 2 | 1 | client | MOVE | components/providers/DynamicThemeProvider.tsx | Bajo | app/ es solo para rutas |
+| `app/components/ErrorReporter.tsx` | tsx | Envía errores no capturados a /api/client-error | observabilidad | 1 | 1 | client | MOVE | components/providers/ErrorReporter.tsx | Bajo | app/ es solo para rutas |
+| `app/components/Providers.tsx` | tsx | Compone User → Settings → Data → Theme | compartido | 5 | 1 | client | MOVE | components/providers/Providers.tsx | Medio | app/ es solo para rutas; el nonce sigue en layout.tsx |
+| `app/components/auth/AuthCard.tsx` | tsx | Tarjeta de las pantallas de auth | auth | 1 | 4 | client | MOVE | features/auth/components/AuthCard.tsx | Bajo | Es de la feature auth |
+| `app/components/auth/AuthErrorAlert.tsx` | tsx | Error de auth (enlace expirado) | auth | 0 | 4 | client | MOVE | features/auth/components/AuthErrorAlert.tsx | Bajo | Es de la feature auth |
+| `app/components/auth/AuthThemeToggle.tsx` | tsx | Botón día/noche del login | auth | 2 | 1 | client | MOVE | features/auth/components/AuthThemeToggle.tsx | Bajo | Es de la feature auth |
+| `app/components/auth/authStyles.ts` | ts | Estilos compartidos de las pantallas de auth | auth | 0 | 5 | client (hereda) | MOVE | features/auth/components/authStyles.ts | Bajo | Los estilos van junto a su feature |
+| `app/error.tsx` | tsx | Límite de error de Next | app | 1 | 0 | client | KEEP | = (sin cambios) | Bajo | Convención de Next |
+| `app/forgot-password/page.tsx` | tsx | Pantalla completa: formulario, estados y Supabase | auth | 5 | 0 | client | SPLIT | page.tsx (entrada) + features/auth/components/ForgotPasswordPage.tsx; Supabase a authApi | Medio | La implementación sale de app/ y la UI deja de llamar a Supabase |
+| `app/global-error.tsx` | tsx | Límite de error raíz | app | 1 | 0 | client | KEEP | = (sin cambios) | Bajo | Convención de Next |
+| `app/globals.css` | css | Reset, reduced motion y reglas globales | app | 0 | 1 | — | KEEP | = (sin cambios) | Bajo | Único CSS; Next lo carga desde el layout |
+| `app/layout.tsx` | tsx | Layout raíz: fuentes, nonce del CSP, providers | app | 2 | 0 | server | KEEP | = (sin cambios) | Medio | Convención de Next; importa Providers desde su nuevo lugar |
+| `app/login/page.tsx` | tsx | Pantalla completa: login, código 2FA y Supabase | auth | 8 | 0 | client | SPLIT | page.tsx (entrada) + features/auth/components/LoginPage.tsx; Supabase a authApi | Medio | Ídem |
+| `app/manifest.ts` | ts | Manifest de la app instalable | app | 0 | 0 | isomorfo | KEEP | = (sin cambios) | Bajo | Convención de Next |
+| `app/not-found.tsx` | tsx | Página 404 | app | 0 | 0 | client | KEEP | = (sin cambios) | Bajo | Convención de Next |
+| `app/page.tsx` | tsx | Entrada de / (renderiza el dashboard) | app | 1 | 0 | client (hereda) | KEEP | = (sin cambios) | Bajo | Solo cambia el import |
+| `app/register/page.tsx` | tsx | Pantalla completa de registro | auth | 6 | 0 | client | SPLIT | page.tsx (entrada) + features/auth/components/RegisterPage.tsx; Supabase a authApi | Medio | Ídem |
+| `app/reset-password/page.tsx` | tsx | Pantalla completa de nueva contraseña | auth | 5 | 0 | client | SPLIT | page.tsx (entrada) + features/auth/components/ResetPasswordPage.tsx; Supabase a authApi | Medio | Ídem |
+| `components/AddTransactionModal.jsx` | jsx | Formulario de alta y edición de transacciones | transactions | 7 | 3 | client | MOVE + JS→TS | features/transactions/components/AddTransactionModal.tsx | Medio | Lógica compleja (moneda, tasa, cuenta, sugerencia): gana con tipos |
+| `components/BudgetTab.jsx` | jsx | Pestaña Presupuesto | budgets | 12 | 1 | client | MOVE | features/budgets/components/BudgetTab.jsx | Bajo | Es de la feature |
+| `components/Charts.jsx` | jsx | Donut, SparkArea, StudioCashflow, HeatCalendar | compartido | 0 | 3 | client (hereda) | MOVE + JS→TS | components/charts/Charts.tsx | Bajo | Lo usan 3 features: UI compartida y tipada |
+| `components/DashboardStudio.jsx` | jsx | Shell: AppBar, pestañas, avisos, modal y seguridad de sesión | dashboard | 15 | 1 | client | SPLIT + JS→TS | features/dashboard/components/DashboardStudio.tsx + features/auth/hooks/useSessionGuard.ts + components/feedback/useToast.ts | Alto | Mezcla la UI con ~150 líneas de seguridad de sesión |
+| `components/ExpensesTab.jsx` | jsx | Pestaña Gastos | transactions | 11 | 1 | client | MOVE (+ extraer lo duplicado) | features/transactions/components/ExpensesTab.jsx | Medio | Comparte ~147 líneas con IncomeTab |
+| `components/GoalsTab.jsx` | jsx | Pestaña Metas: compone metas, cuentas, inversiones, deudas y suscripciones | dashboard | 10 | 1 | client | MOVE | features/dashboard/components/GoalsTab.jsx | Bajo | Pantalla que compone 5 features |
+| `components/IncomeTab.jsx` | jsx | Pestaña Ingresos | transactions | 12 | 1 | client | MOVE (+ extraer lo duplicado) | features/transactions/components/IncomeTab.jsx | Medio | Comparte ~147 líneas con ExpensesTab |
+| `components/LoginModal.jsx` | jsx | Login dentro de la app | auth | 4 | 1 | client | MOVE | features/auth/components/LoginModal.jsx | Medio | Es de auth; Supabase a authApi |
+| `components/OverviewTab.jsx` | jsx | Pestaña Resumen | dashboard | 10 | 1 | client | MOVE | features/dashboard/components/OverviewTab.jsx | Bajo | Es del dashboard |
+| `components/SettingsPanel.jsx` | jsx | Drawer de Perfil y Ajustes | settings | 5 | 1 | client | MOVE | features/settings/components/SettingsPanel.jsx | Bajo | Es de la feature |
+| `components/budget/BudgetAlertsBanner.jsx` | jsx | Franja de presupuestos al límite | budgets | 4 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/BudgetCardsGrid.jsx` | jsx | Tarjetas de presupuesto | budgets | 7 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/BudgetVsActualCard.jsx` | jsx | Presupuesto vs gasto real | budgets | 6 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/DistributionCard.jsx` | jsx | Distribución del gasto | budgets | 6 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/HealthSummaryCard.jsx` | jsx | Salud financiera | budgets | 5 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/ManageBudgetsDialog.jsx` | jsx | Diálogo Gestionar | budgets | 5 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/PeriodComparisonCard.jsx` | jsx | Comparación con el período anterior | budgets | 4 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/RecurringCard.jsx` | jsx | Pagos recurrentes | budgets | 6 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/budget/UpcomingPaymentsCard.jsx` | jsx | Próximos pagos | budgets | 6 | 1 | client (hereda) | MOVE | features/budgets/components/ | Bajo | Es de la feature |
+| `components/goals/AccountsCard.jsx` | jsx | Cuentas, saldo y transferencias | accounts | 9 | 1 | client (hereda) | MOVE | features/accounts/components/AccountsCard.jsx | Bajo | Es de la feature |
+| `components/goals/DebtsCard.jsx` | jsx | Deudas | debts | 8 | 1 | client (hereda) | MOVE | features/debts/components/DebtsCard.jsx | Bajo | Es de la feature |
+| `components/goals/EmptySection.jsx` | jsx | Estado vacío con botón Agregar | compartido | 2 | 5 | client (hereda) | MOVE + JS→TS | components/ui/EmptySection.tsx | Bajo | Lo usan 5 features |
+| `components/goals/EntityDialog.jsx` | jsx | Marco de diálogo crear/editar/borrar | compartido | 1 | 5 | client (hereda) | MOVE + JS→TS | components/forms/EntityDialog.tsx | Bajo | Lo usan 5 features |
+| `components/goals/ForecastCard.jsx` | jsx | Pronóstico de 3 meses | goals | 4 | 1 | client (hereda) | MOVE | features/goals/components/ForecastCard.jsx | Bajo | Es de la feature |
+| `components/goals/GoalsSection.jsx` | jsx | Metas de ahorro | goals | 10 | 1 | client (hereda) | MOVE | features/goals/components/GoalsSection.jsx | Bajo | Es de la feature |
+| `components/goals/InvestmentsSection.jsx` | jsx | Inversiones | investments | 8 | 1 | client (hereda) | MOVE | features/investments/components/InvestmentsSection.jsx | Bajo | Es de la feature |
+| `components/goals/NetWorthEvolutionCard.jsx` | jsx | Evolución del patrimonio | goals | 3 | 1 | client (hereda) | MOVE | features/goals/components/NetWorthEvolutionCard.jsx | Bajo | Parte de Metas y finanzas |
+| `components/goals/SubscriptionsCard.jsx` | jsx | Suscripciones | subscriptions | 10 | 1 | client (hereda) | MOVE | features/subscriptions/components/SubscriptionsCard.jsx | Bajo | Es de la feature |
+| `components/goals/TransferDialog.jsx` | jsx | Diálogo de transferencia | accounts | 3 | 1 | client (hereda) | MOVE | features/accounts/components/TransferDialog.jsx | Bajo | Es de la feature |
+| `components/goals/useEntityDialog.js` | js | Estado de los diálogos CRUD | compartido | 0 | 5 | client (hereda) | MOVE + JS→TS | components/forms/useEntityDialog.ts | Bajo | Lo usan 5 features |
+| `components/settings/CustomCategoriesSection.jsx` | jsx | Categorías propias (CRUD) | categories | 6 | 1 | client (hereda) | MOVE | features/categories/components/CustomCategoriesSection.jsx | Bajo | Es de la feature |
+| `components/settings/DataExportSection.jsx` | jsx | Tus datos: exportar, importar, papelera | import-export | 8 | 1 | client (hereda) | MOVE | features/import-export/components/DataExportSection.jsx | Bajo | Es de la feature |
+| `components/settings/ImportDialog.jsx` | jsx | Importar CSV | import-export | 5 | 1 | client (hereda) | MOVE | features/import-export/components/ImportDialog.jsx | Bajo | Es de la feature |
+| `components/settings/PreferencesTab.jsx` | jsx | Ajustes: tema, idioma, moneda… | settings | 3 | 1 | client (hereda) | MOVE | features/settings/components/PreferencesTab.jsx | Bajo | Es de la feature |
+| `components/settings/ProfileTab.jsx` | jsx | Perfil: datos, favoritas y secciones | settings | 9 | 1 | client (hereda) | MOVE | features/settings/components/ProfileTab.jsx | Medio | Supabase a authApi |
+| `components/settings/TrashDialog.jsx` | jsx | Papelera | transactions | 5 | 1 | client (hereda) | MOVE | features/transactions/components/TrashDialog.jsx | Bajo | Es de las transacciones |
+| `components/settings/TwoFactorSection.jsx` | jsx | Activar y desactivar la 2FA | auth | 2 | 1 | client (hereda) | MOVE | features/auth/components/TwoFactorSection.jsx | Medio | Es de auth; Supabase a authApi |
+| `components/shared.jsx` | jsx | EmptyState, NoTransactions, StatsCard, Delta, SummaryCard, CalendarFilter | mixto | 4 | 2 | client (hereda) | SPLIT + DELETE | EmptyState → components/ui/EmptyState.tsx; NoTransactions y CalendarFilter → features/transactions/components/; StatsCard, SummaryCard y Delta: DELETE | Medio | Mezcla UI genérica y de transacciones; StatsCard, SummaryCard y Delta no se usan |
+| `context/DataContext.jsx` | jsx | Estado, carga, mutaciones y mappers de 9 tablas | datos | 5 | 29 | client | SPLIT + JS→TS | contexts/DataContext.tsx + contexts/useTableCrud.ts + features/*/data/*.ts | Alto | Concentra 9 dominios; es el punto de cambio para dejar Supabase |
+| `context/SettingsContext.tsx` | tsx | Ajustes, idioma, moneda, tasas del día, fmt | compartido | 6 | 41 | client | MOVE | contexts/SettingsContext.tsx | Bajo | Carpeta en plural, junto a los otros contextos |
+| `context/UserContext.tsx` | tsx | Usuario de la sesión | auth | 1 | 6 | client | MOVE | contexts/UserContext.tsx | Medio | Pasa a usar authApi |
+| `data/export.ts` | ts | CSV y copia JSON | import-export | 1 | 1 | isomorfo | MOVE | features/import-export/domain/export.ts | Bajo | Es de la feature |
+| `data/fetchAllRows.ts` | ts | Paginación de PostgREST | infraestructura | 0 | 1 | isomorfo | MOVE | lib/supabase/fetchAllRows.ts | Bajo | Es acceso a datos de Supabase |
+| `data/helpers.ts` | ts | Períodos, salud, anomalías, recurrentes, pronóstico, patrimonio, saldos, presupuestos | mixto | 4 | 15 | isomorfo | SPLIT + DELETE | domain/{period,health,netWorth}.ts, dashboard/domain/insights, transactions/domain/anomalies, budgets/domain/{budgets,recurring}, goals/domain/forecast, accounts/domain/balance; fmtDate: DELETE | Bajo | 8 dominios en un archivo; fmtDate solo lo usan tests |
+| `data/import.ts` | ts | Importar CSV: lectura, columnas, fechas, montos | import-export | 3 | 2 | isomorfo | MOVE | features/import-export/domain/csvImport.ts | Bajo | Es de la feature |
+| `data/index.ts` | ts | Catálogo de categorías, monedas y agregaciones | mixto | 1 | 23 | isomorfo | SPLIT + DELETE | domain/money.ts, domain/period.ts (getToday), domain/categories/catalog.ts, transactions/domain/aggregations.ts; txByCategoryToday: DELETE | Bajo | 3 dominios en un archivo; txByCategoryToday no se usa |
+| `data/suggest.ts` | ts | Categoría sugerida por el concepto | categorías | 2 | 4 | isomorfo | MOVE | domain/categories/suggest.ts | Bajo | La usan transacciones, suscripciones, importación y recurrentes |
+| `hooks/useBudgetAlertToasts.js` | js | Avisos al cruzar el 80/100 % | budgets | 4 | 1 | client (hereda) | MOVE + JS→TS | features/budgets/hooks/useBudgetAlertToasts.ts | Bajo | Es de la feature |
+| `hooks/useLocalStorage.ts` | ts | Estado persistido en localStorage | compartido | 0 | 1 | isomorfo | KEEP | = (sin cambios) | Bajo | Hook genérico |
+| `hooks/useMoveToTrash.js` | js | Mover a la papelera con Deshacer | transactions | 2 | 2 | client (hereda) | MOVE + JS→TS | features/transactions/hooks/useMoveToTrash.ts | Bajo | Es de la feature |
+| `hooks/useTxExtras.js` | js | Cuenta y monto original de cada fila | transactions | 2 | 2 | client (hereda) | MOVE + JS→TS | features/transactions/hooks/useTxExtras.ts | Bajo | Es de la feature |
+| `i18n/base.ts` | ts | Textos compartidos | i18n | 0 | 1 | isomorfo | KEEP | = (sin cambios) | Bajo | Única fuente de textos |
+| `i18n/index.ts` | ts | MESSAGES y messagesFor | i18n | 2 | 2 | isomorfo | KEEP | = (sin cambios) | Bajo | Única fuente de textos |
+| `i18n/ui.ts` | ts | Textos por área | i18n | 0 | 1 | isomorfo | KEEP | = (sin cambios) | Bajo | Única fuente de textos |
+| `lib/featureFlags.ts` | ts | OAUTH_ENABLED | infraestructura | 0 | 3 | isomorfo | KEEP | = (sin cambios) | Bajo | Configuración |
+| `lib/mfa.ts` | ts | Nivel de la sesión (aal) y factor TOTP | auth | 0 | 3 | isomorfo | MOVE | features/auth/domain/mfa.ts | Bajo | Regla de auth; la usan proxy.ts, login y DataContext |
+| `lib/rates.ts` | ts | Tasas del día desde el proveedor (servidor) | moneda | 1 | 1 | isomorfo | KEEP | = (sin cambios) | Bajo | Infraestructura de /api/rates |
+| `lib/reportError.ts` | ts | Envía errores a /api/client-error | observabilidad | 0 | 4 | isomorfo | KEEP | = (sin cambios) | Bajo | Infraestructura |
+| `lib/supabase-server.ts` | ts | Cliente de servidor (sin uso) | infraestructura | 0 | 0 | server | MOVE | lib/supabase/server.ts | Medio | Hoy nadie lo importa; el callback de OAuth pasa a usarlo |
+| `lib/supabase.ts` | ts | Cliente del navegador | infraestructura | 0 | 10 | isomorfo | MOVE | lib/supabase/client.ts | Bajo | Agrupa los clientes |
+| `proxy.ts` | ts | Guard de auth + CSP con nonce | seguridad | 1 | 0 | server | KEEP | = (sin cambios) | Medio | Convención de Next 16; solo cambia el import de mfa |
+| `theme/GradientIcon.jsx` | jsx | GradientIcon y CategoryAvatar | compartido | 1 | 20 | client | MOVE + JS→TS | components/ui/GradientIcon.tsx | Bajo | Es un componente, no parte del tema; lo usan 20 archivos |
+| `theme/IconPicker.jsx` | jsx | Selector de icono | compartido | 3 | 2 | client | MOVE + JS→TS | components/ui/IconPicker.tsx | Bajo | Es un componente; hoy theme importa un contexto |
+| `theme/categoryIcons.js` | js | Icono por categoría, ICON_CHOICES, resolveCategoryMeta | tema | 2 | 20 | client (hereda) | JS→TS | theme/categoryIcons.ts | Bajo | Única fuente de categoría → nombre → color → icono |
+| `theme/iconTones.js` | js | Gradientes por tono | tema | 0 | 5 | client (hereda) | JS→TS | theme/iconTones.ts | Bajo | Tokens visuales |
+| `theme/icons.js` | js | Set central de iconos Rounded | tema | 0 | 35 | client (hereda) | JS→TS + DELETE parcial | theme/icons.ts (sin Download, que no se usa) | Bajo | Tokens visuales |
+| `theme/materialTheme.js` | js | Temas MUI, acentos, animaciones | tema | 0 | 3 | client (hereda) | JS→TS | theme/materialTheme.ts | Bajo | Tokens visuales |
+| `types.ts` | ts | Tipos del dominio | tipos | 0 | 6 | isomorfo | MOVE | types/domain.ts (+ types/database.ts nuevo) | Bajo | Un lugar para los tipos del dominio y otro para las filas de la base |
+
+## Migración JS → TS
+
+`allowJs` se queda en `true`: quedan componentes `.jsx` a propósito. Se reconsidera cuando no quede ninguno.
+
+| Estado | Archivos | Por qué |
+|---|---|---|
+| **Migrar** | `theme/{categoryIcons,iconTones,icons,materialTheme}.js` | Mapas y tokens que usa casi toda la UI; un nombre de icono mal escrito hoy no falla hasta que se renderiza |
+| **Migrar** | `hooks/{useBudgetAlertToasts,useMoveToTrash,useTxExtras}.js`, `goals/useEntityDialog.js` | Lógica con estado y efectos, reutilizada por varias pantallas |
+| **Migrar** | `context/DataContext.jsx` | Es el contrato de datos de toda la app; al dividirlo, los tipos de `types/` y `types/database.ts` quedan en cada mapper |
+| **Migrar** | `components/Charts.jsx`, `theme/GradientIcon.jsx`, `theme/IconPicker.jsx`, `goals/EntityDialog.jsx`, `goals/EmptySection.jsx`, `shared.jsx` (`EmptyState`) | UI compartida: sus props son la interfaz que usan varias features |
+| **Migrar** | `AddTransactionModal.jsx`, `CalendarFilter` | La lógica de UI más compleja (moneda, tasa, cuenta, sugerencia; filtros de fecha) |
+| **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
+| **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
+| **No migrar** | `e2e/mock-supabase/*.mjs`, `scripts/*.mjs`, `eslint.config.js`, `vitest.config.mjs`, `next.config.mjs` | Scripts de Node y configuración: corren fuera del bundle, y en ESM funcionan tal cual |
+| **No migrar** | Tests `.test.js`/`.test.jsx` existentes | Cambiarles la extensión no agrega nada. Los que se dividen se escriben en `.test.ts`, y Vitest pasa a incluir `.ts`/`.tsx` |
+
+## Plan de migración
+
+Orden de las fases:
+
+| Fase | Contenido | Por qué en este orden |
+|---|---|---|
+| 0 | Baseline (arriba) | Referencia para detectar regresiones |
+| 1 | Esta auditoría, `dependency-map.mjs`, `architecture.test.js` | Las reglas existen antes de mover nada |
+| 2 | Estructura y módulos compartidos: `types/`, `domain/`, `lib/supabase/`, `theme` en TS, `components/{ui,charts,forms,feedback,providers}`, `contexts/` | Son las hojas del grafo: todo lo demás depende de ellas |
+| 3 | Features, una por commit: `categories` → `transactions` → `accounts` → `budgets` → `goals` → `investments`, `debts`, `subscriptions` → `import-export` → `auth` → `settings` → `dashboard` | Cada feature se mueve cuando ya se movió lo que usa; `dashboard` compone todo y va al final |
+| 4 | Capa de datos: `features/*/data`, `useTableCrud`, `DataContext.tsx`, `authApi` | Con las features en su lugar, cada una recibe sus mappers y consultas |
+| 5 | Resto de la migración a TS | Sobre código ya ubicado, para no mover y tipar a la vez |
+| 6 | Índice de secciones en `schema.sql` | Solo comentarios; se comprueba con `pg_dump` |
+| 7 | Limpieza: código muerto, re-exports temporales, nombres | Al final, cuando nadie usa los caminos viejos |
+| 8 | Validación y documentación | Checklist de aceptación |
+
+**Reglas de trabajo:**
+- **Commits que mueven:** solo mueven (`git mv` + imports). Los que extraen lógica van aparte.
+- **Cada commit deja verdes** lint, typecheck y `npm test`.
+- **Cada fase cierra con** build, e2e dos veces y las capturas.
+- **`data/index.ts` y `data/helpers.ts`** quedan como re-exports mientras haya importadores viejos.
+
+## Base de datos
+
+**Qué tiene `supabase/schema.sql`, en dos partes transaccionales:**
+- **Parte 1:** tablas, columnas agregadas después, restricciones, claves foráneas entre tablas, índices y triggers de `updated_at`, más la función `set_updated_at()`.
+- **Parte 2:**
+  - claves foráneas a `auth.users` y RLS;
+  - la función `mfa_satisfied()` (`SECURITY DEFINER`), con sus permisos;
+  - las políticas `RESTRICTIVE` de la 2FA.
+
+**Decisión: se mantiene en un solo archivo.**
+- **Se ejecuta de una vez** en el SQL Editor.
+- **Cada parte es atómica:** partirla en archivos que se ejecutan por separado perdería la transacción de la parte 1.
+- **El Supabase simulado** lee ese mismo archivo.
+- **Separarlo en carpetas** obligaría a mantener dos representaciones del mismo esquema.
+
+**Lo único que cambia:** un índice de secciones al principio del archivo, para ubicar tablas, funciones, triggers y políticas, y encabezados uniformes. Ninguna sentencia se toca, y se comprueba con `pg_dump --schema-only` antes y después.
+- **`supabase/seed/reset.sql`:** se queda como está.
+- **`supabase/config.toml`:** es la configuración del CLI local, y también se queda.

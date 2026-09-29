@@ -1,0 +1,36 @@
+import { describe, it, expect } from "vitest"
+import { buildGraph, cycles, violations } from "../scripts/dependency-map.mjs"
+
+// The layer rules of docs/PROJECT-STRUCTURE.md, checked on every `npm test`:
+// no import cycles, Supabase only in the data layer, shared code never importing features…
+// KNOWN lists what the code breaks today; the refactor removes entries, never adds them
+// (docs/ARCHITECTURE-AUDIT.md). A stale entry fails too, so the list can only shrink.
+const KNOWN = new Set([
+  "app/forgot-password/page.tsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "app/login/page.tsx: imports @supabase/supabase-js (Supabase belongs in features/*/data or lib/supabase)",
+  "app/login/page.tsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "app/register/page.tsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "app/reset-password/page.tsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "components/DashboardStudio.jsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "components/LoginModal.jsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "components/settings/ProfileTab.jsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "components/settings/TwoFactorSection.jsx: imports lib/supabase.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "theme/IconPicker.jsx: theme imports context (context/SettingsContext.tsx)",
+])
+
+describe("arquitectura", () => {
+  const nodes = buildGraph()
+
+  it("no hay ciclos de importación", () => {
+    expect(cycles(nodes)).toEqual([])
+  })
+
+  it("no aparecen violaciones nuevas de las capas", () => {
+    expect(violations(nodes).filter((v) => !KNOWN.has(v))).toEqual([])
+  })
+
+  it("la lista de excepciones no tiene entradas ya resueltas", () => {
+    const current = new Set(violations(nodes))
+    expect([...KNOWN].filter((v) => !current.has(v))).toEqual([])
+  })
+})
