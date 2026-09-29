@@ -1,12 +1,12 @@
 import { Box, Button, Card, CardContent, Chip, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, ShowChart as InvestIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
-import { GradientIcon } from "../../theme/GradientIcon.jsx";
+import { GradientIcon } from "../ui/GradientIcon";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
-import { useEntityDialog } from "./useEntityDialog.js";
-import { EntityDialog } from "./EntityDialog.jsx";
-import { EmptySection } from "./EmptySection.jsx";
+import { useEntityDialog } from "../forms/useEntityDialog";
+import { EntityDialog } from "../forms/EntityDialog";
+import { EmptySection } from "../ui/EmptySection";
 
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
 const typeChip = (type, t) =>

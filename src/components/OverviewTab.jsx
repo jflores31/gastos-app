@@ -25,8 +25,8 @@ import { insightsList } from "../data/helpers";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useSupabaseUser } from "../context/UserContext";
-import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./Charts.jsx";
-import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./charts/Charts";
+import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 

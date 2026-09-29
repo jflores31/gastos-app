@@ -3,7 +3,7 @@ import { Box, Button, Card, CardContent, Chip, Grid, IconButton, LinearProgress,
 import { Check as CheckIcon, Add as AddIcon, Edit as EditIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
 import { budgetFor } from "../../data/helpers";
-import { CategoryAvatar } from "../../theme/GradientIcon.jsx";
+import { CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";

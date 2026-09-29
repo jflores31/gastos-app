@@ -15,7 +15,6 @@ const KNOWN = new Set([
   "components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/settings/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/settings/TwoFactorSection.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "theme/IconPicker.jsx: theme imports context (context/SettingsContext.tsx)",
 ])
 
 describe("arquitectura", () => {

@@ -2,14 +2,14 @@ import { Box, Card, CardContent, FormControl, FormHelperText, IconButton, InputL
 import { Add as AddIcon, Subscriptions as SubIcon } from "@/theme/icons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { toBase, fromBase } from "@/domain/money";
-import { GradientIcon, CategoryAvatar } from "../../theme/GradientIcon.jsx";
+import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { suggestCategory } from "@/domain/categories/suggest";
 import { useSettings } from "../../context/SettingsContext";
 import { useData } from "../../context/DataContext.jsx";
-import { useEntityDialog } from "./useEntityDialog.js";
-import { EntityDialog } from "./EntityDialog.jsx";
-import { EmptySection } from "./EmptySection.jsx";
+import { useEntityDialog } from "../forms/useEntityDialog";
+import { EntityDialog } from "../forms/EntityDialog";
+import { EmptySection } from "../ui/EmptySection";
 
 const EMPTY_SUB = { name: "", price: "", cycle: "monthly", category: "" };
 

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Box, Card, CardContent, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
 import { Inbox as InboxIcon, Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
-import { GradientIcon } from "../theme/GradientIcon.jsx";
+import { GradientIcon } from "./ui/GradientIcon";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { useSettings } from "../context/SettingsContext";
 

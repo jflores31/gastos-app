@@ -3,7 +3,7 @@
 import { useMemo, useEffect } from "react"
 import { ThemeProvider } from "@mui/material/styles"
 import CssBaseline from "@mui/material/CssBaseline"
-import { useSettings } from "../../context/SettingsContext"
+import { useSettings } from "@/context/SettingsContext"
 import { getTheme } from "@/theme/materialTheme"
 
 export default function DynamicThemeProvider({ children }: { children: React.ReactNode }) {

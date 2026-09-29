@@ -13,7 +13,7 @@ import {
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { txByCategory, getTodayExpenses } from "../data/index";
-import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
 import { budgetFor } from "../data/helpers";

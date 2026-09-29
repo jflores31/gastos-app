@@ -8,14 +8,14 @@ import {
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal.jsx";
 import { txByCategory, txByMonth } from "../data/index";
-import { GradientIcon, CategoryAvatar } from "../theme/GradientIcon.jsx";
+import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "../context/SettingsContext";
 import { useData } from "../context/DataContext.jsx";
 import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
 import { useTxExtras } from "../hooks/useTxExtras.js";
-import { Donut, SparkArea, StudioCashflow } from "./Charts.jsx";
+import { Donut, SparkArea, StudioCashflow } from "./charts/Charts";
 import { NoTransactions, CalendarFilter } from "./shared.jsx";
 
 

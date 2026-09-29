@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from "vitest"
 import { render, screen, fireEvent, cleanup } from "@testing-library/react"
-import { IconPicker } from "./IconPicker.jsx"
-import { ICON_CHOICES } from "./categoryIcons"
-import { MESSAGES } from "../i18n/index"
+import { IconPicker } from "./IconPicker"
+import { ICON_CHOICES } from "@/theme/categoryIcons"
+import { MESSAGES } from "@/i18n"
 
-vi.mock("../context/SettingsContext", () => ({ useSettings: () => ({ t: MESSAGES.es }) }))
+vi.mock("@/context/SettingsContext", () => ({ useSettings: () => ({ t: MESSAGES.es }) }))
 
 describe("IconPicker", () => {
   afterEach(cleanup)

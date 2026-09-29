@@ -3,7 +3,7 @@ import { headers } from "next/headers"
 import localFont from "next/font/local"
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
 import "./globals.css"
-import Providers from "./components/Providers"
+import Providers from "@/components/providers/Providers"
 
 // Fonts are served from the repo (latin subset, SIL OFL 1.1 — see src/app/fonts/) instead of
 // next/font/google, so `next build` no longer downloads them from Google Fonts: a failed
