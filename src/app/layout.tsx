@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
 import localFont from "next/font/local"
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
 import Providers from "./components/Providers"
 
@@ -62,6 +63,7 @@ export default async function RootLayout({
         <AppRouterCacheProvider options={{ key: "mui", nonce }}>
           <Providers>{children}</Providers>
         </AppRouterCacheProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
