@@ -24,6 +24,21 @@
 --   FROM transactions;
 --
 -- Los montos se guardan en PEN (soles). Historia de los cambios: CHANGELOG.md.
+--
+-- Índice (cada sección empieza con un encabezado "── nombre ──"):
+--   PARTE 1 — PostgreSQL estándar (una transacción)
+--     set_updated_at()                     función de los triggers de updated_at
+--     accounts, transactions, transfers,   una sección por tabla, con su CREATE TABLE
+--     budgets, goals, investments, debts,
+--     subscriptions, custom_categories
+--     Columnas agregadas después de la primera versión
+--     Restricciones                        los CHECK y las claves foráneas entre tablas
+--     Índices
+--     Triggers de updated_at
+--   PARTE 2 — Solo Supabase (otra transacción)
+--     user_id → auth.users
+--     RLS: cada usuario solo ve y escribe sus filas
+--     Verificación en dos pasos            mfa_satisfied() y las políticas RESTRICTIVE
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- PARTE 1 — PostgreSQL estándar
@@ -31,6 +46,7 @@
 
 BEGIN;
 
+-- ─── set_updated_at() ─────────────────────────────────────────────────────────
 -- updated_at: fecha de la última modificación de cada fila, mantenida por un trigger.
 -- search_path vacío: la función no puede resolver objetos de otro esquema por accidente.
 CREATE OR REPLACE FUNCTION public.set_updated_at() RETURNS trigger
