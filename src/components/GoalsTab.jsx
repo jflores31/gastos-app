@@ -8,7 +8,7 @@ import { useData } from "@/contexts/DataContext";
 import { GoalsSection } from "@/features/goals/components/GoalsSection";
 import { AccountsCard } from "@/features/accounts/components/AccountsCard";
 import { ForecastCard } from "@/features/goals/components/ForecastCard";
-import { InvestmentsSection } from "./goals/InvestmentsSection.jsx";
+import { InvestmentsSection } from "@/features/investments/components/InvestmentsSection";
 import { DebtsCard } from "./goals/DebtsCard.jsx";
 import { SubscriptionsCard } from "./goals/SubscriptionsCard.jsx";
 import { NetWorthEvolutionCard } from "@/features/goals/components/NetWorthEvolutionCard";
