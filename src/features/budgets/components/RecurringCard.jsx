@@ -20,7 +20,7 @@ export function RecurringCard() {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={EventIcon} tone="income" bubble />
           <Box>
-            <Typography variant="h6" fontWeight={700}>{t.recurring}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.recurring}</Typography>
             <Typography variant="body2" color="text.secondary">{recurring.length} {t.budgetTab.payments}</Typography>
           </Box>
         </Box>
@@ -32,10 +32,10 @@ export function RecurringCard() {
               <Box key={`${r.categoria}|${r.concepto}`} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                 <CategoryAvatar icon={Icon} color={color} size={36} />
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" fontWeight={600} noWrap>{r.concepto}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{r.concepto}</Typography>
                   <Typography variant="caption" sx={{ color, fontWeight: 500 }}>{catName} · {t.budgetTab.day(r.day)}</Typography>
                 </Box>
-                <Typography variant="body1" fontWeight={700}>{fmt(r.avg, true)}</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 700 }}>{fmt(r.avg, true)}</Typography>
               </Box>
             );
           })}

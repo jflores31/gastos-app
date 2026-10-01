@@ -46,7 +46,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 380 }, p: 0, overflowY: "auto" } }}>
       {/* Header */}
       <Box sx={{ p: 2, pb: 1.25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6" fontWeight={700}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {tab === "perfil" ? (t.settingsPanel.profile) : (t.settingsPanel.settings)}
         </Typography>
         <IconButton onClick={onClose} aria-label={t.common.close}><CloseIcon /></IconButton>

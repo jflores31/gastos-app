@@ -17,7 +17,7 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h6" fontWeight={700}>{t.budgetTab.budgets}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.budgetTab.budgets}</Typography>
         <Button variant="outlined" startIcon={<EditIcon />} onClick={onManage} size="small">
           {t.budgetTab.manage}
         </Button>
@@ -31,7 +31,7 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
           <Card onClick={onManage} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s, color 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="body1" fontWeight={600}>{t.budgetTab.addBudget}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.budgetTab.addBudget}</Typography>
             </Box>
           </Card>
         </Grid>
@@ -74,7 +74,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <CategoryAvatar icon={Icon} color={color} size={36} />
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="body1" fontWeight={600} noWrap sx={{ color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
+                <Typography variant="body1" noWrap sx={{ fontWeight: 600, color: isOver ? "error.dark" : isWarning ? "warning.dark" : "text.primary" }}>{catName}</Typography>
                 {/* The budget's own amount and period when it isn't the one being viewed. */}
                 {budgetPeriod !== period && (
                   <Typography variant="caption" color="text.secondary" noWrap component="div">
@@ -101,7 +101,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
             }}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "text.primary"}>{fmt(spent, true)}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }} color={isOver ? "error.main" : "text.primary"}>{fmt(spent, true)}</Typography>
             {editing ? (
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
                 <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={{ width: 80, "& input": { fontSize: 12, py: 0.5 } }} autoFocus />

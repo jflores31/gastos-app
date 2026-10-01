@@ -31,12 +31,12 @@ export function UpcomingPaymentsCard({ openModal }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={UpcomingIcon} tone="warning" bubble />
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" fontWeight={700}>{t.budgetTab.upcomingPayments}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.budgetTab.upcomingPayments}</Typography>
             <Typography variant="body2" color="text.secondary">
               {t.budgetTab.upcomingUntil(until.toLocaleDateString(t.common.locale, { day: "numeric", month: "long" }))}
             </Typography>
           </Box>
-          {upcoming.length > 0 && <Typography variant="subtitle1" fontWeight={700} sx={{ whiteSpace: "nowrap" }}>{t.budgetTab.upcomingTotal(fmt(total, true))}</Typography>}
+          {upcoming.length > 0 && <Typography variant="subtitle1" sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>{t.budgetTab.upcomingTotal(fmt(total, true))}</Typography>}
         </Box>
 
         {upcoming.length === 0 ? (
@@ -49,7 +49,7 @@ export function UpcomingPaymentsCard({ openModal }) {
                 <Box component="li" key={`${p.source}|${p.categoria}|${p.concepto}`} sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                   <CategoryAvatar icon={Icon} color={color} size={36} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body1" fontWeight={600} noWrap>{p.concepto}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{p.concepto}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0 }}>
                       {p.overdue && <Chip size="small" color="error" variant="outlined" label={t.budgetTab.overdue} sx={{ height: 18, fontSize: 11, flexShrink: 0 }} />}
                       <Typography variant="caption" color="text.secondary" noWrap>
@@ -57,7 +57,7 @@ export function UpcomingPaymentsCard({ openModal }) {
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="body1" fontWeight={700} sx={{ whiteSpace: "nowrap" }}>{fmt(p.amount)}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>{fmt(p.amount)}</Typography>
                   <Button size="small" variant="outlined" aria-label={t.budgetTab.registerPayment(p.concepto)}
                     onClick={() => openModal?.(p.categoria, "expense", { concepto: p.concepto.toUpperCase(), valor: p.amount })}
                     sx={{ borderRadius: 2, textTransform: "none", minWidth: 0 }}>

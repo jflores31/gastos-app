@@ -13,14 +13,14 @@ export function PeriodComparisonCard({ period, prevOut, dOut }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={CompareIcon} tone="goals" bubble />
           <Box>
-            <Typography variant="h6" fontWeight={700}>{t.common.vsPreviousPeriod(period)}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.common.vsPreviousPeriod(period)}</Typography>
             <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
           </Box>
         </Box>
         <Box sx={{ display: "flex", flex: 1, gap: 2, alignItems: "center" }}>
           <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Typography variant="caption" color="text.secondary">{t.budgetTab.previous}</Typography>
-            <Typography variant="h5" fontWeight={700}>{fmt(prevOut, true)}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>{fmt(prevOut, true)}</Typography>
           </Box>
           <Box sx={{ flex: 1, p: 2.5, bgcolor: "action.hover", borderRadius: 2, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <Typography variant="caption" color="text.secondary">{t.budgetTab.change}</Typography>

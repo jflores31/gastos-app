@@ -25,7 +25,7 @@ export function TransactionList({ type, txs, catMeta, onEdit, onDelete }) {
           <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
             secondaryAction={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="body1" fontWeight={700} color={amountColor} sx={{ display: { xs: "none", sm: "block" } }}>
+                <Typography variant="body1" color={amountColor} sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>
                   {sign}{fmtTx(x, true)}
                 </Typography>
                 <IconButton onClick={() => onEdit(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
@@ -41,12 +41,12 @@ export function TransactionList({ type, txs, catMeta, onEdit, onDelete }) {
               <CategoryAvatar icon={Icon} color={color} />
             </ListItemAvatar>
             <ListItemText
-              primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
+              primary={<Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>{x.concepto}</Typography>}
               secondary={
                 <Typography variant="caption" color="text.secondary" component="span">
                   {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                   {txExtras(x)}
-                  <Typography variant="caption" fontWeight={700} color={amountColor} sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
+                  <Typography variant="caption" color={amountColor} sx={{ fontWeight: 700, display: { xs: "inline", sm: "none" }, ml: 1 }}>
                     {sign}{fmtTx(x, true)}
                   </Typography>
                 </Typography>

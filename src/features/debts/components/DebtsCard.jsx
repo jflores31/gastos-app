@@ -31,7 +31,7 @@ export function DebtsCard({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={DebtIcon} tone="expense" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.debtControl}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t.goalsTab.debtControl}</Typography>
               <Typography variant="caption" color="text.secondary">{debts.length} {t.goalsTab.loans}</Typography>
             </Box>
           </Box>
@@ -46,7 +46,7 @@ export function DebtsCard({ showToast }) {
         )}
         {debts.length > 0 && (
           <Box sx={{ mt: 2, p: 2, bgcolor: "error.light", borderRadius: 2 }}>
-            <Typography variant="body2" color="error.dark" fontWeight={600}>
+            <Typography variant="body2" color="error.dark" sx={{ fontWeight: 600 }}>
               {t.goalsTab.totalDebt} {fmt(debts.reduce((s, d) => s + d.balance, 0))}
             </Typography>
           </Box>
@@ -92,12 +92,12 @@ function DebtRow({ debt: d, onOpen }) {
   return (
     <Box sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen()}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-        <Typography variant="body1" fontWeight={600}>{d[lang]}</Typography>
+        <Typography variant="body1" sx={{ fontWeight: 600 }}>{d[lang]}</Typography>
         <Chip size="small" label={`${d.rate}% TEA`} color="warning" variant="outlined" />
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
         <Typography variant="body2" color="text.secondary">{fmt(d.balance, true)}</Typography>
-        <Typography variant="body2" fontWeight={600}>{fmt(d.monthly, true)} {t.common.perMonth}</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>{fmt(d.monthly, true)} {t.common.perMonth}</Typography>
       </Box>
       <LinearProgress variant="determinate" value={pct * 100} sx={{ height: 6, borderRadius: 3, mb: 0.5, bgcolor: "action.selected", "& .MuiLinearProgress-bar": { bgcolor: "error.main" } }} />
       <Typography variant="caption" color="text.secondary">{d.remaining} {t.goalsTab.installmentsLeft}</Typography>

@@ -115,7 +115,7 @@ export default function OverviewTab({ period, setPeriod }) {
             })()}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-            <Typography variant="h3" fontWeight={800} sx={{ fontSize: { xs: "1.6rem", sm: "3rem" } }}>
+            <Typography variant="h3" sx={{ fontWeight: 800, fontSize: { xs: "1.6rem", sm: "3rem" } }}>
               {net >= 0
                 ? (t.overviewTab.saving(fmt(net, true)))
                 : (t.overviewTab.overdrawn(fmt(Math.abs(net), true)))}
@@ -135,18 +135,18 @@ export default function OverviewTab({ period, setPeriod }) {
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <Box>
                 <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.balance.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-                <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmt(net)}</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmt(net)}</Typography>
               </Box>
               <GradientIcon icon={WalletIcon} tone={net >= 0 ? "income" : "expense"} bubble bubbleSize={48} size={26} />
             </Box>
             <Box sx={{ display: "flex", gap: 2, mt: 1.5, flexWrap: "wrap" }}>
               <Box sx={{ px: 2.5, py: 1.5, bgcolor: "success.light", borderRadius: 2, border: "1px solid", borderColor: "success.main" }}>
                 <Typography variant="caption" sx={{ color: "success.dark", display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.savings}</Typography>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark" }}>{savingsRate.toFixed(1)}%</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "success.dark" }}>{savingsRate.toFixed(1)}%</Typography>
               </Box>
               <Box sx={{ px: 2.5, py: 1.5, bgcolor: `${scoreTone}.light`, borderRadius: 2, border: "1px solid", borderColor: `${scoreTone}.main` }}>
                 <Typography variant="caption" sx={{ color: `${scoreTone}.dark`, display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.healthScore}</Typography>
-                <Typography variant="h6" fontWeight={700} sx={{ color: `${scoreTone}.dark` }}>{score}/100</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: `${scoreTone}.dark` }}>{score}/100</Typography>
               </Box>
             </Box>
             <Box sx={{ mt: 2 }}><SparkArea data={months.map((m) => m.ingreso - m.egreso)} /></Box>
@@ -159,7 +159,7 @@ export default function OverviewTab({ period, setPeriod }) {
                 <GradientIcon tone={TONE_BY_PALETTE[card.color] || "neutral"} bubble bubbleSize={36} size={20}>{card.icon}</GradientIcon>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{card.label}</Typography>
               </Box>
-              <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{card.value}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>{card.value}</Typography>
               {card.delta != null && (
                 <Chip
                   size="small"
@@ -257,7 +257,7 @@ export default function OverviewTab({ period, setPeriod }) {
                     {INSIGHT_ICONS[ins.icon]}
                   </GradientIcon>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5 }}>{ins.title}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>{ins.title}</Typography>
                     <Typography variant="body2" color="text.secondary">{ins.desc}</Typography>
                   </Box>
                 </Box>

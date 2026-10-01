@@ -46,7 +46,7 @@ export function SubscriptionsCard({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={SubIcon} tone="goals" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.subscriptions}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t.goalsTab.subscriptions}</Typography>
               <Typography variant="caption" color="text.secondary">{subscriptions.length} {t.goalsTab.active}{subscriptions.length > 0 ? ` · ${fmt(monthlyTotal(subscriptions))}${t.common.perMonth}` : ""}</Typography>
             </Box>
           </Box>
@@ -62,16 +62,16 @@ export function SubscriptionsCard({ showToast }) {
                   <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => dialog.openEdit(sub)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && dialog.openEdit(sub)}>
                     <SubscriptionAvatar sub={sub} />
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600}>{sub.name}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.name}</Typography>
                       <Typography variant="caption" color="text.secondary">{sub.category ? resolveCategoryMeta(sub.category, customCats, lang, "EGRESO").label : "—"}</Typography>
                     </Box>
-                    <Typography variant="body2" fontWeight={700}>{fmt(sub.price, true)}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{fmt(sub.price, true)}</Typography>
                   </Box>
                 ))}
               </Stack>
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "secondary.light", borderRadius: 2 }}>
-              <Typography variant="body2" color="secondary.dark" fontWeight={600}>
+              <Typography variant="body2" color="secondary.dark" sx={{ fontWeight: 600 }}>
                 {t.goalsTab.monthlyTotal} {fmt(monthlyTotal(subscriptions))}
               </Typography>
             </Box>

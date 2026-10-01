@@ -50,7 +50,7 @@ export function ProfileTab({ user, name, notify }) {
         >
           {initials || <PersonIcon />}
         </Avatar>
-        <Typography variant="h6" fontWeight={800} noWrap>{displayName}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 800 }} noWrap>{displayName}</Typography>
         {fullName && <Typography variant="body2" noWrap sx={{ opacity: 0.85, mt: 0.25 }}>{email}</Typography>}
       </Box>
 

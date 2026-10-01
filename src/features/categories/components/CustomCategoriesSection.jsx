@@ -82,7 +82,7 @@ export function CustomCategoriesSection({ notify }) {
               {customCats.map((c) => (
                 <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
                   <CategoryAvatar icon={iconByName(c.icon) || DEFAULT_ICON} color={c.color} size={28} />
-                  <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{c.nombre}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>{c.nombre}</Typography>
                   <Chip label={c.tipo === "EGRESO" ? (t.settingsPanel.expense) : (t.settingsPanel.incomeType)}
                     size="small" color={c.tipo === "EGRESO" ? "error" : "success"} variant="outlined" sx={{ fontSize: 10 }} />
                   <IconButton onClick={() => openCatDialog(c)} aria-label={t.settingsPanel.editCategoryLabel} sx={{ minWidth: 40, minHeight: 40 }}>

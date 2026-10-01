@@ -12,7 +12,7 @@ export function EmptyState({ icon, title, subtitle, action }) {
           {icon || <InboxIcon />}
         </GradientIcon>
       </Box>
-      <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
+      <Typography variant="h6" sx={{ fontWeight: 600 }} color="text.secondary" gutterBottom>
         {title}
       </Typography>
       {subtitle && (

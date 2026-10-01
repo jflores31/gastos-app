@@ -22,7 +22,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
           <GradientIcon icon={CompareIcon} tone="trend" bubble />
           <Box>
-            <Typography variant="h6" fontWeight={700}>{t.budgetTab.budgetVsActual}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.budgetTab.budgetVsActual}</Typography>
             <Typography variant="body2" color="text.secondary">{periodLabel(period, t)}</Typography>
           </Box>
         </Box>
@@ -42,7 +42,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
                   <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                     <CategoryAvatar icon={Icon} color={color} size={24} />
                     <Box>
-                      <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: { xs: 140, sm: 220 } }}>{catName}</Typography>
+                      <Typography variant="body2" noWrap sx={{ fontWeight: 600, maxWidth: { xs: 140, sm: 220 } }}>{catName}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {t.budgetTab.spent}{" "}
                         <Box component="strong" sx={{ color: isOver ? "error.main" : "text.primary" }}>{fmt(spent, true)}</Box>
@@ -83,10 +83,10 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
         </Stack>
         {/* Summary footer */}
         <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             {t.budgetTab.totalSpent}: <strong>{fmt(totalSpentBudgeted, true)}</strong>
           </Typography>
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             {t.budgetTab.totalBudget}: <strong>{fmt(totalBudget, true)}</strong>
           </Typography>
           <Chip
