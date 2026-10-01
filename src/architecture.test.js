@@ -6,11 +6,11 @@ import { buildGraph, cycles, violations } from "../scripts/dependency-map.mjs"
 // KNOWN lists what the code breaks today; the refactor removes entries, never adds them
 // (docs/ARCHITECTURE-AUDIT.md). A stale entry fails too, so the list can only shrink.
 const KNOWN = new Set([
-  "app/forgot-password/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "app/login/page.tsx: imports @supabase/supabase-js (Supabase belongs in features/*/data or lib/supabase)",
-  "app/login/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "app/register/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "app/reset-password/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/ForgotPasswordPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/LoginPage.tsx: imports @supabase/supabase-js (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/LoginPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/RegisterPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/ResetPasswordPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/DashboardStudio.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "features/auth/components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/settings/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",

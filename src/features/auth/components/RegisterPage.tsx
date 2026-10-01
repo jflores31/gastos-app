@@ -1,0 +1,308 @@
+"use client"
+
+import { useState } from "react"
+import { useTheme } from "@mui/material/styles"
+import {
+  Box, Typography, TextField, Button, Divider, IconButton, InputAdornment, CircularProgress,
+} from "@mui/material"
+import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@/theme/icons"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { AuthCard } from "./AuthCard"
+import { AuthErrorAlert } from "./AuthErrorAlert"
+import { darkFieldSx } from "./authStyles"
+import { OAUTH_ENABLED } from "@/lib/featureFlags"
+
+const Blobs = ({ isDark }: { isDark: boolean }) => (
+  <>
+    <Box sx={{
+      position: "absolute", top: "-18%", right: "-10%",
+      width: 620, height: 620, borderRadius: "50%", pointerEvents: "none",
+      background: isDark
+        ? "radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 68%)"
+        : "radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 68%)",
+    }} />
+    <Box sx={{
+      position: "absolute", bottom: "-15%", left: "-8%",
+      width: 520, height: 520, borderRadius: "50%", pointerEvents: "none",
+      background: isDark
+        ? "radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 68%)"
+        : "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 68%)",
+    }} />
+    <Box sx={{
+      position: "absolute", top: "45%", left: "30%",
+      width: 300, height: 300, borderRadius: "50%", pointerEvents: "none",
+      background: isDark
+        ? "radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%)"
+        : "radial-gradient(circle, rgba(20,184,166,0.05) 0%, transparent 70%)",
+    }} />
+  </>
+)
+
+export default function RegisterPage() {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
+
+  const [name, setName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPwd, setShowPwd] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+
+  const darkField = darkFieldSx(isDark, { accent: "#22c55e", labelAccent: "#86efac", helperText: true })
+
+  const handleOAuth = (provider: "google" | "github") => {
+    const supabase = createClient()
+    const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
+    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    if (password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); setLoading(false); return }
+    if (password !== confirmPassword) { setError("Las contraseñas no coinciden"); setLoading(false); return }
+    const supabase = createClient()
+    try {
+      const { error: authError } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          data: { full_name: `${name} ${lastName}`.trim() },
+          emailRedirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/login`,
+        },
+      })
+      if (authError) { setError(authError.message || "Error al registrar") }
+      else setSuccess(true)
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <Box sx={{
+        minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+        position: "relative", overflow: "hidden",
+        bgcolor: isDark ? "#07080f" : "background.default",
+        p: 3,
+      }}>
+        <Blobs isDark={isDark} />
+        <AuthCard maxWidth={420} p={{ xs: 4, sm: 6 }} accentColor="rgba(34,197,94,0.10)" sx={{ textAlign: "center" }}>
+          <Box sx={{
+            width: 80, height: 80, borderRadius: "50%", mx: "auto", mb: 3,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            boxShadow: "0 0 0 12px rgba(34,197,94,0.1), 0 14px 40px rgba(34,197,94,0.35)",
+          }}>
+            <CheckCircle sx={{ fontSize: 42, color: "#fff" }} />
+          </Box>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
+            color: isDark ? "#f1f5f9" : "text.primary" }}>
+            ¡Listo!
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.7,
+            color: isDark ? "rgba(255,255,255,0.45)" : "text.secondary" }}>
+            Revisa tu email para confirmar tu cuenta y luego inicia sesión.
+          </Typography>
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Button fullWidth sx={{
+              py: 1.5, borderRadius: "10px", fontWeight: 700, fontSize: 15, textTransform: "none",
+              background: "linear-gradient(90deg, #22c55e 0%, #16a34a 100%)",
+              color: "#fff", boxShadow: "0 4px 22px rgba(34,197,94,0.4)",
+              "&:hover": { background: "linear-gradient(90deg, #4ade80 0%, #22c55e 100%)", boxShadow: "0 6px 30px rgba(34,197,94,0.5)", transform: "translateY(-1px)" },
+              transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
+            }}>
+              Ir a iniciar sesión
+            </Button>
+          </Link>
+        </AuthCard>
+      </Box>
+    )
+  }
+
+  return (
+    <Box sx={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden",
+      bgcolor: isDark ? "#07080f" : "background.default",
+      p: { xs: 2, sm: 3 },
+      py: { xs: 4, sm: 5 },
+    }}>
+      <Blobs isDark={isDark} />
+
+      {/* Card */}
+      <AuthCard maxWidth={480} p={{ xs: 3.5, sm: 5 }} accentColor="rgba(34,197,94,0.10)">
+
+        {/* Branding */}
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <Box sx={{
+            width: 70, height: 70, borderRadius: "18px", mx: "auto", mb: 2.5,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg, #22c55e 0%, #6366f1 100%)",
+            boxShadow: "0 0 0 10px rgba(34,197,94,0.1), 0 14px 40px rgba(34,197,94,0.38)",
+          }}>
+            <AccountBalanceWallet sx={{ fontSize: 36, color: "#fff" }} />
+          </Box>
+          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, lineHeight: 1,
+            color: isDark ? "#f1f5f9" : "text.primary" }}>
+            Crear cuenta
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.75, letterSpacing: 0.2,
+            color: isDark ? "rgba(255,255,255,0.32)" : "text.secondary" }}>
+            Es gratis, siempre
+          </Typography>
+        </Box>
+
+        {/* Error */}
+        <AuthErrorAlert error={error} />
+
+        {/* OAuth — se activa con OAUTH_ENABLED en src/lib/featureFlags.ts */}
+        {OAUTH_ENABLED && (
+          <>
+            <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+              {([["google", <Google key="g" sx={{ fontSize: 17 }} />], ["github", <GitHub key="gh" sx={{ fontSize: 17 }} />]] as const).map(([p, icon]) => (
+                <Button key={p} fullWidth startIcon={icon} onClick={() => handleOAuth(p)}
+                  variant="outlined" color="inherit"
+                  sx={{
+                    py: 1.25, borderRadius: "10px", textTransform: "none", fontWeight: 600, fontSize: 13.5,
+                    ...(isDark ? {
+                      color: "rgba(255,255,255,0.72)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      bgcolor: "rgba(255,255,255,0.05)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.09)", borderColor: "rgba(255,255,255,0.2)", color: "#fff" },
+                    } : {}),
+                    transition: "background-color 0.18s, border-color 0.18s, color 0.18s",
+                  }}
+                >
+                  {p === "google" ? "Google" : "GitHub"}
+                </Button>
+              ))}
+            </Box>
+            <Divider sx={{ mb: 3 }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 1.8, fontSize: 10,
+                color: isDark ? "rgba(255,255,255,0.22)" : "text.disabled" }}>
+                O CON EMAIL
+              </Typography>
+            </Divider>
+          </>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} aria-label="Crear cuenta" aria-busy={loading}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, mb: 2 }}>
+            <TextField
+              fullWidth label="Nombre" value={name}
+              onChange={(e) => setName(e.target.value)}
+              required autoComplete="given-name"
+              sx={darkField}
+            />
+            <TextField
+              fullWidth label="Apellidos" value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required autoComplete="family-name"
+              sx={darkField}
+            />
+          </Box>
+
+          <TextField
+            fullWidth label="Email" type="email"
+            value={email} onChange={(e) => setEmail(e.target.value)}
+            required autoComplete="email"
+            slotProps={{ htmlInput: { spellCheck: false } }}
+            sx={{ mb: 2, ...darkField }}
+          />
+
+          <TextField
+            fullWidth label="Contraseña"
+            type={showPwd ? "text" : "password"}
+            value={password} onChange={(e) => setPassword(e.target.value)}
+            required autoComplete="new-password"
+            helperText="Mínimo 8 caracteres"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton size="small" edge="end" onClick={() => setShowPwd(!showPwd)}
+                      aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
+                      {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mb: 2, ...darkField }}
+          />
+
+          <TextField
+            fullWidth label="Confirmar contraseña"
+            type={showConfirm ? "text" : "password"}
+            value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+            required autoComplete="new-password"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton size="small" edge="end" onClick={() => setShowConfirm(!showConfirm)}
+                      aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
+                      {showConfirm ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mb: 3, ...darkField }}
+          />
+
+          <Button
+            fullWidth type="submit" disabled={loading}
+            sx={{
+              py: 1.55, borderRadius: "10px", fontWeight: 700, fontSize: 15,
+              textTransform: "none", letterSpacing: 0.2, mb: 3.5,
+              background: "linear-gradient(90deg, #22c55e 0%, #16a34a 100%)",
+              color: "#fff",
+              boxShadow: "0 4px 22px rgba(34,197,94,0.38)",
+              "&:hover:not(:disabled)": {
+                background: "linear-gradient(90deg, #4ade80 0%, #22c55e 100%)",
+                boxShadow: "0 6px 30px rgba(34,197,94,0.5)",
+                transform: "translateY(-1px)",
+              },
+              "&:disabled": { background: "rgba(34,197,94,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
+              transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
+            }}
+          >
+            {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Crear cuenta gratis"}
+          </Button>
+        </form>
+
+        <Typography variant="body2" sx={{ textAlign: "center", fontSize: 13,
+          color: isDark ? "rgba(255,255,255,0.28)" : "text.secondary" }}>
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Typography component="span" variant="body2" sx={{
+              fontWeight: 700, fontSize: 13,
+              color: isDark ? "#86efac" : "success.main",
+              "&:hover": { color: isDark ? "#4ade80" : "success.dark" },
+              transition: "color 0.15s",
+            }}>
+              Inicia sesión
+            </Typography>
+          </Link>
+        </Typography>
+      </AuthCard>
+    </Box>
+  )
+}
