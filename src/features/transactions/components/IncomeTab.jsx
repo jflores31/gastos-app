@@ -17,6 +17,7 @@ import { useTxFilters } from "../hooks/useTxFilters";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
+import { shadows } from "@/theme/tokens";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
@@ -65,7 +66,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+      <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: shadows.card }}>
         <CardContent sx={{ p: 2.5 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
             <Box>
@@ -182,7 +183,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
-      <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+      <Card sx={{ borderRadius: 2, boxShadow: shadows.card }}>
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "success.main" }}>
             <Box>

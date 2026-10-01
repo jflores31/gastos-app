@@ -2,6 +2,7 @@ import { Box, Card, CardContent, Typography } from "@mui/material";
 import { History as HistoryIcon } from "@/theme/icons";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // Net worth over the last 6 months, rebuilt backwards from today's value: each month is
 // today's net worth minus the net of the months after it.
@@ -14,7 +15,7 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
   const initial = months.length > 0 ? netWorth - nets.slice(1).reduce((s, n) => s + n, 0) : netWorth;
 
   return (
-    <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "success.main" }}>
+    <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, ...accentCardSx("success.main", "section") }}>
       <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={HistoryIcon} tone="income" bubble />

@@ -7,6 +7,7 @@ import { useData } from "@/contexts/DataContext";
 import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
+import { accentCardSx } from "@/theme/tokens";
 
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
 const typeChip = (type, t) =>
@@ -29,7 +30,7 @@ export function InvestmentsSection({ showToast }) {
   const weightedReturn = totalVal > 0 ? investments.reduce((s, i) => s + i.value * i.return, 0) / totalVal : 0;
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "warning.main" }}>
+    <Card sx={accentCardSx("warning.main", "section")}>
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>

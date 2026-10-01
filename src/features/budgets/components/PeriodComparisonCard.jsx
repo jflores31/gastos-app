@@ -3,12 +3,13 @@ import { CompareArrows as CompareIcon } from "@/theme/icons";
 import { periodLabel } from "@/domain/period";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // Spending of the previous period and the % change against this one.
 export function PeriodComparisonCard({ period, prevOut, dOut }) {
   const { t, fmt } = useSettings();
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "info.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
+    <Card sx={{ ...accentCardSx("info.main"), height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={CompareIcon} tone="goals" bubble />

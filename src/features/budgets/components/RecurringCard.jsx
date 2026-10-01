@@ -6,6 +6,7 @@ import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // Payments that repeat in 3+ months (recurringList), first 5 with "show more".
 export function RecurringCard() {
@@ -15,7 +16,7 @@ export function RecurringCard() {
   const recurring = useMemo(() => recurringList(txs), [txs]);
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "success.main" }}>
+    <Card sx={accentCardSx("success.main")}>
       <CardContent sx={{ p: 2.5 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={EventIcon} tone="income" bubble />

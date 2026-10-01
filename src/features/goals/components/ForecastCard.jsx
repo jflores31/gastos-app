@@ -3,13 +3,14 @@ import { Timeline as ForecastIcon } from "@/theme/icons";
 import { linearRegressionSlope } from "../domain/forecast";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // Next 3 months' net, from the average of the last 6 months plus their linear trend.
 // `months` is txByMonth(txs).slice(-12).
 export function ForecastCard({ months }) {
   const { t } = useSettings();
   return (
-    <Card sx={{ width: "100%", minHeight: 350, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "info.main" }}>
+    <Card sx={{ width: "100%", minHeight: 350, ...accentCardSx("info.main", "section") }}>
       <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
