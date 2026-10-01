@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Snackbar, Alert,
+  AppBar, Toolbar, Typography, Box, Tabs, Tab, Fab, Alert,
   useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
   Avatar, Button, Tooltip,
 } from "@mui/material";
@@ -25,6 +25,8 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
 import { useData } from "@/contexts/DataContext";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/feedback/useToast";
+import { Toast } from "@/components/feedback/Toast";
 import { useBudgetAlertToasts } from "@/features/budgets/hooks/useBudgetAlertToasts";
 import OverviewTab from "./OverviewTab";
 import ExpensesTab from "@/features/transactions/components/ExpensesTab";
@@ -56,18 +58,11 @@ export default function DashboardStudio() {
   const [settingsTab, setSettingsTab] = useState("perfil");
   const openSettings = (tab) => { setSettingsTab(tab); setShowSettings(true); };
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [toast, setToast] = useState(null);
-  const toastTimer = useRef(null);
   const [period, setPeriod] = useState("month");
 
   // `prefill` ({ concepto, valor } with valor in PEN) comes from "Registrar" on an upcoming payment.
   const openModal = useCallback((cat = "", mode = "all", prefill = null) => { setModalCat(cat); setModalMode(mode); setModalPrefill(prefill); setShowModal(true); }, []);
-  // `action` ({ label, onClick }) adds a button to the toast, e.g. "Deshacer".
-  const showToast = useCallback((msg, severity = "success", duration = 3000, action = null) => {
-    clearTimeout(toastTimer.current);
-    setToast({ msg, severity, duration, action, id: Date.now() });
-    toastTimer.current = setTimeout(() => setToast(null), duration);
-  }, []);
+  const { toast, showToast, hideToast } = useToast();
 
   useBudgetAlertToasts(showToast);
 
@@ -347,16 +342,7 @@ export default function DashboardStudio() {
         {activeTab === 4 && <GoalsTab showToast={showToast} />}
       </Box>
 
-      <Snackbar key={toast?.id} open={!!toast} autoHideDuration={toast?.duration ?? 3000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} sx={{ bottom: { xs: 72, sm: 24 } }}>
-        {toast && (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}
-            action={toast.action ? (
-              <Button color="inherit" size="small" sx={{ fontWeight: 700 }} onClick={() => { setToast(null); toast.action.onClick(); }}>{toast.action.label}</Button>
-            ) : undefined}>
-            {toast.msg}
-          </Alert>
-        )}
-      </Snackbar>
+      <Toast toast={toast} onClose={hideToast} />
 
       {showModal && <AddTransactionModal initialCategory={modalCat} mode={modalMode} initialConcept={modalPrefill?.concepto} initialAmount={modalPrefill?.valor} onAdd={handleAddTx} onClose={() => setShowModal(false)} showToast={showToast} />}
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} initialTab={settingsTab} />
