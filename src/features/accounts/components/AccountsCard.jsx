@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Box, Card, CardContent, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountBalance as BankIcon, CreditCard as CardIcon, AttachMoney as CashIcon, SwapHoriz as SwapIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
-import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { useEntityDialog } from "../forms/useEntityDialog";
-import { EntityDialog } from "../forms/EntityDialog";
-import { EmptySection } from "../ui/EmptySection";
-import { TransferDialog } from "./TransferDialog.jsx";
+import { useEntityDialog } from "@/components/forms/useEntityDialog";
+import { EntityDialog } from "@/components/forms/EntityDialog";
+import { EmptySection } from "@/components/ui/EmptySection";
+import { TransferDialog } from "./TransferDialog";
 
 const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: "#0033A0", limit: "" };
 

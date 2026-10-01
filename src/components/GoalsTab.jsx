@@ -6,7 +6,7 @@ import { txByMonth } from "@/features/transactions/domain/aggregations";
 import { netWorthOf } from "@/domain/netWorth";
 import { useData } from "@/contexts/DataContext";
 import { GoalsSection } from "./goals/GoalsSection.jsx";
-import { AccountsCard } from "./goals/AccountsCard.jsx";
+import { AccountsCard } from "@/features/accounts/components/AccountsCard";
 import { ForecastCard } from "./goals/ForecastCard.jsx";
 import { InvestmentsSection } from "./goals/InvestmentsSection.jsx";
 import { DebtsCard } from "./goals/DebtsCard.jsx";

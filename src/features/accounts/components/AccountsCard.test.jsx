@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, cleanup, within } from "@testing-library/react"
-import { MESSAGES } from "../../i18n/index"
-import { AccountsCard } from "./AccountsCard.jsx"
-import { TransferDialog } from "./TransferDialog.jsx"
+import { MESSAGES } from "@/i18n"
+import { AccountsCard } from "./AccountsCard"
+import { TransferDialog } from "./TransferDialog"
 
 // Settings and data come from stubs: the tests choose the accounts and inspect what is saved.
 const settings = { current: { t: MESSAGES.es, lang: "es", currency: "PEN", fmt: (v) => `S/${v}` } }
