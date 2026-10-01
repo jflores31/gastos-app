@@ -81,7 +81,7 @@ Amounts: stored in PEN (+ each transaction's currency, what was typed and the ra
 
 | Module | Role |
 |---|---|
-| `features/dashboard/components/DashboardStudio.jsx` | App shell: composes `AppHeader`, `MainNav`, the 5 tabs, the toast and the dialogs; holds the active tab and the shared `period` |
+| `features/dashboard/components/DashboardStudio.tsx` | App shell: composes `AppHeader`, `MainNav`, the 5 tabs, the toast and the dialogs; holds the active tab and the shared `period` |
 | `features/auth/hooks/useSessionGuard.ts` | Session security: inactivity with a warning, 8 h max age, reopened browser (`BroadcastChannel`) |
 | `contexts/DataContext.tsx` | State of the 9 tables, loaded once per user, plus the writes; the only door to the data |
 | `features/*/data/` | Row ↔ object of each table and its writes; `authApi.ts` for Supabase Auth |

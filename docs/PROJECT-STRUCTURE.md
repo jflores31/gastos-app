@@ -93,7 +93,7 @@ Para ver el mapa: `node scripts/dependency-map.mjs` (`--areas` agrupa por carpet
 | Un icono o un color de categoría | `theme/` (ver [ICONS.md](ICONS.md)) |
 | Un componente que usan varias funcionalidades | `components/` (sin lógica de negocio) |
 | Estilos | junto al componente, con `sx` de MUI; los repetidos, en el tema (`theme/materialTheme.ts`); los globales, en `app/globals.css`. Separarlos del código es la T16, pendiente |
-| Una pestaña nueva | su funcionalidad en `features/`, y una entrada en `dashboard/components/MainNav.tsx` y `DashboardStudio.jsx` |
+| Una pestaña nueva | su funcionalidad en `features/`, y una entrada en `dashboard/components/MainNav.tsx` y `DashboardStudio.tsx` |
 
 ## Cómo agregar una funcionalidad
 

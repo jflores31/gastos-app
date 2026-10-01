@@ -12,7 +12,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - **Shell:** `DashboardStudio` pasó de 366 a ~90 líneas. La seguridad de sesión se movió a `useSessionGuard`, el aviso a `useToast`, y salieron también `useTransactionModal`, `AppHeader` y `MainNav`. Gastos e Ingresos comparten `TransactionList`.
   - **Datos:** `DataContext` (TypeScript) guarda el estado y hace la carga. Cada tabla tiene su mapeo y sus escrituras en `features/*/data`, y `types/database.ts` tipa las filas. Las pantallas de auth usan `authApi` y ya no importan Supabase.
   - **Reglas en `npm test`** (`architecture.test.js` + `scripts/dependency-map.mjs`): capas, Supabase solo en la capa de datos, imports relativos dentro de una funcionalidad y `@/` entre ellas, sin ciclos. `database.test.ts` compara los mappers con `supabase/schema.sql`.
-  - **TypeScript:** pasaron la UI compartida, los hooks, `CalendarFilter`, `AddTransactionModal` y `DataContext`. Cada archivo se comprobó comparando el JS emitido: solo se agregaron tipos.
+  - **TypeScript:** pasaron la UI compartida, los hooks, `CalendarFilter`, `AddTransactionModal`, `DataContext` y el shell (`DashboardStudio`). Cada archivo se comprobó comparando el JS emitido: solo se agregaron tipos.
   - **`supabase/schema.sql`:** índice de secciones al principio (solo comentarios; `pg_dump` idéntico).
   - **Verificación:** 138 capturas (claro/oscuro, es/en, escritorio/390 px) idénticas píxel a píxel antes y después de cada fase, y los 36 e2e en verde. Los unitarios pasaron de 211 a 230.
   - **Hallazgos sin corregir** (van a un PR aparte):

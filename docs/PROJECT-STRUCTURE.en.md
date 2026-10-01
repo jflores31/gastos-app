@@ -93,7 +93,7 @@ To see the map: `node scripts/dependency-map.mjs` (`--areas` groups by folder, `
 | An icon or a category color | `theme/` (see [ICONS.md](ICONS.md)) |
 | A component several features use | `components/` (no business logic) |
 | Styles | next to the component, with MUI's `sx`; repeated ones in the theme (`theme/materialTheme.ts`); global ones in `app/globals.css`. Separating them from the code is T16, still pending |
-| A new tab | its feature in `features/`, plus an entry in `dashboard/components/MainNav.tsx` and `DashboardStudio.jsx` |
+| A new tab | its feature in `features/`, plus an entry in `dashboard/components/MainNav.tsx` and `DashboardStudio.tsx` |
 
 ## How to add a feature
 

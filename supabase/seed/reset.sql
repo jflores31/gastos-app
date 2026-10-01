@@ -6,7 +6,7 @@
 --
 -- Las 9 tablas referencian auth.users, y transactions y transfers también a accounts:
 -- se vacían todas en el mismo TRUNCATE, por eso no hace falta CASCADE. Las categorías
--- "de fábrica" viven en el código (src/data/index.ts → CATEGORIES); aquí solo se borran
+-- "de fábrica" viven en el código (src/domain/categories/catalog.ts → CATEGORIES); aquí solo se borran
 -- las personalizadas.
 
 -- ─── Paso 1 (opcional): conteo ANTES de borrar ───────────────────────────────

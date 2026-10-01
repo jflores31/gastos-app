@@ -188,7 +188,7 @@ Columnas:
 | `components/settings/ProfileTab.jsx` | jsx | Perfil: datos, favoritas y secciones | settings | 9 | 1 | client (hereda) | MOVE | features/settings/components/ProfileTab.jsx | Medio | Supabase a authApi |
 | `components/settings/TrashDialog.jsx` | jsx | Papelera | transactions | 5 | 1 | client (hereda) | MOVE | features/transactions/components/TrashDialog.jsx | Bajo | Es de las transacciones |
 | `components/settings/TwoFactorSection.jsx` | jsx | Activar y desactivar la 2FA | auth | 2 | 1 | client (hereda) | MOVE | features/auth/components/TwoFactorSection.jsx | Medio | Es de auth; Supabase a authApi |
-| `components/shared.jsx` | jsx | EmptyState, NoTransactions, StatsCard, Delta, SummaryCard, CalendarFilter | mixto | 4 | 2 | client (hereda) | SPLIT + DELETE | EmptyState → components/ui/EmptyState.tsx; NoTransactions y CalendarFilter → features/transactions/components/; StatsCard, SummaryCard y Delta: DELETE | Medio | Mezcla UI genérica y de transacciones; StatsCard, SummaryCard y Delta no se usan |
+| `components/shared.jsx` | jsx | EmptyState, NoTransactions, StatsCard, Delta, SummaryCard, CalendarFilter | mixto | 4 | 2 | client (hereda) | SPLIT + DELETE | EmptyState → components/ui/EmptyState.jsx (sigue en JS hasta el PR aparte: ver [Migración JS → TS](#migración-js--ts)); NoTransactions y CalendarFilter → features/transactions/components/; StatsCard, SummaryCard y Delta: DELETE | Medio | Mezcla UI genérica y de transacciones; StatsCard, SummaryCard y Delta no se usan |
 | `context/DataContext.jsx` | jsx | Estado, carga, mutaciones y mappers de 9 tablas | datos | 5 | 29 | client | SPLIT + JS→TS | contexts/DataContext.tsx + contexts/useTableCrud.ts + features/*/data/*.ts | Alto | Concentra 9 dominios; es el punto de cambio para dejar Supabase |
 | `context/SettingsContext.tsx` | tsx | Ajustes, idioma, moneda, tasas del día, fmt | compartido | 6 | 41 | client | MOVE | contexts/SettingsContext.tsx | Bajo | Carpeta en plural, junto a los otros contextos |
 | `context/UserContext.tsx` | tsx | Usuario de la sesión | auth | 1 | 6 | client | MOVE | contexts/UserContext.tsx | Medio | Pasa a usar authApi |
@@ -212,7 +212,7 @@ Columnas:
 | `lib/supabase-server.ts` | ts | Cliente de servidor (sin uso) | infraestructura | 0 | 0 | server | MOVE | lib/supabase/server.ts | Medio | Hoy nadie lo importa; el callback de OAuth pasa a usarlo |
 | `lib/supabase.ts` | ts | Cliente del navegador | infraestructura | 0 | 10 | isomorfo | MOVE | lib/supabase/client.ts | Bajo | Agrupa los clientes |
 | `proxy.ts` | ts | Guard de auth + CSP con nonce | seguridad | 1 | 0 | server | KEEP | = (sin cambios) | Medio | Convención de Next 16; solo cambia el import de mfa |
-| `theme/GradientIcon.jsx` | jsx | GradientIcon y CategoryAvatar | compartido | 1 | 20 | client | MOVE + JS→TS | components/ui/GradientIcon.tsx | Bajo | Es un componente, no parte del tema; lo usan 20 archivos |
+| `theme/GradientIcon.jsx` | jsx | GradientIcon y CategoryAvatar | compartido | 1 | 20 | client | MOVE (JS→TS pendiente) | components/ui/GradientIcon.jsx | Bajo | Es un componente, no parte del tema; lo usan 20 archivos. Sigue en JS: ver [Migración JS → TS](#migración-js--ts) |
 | `theme/IconPicker.jsx` | jsx | Selector de icono | compartido | 3 | 2 | client | MOVE + JS→TS | components/ui/IconPicker.tsx | Bajo | Es un componente; hoy theme importa un contexto |
 | `theme/categoryIcons.js` | js | Icono por categoría, ICON_CHOICES, resolveCategoryMeta | tema | 2 | 20 | client (hereda) | JS→TS | theme/categoryIcons.ts | Bajo | Única fuente de categoría → nombre → color → icono |
 | `theme/iconTones.js` | js | Gradientes por tono | tema | 0 | 5 | client (hereda) | JS→TS | theme/iconTones.ts | Bajo | Tokens visuales |
@@ -228,18 +228,19 @@ Columnas:
 - **Fase 5:** `useEntityDialog`, `EntityDialog`, `IconPicker`, `EmptySection`, `Charts` y `CalendarFilter`.
 - **Fase 6:** `DataContext` y, justo después, `useBudgetAlertToasts`, `useMoveToTrash`, `useTxExtras` y `AddTransactionModal`. Esos cuatro usan `useData()`, que desde TypeScript se veía como `never` mientras `DataContext` era JS.
 - **Siguen en `.jsx`:** `GradientIcon`, `EmptyState` y `TransactionList` (motivos en la tabla), y las pantallas y tarjetas.
+- **Al final:** `DashboardStudio`, que el plan marcaba para migrar una vez dividido.
 
 **Cómo se comprueba que tipar no cambia nada:** se compara el JS que emite TypeScript (`transpileModule`, sin comentarios) para el `.jsx` viejo y para el `.tsx` nuevo. Tienen que ser idénticos. Si TypeScript obliga a cambiar código, y no solo a anotarlo, el archivo se queda en `.jsx` con el motivo.
 
 | Estado | Archivos | Por qué |
 |---|---|---|
-| **Migrar** | `theme/{categoryIcons,iconTones,icons,materialTheme}.js` | Mapas y tokens que usa casi toda la UI; un nombre de icono mal escrito hoy no falla hasta que se renderiza |
-| **Migrar** | `hooks/{useBudgetAlertToasts,useMoveToTrash,useTxExtras}.js`, `goals/useEntityDialog.js` | Lógica con estado y efectos, reutilizada por varias pantallas |
-| **Migrar** | `context/DataContext.jsx` | Es el contrato de datos de toda la app; al dividirlo, los tipos de `types/` y `types/database.ts` quedan en cada mapper |
-| **Migrar** | `components/Charts.jsx`, `theme/GradientIcon.jsx`, `theme/IconPicker.jsx`, `goals/EntityDialog.jsx`, `goals/EmptySection.jsx` | UI compartida: sus props son la interfaz que usan varias features. `EmptyState` (de `shared.jsx`) espera al PR aparte: usa un `fontWeight` que MUI 9 ignora (ver [Hallazgos](#hallazgos-durante-la-migración)) |
-| **Migrar** | `AddTransactionModal.jsx`, `CalendarFilter` | La lógica de UI más compleja (moneda, tasa, cuenta, sugerencia; filtros de fecha) |
-| **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
-| **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
+| **Migrado** (fase 2/3) | `theme/{categoryIcons,iconTones,icons,materialTheme}.js` | Mapas y tokens que usa casi toda la UI; un nombre de icono mal escrito hoy no falla hasta que se renderiza |
+| **Migrado** (fases 5 y 6) | `hooks/{useBudgetAlertToasts,useMoveToTrash,useTxExtras}.js`, `goals/useEntityDialog.js` | Lógica con estado y efectos, reutilizada por varias pantallas |
+| **Migrado** (fase 6) | `context/DataContext.jsx` | Es el contrato de datos de toda la app; al dividirlo, los tipos de `types/` y `types/database.ts` quedan en cada mapper |
+| **Migrado** (fase 5) | `components/Charts.jsx`, `theme/IconPicker.jsx`, `goals/EntityDialog.jsx`, `goals/EmptySection.jsx` | UI compartida: sus props son la interfaz que usan varias features. `EmptyState` (de `shared.jsx`) espera al PR aparte: usa un `fontWeight` que MUI 9 ignora (ver [Hallazgos](#hallazgos-durante-la-migración)) |
+| **Migrado** (fases 5 y 6) | `AddTransactionModal.jsx`, `CalendarFilter` | La lógica de UI más compleja (moneda, tasa, cuenta, sugerencia; filtros de fecha) |
+| **Migrado** (fases 4 y final) | `DashboardStudio.jsx` | Al dividirlo, los hooks y componentes nuevos nacieron en TS; el shell, de 90 líneas, pasó al final |
+| **Pendiente** | Pestañas, tarjetas y diálogos de las features (32 de los 33 `.jsx` de `features/*/components`; el otro es `TransactionList`, abajo): `BudgetTab` y sus 9 componentes, `ExpensesTab`, `IncomeTab`, `NoTransactions`, `TrashDialog`, `OverviewTab`, `GoalsTab`, las tarjetas de metas, cuentas, inversiones, deudas y suscripciones con `TransferDialog`, `SettingsPanel`, `ProfileTab`, `PreferencesTab`, `YourDataSection`, `CustomCategoriesSection`, `TwoFactorSection`, `LoginModal` e `ImportDialog` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
 | **Pendiente** | `TransactionList.jsx` (extraído en la fase 4) | Usa `fontWeight` en `Typography`, que MUI 9 ignora y sus tipos rechazan. Tiparlo obliga a quitar la prop o a pasarla a `sx`, y lo segundo cambia el aspecto (ver [Hallazgos](#hallazgos-durante-la-migración)) |
 | **Pendiente** | `GradientIcon.jsx` | Dibuja `<Icon>` solo cuando no recibe `children`. TypeScript no acepta un componente que puede no existir sin cambiar código (una comprobación antes de `<Icon>`), y la regla de la fase 5 es solo anotar |
 | **No migrar** | `e2e/mock-supabase/*.mjs`, `scripts/*.mjs`, `eslint.config.js`, `vitest.config.mjs`, `next.config.mjs` | Scripts de Node y configuración: corren fuera del bundle, y en ESM funcionan tal cual |
@@ -418,7 +419,7 @@ Cada fila es una carpeta y lo que importa de las demás (sin tests). Supabase (`
 - **Shell:** `DashboardStudio` pasó de 366 a ~90 líneas.
 - **`DataContext`:** pasó de 589 líneas en JS a ~260 en TS. Su mapeo y sus escrituras están en `features/*/data`.
 - **Supabase en la UI:** ninguno; la UI usa `authApi` y `useData()`.
-- **TypeScript:** la lógica, los tipos, los contextos, los hooks, la capa de datos y la UI compartida.
+- **TypeScript:** la lógica, los tipos, los contextos, los hooks, la capa de datos, la UI compartida y el shell (`DashboardStudio`, `AppHeader`, `MainNav`).
 - **Siguen en `.jsx`, con su motivo:**
   - las pantallas y tarjetas;
   - `GradientIcon`, `EmptyState` y `TransactionList` (ver [Migración JS → TS](#migración-js--ts)).

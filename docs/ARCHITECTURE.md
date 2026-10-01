@@ -81,7 +81,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 
 | Módulo | Rol |
 |---|---|
-| `features/dashboard/components/DashboardStudio.jsx` | Shell de la app: compone `AppHeader`, `MainNav`, las 5 pestañas, el aviso y los diálogos; guarda la pestaña activa y el `period` compartido |
+| `features/dashboard/components/DashboardStudio.tsx` | Shell de la app: compone `AppHeader`, `MainNav`, las 5 pestañas, el aviso y los diálogos; guarda la pestaña activa y el `period` compartido |
 | `features/auth/hooks/useSessionGuard.ts` | Seguridad de sesión: inactividad con aviso, máximo de 8 h, navegador reabierto (`BroadcastChannel`) |
 | `contexts/DataContext.tsx` | Estado de las 9 tablas, carga una vez por usuario y expone las escrituras; única puerta a los datos |
 | `features/*/data/` | Fila ↔ objeto de cada tabla y sus escrituras; `authApi.ts` para Supabase Auth |
