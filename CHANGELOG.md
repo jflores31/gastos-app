@@ -6,6 +6,12 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 ## [Unreleased]
 
 ### Cambiado
+- **Estilos separados del código (T16)**, sin cambios de aspecto. Dónde va cada estilo: [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md#estilos).
+  - **Tokens compartidos:** `src/theme/tokens.ts` reúne las sombras de tarjeta, la tarjeta con borde de color, la que se eleva al pasar el mouse, la columna de un diálogo, el interruptor Gasto / Ingreso y los colores de la barra del navegador.
+  - **Un `*.styles.ts` por componente** (o por funcionalidad) con sus `sx` grandes y sus colores: auth, transacciones, Resumen, Presupuesto, Metas, Ajustes, categorías, importar y la UI compartida. Los acentos del selector salen de los del tema en lugar de repetirlos.
+  - **Sin `style={{}}`:** los SVG de los gráficos usan clases o `sx`; los `Link` de auth y `global-error` usan CSS Modules.
+  - **Regla de lint:** un color literal o un `style={{}}` en un componente es un error; `src/stylesLint.test.js` comprueba la regla.
+  - **Verificación:** en cada fase, hasta 246 capturas (claro/oscuro, es/en, escritorio/390 px) sin diferencias contra `main`. El CSP sigue permitiendo atributos `style`, porque MUI los escribe en el HTML ([docs/SECURITY-CSP.md](docs/SECURITY-CSP.md#próximas-mejoras-posibles)).
 - **Código organizado por funcionalidades y capas** (sin cambios de comportamiento ni de aspecto). Plan, hallazgos y resultado en [docs/ARCHITECTURE-AUDIT.md](docs/ARCHITECTURE-AUDIT.md); dónde va cada cosa en [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md).
   - **Funcionalidades:** `src/features/<funcionalidad>/{components,hooks,domain,data}` para transacciones, presupuestos, metas, cuentas, inversiones, deudas, suscripciones, categorías, importar/exportar, auth, ajustes y el shell (`dashboard`). `src/data/` y `src/app/components/` desaparecen.
   - **Compartido:** `components/` (ui, charts, forms, feedback, providers), `domain/` (dinero, períodos, salud, patrimonio, categorías), `lib/supabase/`, `types/`.

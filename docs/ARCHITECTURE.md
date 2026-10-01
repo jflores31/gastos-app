@@ -152,7 +152,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 **CSP:** se arma por request en `src/proxy.ts` (`buildCsp`) con nonce y `'strict-dynamic'`; `'unsafe-eval'` solo se agrega fuera de producción. Detalle en [SECURITY-CSP.md](SECURITY-CSP.md).
 
 **Páginas de auth:**
-- Todas usan `useTheme()` e `isDark`, con `darkField`/`cardSx` dentro del componente y `Blobs` recibiendo `{ isDark }`.
+- Todas usan `useTheme()` e `isDark`. Sus estilos salen de `Página.styles.ts` (`loginStyles(isDark)`…), armados con las piezas de `auth.styles.ts`: la paleta oscura de auth, los blobs, el icono con halo y los botones.
 - `isDark` arranca en `false` y se aplica en un `useEffect`, para que el primer render coincida con el HTML del servidor (evita el desajuste de hidratación).
 - Las llamadas a Supabase (`signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`) van en `try/catch/finally`, así el botón nunca queda en spinner.
 - `AuthErrorAlert` detecta el enlace expirado en español e inglés (`"expiró"` / `"expired"`).
@@ -224,7 +224,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 **Otros:**
 - El avatar de `DashboardStudio` no falla con nombre vacío (`displayName?.[0]?.toUpperCase() || "?"`).
 - Los textos del botón "Entrar" y del banner de error son bilingües.
-- **Diálogos:** MUI pone `padding-top: 0` al `DialogContent` que sigue a un `DialogTitle`, con un selector más específico que el `sx`. El padding se aplica con `"&&": { pt }`; sin eso, la etiqueta flotante del primer campo queda recortada.
+- **Diálogos:** MUI pone `padding-top: 0` al `DialogContent` que sigue a un `DialogTitle`, con un selector más específico que el `sx`. El padding se aplica con `"&&": { pt }` (`dialogTopPaddingSx` y `dialogColumnSx`, en `theme/tokens.ts`); sin eso, la etiqueta flotante del primer campo queda recortada.
 - `not-found.tsx` es Client Component (usa `<Button component={Link}>`).
 - El borrado de transacciones usa `try/catch/finally`.
 

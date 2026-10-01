@@ -7,6 +7,7 @@ import {
 } from "@mui/material"
 import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { getSession, onAuthStateChange, updateUser } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
@@ -80,12 +81,12 @@ function ResetPasswordForm() {
         <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75, color: mutedColor(isDark, 0.38) }}>
           El enlace de recuperación ya no es válido. Los enlaces expiran después de 1 hora o si ya fueron usados.
         </Typography>
-        <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+        <Link href="/forgot-password" className={linkStyles.link}>
           <Button fullWidth sx={s.expiredButton}>
             Solicitar nuevo enlace
           </Button>
         </Link>
-        <Link href="/login" style={{ textDecoration: "none" }}>
+        <Link href="/login" className={linkStyles.link}>
           <Typography variant="body2" sx={s.expiredBackLink}>
             <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
           </Typography>
@@ -122,7 +123,7 @@ function ResetPasswordForm() {
         <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75, color: mutedColor(isDark, 0.38) }}>
           Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión.
         </Typography>
-        <Link href="/login" style={{ textDecoration: "none" }}>
+        <Link href="/login" className={linkStyles.link}>
           <Button fullWidth sx={s.successButton}>
             Ir a iniciar sesión
           </Button>
@@ -135,7 +136,7 @@ function ResetPasswordForm() {
   return (
     <AuthCard maxWidth={440} accentColor={s.cardAccent}>
       {/* Back link */}
-      <Link href="/login" style={{ textDecoration: "none" }}>
+      <Link href="/login" className={linkStyles.link}>
         <Typography variant="body2" sx={backLinkSx(isDark, { mb: 4, alpha: 0.3 })}>
           <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
         </Typography>

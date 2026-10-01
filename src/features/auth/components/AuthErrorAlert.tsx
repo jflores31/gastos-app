@@ -3,6 +3,7 @@
 import { Box, Chip, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { errorChipSx } from "./auth.styles"
 
 interface AuthErrorAlertProps {
@@ -23,7 +24,7 @@ export function AuthErrorAlert({ error, id = "auth-error" }: AuthErrorAlertProps
         sx={errorChipSx(isDark)}
       />
       {(error.includes("expiró") || error.includes("expired")) && (
-        <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+        <Link href="/forgot-password" className={linkStyles.link}>
           <Typography variant="body2" sx={{ color: "error.main", textAlign: "center", fontWeight: 600, mt: 0.75 }}>
             Solicitar nuevo enlace &rarr;
           </Typography>

@@ -7,6 +7,7 @@ import {
 import { Close, Google, GitHub } from "@/theme/icons"
 import { OAUTH_ENABLED } from "@/lib/featureFlags"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { signInWithOAuth, signInWithPassword } from "../data/authApi"
 import { useSettings } from "@/contexts/SettingsContext"
 import { brandAvatarSx } from "./LoginModal.styles"
@@ -69,7 +70,7 @@ export default function LoginModal({ open, onClose }) {
             <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" slotProps={{ htmlInput: { spellCheck: false } }} sx={{ mb: 2 }} />
             <TextField fullWidth label={t.loginModal.password} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" sx={{ mb: 1 }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-              <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+              <Link href="/forgot-password" className={linkStyles.link}>
                 <Typography variant="body2" color="primary" sx={{ cursor: "pointer" }}>
                   {t.loginModal.forgotYourPassword}
                 </Typography>
@@ -101,7 +102,7 @@ export default function LoginModal({ open, onClose }) {
           <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2" color="text.secondary">
               {t.loginModal.donTHaveAnAccount}{" "}
-              <Link href="/register" style={{ textDecoration: "none" }}>
+              <Link href="/register" className={linkStyles.link}>
                 <Typography component="span" variant="body2" color="primary" sx={{ cursor: "pointer", fontWeight: 600 }}>
                   {t.loginModal.signUp}
                 </Typography>

@@ -62,6 +62,11 @@ export const gaugePanelSx: Sx = { display: "flex", flexDirection: "column", alig
 export const gaugeScoreSx = (tone: string): Sx => ({
   fontWeight: 800, position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 20%)", color: tone + ".main",
 })
+/** The gauge fills its 120×72 box; its arc strokes in currentColor, so `color` paints it. */
+export const gaugeSvgSx: Sx = { width: "100%", height: "100%" }
+export const gaugeArcSx = (tone: string): Sx => ({
+  color: tone === "success" ? "var(--income)" : tone === "warning" ? "#F9A825" : "var(--expense)",
+})
 export const healthStatSx: Sx = { p: 2, bgcolor: "action.hover", borderRadius: 2, border: "1px solid", borderColor: "divider" }
 
 // Period comparison.

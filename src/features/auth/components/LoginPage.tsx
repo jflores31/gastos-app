@@ -8,6 +8,7 @@ import {
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { getSession, signInWithOAuth, signInWithPassword, signOut, mfa } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
@@ -205,7 +206,7 @@ export default function LoginPage() {
           />
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
-            <Link href="/forgot-password" style={{ textDecoration: "none" }}>
+            <Link href="/forgot-password" className={linkStyles.link}>
               <Typography variant="body2" sx={s.forgotLink}>
                 ¿Olvidaste tu contraseña?
               </Typography>
@@ -222,7 +223,7 @@ export default function LoginPage() {
 
         <Typography variant="body2" sx={{ textAlign: "center", fontSize: 13, color: mutedColor(isDark, 0.28) }}>
           ¿No tienes cuenta?{" "}
-          <Link href="/register" style={{ textDecoration: "none" }}>
+          <Link href="/register" className={linkStyles.link}>
             <Typography component="span" variant="body2" sx={s.signupLink}>
               Regístrate gratis
             </Typography>

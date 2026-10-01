@@ -27,6 +27,23 @@ const MUI_DEAD_PROPS = [
   },
 ]
 
+// T16: design values live in src/theme/ and in each component's *.styles.ts (sx), or in a CSS
+// Module for what MUI doesn't style (docs/PROJECT-STRUCTURE.md → "Estilos"). A colour literal
+// or a style={{}} in a component skips them. Tests may use colours as data. A colour is a #hex
+// after the start, a space, "(" or ",", or rgb()/hsl(); url(#id) and href="#id" point at an
+// element instead. src/stylesLint.test.js checks the rule.
+const COLOR = String.raw`(?:^|[\s(,])(?<!url\()#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgba?|hsla?)\(`
+const STYLES_OUT_OF_COMPONENTS = [
+  {
+    selector: `Literal[value=/${COLOR}/]:not(JSXAttribute[name.name=/^(href|xlinkHref)$/] > Literal), TemplateElement[value.raw=/${COLOR}/]`,
+    message: "Color literal en un componente: va en src/theme/ o en el *.styles.ts del componente.",
+  },
+  {
+    selector: "JSXAttribute[name.name='style']",
+    message: "style={{}}: usa sx desde el *.styles.ts del componente, o un CSS Module si no es de MUI.",
+  },
+]
+
 export default defineConfig([
   globalIgnores(['dist', '.next', 'node_modules', 'next-env.d.ts']),
   {
@@ -56,5 +73,11 @@ export default defineConfig([
       globals: { ...globals.browser, ...globals.node },
     },
     rules: { "no-restricted-syntax": ["error", ...MUI_DEAD_PROPS] },
+  },
+  {
+    // Components. The rule's options replace the ones above, so the MUI list goes again.
+    files: ['src/**/*.{jsx,tsx}'],
+    ignores: ['src/theme/**', '**/*.test.*'],
+    rules: { "no-restricted-syntax": ["error", ...MUI_DEAD_PROPS, ...STYLES_OUT_OF_COMPONENTS] },
   },
 ])

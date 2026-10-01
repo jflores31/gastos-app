@@ -5,7 +5,7 @@ import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { accentCardSx } from "@/theme/tokens";
-import { gaugePanelSx, gaugeScoreSx, healthStatSx } from "./budgets.styles";
+import { gaugeArcSx, gaugePanelSx, gaugeScoreSx, gaugeSvgSx, healthStatSx } from "./budgets.styles";
 
 // Financial health gauge + budget, spent, usage and income for the period.
 export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budgetUsed }) {
@@ -29,10 +29,10 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
                 <GradientIcon icon={GaugeIcon} tone={TONE_BY_PALETTE[gaugeColor]} bubble bubbleSize={64} size={34} />
               </Box>
               <Box sx={{ position: "relative", width: 120, height: 72 }}>
-                <svg viewBox="0 0 120 72" style={{ width: "100%", height: "100%" }}>
+                <Box component="svg" viewBox="0 0 120 72" sx={gaugeSvgSx}>
                   <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" opacity={0.15} strokeWidth="10" strokeLinecap="round" />
-                  <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(score / 100) * 172.8} 200`} style={{ color: gaugeColor === "success" ? "var(--income)" : gaugeColor === "warning" ? "#F9A825" : "var(--expense)" }} />
-                </svg>
+                  <Box component="path" d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(score / 100) * 172.8} 200`} sx={gaugeArcSx(gaugeColor)} />
+                </Box>
                 <Typography variant="h4" sx={gaugeScoreSx(gaugeColor)}>{score}</Typography>
               </Box>
               <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1 }}>{t.healthScore}</Typography>

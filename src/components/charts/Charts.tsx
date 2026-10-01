@@ -1,5 +1,7 @@
 import { useId } from "react";
+import { Box } from "@mui/material";
 import type { Messages } from "@/i18n";
+import { donutSvgSx } from "./Charts.styles";
 
 // What the charts read from each data point (structural: any list with these fields works).
 type Slice = { value: number; color: string };
@@ -33,7 +35,7 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }: { slices:
     return { key: i, color: s.color, dash, dashOffset: -offset };
   });
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ width: '100%', height: 'auto', maxWidth: size }}>
+    <Box component="svg" width={size} height={size} viewBox={`0 0 ${size} ${size}`} sx={donutSvgSx(size)}>
       <g transform={`translate(${size / 2} ${size / 2}) rotate(-90)`}>
         {items.map(({ key, color, dash, dashOffset }) => (
           <circle key={key} r={r} fill="none" stroke={color}
@@ -41,7 +43,7 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }: { slices:
             strokeDashoffset={dashOffset} />
         ))}
       </g>
-    </svg>
+    </Box>
   );
 }
 
@@ -54,7 +56,7 @@ export function SparkArea({ data }: { data?: number[] | null }) {
   const points = data.map((v, i) => [i * stepX, H - ((v - min) / range) * H * 0.85 - H * 0.1]);
   const path = linePath(points);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="st-spark" style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="st-spark">
       <defs>
         <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
@@ -83,7 +85,7 @@ export function StudioCashflow({ months, t }: { months: MonthPoint[]; t: Pick<Me
   const yForNet = (v: number) => H - P - ((v - netMin) / netRange) * (H - P * 2);
   const line = (arr: number[]) => linePath(arr.map((v, i) => [P + i * stepX, yFor(v)]));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg" style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg">
       <defs>
         <linearGradient id={incId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--income)" stopOpacity="0.18" />
@@ -112,7 +114,7 @@ export function StudioCashflow({ months, t }: { months: MonthPoint[]; t: Pick<Me
             </>
           )}
           <text x={P + i * stepX} y={H - 12} textAnchor="middle" fontSize="11"
-            fill="currentColor" opacity="0.5" style={{ fontFamily: "var(--font-ibm-plex-sans), Roboto, sans-serif" }}>
+            fill="currentColor" opacity="0.5">
             {t.months[m.mes] || ""}
           </text>
         </g>

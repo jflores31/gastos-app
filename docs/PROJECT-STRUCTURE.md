@@ -28,7 +28,8 @@ src/
 ├── hooks/                # useLocalStorage
 ├── i18n/                 # Todos los textos, en es y en
 ├── lib/                  # Infraestructura: supabase/ (client, server, fetchAllRows), rates, reportError, featureFlags
-├── theme/                # Tema de MUI, iconos, tonos y categoría → nombre → color → icono
+├── theme/                # Tema de MUI, tokens de diseño compartidos (tokens.ts), iconos, tonos y
+│                         #   categoría → nombre → color → icono
 ├── types/                # domain.ts (lo que usa la app) y database.ts (las filas de las 9 tablas)
 └── proxy.ts              # Sesión, 2FA y CSP en cada request
 ```
@@ -92,8 +93,26 @@ Para ver el mapa: `node scripts/dependency-map.mjs` (`--areas` agrupa por carpet
 | Un texto | `i18n/` (es y en); `messages.test.js` comprueba que estén los dos |
 | Un icono o un color de categoría | `theme/` (ver [ICONS.md](ICONS.md)) |
 | Un componente que usan varias funcionalidades | `components/` (sin lógica de negocio) |
-| Estilos | junto al componente, con `sx` de MUI; los repetidos, en el tema (`theme/materialTheme.ts`); los globales, en `app/globals.css`. Separarlos del código es la T16, pendiente |
+| Estilos | un `*.styles.ts` junto al componente, o `theme/tokens.ts` si los usan varias funcionalidades (ver [Estilos](#estilos)) |
 | Una pestaña nueva | su funcionalidad en `features/`, y una entrada en `dashboard/components/MainNav.tsx` y `DashboardStudio.tsx` |
+
+## Estilos
+
+Los estilos no van en el JSX: el componente importa sus `sx` de un archivo de estilos.
+
+| Qué | Dónde |
+|---|---|
+| Lo que usan varias funcionalidades: sombras de tarjeta, la tarjeta con borde de color, la columna de un diálogo, el interruptor Gasto / Ingreso, los colores de la barra del navegador | `theme/tokens.ts` |
+| La paleta, los acentos y los ajustes de los componentes de MUI | `theme/materialTheme.ts` |
+| Los `sx` grandes de un componente (5 o más props, o con selectores como `&:hover`) y sus colores | `Componente.styles.ts` junto al componente; uno por funcionalidad (`budgets.styles.ts`) si son muchos componentes chicos |
+| Las líneas de layout (`display: "flex"`, `gap`, `mb`) | en línea, en el `sx` |
+| Lo que no es de MUI (los `Link` de auth, `global-error`) | un CSS Module (`*.module.css`) |
+| Clases globales (los SVG de `components/charts`, `.delta`) | `app/globals.css` |
+
+- **Nombres:** `xxxSx`, o una función si depende del tema o del estado (`accentSwatchSx(grad, selected)`).
+- **Mismo CSS al mover un estilo:** los shorthands van en su orden (`borderTopColor` después de `borderTop`, que lo resetea).
+- **Regla de lint:** en `*.jsx` y `*.tsx` (fuera de `theme/` y de los tests) no se permiten colores literales (`#hex`, `rgb()`, `hsl()`) ni `style={{}}`. `src/stylesLint.test.js` comprueba la regla.
+- **Los `style=""` del HTML** los pone MUI, no el código; por eso el CSP los sigue permitiendo ([SECURITY-CSP.md](SECURITY-CSP.md#estilos-style-con-nonce-atributos-style-inline)).
 
 ## Cómo agregar una funcionalidad
 

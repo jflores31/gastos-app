@@ -1,0 +1,21 @@
+/* Styles of global-error.tsx. It replaces the root layout, so neither globals.css nor emotion
+   (MUI's sx) is there: plain CSS, served as a file, which the CSP allows (style-src-elem 'self'). */
+.page {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+}
+
+.retry {
+  padding: 8px 20px;
+  cursor: pointer;
+}
