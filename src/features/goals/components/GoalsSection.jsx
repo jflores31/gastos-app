@@ -62,13 +62,13 @@ export function GoalsSection({ showToast }) {
         canSave={form.es && form.target}
         onSave={() => dialog.submit({ ...form, target: toBase(parseFloat(form.target), currency), current: toBase(parseFloat(form.current) || 0, currency) })}
       >
-        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.target} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.target} type="number" inputMode="decimal" slotProps={{ htmlInput: { min: 0 } }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.current} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.current} type="number" inputMode="decimal" slotProps={{ htmlInput: { min: 0 } }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
           </Grid>
         </Grid>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={DAYJS_LOCALES[lang]}>

@@ -84,10 +84,10 @@ export function InvestmentsSection({ showToast }) {
         canSave={form.es && form.value && parseFloat(form.value) > 0}
         onSave={() => dialog.submit({ ...form, value: toBase(parseFloat(form.value), currency), return: parseFloat(form.return) || 0 })}
       >
-        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.value} type="number" inputProps={{ min: 0 }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.value} type="number" slotProps={{ htmlInput: { min: 0 } }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
             <TextField label={t.goalsTab.returnPct} type="number" value={form.return} onChange={(e) => update({ return: e.target.value })} fullWidth />

@@ -59,7 +59,7 @@ export function DebtsCard({ showToast }) {
         canSave={form.es && form.balance && !tooManyRemaining}
         onSave={() => dialog.submit({ ...form, balance: toBase(parseFloat(form.balance), currency), rate: parseFloat(form.rate) || 0, monthly: toBase(parseFloat(form.monthly) || 0, currency), remaining: parseInt(form.remaining) || 0, original_months: parseInt(form.original_months) || parseInt(form.remaining) || 0 })}
       >
-        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
             <TextField label={t.goalsTab.outstandingBalance} type="number" value={form.balance} onChange={(e) => update({ balance: e.target.value })} fullWidth />

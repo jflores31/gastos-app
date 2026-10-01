@@ -101,7 +101,7 @@ export function AccountsCard({ worth, showToast }) {
         canSave={form.name && form.balance !== ""}
         onSave={handleSave}
       >
-        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.name} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ name: e.target.value })} fullWidth />
         <FormControl fullWidth>
           <InputLabel id="account-type-label">{t.common.type}</InputLabel>
           <Select labelId="account-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={t.common.type}>

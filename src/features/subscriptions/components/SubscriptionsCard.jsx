@@ -86,11 +86,11 @@ export function SubscriptionsCard({ showToast }) {
         canSave={form.name && form.price && parseFloat(form.price) > 0}
         onSave={() => dialog.submit({ ...form, price: toBase(parseFloat(form.price), currency) })}
       >
-        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => changeName(e.target.value)} fullWidth />
+        <TextField label={t.common.name} value={form.name} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => changeName(e.target.value)} fullWidth />
         <TextField
           label={t.goalsTab.price}
           type="number"
-          inputProps={{ min: 0 }}
+          slotProps={{ htmlInput: { min: 0 } }}
           value={form.price}
           onChange={(e) => update({ price: e.target.value })}
           fullWidth
