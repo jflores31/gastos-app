@@ -70,8 +70,7 @@ export function TwoFactorSection({ notify }) {
         <ListItemText
           primary={t.settingsPanel.twoFactor}
           secondary={factorId ? t.settingsPanel.twoFactorOn : t.settingsPanel.twoFactorOff}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, pb: 3 }}>

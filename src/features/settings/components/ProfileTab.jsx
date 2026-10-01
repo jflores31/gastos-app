@@ -92,8 +92,7 @@ function PersonalInfoSection({ name, notify }) {
         <ListItemText
           primary={t.settingsPanel.personalInfo}
           secondary={t.settingsPanel.yourNameShownAcrossThe}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
@@ -172,8 +171,7 @@ function FavoriteCategoriesSection({ user, notify }) {
         <ListItemText
           primary={t.settingsPanel.favoriteCategories}
           secondary={t.settingsPanel.shownFirstInTheSelector}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>

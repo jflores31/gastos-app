@@ -68,8 +68,7 @@ export function CustomCategoriesSection({ notify }) {
         <ListItemText
           primary={t.settingsPanel.myCategories}
           secondary={t.settingsPanel.customCategoriesForYourTransactions}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, pb: 3 }}>
