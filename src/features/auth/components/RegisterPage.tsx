@@ -7,6 +7,7 @@ import {
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@/theme/icons"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { signInWithOAuth, signUp } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
@@ -73,7 +74,7 @@ export default function RegisterPage() {
           <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.7, color: mutedColor(isDark, 0.45) }}>
             Revisa tu email para confirmar tu cuenta y luego inicia sesión.
           </Typography>
-          <Link href="/login" style={{ textDecoration: "none" }}>
+          <Link href="/login" className={linkStyles.link}>
             <Button fullWidth sx={s.successButton}>
               Ir a iniciar sesión
             </Button>
@@ -205,7 +206,7 @@ export default function RegisterPage() {
 
         <Typography variant="body2" sx={{ textAlign: "center", fontSize: 13, color: mutedColor(isDark, 0.28) }}>
           ¿Ya tienes cuenta?{" "}
-          <Link href="/login" style={{ textDecoration: "none" }}>
+          <Link href="/login" className={linkStyles.link}>
             <Typography component="span" variant="body2" sx={s.loginLink}>
               Inicia sesión
             </Typography>

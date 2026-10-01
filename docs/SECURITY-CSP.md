@@ -73,8 +73,10 @@ Los estilos tienen dos formas, y el CSP las trata por separado:
   layout lee `x-nonce` y lo pasa a `AppRouterCacheProvider options={{ key: "mui", nonce }}`.
   Emotion lo pone en cada `<style>` que genera, tanto en el HTML del servidor como en los que
   agrega el navegador después. Un `<style>` inyectado sin el nonce queda bloqueado.
-- **Atributos `style="…"` (`style-src-attr 'unsafe-inline'`):** MUI los escribe en el HTML del
-  servidor (transiciones, posiciones), y quedan unos 25 `style={{…}}` en los componentes. Un
+- **Atributos `style="…"` (`style-src-attr 'unsafe-inline'`):** el código ya no escribe ninguno
+  (T16: la regla de lint de `eslint.config.js` prohíbe `style={{…}}` en los componentes), pero
+  MUI sí, en el HTML del servidor: con sesión, la página trae 12 (`--Paper-shadow` en las
+  tarjetas y el header, `overflow: hidden` en las transiciones). Por eso la directiva sigue. Un
   atributo `style` no puede cargar recursos ni ejecutar código; lo peligroso de inyectar estilos
   (leer datos con selectores y `url()`, tapar la pantalla) necesita un `<style>`.
 - **`style-src 'self' 'unsafe-inline'`** queda como respaldo para navegadores sin las directivas
@@ -158,7 +160,9 @@ coincide con el header, **0 scripts sin proteger**, y los redirects del guard ll
 
 ## Próximas mejoras posibles
 
-- **Quitar `'unsafe-inline'` de `style-src-attr`:** habría que reemplazar los 22 `style={{…}}`
-  por `sx` o por clases (parte de T16, separar los estilos del código, en
-  [INVESTIGACION.md](INVESTIGACION.md#mejoras-técnicas)) y confirmar que MUI no escribe
-  atributos `style` en el HTML del servidor, algo que hoy hace en las transiciones.
+- **Quitar `'unsafe-inline'` de `style-src-attr`:** los `style={{…}}` del código ya no están
+  (T16, en [INVESTIGACION.md](INVESTIGACION.md#mejoras-técnicas)); falta lo que escribe MUI.
+  Los 12 atributos del HTML del servidor (medidos el 01-10 con sesión) vienen de `Paper`
+  (`--Paper-shadow`, en las tarjetas y el header) y de las transiciones (`overflow: hidden`). Sin
+  `'unsafe-inline'`, el navegador no aplicaría esos estilos (por ejemplo, la sombra de las
+  tarjetas). Depende de MUI, no de este repo.

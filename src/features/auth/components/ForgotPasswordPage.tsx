@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles"
 import { Box, Typography, TextField, Button, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "@/theme/icons"
 import Link from "next/link"
+import linkStyles from "./auth.module.css"
 import { resetPasswordForEmail } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
@@ -62,7 +63,7 @@ export default function ForgotPasswordPage() {
           <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.7, color: mutedColor(isDark, 0.3) }}>
             Haz click en el enlace del email para restablecer tu contraseña. Si no lo ves, revisa tu carpeta de spam.
           </Typography>
-          <Link href="/login" style={{ textDecoration: "none" }}>
+          <Link href="/login" className={linkStyles.link}>
             <Button fullWidth startIcon={<ArrowBack sx={{ fontSize: 17 }} />}
               variant="outlined" color="inherit"
               sx={s.backButton}
@@ -75,7 +76,7 @@ export default function ForgotPasswordPage() {
         /* ── Form state ── */
         <AuthCard maxWidth={440} accentColor={s.cardAccent}>
           {/* Back link */}
-          <Link href="/login" style={{ textDecoration: "none" }}>
+          <Link href="/login" className={linkStyles.link}>
             <Typography variant="body2" sx={backLinkSx(isDark, { mb: 4, alpha: 0.3 })}>
               <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
             </Typography>

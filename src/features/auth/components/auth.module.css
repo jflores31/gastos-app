@@ -1,0 +1,5 @@
+/* Links of the auth screens (next/link, outside MUI): the text inside sets its own colour and
+   hover, without the underline of a plain <a>. */
+.link {
+  text-decoration: none;
+}

@@ -436,7 +436,7 @@ Cada fila es una carpeta y lo que importa de las demás (sin tests). Supabase (`
   - `GradientIcon` (ver [Migración JS → TS](#migración-js--ts)). `EmptyState` y `TransactionList` pasaron a TS en el PR #13.
 - **Pendientes (fuera del refactor):**
   - ~~los dos [hallazgos](#hallazgos-durante-la-migración)~~: resueltos en el PR #13;
-  - la T16 (estilos);
+  - ~~la T16 (estilos)~~: hecha después ([PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md#estilos));
   - `allowJs`.
 
 ### Diferencias con el árbol de referencia del brief (y por qué)
@@ -449,7 +449,7 @@ El brief proponía un árbol "de referencia, no una orden rígida". Donde el res
 | `features/<f>/tests/` | tests junto al módulo (`budgets.test.js` al lado de `budgets.ts`) | Una sola estrategia, la que el repo ya usaba; Vitest los encuentra por patrón |
 | `types/{domain,database,common}/` con un archivo por entidad | `types/domain.ts` y `types/database.ts` | `domain.ts` tiene ~100 líneas y lo usan todas las funcionalidades: un archivo responde "¿dónde están los tipos?". Las filas de la base van aparte. Los tipos propios de un módulo (p. ej. `CalendarSelection`, `TxInput`) viven con él |
 | `supabase/{migrations,functions,triggers,policies}/` | un solo `schema.sql`, con índice de secciones | Decisión del usuario: cada parte es una transacción atómica, el SQL Editor lo ejecuta de una vez y el simulado lee ese mismo archivo ([Base de datos](#base-de-datos)) |
-| `src/styles/` | `app/globals.css` (sin mover), tema en `theme/`, `sx` junto a cada componente | `globals.css` es del layout raíz de Next. Separar los estilos del código es la T16, que sigue pendiente. Las props de estilo del [hallazgo 2](#hallazgos-durante-la-migración) ya pasaron a `sx` (PR #13) |
+| `src/styles/` | `app/globals.css` (sin mover), tema en `theme/`, `sx` junto a cada componente | `globals.css` es del layout raíz de Next. Las props de estilo del [hallazgo 2](#hallazgos-durante-la-migración) pasaron a `sx` (PR #13). Después, la T16 separó los estilos del código: `*.styles.ts` junto a cada componente y `theme/tokens.ts` ([PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md#estilos)) |
 | `features/reports/` | no existe | La app no tiene una pantalla de reportes: las estadísticas son el Resumen (`dashboard`) y las exportaciones (`import-export`) |
 | `components/layout/` (Header, Navigation) | `AppHeader` y `MainNav` en `features/dashboard/components` | Solo los usa el shell de la app; las pantallas de auth tienen su propio marco (`AuthCard`). Si otra página los necesita, pasan a `components/` (no importan funcionalidades) |
 | `lib/{security,rates,utilities}/` | `lib/supabase/` y archivos sueltos (`rates.ts`, `reportError.ts`, `featureFlags.ts`) | Un archivo por tema; la seguridad de sesión es de `auth` (`useSessionGuard`, `proxy.ts`) |

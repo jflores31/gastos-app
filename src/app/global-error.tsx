@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { reportError } from "@/lib/reportError"
+import styles from "./global-error.module.css"
 
 export default function GlobalError({
   error,
@@ -17,9 +18,9 @@ export default function GlobalError({
 
   return (
     <html lang="es">
-      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: "16px" }}>
-        <h2 style={{ margin: 0 }}>Algo salió mal</h2>
-        <button onClick={reset} style={{ padding: "8px 20px", cursor: "pointer" }}>
+      <body className={styles.page}>
+        <h2 className={styles.title}>Algo salió mal</h2>
+        <button onClick={reset} className={styles.retry}>
           Intentar de nuevo
         </button>
       </body>

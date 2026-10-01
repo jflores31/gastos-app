@@ -28,7 +28,8 @@ src/
 ├── hooks/                # useLocalStorage
 ├── i18n/                 # Every text, in es and en
 ├── lib/                  # Infrastructure: supabase/ (client, server, fetchAllRows), rates, reportError, featureFlags
-├── theme/                # MUI theme, icons, tones and category → name → color → icon
+├── theme/                # MUI theme, shared design tokens (tokens.ts), icons, tones and
+│                         #   category → name → color → icon
 ├── types/                # domain.ts (what the app uses) and database.ts (the rows of the 9 tables)
 └── proxy.ts              # Session, 2FA and CSP on every request
 ```
@@ -92,8 +93,26 @@ To see the map: `node scripts/dependency-map.mjs` (`--areas` groups by folder, `
 | A text | `i18n/` (es and en); `messages.test.js` checks both are there |
 | An icon or a category color | `theme/` (see [ICONS.md](ICONS.md)) |
 | A component several features use | `components/` (no business logic) |
-| Styles | next to the component, with MUI's `sx`; repeated ones in the theme (`theme/materialTheme.ts`); global ones in `app/globals.css`. Separating them from the code is T16, still pending |
+| Styles | a `*.styles.ts` next to the component, or `theme/tokens.ts` if several features use them (see [Styles](#styles)) |
 | A new tab | its feature in `features/`, plus an entry in `dashboard/components/MainNav.tsx` and `DashboardStudio.tsx` |
+
+## Styles
+
+Styles don't go in the JSX: the component imports its `sx` from a styles file.
+
+| What | Where |
+|---|---|
+| What several features use: card shadows, the card with a coloured top border, a dialog's column of fields, the Expense / Income switch, the browser bar colours | `theme/tokens.ts` |
+| The palette, the accents and the MUI component settings | `theme/materialTheme.ts` |
+| A component's big `sx` (5 or more props, or with selectors like `&:hover`) and its colours | `Component.styles.ts` next to the component; one per feature (`budgets.styles.ts`) for many small components |
+| Layout one-liners (`display: "flex"`, `gap`, `mb`) | inline, in the `sx` |
+| What isn't MUI (the auth `Link`s, `global-error`) | a CSS Module (`*.module.css`) |
+| Global classes (the `components/charts` SVGs, `.delta`) | `app/globals.css` |
+
+- **Names:** `xxxSx`, or a function when it depends on the theme or the state (`accentSwatchSx(grad, selected)`).
+- **Same CSS when moving a style:** shorthands keep their order (`borderTopColor` after `borderTop`, which resets it).
+- **Lint rule:** `*.jsx` and `*.tsx` files (outside `theme/` and the tests) can't have colour literals (`#hex`, `rgb()`, `hsl()`) or `style={{}}`. `src/stylesLint.test.js` checks the rule.
+- **The `style=""` attributes in the HTML** come from MUI, not from the code; that's why the CSP still allows them ([SECURITY-CSP.md](SECURITY-CSP.md#estilos-style-con-nonce-atributos-style-inline), in Spanish).
 
 ## How to add a feature
 
