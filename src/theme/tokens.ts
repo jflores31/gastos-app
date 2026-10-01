@@ -60,3 +60,18 @@ export function dialogTopPaddingSx(pt: number): SystemStyleObject<Theme> {
 export function dialogColumnSx(gap: number, pt: number): SystemStyleObject<Theme> {
   return { display: "flex", flexDirection: "column", gap, ...dialogTopPaddingSx(pt) }
 }
+
+/** Round "+" in a section header, tinted with the section colour; filled on hover. */
+export function tintedIconButtonSx(color: string): SystemStyleObject<Theme> {
+  return { bgcolor: `${color}.light`, "&:hover": { bgcolor: `${color}.main`, color: "common.white" } }
+}
+
+/** Row of a list on a soft background (recurring and upcoming payments, accounts, subscriptions). */
+export function softRowSx(gap: number): SystemStyleObject<Theme> {
+  return { display: "flex", alignItems: "center", gap, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }
+}
+
+/** Total at the foot of a section (net worth, investments), on a tint of its colour. */
+export function summaryBarSx(color: string): SystemStyleObject<Theme> {
+  return { mt: 2, display: "flex", justifyContent: "space-between", p: 2, bgcolor: `${color}.light`, borderRadius: 2 }
+}

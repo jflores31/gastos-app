@@ -7,6 +7,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { accentCardSx } from "@/theme/tokens";
+import { softRowSx } from "@/theme/tokens";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -47,7 +48,7 @@ export function UpcomingPaymentsCard({ openModal }) {
             {upcoming.map((p) => {
               const { label: catName, color, Icon } = resolveCategoryMeta(p.categoria, customCats, lang, "EGRESO");
               return (
-                <Box component="li" key={`${p.source}|${p.categoria}|${p.concepto}`} sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                <Box component="li" key={`${p.source}|${p.categoria}|${p.concepto}`} sx={softRowSx(1.5)}>
                   <CategoryAvatar icon={Icon} color={color} size={36} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{p.concepto}</Typography>

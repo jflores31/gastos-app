@@ -9,6 +9,7 @@ import { toBase, fromBase } from "@/domain/money";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { dialogColumnSx } from "@/theme/tokens";
 
 // "Gestionar presupuestos": edit or delete existing budgets and add new ones (native or
 // custom expense categories), each weekly, monthly or yearly. Deleting asks for confirmation.
@@ -82,7 +83,7 @@ export function ManageBudgetsDialog({ open, onClose, showToast }) {
     <>
       <Dialog open={open} onClose={close}>
         <DialogTitle sx={{ fontWeight: 700 }}>{t.budgetTab.manageBudgets}</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 2 }, minWidth: { xs: "80vw", sm: 360 } }}>
+        <DialogContent sx={{ ...dialogColumnSx(2, 2), minWidth: { xs: "80vw", sm: 360 } }}>
           {Object.keys(editBudgets).length > 0 && (
             <>
               <Typography variant="subtitle2" color="text.secondary">{t.budgetTab.existingBudgets}</Typography>

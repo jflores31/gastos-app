@@ -7,6 +7,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { accentCardSx } from "@/theme/tokens";
+import { softRowSx } from "@/theme/tokens";
 
 // Payments that repeat in 3+ months (recurringList), first 5 with "show more".
 export function RecurringCard() {
@@ -30,7 +31,7 @@ export function RecurringCard() {
             const { label: catName, color, Icon } = resolveCategoryMeta(r.categoria, customCats, lang, "EGRESO");
             return (
               // The same concept can recur in two categories (e.g. MANTENIMIENTO for car and bike).
-              <Box key={`${r.categoria}|${r.concepto}`} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+              <Box key={`${r.categoria}|${r.concepto}`} sx={softRowSx(2)}>
                 <CategoryAvatar icon={Icon} color={color} size={36} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{r.concepto}</Typography>

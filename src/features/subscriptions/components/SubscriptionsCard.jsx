@@ -11,6 +11,8 @@ import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
 import { accentCardSx } from "@/theme/tokens";
+import { softRowSx, tintedIconButtonSx } from "@/theme/tokens";
+import { initialBadgeSx } from "./SubscriptionsCard.styles";
 
 const EMPTY_SUB = { name: "", price: "", cycle: "monthly", category: "" };
 
@@ -51,7 +53,7 @@ export function SubscriptionsCard({ showToast }) {
               <Typography variant="caption" color="text.secondary">{subscriptions.length} {t.goalsTab.active}{subscriptions.length > 0 ? ` · ${fmt(monthlyTotal(subscriptions))}${t.common.perMonth}` : ""}</Typography>
             </Box>
           </Box>
-          <IconButton size="small" aria-label={t.goalsTab.addSubscription} onClick={dialog.openNew} sx={{ bgcolor: "secondary.light", "&:hover": { bgcolor: "secondary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label={t.goalsTab.addSubscription} onClick={dialog.openNew} sx={tintedIconButtonSx("secondary")}><AddIcon fontSize="small" /></IconButton>
         </Box>
         {subscriptions.length === 0 ? (
           <EmptySection label={t.goalsTab.noSubscriptionsYet} onAdd={dialog.openNew} />
@@ -60,7 +62,7 @@ export function SubscriptionsCard({ showToast }) {
             <Box sx={{ flex: 1 }}>
               <Stack spacing={1.5}>
                 {subscriptions.map((sub) => (
-                  <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => dialog.openEdit(sub)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && dialog.openEdit(sub)}>
+                  <Box key={sub.id} sx={{ ...softRowSx(2), cursor: "pointer" }} role="button" tabIndex={0} onClick={() => dialog.openEdit(sub)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && dialog.openEdit(sub)}>
                     <SubscriptionAvatar sub={sub} />
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.name}</Typography>
@@ -138,7 +140,7 @@ function SubscriptionAvatar({ sub }) {
     return <CategoryAvatar icon={Icon} color={color} size={40} />;
   }
   return (
-    <Box aria-hidden sx={{ width: 40, height: 40, borderRadius: 2, flexShrink: 0, bgcolor: "secondary.light", color: "secondary.dark", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
+    <Box aria-hidden sx={initialBadgeSx}>
       {sub.name.charAt(0).toUpperCase()}
     </Box>
   );

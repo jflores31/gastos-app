@@ -8,6 +8,7 @@ import "dayjs/locale/es";
 import { currencyOf, toBase } from "@/domain/money";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { dialogColumnSx } from "@/theme/tokens";
 
 // Same cap as a transaction, in PEN.
 const MAX_AMOUNT_BASE = 10_000_000;
@@ -49,7 +50,7 @@ export function TransferDialog({ onClose, showToast }) {
   return (
     <Dialog open onClose={saving ? undefined : onClose} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle sx={{ fontWeight: 700 }}>{t.goalsTab.newTransfer}</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } }}>
+      <DialogContent sx={dialogColumnSx(2.5, 1)}>
         <TextField select label={t.goalsTab.fromAccount} value={origen} onChange={(e) => setOrigen(e.target.value)} fullWidth>
           {accountOptions}
         </TextField>

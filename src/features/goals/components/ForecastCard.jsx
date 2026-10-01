@@ -4,6 +4,7 @@ import { linearRegressionSlope } from "../domain/forecast";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { accentCardSx } from "@/theme/tokens";
+import { forecastTrackSx, infoNoteSx } from "./goals.styles";
 
 // Next 3 months' net, from the average of the last 6 months plus their linear trend.
 // `months` is txByMonth(txs).slice(-12).
@@ -43,7 +44,7 @@ function ForecastBody({ months }) {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
           {t.goalsTab.needTwoMonths}
         </Typography>
-        <Box sx={{ p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
+        <Box sx={infoNoteSx}>
           <Typography variant="body2" sx={{ fontWeight: 600 }} color="info.dark">
             {t.goalsTab.currentAverage} {singleNet >= 0 ? "+" : "−"}{fmt(Math.abs(singleNet), true)}{t.common.perMonth}
           </Typography>
@@ -64,7 +65,7 @@ function ForecastBody({ months }) {
       {next.map((n) => (
         <Box key={n.i} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography variant="body2" sx={{ width: 50, fontFamily: "monospace", fontWeight: 600 }}>{n.label}</Typography>
-          <Box sx={{ flex: 1, height: 12, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }} role="progressbar" aria-valuenow={Math.round(barPct(n))} aria-valuemin={0} aria-valuemax={100}>
+          <Box sx={forecastTrackSx} role="progressbar" aria-valuenow={Math.round(barPct(n))} aria-valuemin={0} aria-valuemax={100}>
             <Box sx={{ height: "100%", width: `${barPct(n)}%`, borderRadius: 6, bgcolor: n.net >= 0 ? "success.main" : "error.main" }} />
           </Box>
           <Typography variant="body2" color={n.net >= 0 ? "success.main" : "error.main"} sx={{ fontWeight: 700, minWidth: 85, textAlign: "right" }}>
@@ -72,7 +73,7 @@ function ForecastBody({ months }) {
           </Typography>
         </Box>
       ))}
-      <Box sx={{ mt: 1, p: 2, bgcolor: "info.light", borderRadius: 2, borderLeft: 4, borderColor: "info.main" }}>
+      <Box sx={{ mt: 1, ...infoNoteSx }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }} color="info.dark">
           {t.goalsTab.n3MonthProjection} {fmt(next.reduce((s, n) => s + n.net, 0), true)}
         </Typography>

@@ -16,9 +16,10 @@ import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
 import { accentCardSx } from "@/theme/tokens";
+import { NEW_GOAL_COLOR, goalCardSx, goalContentSx, goalIconSx, goalProgressSx } from "./goals.styles";
 
 const DAYJS_LOCALES = { es, en };
-const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: "#7ab87a", icon: "Flag" };
+const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: NEW_GOAL_COLOR, icon: "Flag" };
 
 export function GoalsSection({ showToast }) {
   const { t, lang, currency } = useSettings();
@@ -90,14 +91,14 @@ function GoalCard({ goal: g, onOpen }) {
   const GoalGlyph = iconByName(g.icon);
   return (
     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-      <Card variant="outlined" sx={{ borderRadius: 2, cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s", "&:hover": { boxShadow: 2, transform: "translateY(-2px)" }, minHeight: 160, display: "flex", flexDirection: "column" }} onClick={onOpen}>
-        <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column", "&:last-child": { pb: 2.5 } }}>
+      <Card variant="outlined" sx={goalCardSx} onClick={onOpen}>
+        <CardContent sx={goalContentSx}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
             {GoalGlyph ? (
               <CategoryAvatar icon={GoalGlyph} color={g.color} size={44} />
             ) : (
               // Older goals stored a free-text glyph (e.g. "◉").
-              <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
+              <Box sx={goalIconSx(g.color)}>{g.icon}</Box>
             )}
             <Box sx={{ flex: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{g[lang]}</Typography>
@@ -113,7 +114,7 @@ function GoalCard({ goal: g, onOpen }) {
                   : `${fmt(left, true)} ${t.goalsTab.toGo}`}
               </Typography>
             </Box>
-            <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} sx={{ height: 8, borderRadius: 4, mb: 1.5, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: g.color, borderRadius: 4 } }} />
+            <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} sx={goalProgressSx(g.color)} />
             <Typography variant="caption" color="text.secondary">
               <strong>{fmt(g.current, true)}</strong> / {fmt(g.target, true)}
             </Typography>
