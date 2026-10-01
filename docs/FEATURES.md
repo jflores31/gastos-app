@@ -44,7 +44,7 @@ En modo oscuro: fondo `#07080f`, 3 blobs de gradiente radial, tarjeta de vidrio 
 - Promedio diario calculado con `daysCount(period)` (7/30/90/365 según período)
 - Mayor gasto = máximo de las transacciones filtradas
 - Lista completa con el icono de cada categoría, edición y eliminación (confirmación de borrado)
-- Filtrado por categoría con chips que muestran el icono
+- Filtrado por categoría con chips que muestran el icono; se combina con el calendario (igual que en Ingresos)
 - **CalendarFilter:** mapa de calor interactivo — vista por día y mes con intensidad proporcional; click filtra la lista, el footer muestra el total filtrado con etiqueta "(filtrado)"
 - Footer total actualiza en tiempo real al aplicar cualquier filtro
 - Fecha y hora completa en cada transacción

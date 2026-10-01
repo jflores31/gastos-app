@@ -113,7 +113,7 @@ Para ver el mapa: `node scripts/dependency-map.mjs` (`--areas` agrupa por carpet
 
 - **En TypeScript:** `allowJs` sigue activo. Ya están en TS la lógica, los tipos, los contextos, los hooks, la capa de datos y la UI compartida.
 - **En `.jsx`:** las pantallas y tarjetas siguen así, y pasan a TS cuando se tocan por otra razón.
-- **Excepciones:** `GradientIcon`, `EmptyState` y `TransactionList` siguen en `.jsx` por motivos concretos, que se explican en [ARCHITECTURE-AUDIT.md](ARCHITECTURE-AUDIT.md#migración-js--ts).
+- **Excepción:** `GradientIcon` sigue en `.jsx` (sus props van en JSDoc, así los `.tsx` que lo usan se comprueban). El motivo se explica en [ARCHITECTURE-AUDIT.md](ARCHITECTURE-AUDIT.md#migración-js--ts).
 - **Al migrar un archivo:** solo se agregan tipos. El JS que emite TypeScript tiene que ser el mismo que antes.
 
 ## Tests

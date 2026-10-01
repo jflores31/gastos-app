@@ -170,7 +170,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 
 ### Cálculos y gráficos
 
-**Filtros (Gastos/Ingresos):** `filteredTotal` se deriva con `useMemo` de la lista ya filtrada. El footer y las cards de resumen leen ese valor, y el promedio diario usa `daysCount(period)` (7/30/90/365).
+**Filtros (Gastos/Ingresos):** los dos usan `useTxFilters` (`features/transactions/hooks`). Un día o mes del calendario reemplaza al período, y la categoría del chip se aplica encima de cualquiera de los dos. Devuelve la lista, de la más nueva a la más vieja, y su total (`filteredTotal`). El footer y las cards de resumen leen ese total, y el promedio diario usa `daysCount(period)` (7/30/90/365).
 - **Top categorías:** sigue a `calFilter` y a la categoría activa.
 - **"Presupuesto vs real":** usa `periodCats`, del período completo, para no marcar 0 % con un filtro de un día.
 - **Barra de "Promedio diario":** muestra el % del presupuesto gastado, o 50 % neutral si no hay presupuesto.

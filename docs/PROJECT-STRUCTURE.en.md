@@ -113,7 +113,7 @@ To see the map: `node scripts/dependency-map.mjs` (`--areas` groups by folder, `
 
 - **In TypeScript:** `allowJs` stays on. The logic, types, contexts, hooks, data layer and shared UI are in TS.
 - **In `.jsx`:** screens and cards stay that way, and move to TS when they're touched for another reason.
-- **Exceptions:** `GradientIcon`, `EmptyState` and `TransactionList` stay `.jsx` for specific reasons, explained in [ARCHITECTURE-AUDIT.md](ARCHITECTURE-AUDIT.md#migración-js--ts).
+- **Exception:** `GradientIcon` stays `.jsx` (its props are in JSDoc, so the `.tsx` files that use it are checked). The reason is explained in [ARCHITECTURE-AUDIT.md](ARCHITECTURE-AUDIT.md#migración-js--ts).
 - **When migrating a file:** only types are added. The JS TypeScript emits must stay the same as before.
 
 ## Tests
