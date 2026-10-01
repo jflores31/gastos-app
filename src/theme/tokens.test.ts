@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { accentCardSx, dialogColumnSx, dialogTopPaddingSx, liftCardSx, shadows, softRowSx, summaryBarSx, tintedIconButtonSx } from "./tokens"
+import { accentCardSx, dialogColumnSx, dialogTopPaddingSx, liftCardSx, shadows, softRowSx, summaryBarSx, tintedIconButtonSx, typeToggleSx } from "./tokens"
 
 describe("accentCardSx", () => {
   it("card: 3 px border and the card shadow; section: 4 px and the section shadow", () => {
@@ -40,9 +40,10 @@ describe("dialog content", () => {
 })
 
 describe("section pieces", () => {
-  it("tinted button, soft row and summary bar use the given colour or gap", () => {
+  it("tinted button, soft row, summary bar and type toggle use the given colour or gap", () => {
     expect(tintedIconButtonSx("error")).toEqual({ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } })
     expect(softRowSx(2)).toEqual({ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 })
     expect(summaryBarSx("warning")).toMatchObject({ bgcolor: "warning.light", p: 2, mt: 2 })
+    expect(typeToggleSx("error")).toEqual({ fontWeight: 600, color: "error.main", "&.Mui-selected": { bgcolor: "error.light", color: "error.dark" } })
   })
 })

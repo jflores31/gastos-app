@@ -2,15 +2,15 @@
 
 import { Box, IconButton, Typography } from "@mui/material";
 import { ICON_CHOICES } from "@/theme/categoryIcons";
-import { tint } from "@/theme/iconTones";
 import { useSettings } from "@/contexts/SettingsContext";
+import { DEFAULT_ICON_COLOR, iconChoiceSx, iconGridSx } from "./IconPicker.styles";
 
 type Props = { value?: string | null; onChange: (name: string) => void; color?: string; label?: string };
 
 // Rejilla de iconos elegibles (ICON_CHOICES) para metas y categorías personalizadas.
 // `value` es la clave que se guarda en DB (p. ej. "Flight"); un valor que no está en
 // la lista (glifo viejo como "◉") simplemente no aparece seleccionado.
-export function IconPicker({ value, onChange, color = "#7C8CA1", label }: Props) {
+export function IconPicker({ value, onChange, color = DEFAULT_ICON_COLOR, label }: Props) {
   const { t } = useSettings();
   return (
     <Box>
@@ -22,14 +22,7 @@ export function IconPicker({ value, onChange, color = "#7C8CA1", label }: Props)
       <Box
         role="radiogroup"
         aria-label={label}
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(40px, 1fr))",
-          gap: 0.75,
-          maxHeight: 180,
-          overflowY: "auto",
-          p: 0.5,
-        }}
+        sx={iconGridSx}
       >
         {Object.entries(ICON_CHOICES).map(([name, Icon]) => {
           const selected = value === name;
@@ -40,15 +33,7 @@ export function IconPicker({ value, onChange, color = "#7C8CA1", label }: Props)
               aria-checked={selected}
               aria-label={t.iconNames[name as keyof typeof t.iconNames] ?? name}
               onClick={() => onChange(name)}
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: "30%",
-                border: "1.5px solid",
-                borderColor: selected ? color : "divider",
-                bgcolor: selected ? tint(color, 0.16) : "transparent",
-                color: selected ? color : "text.secondary",
-              }}
+              sx={iconChoiceSx(selected, color)}
             >
               <Icon fontSize="small" />
             </IconButton>

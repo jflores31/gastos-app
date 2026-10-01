@@ -4,6 +4,7 @@
 // page keeps its own values (blobs, gradients, glows) in its *.styles.ts.
 import type { Theme } from "@mui/material/styles"
 import type { SystemStyleObject } from "@mui/system"
+import { chromeColors } from "@/theme/tokens"
 
 type Sx = SystemStyleObject<Theme>
 
@@ -12,7 +13,7 @@ export type PageStyles = Record<string, Sx | Sx[] | string>
 
 /** Dark palette of the auth screens. */
 export const authDark = {
-  bg: "#07080f",
+  bg: chromeColors.dark,
   title: "#f1f5f9",
   /** White at the given opacity: text, borders and fills of the dark look. */
   white: (alpha: number) => `rgba(255,255,255,${alpha})`,

@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { Box, Typography, Button } from "@mui/material"
 import { reportError } from "@/lib/reportError"
+import { statusPageSx } from "./status.styles"
 
 export default function Error({
   error,
@@ -17,10 +18,7 @@ export default function Error({
   }, [error])
 
   return (
-    <Box sx={{
-      minHeight: "100vh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", gap: 2, p: 3,
-    }}>
+    <Box sx={statusPageSx}>
       <Typography variant="h5" sx={{ fontWeight: 700 }}>Algo salió mal</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
         {error.digest ? `Error: ${error.digest}` : "Ocurrió un error inesperado."}

@@ -10,6 +10,8 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf } from "@/domain/money";
 import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../domain/csvImport";
+import { dialogColumnSx } from "@/theme/tokens";
+import { previewTableSx } from "./ImportDialog.styles";
 
 const PREVIEW_ROWS = 50;
 const REQUIRED = ["fecha", "concepto", "monto"];
@@ -71,7 +73,7 @@ export function ImportDialog({ table, onClose, notify }) {
       <DialogTitle sx={{ fontWeight: 700 }}>{t.settingsPanel.importTitle}</DialogTitle>
 
       {step === "map" ? (
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1 } }}>
+        <DialogContent sx={dialogColumnSx(2, 1)}>
           <Typography variant="body2" color="text.secondary">{t.settingsPanel.importMapHint}</Typography>
           {[...REQUIRED, ...OPTIONAL].map((key) => (
             <FormControl key={key} fullWidth size="small">
@@ -96,7 +98,7 @@ export function ImportDialog({ table, onClose, notify }) {
           </Alert>
         </DialogContent>
       ) : (
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1 } }}>
+        <DialogContent sx={dialogColumnSx(2, 1)}>
           <Alert severity="info" variant="outlined">
             {appMap ? t.settingsPanel.importAppFormat : `${t.settingsPanel.importAmountsIn(fileCurrency)}${map.tipo >= 0 ? "" : ` ${t.settingsPanel.importSignHint}`}`}
           </Alert>
@@ -132,7 +134,7 @@ export function ImportDialog({ table, onClose, notify }) {
           {rows.length > 0 && (
             <Box>
               <Typography variant="caption" color="text.secondary">{t.settingsPanel.importFirstRows(Math.min(PREVIEW_ROWS, rows.length), rows.length)}</Typography>
-              <TableContainer sx={{ maxHeight: 320, border: 1, borderColor: "divider", borderRadius: 2, mt: 0.5 }}>
+              <TableContainer sx={previewTableSx}>
                 <Table size="small" stickyHeader aria-label={t.settingsPanel.importTitle}>
                   <TableHead>
                     <TableRow>

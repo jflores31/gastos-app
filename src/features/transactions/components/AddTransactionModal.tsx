@@ -25,7 +25,8 @@ import { useSupabaseUser } from "@/contexts/UserContext";
 import type { ShowToast } from "@/components/feedback/useToast";
 import type { Transaction, TxType } from "@/types/domain";
 import { dialogColumnSx } from "@/theme/tokens";
-import { groupHeaderSx, typeToggleSx } from "./AddTransactionModal.styles";
+import { typeToggleSx } from "@/theme/tokens";
+import { groupHeaderSx } from "./AddTransactionModal.styles";
 
 // An option of the category picker: built-in (favorites first), custom, income, expense.
 type CategoryOption = { value: string; label: string; group: string; type: TxType; icon: ReactNode; color?: string };

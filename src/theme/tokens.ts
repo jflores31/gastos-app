@@ -12,6 +12,12 @@ export const shadows = {
 } as const
 
 /**
+ * Browser bar and installed app (app/layout.tsx, app/manifest.ts). The dark bar matches the auth
+ * screens' background; `brand` is the indigo of the logo (public/favicon.svg).
+ */
+export const chromeColors = { light: "#ffffff", dark: "#07080f", brand: "#6366F1" } as const
+
+/**
  * Card with a coloured top border: `section` (4 px, deeper shadow) for the Goals tab blocks and
  * the budget health summary, `card` (3 px) for the Budget tab cards. `color` is a palette path
  * such as "success.main". borderTopColor goes after the borderTop shorthand, which resets it.
@@ -64,6 +70,11 @@ export function dialogColumnSx(gap: number, pt: number): SystemStyleObject<Theme
 /** Round "+" in a section header, tinted with the section colour; filled on hover. */
 export function tintedIconButtonSx(color: string): SystemStyleObject<Theme> {
   return { bgcolor: `${color}.light`, "&:hover": { bgcolor: `${color}.main`, color: "common.white" } }
+}
+
+/** Expense / income switch, each in its colour (transaction and category dialogs). */
+export function typeToggleSx(color: "success" | "error"): SystemStyleObject<Theme> {
+  return { fontWeight: 600, color: `${color}.main`, "&.Mui-selected": { bgcolor: `${color}.light`, color: `${color}.dark` } }
 }
 
 /** Row of a list on a soft background (recurring and upcoming payments, accounts, subscriptions). */

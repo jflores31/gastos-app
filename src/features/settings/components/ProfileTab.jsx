@@ -9,6 +9,7 @@ import { updateUser } from "@/features/auth/data/authApi";
 import { CustomCategoriesSection } from "@/features/categories/components/CustomCategoriesSection";
 import { YourDataSection } from "./YourDataSection";
 import { TwoFactorSection } from "@/features/auth/components/TwoFactorSection";
+import { profileAvatarSx, profileHeroSx, saveNameButtonSx } from "./settings.styles";
 
 // "Perfil" tab of the settings panel. The name fields' state lives in SettingsPanel so an
 // unsaved edit survives switching tabs, and resets each time the panel opens.
@@ -36,17 +37,10 @@ export function ProfileTab({ user, name, notify }) {
   return (
     <Box>
       {/* Hero */}
-      <Box sx={{
-        px: 3, pt: 4, pb: 3.5, textAlign: "center", color: "primary.contrastText",
-        background: (t) => `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
-      }}>
+      <Box sx={profileHeroSx}>
         <Avatar
           src={user.user_metadata?.avatar_url || undefined}
-          sx={{
-            width: 78, height: 78, mx: "auto", mb: 1.5,
-            bgcolor: "rgba(255,255,255,0.2)", color: "#fff", fontWeight: 800, fontSize: 28,
-            border: "3px solid rgba(255,255,255,0.55)", boxShadow: "0 8px 26px rgba(0,0,0,0.22)",
-          }}
+          sx={profileAvatarSx}
         >
           {initials || <PersonIcon />}
         </Avatar>
@@ -118,7 +112,7 @@ function PersonalInfoSection({ name, notify }) {
           variant="contained" size="small"
           onClick={handleSave}
           disabled={!dirty || saving}
-          sx={{ alignSelf: "flex-end", borderRadius: 2, textTransform: "none", fontWeight: 600, minWidth: 120 }}
+          sx={saveNameButtonSx}
         >
           {saving
             ? <CircularProgress size={18} color="inherit" />

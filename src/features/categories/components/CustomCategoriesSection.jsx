@@ -9,9 +9,10 @@ import { useData } from "@/contexts/DataContext";
 import { CategoryAvatar } from "@/components/ui/GradientIcon";
 import { IconPicker } from "@/components/ui/IconPicker";
 import { DEFAULT_ICON, iconByName } from "@/theme/categoryIcons";
+import { dialogColumnSx, typeToggleSx } from "@/theme/tokens";
+import { COLOR_PRESETS, NEW_CATEGORY_COLOR, categoryRowSx, colorSwatchSx } from "./CustomCategoriesSection.styles";
 
-const COLOR_PRESETS = ["#e74c3c","#e67e22","#f39c12","#2ecc71","#1abc9c","#3498db","#9b59b6","#e91e63","#607d8b","#9e9e9e"];
-const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: "#9e9e9e", icon: "Category" };
+const EMPTY_CAT = { nombre: "", tipo: "EGRESO", color: NEW_CATEGORY_COLOR, icon: "Category" };
 
 // "Mis categorías" in the profile tab: list, create/edit dialog and delete confirmation.
 // `notify(msg, severity)` shows the panel's snackbar.
@@ -80,7 +81,7 @@ export function CustomCategoriesSection({ notify }) {
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               {customCats.map((c) => (
-                <Box key={c.id} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 2, bgcolor: "action.hover" }}>
+                <Box key={c.id} sx={categoryRowSx}>
                   <CategoryAvatar icon={iconByName(c.icon) || DEFAULT_ICON} color={c.color} size={28} />
                   <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>{c.nombre}</Typography>
                   <Chip label={c.tipo === "EGRESO" ? (t.settingsPanel.expense) : (t.settingsPanel.incomeType)}
@@ -104,9 +105,8 @@ export function CustomCategoriesSection({ notify }) {
             ? (t.settingsPanel.editCategoryTitle)
             : (t.settingsPanel.newCategory)}
         </DialogTitle>
-        {/* "&&" beats MUI's padding-top: 0 after a DialogTitle (see goals/EntityDialog.jsx).
-            12px: the floating label rises ~9px above its field. */}
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1.5 } }}>
+        {/* 12px of padding-top: the floating label rises ~9px above its field. */}
+        <DialogContent sx={dialogColumnSx(2, 1.5)}>
           <TextField
             label={t.common.name}
             value={catForm.nombre}
@@ -128,10 +128,10 @@ export function CustomCategoriesSection({ notify }) {
               fullWidth
               size="small"
             >
-              <ToggleButton value="EGRESO" sx={{ fontWeight: 600, color: "error.main", "&.Mui-selected": { bgcolor: "error.light", color: "error.dark" } }}>
+              <ToggleButton value="EGRESO" sx={typeToggleSx("error")}>
                 {t.settingsPanel.expense}
               </ToggleButton>
-              <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
+              <ToggleButton value="INGRESO" sx={typeToggleSx("success")}>
                 {t.settingsPanel.incomeType}
               </ToggleButton>
             </ToggleButtonGroup>
@@ -147,13 +147,7 @@ export function CustomCategoriesSection({ notify }) {
                   onClick={() => setCatForm((f) => ({ ...f, color: c }))}
                   role="radio" aria-checked={catForm.color === c} aria-label={c} tabIndex={0}
                   onKeyDown={(e) => e.key === "Enter" && setCatForm((f) => ({ ...f, color: c }))}
-                  sx={{
-                    width: 32, height: 32, borderRadius: "50%", bgcolor: c, cursor: "pointer",
-                    border: catForm.color === c ? "3px solid" : "2px solid transparent",
-                    borderColor: catForm.color === c ? "text.primary" : "transparent",
-                    transition: "transform 0.15s",
-                    "&:hover": { transform: "scale(1.2)" },
-                  }}
+                  sx={colorSwatchSx(c, catForm.color === c)}
                 />
               ))}
             </Box>
