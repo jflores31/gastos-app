@@ -1,17 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react";
-import {
-  Box, Tabs, Tab, Alert, Button,
-  useMediaQuery, useTheme, BottomNavigation, BottomNavigationAction,
-} from "@mui/material";
-import {
-  Dashboard as DashboardIcon,
-  Receipt as ReceiptIcon,
-  AttachMoney as IncomeIcon,
-  AccountBalanceWallet as BudgetIcon,
-  Flag as GoalsIcon,
-} from "@/theme/icons";
+import { Box, Alert, Button, useMediaQuery, useTheme } from "@mui/material";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/components/feedback/useToast";
@@ -20,6 +10,7 @@ import { useBudgetAlertToasts } from "@/features/budgets/hooks/useBudgetAlertToa
 import { useSessionGuard } from "@/features/auth/hooks/useSessionGuard";
 import { useTransactionModal } from "../hooks/useTransactionModal";
 import { AppHeader } from "./AppHeader";
+import { MainNav } from "./MainNav";
 import OverviewTab from "./OverviewTab";
 import ExpensesTab from "@/features/transactions/components/ExpensesTab";
 import IncomeTab from "@/features/transactions/components/IncomeTab";
@@ -29,6 +20,8 @@ import AddTransactionModal from "@/features/transactions/components/AddTransacti
 import SettingsPanel from "@/features/settings/components/SettingsPanel";
 import LoginModal from "@/features/auth/components/LoginModal";
 
+// App shell: composes the header, the navigation and the five tabs. Session security,
+// the toast and the transaction modal live in their own hooks.
 export default function DashboardStudio() {
   const { t } = useSettings();
   const muiTheme = useTheme();
@@ -53,43 +46,18 @@ export default function DashboardStudio() {
 
   const handleSignOut = useSessionGuard(showToast);
 
-  const TAB_LABELS = [
-    { id: "overview", label: t.overview, icon: <DashboardIcon /> },
-    { id: "expenses", label: t.expenses, icon: <ReceiptIcon /> },
-    { id: "income", label: t.incomes, icon: <IncomeIcon /> },
-    { id: "budget", label: t.budget, icon: <BudgetIcon /> },
-    { id: "goals", label: t.goals, icon: <GoalsIcon /> },
-  ];
-
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AppHeader
         isMobile={isMobile}
-        nav={!isMobile && (
-          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ flex: 1 }}>
-            {TAB_LABELS.map(({ id, label, icon }) => (
-              <Tab key={id} icon={icon} iconPosition="start" label={label} sx={{ minHeight: 48 }} />
-            ))}
-          </Tabs>
-        )}
+        nav={!isMobile && <MainNav variant="tabs" value={activeTab} onChange={setActiveTab} />}
         onAdd={() => openModal()}
         onOpenSettings={openSettings}
         onSignOut={handleSignOut}
         onSignIn={() => setShowLoginModal(true)}
       />
 
-      {isMobile && (
-        <BottomNavigation
-          value={activeTab}
-          onChange={(_, v) => setActiveTab(v)}
-          showLabels
-          sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 1100, borderTop: 1, borderColor: "divider" }}
-        >
-          {TAB_LABELS.map(({ id, label, icon }) => (
-            <BottomNavigationAction key={id} label={label} icon={icon} />
-          ))}
-        </BottomNavigation>
-      )}
+      {isMobile && <MainNav variant="bottom" value={activeTab} onChange={setActiveTab} />}
 
       <Box component="main" sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 10, sm: 4 } }}>
         {loadError && (() => {
