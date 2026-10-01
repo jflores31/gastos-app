@@ -135,11 +135,14 @@ coincide con el header, **0 scripts sin proteger**, y los redirects del guard ll
 
 1. **Consola sin violaciones:** verificado con Playwright sobre `next start` (versión `0.0.1`).
    `/login` responde con el CSP con nonce, hidrata y no registra violaciones de CSP ni errores
-   de hidratación, en tema claro y oscuro. El dashboard requiere sesión de Supabase: revisar la
-   consola en el preview de Vercel.
-2. **Refresh de token (~1h), pendiente de verificar a mano:** loguearse, dejar la pestaña
-   abierta y volver tras la expiración del access token → debe **renovar sesión**, no expulsar
-   al login. Es el único punto que no se puede probar sin una sesión real.
+   de hidratación, en tema claro y oscuro. Con sesión, los e2e contra el Supabase simulado
+   recorren las 5 pestañas y los ajustes sin violaciones (ver abajo); con el Supabase real,
+   queda revisar la consola en el preview de Vercel.
+2. **Refresh de token (~1h):** un e2e vence el token de la cookie y comprueba que el proxy
+   renueva la sesión (y responde con `Cache-Control: no-store`) en lugar de mandar al login.
+   Es contra el simulado: con una sesión real queda verlo a mano, usando la app más de una
+   hora seguida. Dejarla quieta no sirve: el cierre por inactividad (30 min como máximo)
+   termina la sesión antes.
 
 ## Cómo lo prueban los tests
 
@@ -148,13 +151,14 @@ coincide con el header, **0 scripts sin proteger**, y los redirects del guard ll
 - **Un `<style>` inyectado sin nonce** dispara `securitypolicyviolation` con
   `style-src-elem`, no se aplica, y el navegador envía el reporte a `/api/csp-report` (204).
 - **Todos los tests con sesión** fallan si la consola registra una violación del CSP. Se
-  comprobó quitando el nonce del layout: fallan 13 de 13.
+  comprobó quitando el nonce que el layout le pasa a emotion: fallan los 25 de
+  `session.spec.ts` (verificado de nuevo el 01-10).
 - **Tests unitarios de la ruta:** los dos formatos, sin query ni hash, campos desconocidos
   descartados, 400 y 413.
 
 ## Próximas mejoras posibles
 
-- **Quitar `'unsafe-inline'` de `style-src-attr`:** habría que reemplazar los ~25 `style={{…}}`
+- **Quitar `'unsafe-inline'` de `style-src-attr`:** habría que reemplazar los 22 `style={{…}}`
   por `sx` o por clases (parte de T16, separar los estilos del código, en
   [INVESTIGACION.md](INVESTIGACION.md#mejoras-técnicas)) y confirmar que MUI no escribe
   atributos `style` en el HTML del servidor, algo que hoy hace en las transiciones.
