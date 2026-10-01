@@ -10,33 +10,8 @@ import Link from "next/link"
 import { getSession, onAuthStateChange, updateUser } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
-import { darkFieldSx } from "./authStyles"
-
-const Blobs = ({ isDark }: { isDark: boolean }) => (
-  <>
-    <Box sx={{
-      position: "absolute", top: "-18%", right: "-10%",
-      width: 600, height: 600, borderRadius: "50%", pointerEvents: "none",
-      background: isDark
-        ? "radial-gradient(circle, rgba(245,158,11,0.17) 0%, transparent 68%)"
-        : "radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 68%)",
-    }} />
-    <Box sx={{
-      position: "absolute", bottom: "-15%", left: "-8%",
-      width: 520, height: 520, borderRadius: "50%", pointerEvents: "none",
-      background: isDark
-        ? "radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)"
-        : "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 68%)",
-    }} />
-    <Box sx={{
-      position: "absolute", top: "50%", left: "25%",
-      width: 300, height: 300, borderRadius: "50%", pointerEvents: "none",
-      background: isDark
-        ? "radial-gradient(circle, rgba(251,191,36,0.08) 0%, transparent 70%)"
-        : "radial-gradient(circle, rgba(251,191,36,0.04) 0%, transparent 70%)",
-    }} />
-  </>
-)
+import { backLinkSx, buttonSpinnerSx, mutedColor, passwordToggleSx, titleColor } from "./auth.styles"
+import { resetStyles } from "./ResetPasswordPage.styles"
 
 function ResetPasswordForm() {
   const theme = useTheme()
@@ -52,7 +27,7 @@ function ResetPasswordForm() {
   const [ready, setReady] = useState(false)
   const [expired, setExpired] = useState(false)
 
-  const darkField = darkFieldSx(isDark, { accent: "#f59e0b", labelAccent: "#fcd34d", helperText: true })
+  const s = resetStyles(isDark)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -95,41 +70,23 @@ function ResetPasswordForm() {
   /* ── Expired ── */
   if (expired) {
     return (
-      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
-        <Box sx={{
-          width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-          boxShadow: "0 0 0 12px rgba(239,68,68,0.1), 0 14px 40px rgba(239,68,68,0.32)",
-        }}>
-          <ErrorOutlined sx={{ fontSize: 38, color: "#fff" }} />
+      <AuthCard maxWidth={440} accentColor={s.cardAccent} sx={{ textAlign: "center" }}>
+        <Box sx={s.expiredBadge}>
+          <ErrorOutlined sx={{ fontSize: 38, color: "common.white" }} />
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
-          color: isDark ? "#f1f5f9" : "text.primary" }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5, color: titleColor(isDark) }}>
           Enlace expirado
         </Typography>
-        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75,
-          color: isDark ? "rgba(255,255,255,0.38)" : "text.secondary" }}>
+        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75, color: mutedColor(isDark, 0.38) }}>
           El enlace de recuperación ya no es válido. Los enlaces expiran después de 1 hora o si ya fueron usados.
         </Typography>
         <Link href="/forgot-password" style={{ textDecoration: "none" }}>
-          <Button fullWidth sx={{
-            py: 1.45, borderRadius: "10px", fontWeight: 700, fontSize: 14.5, textTransform: "none", mb: 1.5,
-            background: "linear-gradient(90deg, #ef4444, #dc2626)",
-            color: "#fff", boxShadow: "0 4px 22px rgba(239,68,68,0.35)",
-            "&:hover": { background: "linear-gradient(90deg, #f87171, #ef4444)", boxShadow: "0 6px 30px rgba(239,68,68,0.48)", transform: "translateY(-1px)" },
-            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
-          }}>
+          <Button fullWidth sx={s.expiredButton}>
             Solicitar nuevo enlace
           </Button>
         </Link>
         <Link href="/login" style={{ textDecoration: "none" }}>
-          <Typography variant="body2" sx={{
-            display: "inline-flex", alignItems: "center", gap: 0.5, mt: 0.5,
-            transition: "color 0.15s",
-            color: isDark ? "rgba(255,255,255,0.28)" : "text.secondary",
-            "&:hover": { color: isDark ? "rgba(255,255,255,0.6)" : "text.primary" },
-          }}>
+          <Typography variant="body2" sx={s.expiredBackLink}>
             <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
           </Typography>
         </Link>
@@ -140,13 +97,12 @@ function ResetPasswordForm() {
   /* ── Verifying ── */
   if (!ready) {
     return (
-      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
-        <CircularProgress size={48} sx={{ color: "#f59e0b", mb: 3 }} />
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1,
-          color: isDark ? "#f1f5f9" : "text.primary" }}>
+      <AuthCard maxWidth={440} accentColor={s.cardAccent} sx={{ textAlign: "center" }}>
+        <CircularProgress size={48} sx={{ ...s.spinner, mb: 3 }} />
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: titleColor(isDark) }}>
           Verificando enlace...
         </Typography>
-        <Typography variant="body2" sx={{ color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
+        <Typography variant="body2" sx={{ color: mutedColor(isDark, 0.35) }}>
           Esto solo tarda un momento.
         </Typography>
       </AuthCard>
@@ -156,31 +112,18 @@ function ResetPasswordForm() {
   /* ── Success ── */
   if (success) {
     return (
-      <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)" sx={{ textAlign: "center" }}>
-        <Box sx={{
-          width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg, #22c55e, #16a34a)",
-          boxShadow: "0 0 0 12px rgba(34,197,94,0.1), 0 14px 40px rgba(34,197,94,0.35)",
-        }}>
-          <CheckCircle sx={{ fontSize: 38, color: "#fff" }} />
+      <AuthCard maxWidth={440} accentColor={s.cardAccent} sx={{ textAlign: "center" }}>
+        <Box sx={s.successBadge}>
+          <CheckCircle sx={{ fontSize: 38, color: "common.white" }} />
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5,
-          color: isDark ? "#f1f5f9" : "text.primary" }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1.5, color: titleColor(isDark) }}>
           ¡Contraseña actualizada!
         </Typography>
-        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75,
-          color: isDark ? "rgba(255,255,255,0.38)" : "text.secondary" }}>
+        <Typography variant="body2" sx={{ mb: 4, lineHeight: 1.75, color: mutedColor(isDark, 0.38) }}>
           Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión.
         </Typography>
         <Link href="/login" style={{ textDecoration: "none" }}>
-          <Button fullWidth sx={{
-            py: 1.45, borderRadius: "10px", fontWeight: 700, fontSize: 14.5, textTransform: "none",
-            background: "linear-gradient(90deg, #22c55e, #16a34a)",
-            color: "#fff", boxShadow: "0 4px 22px rgba(34,197,94,0.38)",
-            "&:hover": { background: "linear-gradient(90deg, #4ade80, #22c55e)", boxShadow: "0 6px 30px rgba(34,197,94,0.5)", transform: "translateY(-1px)" },
-            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
-          }}>
+          <Button fullWidth sx={s.successButton}>
             Ir a iniciar sesión
           </Button>
         </Link>
@@ -190,35 +133,23 @@ function ResetPasswordForm() {
 
   /* ── Form ── */
   return (
-    <AuthCard maxWidth={440} accentColor="rgba(245,158,11,0.10)">
+    <AuthCard maxWidth={440} accentColor={s.cardAccent}>
       {/* Back link */}
       <Link href="/login" style={{ textDecoration: "none" }}>
-        <Typography variant="body2" sx={{
-          display: "inline-flex", alignItems: "center", gap: 0.5, mb: 4,
-          fontWeight: 500, transition: "color 0.15s",
-          color: isDark ? "rgba(255,255,255,0.3)" : "text.secondary",
-          "&:hover": { color: isDark ? "rgba(255,255,255,0.65)" : "text.primary" },
-        }}>
+        <Typography variant="body2" sx={backLinkSx(isDark, { mb: 4, alpha: 0.3 })}>
           <ArrowBack sx={{ fontSize: 15 }} /> Volver al login
         </Typography>
       </Link>
 
       {/* Icon + heading */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{
-          width: 70, height: 70, borderRadius: "18px", mb: 3,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg, #f59e0b 0%, #6366f1 100%)",
-          boxShadow: "0 0 0 10px rgba(245,158,11,0.1), 0 14px 40px rgba(245,158,11,0.35)",
-        }}>
-          <LockReset sx={{ fontSize: 36, color: "#fff" }} />
+        <Box sx={s.badge}>
+          <LockReset sx={{ fontSize: 36, color: "common.white" }} />
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 1,
-          color: isDark ? "#f1f5f9" : "text.primary" }}>
+        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 1, color: titleColor(isDark) }}>
           Nueva contraseña
         </Typography>
-        <Typography variant="body2" sx={{ lineHeight: 1.75,
-          color: isDark ? "rgba(255,255,255,0.35)" : "text.secondary" }}>
+        <Typography variant="body2" sx={{ lineHeight: 1.75, color: mutedColor(isDark, 0.35) }}>
           Elige una contraseña segura para tu cuenta.
         </Typography>
       </Box>
@@ -240,14 +171,14 @@ function ResetPasswordForm() {
                 <InputAdornment position="end">
                   <IconButton size="small" edge="end" onClick={() => setShowPwd(!showPwd)}
                     aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
+                    sx={passwordToggleSx(isDark)}>
                     {showPwd ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                   </IconButton>
                 </InputAdornment>
               ),
             },
           }}
-          sx={{ mb: 2, ...darkField }}
+          sx={{ mb: 2, ...s.field }}
         />
         <TextField
           fullWidth label="Confirmar contraseña"
@@ -260,33 +191,20 @@ function ResetPasswordForm() {
                 <InputAdornment position="end">
                   <IconButton size="small" edge="end" onClick={() => setShowConfirm(!showConfirm)}
                     aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    sx={isDark ? { color: "rgba(255,255,255,0.32)", "&:hover": { color: "rgba(255,255,255,0.65)" } } : {}}>
+                    sx={passwordToggleSx(isDark)}>
                     {showConfirm ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                   </IconButton>
                 </InputAdornment>
               ),
             },
           }}
-          sx={{ mb: 3, ...darkField }}
+          sx={{ mb: 3, ...s.field }}
         />
         <Button
           fullWidth type="submit" disabled={loading}
-          sx={{
-            py: 1.55, borderRadius: "10px", fontWeight: 700, fontSize: 15,
-            textTransform: "none", letterSpacing: 0.2,
-            background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)",
-            color: "#fff",
-            boxShadow: "0 4px 22px rgba(245,158,11,0.38)",
-            "&:hover:not(:disabled)": {
-              background: "linear-gradient(90deg, #fcd34d 0%, #f59e0b 100%)",
-              boxShadow: "0 6px 30px rgba(245,158,11,0.5)",
-              transform: "translateY(-1px)",
-            },
-            "&:disabled": { background: "rgba(245,158,11,0.3)", color: "rgba(255,255,255,0.38)", boxShadow: "none" },
-            transition: "transform 0.2s, box-shadow 0.2s, background-color 0.2s",
-          }}
+          sx={s.submit}
         >
-          {loading ? <CircularProgress size={20} sx={{ color: "rgba(255,255,255,0.8)" }} /> : "Restablecer contraseña"}
+          {loading ? <CircularProgress size={20} sx={buttonSpinnerSx} /> : "Restablecer contraseña"}
         </Button>
       </form>
     </AuthCard>
@@ -296,18 +214,14 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   const theme = useTheme()
   const isDark = theme.palette.mode === "dark"
+  const s = resetStyles(isDark)
 
   return (
-    <Box sx={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      position: "relative", overflow: "hidden",
-      bgcolor: isDark ? "#07080f" : "background.default",
-      p: { xs: 2, sm: 3 },
-    }}>
-      <Blobs isDark={isDark} />
+    <Box sx={s.page}>
+      {s.blobs.map((blob, i) => <Box key={i} sx={blob} />)}
       <Suspense fallback={
         <Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-          <CircularProgress size={40} sx={{ color: "#f59e0b" }} />
+          <CircularProgress size={40} sx={s.spinner} />
         </Box>
       }>
         <ResetPasswordForm />

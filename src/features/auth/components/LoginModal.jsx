@@ -9,6 +9,7 @@ import { OAUTH_ENABLED } from "@/lib/featureFlags"
 import Link from "next/link"
 import { signInWithOAuth, signInWithPassword } from "../data/authApi"
 import { useSettings } from "@/contexts/SettingsContext"
+import { brandAvatarSx } from "./LoginModal.styles"
 
 export default function LoginModal({ open, onClose }) {
   const { t } = useSettings()
@@ -53,7 +54,7 @@ export default function LoginModal({ open, onClose }) {
           </IconButton>
 
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Avatar sx={{ width: 64, height: 64, bgcolor: "primary.main", color: "primary.contrastText", fontSize: 28, fontWeight: 700, mx: "auto", mb: 2 }}>
+            <Avatar sx={brandAvatarSx}>
               ◈
             </Avatar>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>Finanzas</Typography>
