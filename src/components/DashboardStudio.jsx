@@ -27,11 +27,11 @@ import { useData } from "@/contexts/DataContext";
 import { createClient } from "@/lib/supabase/client";
 import { useBudgetAlertToasts } from "../hooks/useBudgetAlertToasts.js";
 import OverviewTab from "./OverviewTab.jsx";
-import ExpensesTab from "./ExpensesTab.jsx";
-import IncomeTab from "./IncomeTab.jsx";
+import ExpensesTab from "@/features/transactions/components/ExpensesTab";
+import IncomeTab from "@/features/transactions/components/IncomeTab";
 import BudgetTab from "./BudgetTab.jsx";
 import GoalsTab from "./GoalsTab.jsx";
-import AddTransactionModal from "./AddTransactionModal.jsx";
+import AddTransactionModal from "@/features/transactions/components/AddTransactionModal";
 import SettingsPanel from "./SettingsPanel.jsx";
 import LoginModal from "./LoginModal.jsx";
 

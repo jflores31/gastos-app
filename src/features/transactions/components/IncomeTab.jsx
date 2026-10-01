@@ -6,17 +6,18 @@ import {
   IconButton,
 } from "@mui/material";
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
-import AddTransactionModal from "./AddTransactionModal.jsx";
-import { txByCategory, txByMonth } from "../data/index";
-import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
+import AddTransactionModal from "./AddTransactionModal";
+import { txByCategory, txByMonth } from "../domain/aggregations";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
-import { useTxExtras } from "../hooks/useTxExtras.js";
-import { Donut, SparkArea, StudioCashflow } from "./charts/Charts";
-import { NoTransactions, CalendarFilter } from "./shared.jsx";
+import { useMoveToTrash } from "../hooks/useMoveToTrash";
+import { useTxExtras } from "../hooks/useTxExtras";
+import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
+import { NoTransactions } from "./NoTransactions";
+import { CalendarFilter } from "./CalendarFilter";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {

@@ -1,21 +1,8 @@
 import { useState, useMemo } from "react";
 import { Box, Typography, Chip, IconButton, Collapse, Paper } from "@mui/material";
-import { Receipt as ReceiptIcon, AttachMoney as MoneyIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
+import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
-import { EmptyState } from "./ui/EmptyState";
 import { useSettings } from "@/contexts/SettingsContext";
-
-export function NoTransactions({ type = "expense" }) {
-  const { t } = useSettings();
-  const isExpense = type === "expense";
-  return (
-    <EmptyState 
-      icon={isExpense ? <ReceiptIcon sx={{ fontSize: 32 }} /> : <MoneyIcon sx={{ fontSize: 32 }} />}
-      title={isExpense ? t.sharedUi.noExpenses : t.sharedUi.noIncome}
-      subtitle={t.sharedUi.addYourFirstTransaction}
-    />
-  );
-}
 
 export function CalendarFilter({ txs, tipo, onFilter }) {
   const { t, fmt } = useSettings();

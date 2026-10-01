@@ -10,18 +10,19 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
   TrendingDown as SpentIcon, Receipt as TxCountIcon, CalendarMonth as DailyIcon, Warning as TopExpenseIcon,
 } from "@/theme/icons";
-import AddTransactionModal from "./AddTransactionModal.jsx";
+import AddTransactionModal from "./AddTransactionModal";
 import { CATEGORIES } from "@/domain/categories/catalog";
-import { txByCategory, getTodayExpenses } from "../data/index";
-import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
+import { txByCategory, getTodayExpenses } from "../domain/aggregations";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
-import { budgetFor } from "../data/helpers";
+import { budgetFor } from "@/data/helpers";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { useMoveToTrash } from "../hooks/useMoveToTrash.js";
-import { useTxExtras } from "../hooks/useTxExtras.js";
-import { NoTransactions, CalendarFilter } from "./shared.jsx";
+import { useMoveToTrash } from "../hooks/useMoveToTrash";
+import { useTxExtras } from "../hooks/useTxExtras";
+import { NoTransactions } from "./NoTransactions";
+import { CalendarFilter } from "./CalendarFilter";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, fmt, fmtTx } = useSettings();

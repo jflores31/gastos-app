@@ -7,7 +7,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { transactionsToCsv, backupToJson, exportFileName, downloadText } from "../../data/export";
 import { parseCsv, MAX_IMPORT_BYTES } from "../../data/import";
 import { ImportDialog } from "./ImportDialog.jsx";
-import { TrashDialog } from "./TrashDialog.jsx";
+import { TrashDialog } from "@/features/transactions/components/TrashDialog";
 
 // "Tus datos": download the transactions as CSV or everything as a JSON backup, import
 // transactions from a CSV (ImportDialog), and the trash of deleted transactions.

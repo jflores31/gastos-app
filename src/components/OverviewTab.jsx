@@ -18,7 +18,7 @@ const INSIGHT_ICONS = {
   forecast: <ForecastIcon />,
 };
 const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
-import { txByMonth, txByCategory } from "../data/index";
+import { txByMonth, txByCategory } from "@/features/transactions/domain/aggregations";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { healthScore, healthTone } from "@/domain/health";
 import { insightsList } from "../data/helpers";

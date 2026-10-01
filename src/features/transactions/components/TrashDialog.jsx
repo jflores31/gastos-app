@@ -4,7 +4,7 @@ import {
   List, ListItem, Snackbar, Tooltip, Typography, useMediaQuery, useTheme,
 } from "@mui/material";
 import { RestoreFromTrash as RestoreIcon, DeleteForever as DeleteForeverIcon, DeleteSweep as EmptyIcon } from "@/theme/icons";
-import { CategoryAvatar } from "../ui/GradientIcon";
+import { CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData, TRASH_DAYS } from "@/contexts/DataContext";

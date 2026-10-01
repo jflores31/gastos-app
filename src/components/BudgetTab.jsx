@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Grid, Stack } from "@mui/material";
-import { txByCategory } from "../data/index";
+import { txByCategory } from "@/features/transactions/domain/aggregations";
 import { filterByPeriod } from "@/domain/period";
 import { healthScore } from "@/domain/health";
 import { budgetFor } from "../data/helpers";
