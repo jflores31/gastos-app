@@ -347,11 +347,11 @@ Refactor terminado el 01-10-2026 en el PR #11. Ninguna fase cambió el comportam
 | `npm test` (unitarios y componentes) | 211 | **230** PASS (+3 de arquitectura, +9 de esquema, +3 del callback, +3 de `useToast`, +2 de `matchesCalendar`; −1 de `fmtDate`, código muerto) |
 | `npm run build` | PASS | PASS |
 | e2e (Playwright, Supabase simulado) | 36/36 | **36/36**, y 72/72 con `--repeat-each 2` |
-| Capturas contra `be3d3ef` | — | **138 capturas, 0 píxeles distintos** al cerrar las fases 2/3, 4, 5 y 6 (5 pestañas, diálogos, auth, Perfil y Ajustes; claro/oscuro, es/en, escritorio/390 px). Corrida final, después de la fase 8: en curso |
+| Capturas contra `be3d3ef` | — | **138 capturas, 0 píxeles distintos** al cerrar las fases 2/3, 4, 5 y 6, y en la corrida final después de la fase 8 (5 pestañas, diálogos, auth, Perfil y Ajustes; claro/oscuro, es/en, escritorio/390 px) |
 | Mapa de dependencias | 10 violaciones, 0 ciclos | **0 violaciones, 0 ciclos, 0 exports sin uso, 0 archivos huérfanos** |
 | `supabase/schema.sql` | — | solo comentarios: sin ellos es idéntico, y `pg_dump --schema-only` en Postgres 16 también |
 
-Las capturas, los e2e (una vez y repetidos) y el build se corrieron al cerrar cada fase (2/3, 4, 5 y 6) y otra vez al final. En la corrida final, build, 36/36 y 72/72 ya pasaron. Lint, typecheck y `npm test` corrieron en cada commit.
+Las capturas, los e2e (una vez y repetidos) y el build se corrieron al cerrar cada fase (2/3, 4, 5 y 6) y otra vez al final, con el mismo resultado: build en verde, 36/36, 72/72 y 0 píxeles distintos. Lint, typecheck y `npm test` corrieron en cada commit.
 
 ### Mapa de dependencias (después)
 
