@@ -24,6 +24,10 @@ import { useTxExtras } from "../hooks/useTxExtras";
 import { useTxFilters } from "../hooks/useTxFilters";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
+import { listHeaderActionsSx, listHeaderSx, totalFooterSx } from "./transactions.styles";
+import {
+  dailyAddButtonSx, dailyCardSx, dailyHeaderSx, panelCardSx, panelContentSx, panelItemSx, sectionToggleSx, todayRowSx, todayTotalSx,
+} from "./ExpensesTab.styles";
 import { shadows } from "@/theme/tokens";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
@@ -47,49 +51,28 @@ export default function ExpensesTab({ period, openModal, showToast }) {
 
   const toggleSection = (section) => setExpandedSection(expandedSection === section ? null : section);
 
-  const cardStyles = {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-    border: "1px solid",
-    borderColor: "divider",
-    borderRadius: 3,
-  };
-
-  const cardContentStyles = {
-    py: 2.5,
-    px: { xs: 2, sm: 3 },
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  };
-
-
   return (
     <>
     <Stack spacing={2.5}>
-      <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
-        <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
+      <Card sx={dailyCardSx}>
+        <Box sx={dailyHeaderSx}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.dailyTitle}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
           </Box>
-          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
+          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={dailyAddButtonSx}>
             <AddIcon />
           </IconButton>
         </Box>
         <CardContent sx={{ pb: 2 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => toggleSection("today")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleSection("today")}>
+          <Box sx={sectionToggleSx} role="button" tabIndex={0} onClick={() => toggleSection("today")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleSection("today")}>
             <Typography variant="body2" sx={{ fontWeight: 600 }}>{t.todaysExpenses}</Typography>
             {expandedSection === "today" ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </Box>
           <Collapse in={expandedSection === "today"}>
             {todayExpenses.length > 0 ? (
               <>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, p: 1.5, bgcolor: "primary.light", borderRadius: 2 }}>
+                <Box sx={todayTotalSx}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>{t.expensesTab.totalToday}</Typography>
                   <Typography variant="h6" sx={{ fontWeight: 700 }} color="error.main">−{fmt(totalToday)}</Typography>
                 </Box>
@@ -98,7 +81,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     const { label: catName, color, Icon } = catMeta(tx.categoria);
                     const hour = tx.date.toLocaleTimeString(t.common.locale, { hour: "numeric", minute: "2-digit", hour12: true });
                     return (
-                      <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                      <Box key={tx.id} sx={todayRowSx}>
                         <CategoryAvatar icon={Icon} color={color} size={32} />
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography variant="body2" noWrap sx={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
@@ -121,8 +104,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
-          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "primary.main" }}>
-            <CardContent sx={cardContentStyles}>
+          <Card sx={panelCardSx("primary.main")}>
+            <CardContent sx={panelContentSx}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
                 <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmt(filteredTotal, true)}</Typography>
@@ -133,7 +116,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                     const pct = filteredTotal > 0 ? (c.total / filteredTotal) * 100 : 0;
                     const { label: catName, color, Icon } = catMeta(c.categoria);
                     return (
-                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                      <Box key={c.categoria} sx={panelItemSx("primary.light", "divider", c._empty ? 0.5 : 1)}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                           <CategoryAvatar icon={Icon} color={color} />
                           <Box sx={{ flex: 1 }}>
@@ -156,8 +139,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
-          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "warning.main" }}>
-            <CardContent sx={cardContentStyles}>
+          <Card sx={panelCardSx("warning.main")}>
+            <CardContent sx={panelContentSx}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {t.common.categories}</Typography>
@@ -176,7 +159,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       const isOver = pct > 1;
                       const { label: catName, color, Icon } = catMeta(cat);
                       return (
-                        <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                        <Box key={cat} sx={panelItemSx(isOver ? "error.light" : "warning.light", isOver ? "error.main" : "divider")}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                             <CategoryAvatar icon={Icon} color={color} />
                             <Box sx={{ flex: 1 }}>
@@ -197,8 +180,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
-          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "success.main" }}>
-            <CardContent sx={cardContentStyles}>
+          <Card sx={panelCardSx("success.main")}>
+            <CardContent sx={panelContentSx}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "success.dark", mb: 0.5 }}>{t.expensesTab.periodSummary}</Typography>
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)}</Typography>
@@ -219,7 +202,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       : idx === 2 ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : filteredTotal > 0 ? 50 : 0)
                       : (filteredTotal > 0 ? Math.min(100, (maxExpense / filteredTotal) * 100) : 0);
                     return (
-                    <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                    <Box key={idx} sx={panelItemSx(item.bg)}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
                         <GradientIcon icon={item.icon} tone={item.tone} bubble bubbleSize={40} size={22} />
                         <Box sx={{ flex: 1 }}>
@@ -242,14 +225,14 @@ export default function ExpensesTab({ period, openModal, showToast }) {
 
       <Card sx={{ borderRadius: 3, boxShadow: shadows.card }}>
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
+          <Box sx={listHeaderSx("primary")}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">{t.transactions}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {expenseTxs.length} {t.expensesTab.recordedExpenses}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <Box sx={listHeaderActionsSx}>
               <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} />
             </Box>
           </Box>
@@ -281,7 +264,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
             </Box>
           )}
           <TransactionList type="expense" txs={expenseTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
-          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
+          <Box sx={totalFooterSx("primary", { xs: 2, sm: 3 })}>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>−{fmt(filteredTotal, true)}</Typography>
           </Box>

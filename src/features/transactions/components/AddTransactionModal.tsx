@@ -24,6 +24,8 @@ import { useData } from "@/contexts/DataContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
 import type { ShowToast } from "@/components/feedback/useToast";
 import type { Transaction, TxType } from "@/types/domain";
+import { dialogColumnSx } from "@/theme/tokens";
+import { groupHeaderSx, typeToggleSx } from "./AddTransactionModal.styles";
 
 // An option of the category picker: built-in (favorites first), custom, income, expense.
 type CategoryOption = { value: string; label: string; group: string; type: TxType; icon: ReactNode; color?: string };
@@ -202,13 +204,13 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
           : mode === "income" ? (t.txModal.registerIncome)
           : t.addTx}
       </DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } }}>
+      <DialogContent sx={dialogColumnSx(2.5, 1)}>
         {mode === "all" && (
           <ToggleButtonGroup value={tipo} exclusive onChange={(_, v) => { if (v) { setTipo(v); setCategoria(null); setSuggested(null); } }} fullWidth size="small">
-            <ToggleButton value="INGRESO" sx={{ fontWeight: 600, color: "success.main", "&.Mui-selected": { bgcolor: "success.light", color: "success.dark" } }}>
+            <ToggleButton value="INGRESO" sx={typeToggleSx("success")}>
               {t.income}
             </ToggleButton>
-            <ToggleButton value="EGRESO" sx={{ fontWeight: 600, color: "error.main", "&.Mui-selected": { bgcolor: "error.light", color: "error.dark" } }}>
+            <ToggleButton value="EGRESO" sx={typeToggleSx("error")}>
               {t.expense}
             </ToggleButton>
           </ToggleButtonGroup>
@@ -231,7 +233,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
             const groupIcon = groupIcons[params.group];
             return (
               <Box key={params.key}>
-                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, display: "flex", alignItems: "center", gap: 0.75, bgcolor: "action.hover", fontWeight: 600 }}>
+                <Typography variant="caption" sx={groupHeaderSx}>
                   {groupIcon && <groupIcon.Icon sx={{ fontSize: 14, color: groupIcon.color }} />}
                   {params.group}
                 </Typography>

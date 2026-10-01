@@ -6,6 +6,7 @@ import type { Transaction } from "@/types/domain";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useTxExtras } from "../hooks/useTxExtras";
 import { NoTransactions } from "./NoTransactions";
+import { txRowSx } from "./transactions.styles";
 
 // The transactions list of Gastos and Ingresos: category, concept, date and extras,
 // the amount (beside the row on desktop, under the concept on mobile), edit and delete.
@@ -28,7 +29,7 @@ export function TransactionList({ type, txs, catMeta, onEdit, onDelete }: {
       {txs.map((x) => {
         const { label: catName, color, Icon } = catMeta(x.categoria);
         return (
-          <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
+          <ListItem key={x.id} disablePadding sx={txRowSx}
             secondaryAction={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Typography variant="body1" color={amountColor} sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>

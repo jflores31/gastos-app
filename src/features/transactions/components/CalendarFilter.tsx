@@ -5,6 +5,9 @@ import { useTheme, alpha } from "@mui/material/styles";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { Transaction, TxType } from "@/types/domain";
 import type { CalendarSelection } from "../domain/calendarFilter";
+import {
+  dayCellSx, heatLegendSx, modeChipSx, monthAmountSx, monthCellSx, monthNameSx, panelSx, selectedChipSx, triggerChipSx,
+} from "./CalendarFilter.styles";
 
 type Props = {
   txs: Pick<Transaction, "tipo" | "date" | "valor">[];
@@ -105,7 +108,7 @@ export function CalendarFilter({ txs, tipo, onFilter }: Props) {
             label={selectedLabel}
             onDelete={clearFilter}
             onClick={() => setOpen((o) => !o)}
-            sx={{ fontWeight: 600, fontSize: 11, bgcolor: mainColor, color: "#fff", cursor: "pointer", "& .MuiChip-icon": { color: "rgba(255,255,255,0.85)" }, "& .MuiChip-deleteIcon": { color: "rgba(255,255,255,0.75)", "&:hover": { color: "#fff" } } }}
+            sx={selectedChipSx(mainColor)}
           />
         ) : (
           <Chip
@@ -114,14 +117,14 @@ export function CalendarFilter({ txs, tipo, onFilter }: Props) {
             label={t.sharedUi.filterByDate}
             onClick={() => setOpen((o) => !o)}
             variant="outlined"
-            sx={{ fontWeight: 600, fontSize: 11, borderColor: "divider", color: "text.secondary", cursor: "pointer", "&:hover": { borderColor: mainColor, color: mainColor } }}
+            sx={triggerChipSx(mainColor)}
           />
         )}
       </Box>
 
       {/* Collapsible calendar panel */}
       <Collapse in={open} unmountOnExit>
-        <Paper elevation={0} sx={{ mt: 1, p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 2, maxWidth: 288 }}>
+        <Paper elevation={0} sx={panelSx}>
           {/* View mode tabs */}
           <Box sx={{ display: "flex", gap: 0.5, mb: 1.5, alignItems: "center" }}>
             {["day", "month"].map((mode) => (
@@ -132,7 +135,7 @@ export function CalendarFilter({ txs, tipo, onFilter }: Props) {
                 aria-label={mode === "day" ? (t.sharedUi.viewByDay) : (t.sharedUi.viewByMonth)}
                 onClick={() => { setViewMode(mode as CalendarSelection["type"]); clearFilter(); setOpen(true); }}
                 variant={viewMode === mode ? "filled" : "outlined"}
-                sx={{ fontWeight: 600, fontSize: 10, height: 20, bgcolor: viewMode === mode ? mainColor : undefined, color: viewMode === mode ? "#fff" : "text.secondary", borderColor: viewMode === mode ? mainColor : "divider", "&:hover": { opacity: 0.85 } }}
+                sx={modeChipSx(viewMode === mode, mainColor)}
               />
             ))}
             <Box sx={{ flex: 1 }} />
@@ -169,30 +172,14 @@ export function CalendarFilter({ txs, tipo, onFilter }: Props) {
                       role="button"
                       tabIndex={0}
                       aria-label={`${day} ${monthNames[navDate.getMonth()]}`}
-                      sx={{
-                        aspectRatio: "1",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: 0.75,
-                        cursor: "pointer",
-                        bgcolor: sel ? mainColor : val > 0 ? alpha(mainColor, 0.12 + (val / maxDay) * 0.7) : "transparent",
-                        outline: tod && !sel ? `1.5px solid ${mainColor}` : "none",
-                        outlineOffset: -1,
-                        color: sel ? "#fff" : "text.primary",
-                        fontWeight: val > 0 ? 600 : 400,
-                        fontSize: 10,
-                        transition: "opacity 0.12s, transform 0.12s, background-color 0.12s",
-                        userSelect: "none",
-                        "&:hover": { opacity: 0.75, transform: "scale(1.08)" },
-                      }}
+                      sx={dayCellSx({ sel, today: tod, val, max: maxDay, main: mainColor })}
                     >
                       {day}
                     </Box>
                   );
                 })}
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1, justifyContent: "center" }}>
+              <Box sx={heatLegendSx}>
                 <Typography variant="caption" color="text.disabled" sx={{ fontSize: 9 }}>{t.sharedUi.less}</Typography>
                 {[0.1, 0.3, 0.55, 0.75, 0.9].map((o) => (
                   <Box key={o} sx={{ width: 8, height: 8, borderRadius: 0.25, bgcolor: alpha(mainColor, o) }} />
@@ -214,22 +201,11 @@ export function CalendarFilter({ txs, tipo, onFilter }: Props) {
                     role="button"
                     tabIndex={0}
                     aria-label={`${name} ${navDate.getFullYear()}`}
-                    sx={{
-                      py: 1, px: 0.25,
-                      borderRadius: 1,
-                      cursor: "pointer",
-                      bgcolor: sel ? mainColor : val > 0 ? alpha(mainColor, 0.12 + (val / maxMonth) * 0.7) : "transparent",
-                      outline: cur && !sel ? `1.5px solid ${mainColor}` : "none",
-                      outlineOffset: -1,
-                      textAlign: "center",
-                      transition: "opacity 0.12s, background-color 0.12s",
-                      userSelect: "none",
-                      "&:hover": { opacity: 0.75 },
-                    }}
+                    sx={monthCellSx({ sel, current: cur, val, max: maxMonth, main: mainColor })}
                   >
-                    <Typography variant="caption" sx={{ fontWeight: 600, display: "block", color: sel ? "#fff" : "text.primary", fontSize: 10 }}>{name}</Typography>
+                    <Typography variant="caption" sx={monthNameSx(sel)}>{name}</Typography>
                     {val > 0 && (
-                      <Typography variant="caption" sx={{ display: "block", color: sel ? "rgba(255,255,255,0.8)" : mainColor, fontWeight: 600, fontSize: 8, lineHeight: 1.2, mt: 0.25 }}>
+                      <Typography variant="caption" sx={monthAmountSx(sel, mainColor)}>
                         {sign}{fmt(val, true)}
                       </Typography>
                     )}
