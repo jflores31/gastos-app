@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react";
+import type { ReactNode } from "react";
+import type { SvgIconComponent } from "@mui/icons-material";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress,
   ToggleButton, ToggleButtonGroup, TextField, Autocomplete, InputAdornment,
@@ -14,57 +16,74 @@ import "dayjs/locale/es";
 import { Star, Label } from "@/theme/icons";
 import { EXPENSE_ICONS, INCOME_ICONS, DEFAULT_ICON, iconByName } from "@/theme/categoryIcons";
 import { CATEGORIES } from "@/domain/categories/catalog";
+import type { CategoryDef } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf, toBase, fromBase } from "@/domain/money";
 import { suggestCategory } from "@/domain/categories/suggest";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
+import type { ShowToast } from "@/components/feedback/useToast";
+import type { Transaction, TxType } from "@/types/domain";
+
+// An option of the category picker: built-in (favorites first), custom, income, expense.
+type CategoryOption = { value: string; label: string; group: string; type: TxType; icon: ReactNode; color?: string };
+
+type Props = {
+  initialCategory?: string;
+  initialConcept?: string;
+  initialAmount?: number | null; // PEN
+  mode?: "all" | "expense" | "income";
+  onAdd?: () => void;
+  onClose: () => void;
+  editTx?: Transaction | null;
+  showToast?: ShowToast;
+};
 
 // Category icon in the picker, tinted with the category color.
-const optionIcon = (Icon, color) => <Icon fontSize="small" sx={{ color }} />;
+const optionIcon = (Icon: SvgIconComponent, color: string) => <Icon fontSize="small" sx={{ color }} />;
 
 // Per-transaction cap, in the base currency (PEN).
 const MAX_AMOUNT_BASE = 10_000_000;
 
-export default function AddTransactionModal({ initialCategory = "", initialConcept = "", initialAmount = null, mode = "all", onAdd, onClose, editTx = null, showToast }) {
+export default function AddTransactionModal({ initialCategory = "", initialConcept = "", initialAmount = null, mode = "all", onAdd, onClose, editTx = null, showToast }: Props) {
   const { t, lang, currency, fmt } = useSettings();
   const { txs, addTx, updateTx, customCats, accounts = [] } = useData();
   const user = useSupabaseUser();
 
-  const [tipo, setTipo] = useState(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
+  const [tipo, setTipo] = useState<TxType>(editTx?.tipo || (mode === "income" ? "INGRESO" : "EGRESO"));
   const [concepto, setConcepto] = useState(editTx?.concepto || initialConcept);
   // The amount is typed in `moneda`: the transaction's own when editing, otherwise the
   // display currency. It is saved converted to PEN (`valor`) along with what was typed
   // and the rate. An edit keeps the rate it was saved with while the currency stays.
   const shown = currencyOf(currency).code;
   const editForeign = editTx?.montoOriginal != null && editTx.moneda && editTx.moneda !== "PEN";
-  const [moneda, setMoneda] = useState(editTx ? (editForeign ? editTx.moneda : "PEN") : shown);
+  const [moneda, setMoneda] = useState(editTx ? (editForeign ? editTx.moneda as string : "PEN") : shown);
   const [valor, setValor] = useState(
     editTx ? String(editForeign ? editTx.montoOriginal : editTx.valor)
     : initialAmount != null ? String(fromBase(initialAmount, shown)) : "",
   );
-  const rate = editForeign && moneda === editTx.moneda && editTx.tasa ? editTx.tasa : currencyOf(moneda).rate;
+  const rate = editForeign && moneda === editTx!.moneda && editTx!.tasa ? editTx!.tasa : currencyOf(moneda).rate;
   const amount = parseFloat(valor);
   const amountBase = amount > 0 ? toBase(amount, moneda, rate) : 0;
   const [fecha, setFecha] = useState(editTx ? dayjs(editTx.date) : dayjs());
   // Optional: the account it was paid from or received into (its balance follows).
   const [cuentaId, setCuentaId] = useState(editTx?.cuentaId ?? "");
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [saving, setSaving] = useState(false);
 
   const favCats = user?.user_metadata?.fav_categories || [];
 
   const myGroup = t.txModal.myCategories;
   const customGroup = t.txModal.custom;
-  const groupIcons = { [myGroup]: { Icon: Star, color: "warning.main" }, [customGroup]: { Icon: Label, color: "primary.main" } };
+  const groupIcons: Record<string, { Icon: SvgIconComponent; color: string }> = { [myGroup]: { Icon: Star, color: "warning.main" }, [customGroup]: { Icon: Label, color: "primary.main" } };
 
   const categoryOptions = useMemo(() => {
-    const builtIn = (k, v, group, type) => ({
+    const builtIn = (k: string, v: CategoryDef, group: string, type: TxType): CategoryOption => ({
       value: k, label: v[lang], group, type,
       icon: optionIcon((type === "INGRESO" ? INCOME_ICONS : EXPENSE_ICONS)[k] || DEFAULT_ICON, v.color),
     });
     const myOptions = favCats
-      .map((f) => {
+      .map((f: { categoria: string; tipo: TxType }) => {
         if (f.tipo === "EGRESO") {
           const v = CATEGORIES.expense[f.categoria];
           return v ? builtIn(f.categoria, v, myGroup, "EGRESO") : null;
@@ -72,8 +91,8 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         const v = CATEGORIES.income[f.categoria];
         return v ? builtIn(f.categoria, v, myGroup, "INGRESO") : null;
       })
-      .filter(Boolean);
-    const customOptions = customCats.map((c) => ({
+      .filter(Boolean) as CategoryOption[];
+    const customOptions = customCats.map((c): CategoryOption => ({
       value: `custom_${c.id}`,
       label: c.nombre,
       group: customGroup,
@@ -91,7 +110,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
   }, [lang, customCats, t.income, t.expense]);
 
   // When editing, resolve the initial category string to a full option object
-  const [categoria, setCategoria] = useState(() => {
+  const [categoria, setCategoria] = useState<CategoryOption | null>(() => {
     if (editTx?.categoria) return categoryOptions.find((o) => o.value === editTx.categoria) || null;
     if (initialCategory) return categoryOptions.find((o) => o.value === initialCategory) || null;
     return null;
@@ -99,9 +118,9 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
 
   // Category filled in from the concept (suggestCategory): "history" | "catalog" | null.
   // A category the user picks by hand is never replaced.
-  const [suggested, setSuggested] = useState(null);
+  const [suggested, setSuggested] = useState<"history" | "catalog" | null>(null);
 
-  const handleConceptChange = (value) => {
+  const handleConceptChange = (value: string) => {
     setConcepto(value);
     if (errors.concepto) setErrors((er) => ({ ...er, concepto: null }));
     if (editTx || (categoria && !suggested)) return;
@@ -124,7 +143,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
   }), [categoryOptions, mode, tipo]);
 
   const validate = () => {
-    const errs = {};
+    const errs: Record<string, string> = {};
     if (!categoria) errs.categoria = t.txModal.selectACategory;
     if (!concepto.trim()) errs.concepto = t.txModal.enterAConcept;
     // toBase() rounds to 2 PEN decimals, so a tiny COP/CLP amount can become 0.
@@ -144,7 +163,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
         // toggle, so deriving tipo from the category prevents an income
         // category from being saved as an expense (and vice versa).
         tipo: categoria?.type || tipo,
-        categoria: categoria?.value || categoria,
+        categoria: categoria?.value || categoria as unknown as string,
         concepto: concepto.toUpperCase(),
         dia: fecha.date(),
         mes: fecha.month(),
@@ -244,7 +263,7 @@ export default function AddTransactionModal({ initialCategory = "", initialConce
             error={!!errors.valor} helperText={errors.valor || approx} sx={{ flex: 1 }}
             slotProps={{ input: { startAdornment: <InputAdornment position="start">{currencyOf(moneda).symbol}</InputAdornment>, inputProps: { min: 0, max: fromBase(MAX_AMOUNT_BASE, moneda), step: "any" } } }} />
           <TextField select label={t.txModal.currency} value={moneda} onChange={(e) => { setMoneda(e.target.value); if (errors.valor) setErrors((er) => ({ ...er, valor: null })); }}
-            sx={{ width: 112, flexShrink: 0 }} slotProps={{ select: { renderValue: (code) => code } }}>
+            sx={{ width: 112, flexShrink: 0 }} slotProps={{ select: { renderValue: (code) => code as string } }}>
             {Object.entries(CURRENCIES).map(([k, c]) => (
               <MenuItem key={k} value={k}>{c.symbol} {k} · {c.name}</MenuItem>
             ))}
