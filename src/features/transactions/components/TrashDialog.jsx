@@ -9,6 +9,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { TRASH_DAYS } from "../data/transactions";
+import { dialogTopPaddingSx } from "@/theme/tokens";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -46,7 +47,7 @@ export function TrashDialog({ onClose }) {
     <>
       <Dialog open onClose={onClose} fullWidth maxWidth="sm" fullScreen={fullScreen} slotProps={{ paper: { sx: { borderRadius: fullScreen ? 0 : 3 } } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>{t.settingsPanel.trashTitle}</DialogTitle>
-        <DialogContent sx={{ "&&": { pt: 0 } }}>
+        <DialogContent sx={dialogTopPaddingSx(0)}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>{t.settingsPanel.trashHint(TRASH_DAYS)}</Typography>
           {trash.length === 0 ? (
             <Typography variant="body2" sx={{ py: 3, textAlign: "center" }} color="text.secondary">{t.settingsPanel.trashEmpty}</Typography>

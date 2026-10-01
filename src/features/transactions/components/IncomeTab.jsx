@@ -17,6 +17,11 @@ import { useTxFilters } from "../hooks/useTxFilters";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
+import { listHeaderActionsSx, listHeaderSx, totalFooterSx } from "./transactions.styles";
+import {
+  barFillSx, donutCenterSx, donutRingSx, heroAddButtonSx, heroCardSx, legendRowSx, percentChipSx, sideCardSx, sourceAddButtonSx,
+  sourceRowSx, trendLegendSx,
+} from "./IncomeTab.styles";
 import { shadows } from "@/theme/tokens";
 
 
@@ -42,7 +47,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
   return (
     <>
     <Stack spacing={3}>
-      <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: "success.main" }}>
+      <Card sx={heroCardSx}>
         <CardContent sx={{ p: 2.5, color: "text.primary" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box>
@@ -50,7 +55,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, color: "success.main" }}>{fmt(totalIn)}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
+              <IconButton size="medium" onClick={() => openModal("", "income")} sx={heroAddButtonSx}>
                 <AddIcon />
               </IconButton>
               <GradientIcon icon={WalletIcon} tone="income" bubble bubbleSize={48} size={26} />
@@ -89,30 +94,24 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   <Box
                     key={c.categoria}
                     onClick={() => setActiveCat(isActive ? null : c.categoria)}
-                    sx={{
-                      p: 1.5, borderRadius: 2, border: "1px solid", cursor: "pointer",
-                      borderColor: isActive ? resolvedColor : "divider",
-                      bgcolor: isActive ? `${resolvedColor}12` : "action.hover",
-                      transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s",
-                      "&:hover": { bgcolor: `${resolvedColor}18`, borderColor: resolvedColor },
-                    }}
+                    sx={sourceRowSx(isActive, resolvedColor)}
                   >
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                       <CategoryAvatar icon={Icon} color={resolvedColor} size={28} />
                       <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }} noWrap>{catLabel}</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 700, color: "success.main", whiteSpace: "nowrap" }}>{fmt(c.total, true)}</Typography>
-                      <Chip size="small" label={`${Math.round(pct)}%`} sx={{ bgcolor: resolvedColor, color: "#fff", fontWeight: 700, fontSize: 10, height: 20 }} />
+                      <Chip size="small" label={`${Math.round(pct)}%`} sx={percentChipSx(resolvedColor)} />
                       <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); openModal(c.categoria, "income"); }}
                         aria-label={t.incomeTab.registerCategory(catLabel)}
-                        sx={{ width: 28, height: 28, bgcolor: resolvedColor, color: "#fff", flexShrink: 0, "&:hover": { bgcolor: resolvedColor, opacity: 0.85 } }}
+                        sx={sourceAddButtonSx(resolvedColor)}
                       >
                         <AddIcon sx={{ fontSize: 14 }} />
                       </IconButton>
                     </Box>
                     <Box sx={{ height: 7, borderRadius: 4, bgcolor: "background.paper", overflow: "hidden" }}>
-                      <Box sx={{ height: "100%", width: `${pct}%`, bgcolor: resolvedColor, borderRadius: 4, transition: "width 0.6s cubic-bezier(.4,0,.2,1)" }} />
+                      <Box sx={barFillSx(resolvedColor, pct)} />
                     </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
                       {c.count} {t.common.transactions}
@@ -127,7 +126,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
 
       <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+          <Card sx={sideCardSx("warning.main")}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <GradientIcon icon={PieIcon} tone="warning" bubble />
@@ -137,16 +136,16 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 </Box>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 3, mt: 1 }}>
-                <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
+                <Box sx={donutRingSx}>
                   <Donut slices={incomeDonut} size={160} thickness={20} />
-                  <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <Box sx={donutCenterSx}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }} color="success.main">{fmt(totalIn, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.income}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   {incomeDonut.map((s) => (
-                    <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                    <Box key={s.label} sx={legendRowSx}>
                       <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                       <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 700 }} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
@@ -158,7 +157,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           </Card>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-          <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 32px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
+          <Card sx={sideCardSx("info.main")}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <GradientIcon icon={ChartIcon} tone="goals" bubble />
@@ -167,7 +166,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                   <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 2, py: 1.5, bgcolor: "action.hover", borderRadius: 2, flexWrap: "wrap" }}>
+              <Box sx={trendLegendSx}>
                 {[{ color: "success.main", label: t.income }, { color: "error.main", label: t.expense }, { color: "primary.main", label: t.net }].map(({ color, label }) => (
                   <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: color }} />
@@ -185,14 +184,14 @@ export default function IncomeTab({ period, openModal, showToast }) {
 
       <Card sx={{ borderRadius: 2, boxShadow: shadows.card }}>
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "success.main" }}>
+          <Box sx={listHeaderSx("success")}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700 }} color="success.main">{t.incomes}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {incomeTxs.length} {t.incomeTab.records}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center" }}>
+            <Box sx={listHeaderActionsSx}>
               <CalendarFilter txs={txs} tipo="INGRESO" onFilter={setCalFilter} />
             </Box>
           </Box>
@@ -224,7 +223,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
             </Box>
           )}
           <TransactionList type="income" txs={incomeTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
-          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
+          <Box sx={totalFooterSx("success", 3)}>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.incomeTab.totalIncome}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>+{fmt(filteredTotal, true)}</Typography>
           </Box>
