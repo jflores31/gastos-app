@@ -233,6 +233,7 @@ Columnas:
 | **Migrar** | `AddTransactionModal.jsx`, `CalendarFilter` | La lógica de UI más compleja (moneda, tasa, cuenta, sugerencia; filtros de fecha) |
 | **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
 | **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
+| **Pendiente** | `TransactionList.jsx` (extraído en la fase 4) | Usa `fontWeight` en `Typography`, que MUI 9 ignora y sus tipos rechazan. Tiparlo obliga a quitar la prop o a pasarla a `sx`, y lo segundo cambia el aspecto (ver [Hallazgos](#hallazgos-durante-la-migración)) |
 | **No migrar** | `e2e/mock-supabase/*.mjs`, `scripts/*.mjs`, `eslint.config.js`, `vitest.config.mjs`, `next.config.mjs` | Scripts de Node y configuración: corren fuera del bundle, y en ESM funcionan tal cual |
 | **No migrar** | Tests `.test.js`/`.test.jsx` existentes, también los que se dividen | Cambiarles la extensión no agrega nada, y pasarlos a TS obligaría a cambiar sus datos de prueba con casts: se mueven tal cual. Los tests nuevos van en `.test.ts` (Vitest ya los incluye) |
 
@@ -245,7 +246,7 @@ Fases con la numeración del brief:
 | 0 | Baseline (arriba) | Referencia para detectar regresiones |
 | 1 | Esta auditoría, `dependency-map.mjs`, `architecture.test.js` | Las reglas existen antes de mover nada |
 | 2 y 3 | Estructura y módulos compartidos: `types/`, `domain/`, `lib/supabase/`, `theme` en TS, `components/{ui,charts,forms,providers}`, `contexts/` | Son las hojas del grafo: todo lo demás depende de ellas |
-| 4 | Features, una por commit: `categories` → `transactions` → `accounts` → `budgets` → `goals` → `investments`, `debts`, `subscriptions` → `import-export` → `auth` → `settings` → `dashboard`. Después, del shell salen `useToast`, `useSessionGuard`, `useTransactionModal`, `AppHeader` y `MainNav`, y por último lo duplicado entre Gastos e Ingresos (`TransactionList`, `useTxFilters`) | Cada feature se mueve cuando ya se movió lo que usa; `dashboard` compone todo y va al final |
+| 4 | Features, una por commit: `categories` → `transactions` → `accounts` → `budgets` → `goals` → `investments`, `debts`, `subscriptions` → `import-export` → `auth` → `settings` → `dashboard`. Después, del shell salen `useToast`, `useSessionGuard`, `useTransactionModal`, `AppHeader` y `MainNav`, y por último lo que es igual entre Gastos e Ingresos: `TransactionList` y `matchesCalendar` (`useTxFilters` no se hizo: ver [Hallazgos](#hallazgos-durante-la-migración)) | Cada feature se mueve cuando ya se movió lo que usa; `dashboard` compone todo y va al final |
 | 5 | Migración a TS de la UI compartida, los hooks, `AddTransactionModal` y `CalendarFilter` | Sobre código ya ubicado, para no mover y tipar a la vez |
 | 6 | Capa de datos: tabla de piezas de `DataContext`, `features/*/data`, `useTableCrud`, `DataContext.tsx` (pasa a TS aquí), `types/database.ts`, `authApi` | Con las features en su lugar, cada una recibe sus mappers y consultas |
 | 7 | Índice de secciones en `schema.sql` | Solo comentarios: se comprueba con el archivo sin comentarios y con `pg_dump` |
@@ -258,6 +259,26 @@ Fases con la numeración del brief:
 - **Cada fase cierra con** build, e2e dos veces y las capturas.
 - **Al partir `data/index.ts` y `data/helpers.ts`,** cada import se reescribe hacia el módulo que define la función: no quedan re-exports intermedios.
 - **Push después de cada feature**, y los tests unitarios nunca en paralelo con los e2e (comparten CPU y los de componentes pasan de los 5 s).
+
+## Hallazgos durante la migración
+
+Cosas que el código hace hoy y que la reorganización **no cambia**, porque cambiarlas sería un cambio funcional o visual. Quedan para decidir aparte.
+
+**1. Gastos e Ingresos no filtran igual.**
+- **Gastos:** con un día o mes del calendario elegido, la lista muestra todos los gastos de esa fecha y **no aplica la categoría elegida** en los chips. Sin calendario, sí la aplica.
+- **Ingresos:** aplica la categoría siempre, con o sin calendario.
+- **Consecuencia:** no se creó `useTxFilters`, porque un solo hook obliga a elegir una de las dos reglas. Se extrajo solo lo que es igual: `matchesCalendar` (`transactions/domain/calendarFilter.ts`, con test) y la lista (`TransactionList`).
+- **Para decidir:** si Gastos debe aplicar la categoría también con el calendario, como Ingresos.
+
+**2. MUI 9 ignora las props de sistema (`fontWeight` en `Typography`, `alignItems` en `Grid`).**
+- **Qué pasa:** desde MUI 9, `Typography`, `Box`, `Stack` y `Grid` ya no convierten las props de sistema en estilos. `fontWeight={700}` termina como atributo HTML (`<p font-weight="700">`), que el navegador no usa, y el texto queda con el peso de su variante.
+- **Alcance:** 99 props en 24 archivos `.jsx`:
+  - 96 `fontWeight` en `Typography`;
+  - 3 `alignItems` en `Grid`: dos son `stretch`, que ya es el valor por defecto, y uno es `center` en `HealthSummaryCard`.
+- **Consecuencia:**
+  - el aspecto actual (y la referencia de las capturas) es **sin** esos pesos;
+  - esos componentes no pasan a TS sin tocar la prop: los tipos de MUI 9 la rechazan.
+- **Para decidir:** pasarlas a `sx` (`sx={{ fontWeight: 700 }}`) devuelve el aspecto que se quiso dar, pero cambia el actual. Encaja con la T16 (estilos), que sigue pendiente.
 
 ## Base de datos
 

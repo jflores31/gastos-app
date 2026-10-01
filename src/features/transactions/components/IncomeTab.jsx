@@ -2,28 +2,26 @@
 
 import { useMemo, useState } from "react";
 import {
-  Box, Card, CardContent, Typography, Grid, Chip, Stack, List, ListItem, ListItemAvatar, ListItemText,
-  IconButton,
+  Box, Card, CardContent, Typography, Grid, Chip, Stack, IconButton,
 } from "@mui/material";
-import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@/theme/icons";
+import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon } from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal";
 import { txByCategory, txByMonth } from "../domain/aggregations";
+import { matchesCalendar } from "../domain/calendarFilter";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";
-import { useTxExtras } from "../hooks/useTxExtras";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
-import { NoTransactions } from "./NoTransactions";
+import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
 
 
 export default function IncomeTab({ period, openModal, showToast }) {
-  const { t, lang, fmt, fmtTx } = useSettings();
+  const { t, lang, fmt } = useSettings();
   const { txs, customCats } = useData();
-  const txExtras = useTxExtras();
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
   const [calFilter, setCalFilter] = useState(null);
@@ -41,13 +39,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const incomeTxs = useMemo(() => {
     let base;
     if (calFilter) {
-      base = allIncomeTxs.filter((x) => {
-        if (calFilter.type === "day") {
-          const d = calFilter.date;
-          return x.date.getFullYear() === d.getFullYear() && x.date.getMonth() === d.getMonth() && x.date.getDate() === d.getDate();
-        }
-        return x.date.getFullYear() === calFilter.date.getFullYear() && x.date.getMonth() === calFilter.date.getMonth();
-      });
+      base = allIncomeTxs.filter((x) => matchesCalendar(x, calFilter));
     } else {
       base = periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse();
     }
@@ -245,49 +237,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               })}
             </Box>
           )}
-          {incomeTxs.length === 0 ? (
-            <NoTransactions type="income" />
-          ) : (
-            <List disablePadding sx={{ maxHeight: 400, overflowY: "auto" }}>
-              {incomeTxs.map((x) => {
-              const { label: catName, color, Icon } = catMeta(x.categoria);
-              return (
-                <ListItem key={x.id} disablePadding sx={{ py: 1, borderBottom: 1, borderColor: "divider", "&:hover": { bgcolor: "action.hover" } }}
-                  secondaryAction={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body1" fontWeight={700} color="success.main" sx={{ display: { xs: "none", sm: "block" } }}>
-                        +{fmtTx(x, true)}
-                      </Typography>
-                      <IconButton onClick={() => setEditingTx(x)} aria-label={t.common.edit} sx={{ minWidth: 40, minHeight: 40 }}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => moveToTrash(x)} aria-label={t.common.delete} sx={{ minWidth: 40, minHeight: 40 }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  }
-                >
-                  <ListItemAvatar sx={{ minWidth: 52 }}>
-                    <CategoryAvatar icon={Icon} color={color} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={<Typography variant="body2" fontWeight={600} noWrap>{x.concepto}</Typography>}
-                    secondary={
-                      <Typography variant="caption" color="text.secondary" component="span">
-                        {catName} · {x.date.toLocaleString(t.common.locale, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
-                        {txExtras(x)}
-                        <Typography variant="caption" fontWeight={700} color="success.main" sx={{ display: { xs: "inline", sm: "none" }, ml: 1 }}>
-                          +{fmtTx(x, true)}
-                        </Typography>
-                      </Typography>
-                    }
-                    sx={{ mr: { xs: 12, sm: 18 } }}
-                  />
-                </ListItem>
-              );
-            })}
-            </List>
-          )}
+          <TransactionList type="income" txs={incomeTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
             <Typography variant="body1" fontWeight={600}>{t.incomeTab.totalIncome}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
             <Typography variant="h5" fontWeight={700}>+{fmt(filteredTotal, true)}</Typography>
