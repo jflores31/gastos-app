@@ -224,12 +224,14 @@ Columnas:
 
 `allowJs` se queda en `true`: quedan componentes `.jsx` a propósito. Se reconsidera cuando no quede ninguno.
 
+**Cómo se comprueba que tipar no cambia nada:** se compara el JS que emite TypeScript (`transpileModule`, sin comentarios) para el `.jsx` viejo y para el `.tsx` nuevo. Tienen que ser idénticos. Si TypeScript obliga a cambiar código, y no solo a anotarlo, el archivo se queda en `.jsx` con el motivo.
+
 | Estado | Archivos | Por qué |
 |---|---|---|
 | **Migrar** | `theme/{categoryIcons,iconTones,icons,materialTheme}.js` | Mapas y tokens que usa casi toda la UI; un nombre de icono mal escrito hoy no falla hasta que se renderiza |
 | **Migrar** | `hooks/{useBudgetAlertToasts,useMoveToTrash,useTxExtras}.js`, `goals/useEntityDialog.js` | Lógica con estado y efectos, reutilizada por varias pantallas |
 | **Migrar** | `context/DataContext.jsx` | Es el contrato de datos de toda la app; al dividirlo, los tipos de `types/` y `types/database.ts` quedan en cada mapper |
-| **Migrar** | `components/Charts.jsx`, `theme/GradientIcon.jsx`, `theme/IconPicker.jsx`, `goals/EntityDialog.jsx`, `goals/EmptySection.jsx`, `shared.jsx` (`EmptyState`) | UI compartida: sus props son la interfaz que usan varias features |
+| **Migrar** | `components/Charts.jsx`, `theme/GradientIcon.jsx`, `theme/IconPicker.jsx`, `goals/EntityDialog.jsx`, `goals/EmptySection.jsx` | UI compartida: sus props son la interfaz que usan varias features. `EmptyState` (de `shared.jsx`) espera al PR aparte: usa un `fontWeight` que MUI 9 ignora (ver [Hallazgos](#hallazgos-durante-la-migración)) |
 | **Migrar** | `AddTransactionModal.jsx`, `CalendarFilter` | La lógica de UI más compleja (moneda, tasa, cuenta, sugerencia; filtros de fecha) |
 | **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
 | **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
@@ -262,23 +264,33 @@ Fases con la numeración del brief:
 
 ## Hallazgos durante la migración
 
-Cosas que el código hace hoy y que la reorganización **no cambia**, porque cambiarlas sería un cambio funcional o visual. Quedan para decidir aparte.
+Cosas que el código hace hoy y que la reorganización **no cambia**, porque cambiarlas sería un cambio funcional o visual.
+
+**Decisión (01-10):** las dos se corrigen en un **PR aparte, después del refactor**, con capturas antes y después de las pantallas que cambian.
 
 **1. Gastos e Ingresos no filtran igual.**
 - **Gastos:** con un día o mes del calendario elegido, la lista muestra todos los gastos de esa fecha y **no aplica la categoría elegida** en los chips. Sin calendario, sí la aplica.
 - **Ingresos:** aplica la categoría siempre, con o sin calendario.
 - **Consecuencia:** no se creó `useTxFilters`, porque un solo hook obliga a elegir una de las dos reglas. Se extrajo solo lo que es igual: `matchesCalendar` (`transactions/domain/calendarFilter.ts`, con test) y la lista (`TransactionList`).
-- **Para decidir:** si Gastos debe aplicar la categoría también con el calendario, como Ingresos.
+- **Decisión:** Gastos pasa a filtrar como Ingresos (la categoría se aplica con o sin calendario). Con las dos reglas iguales, el PR aparte crea `useTxFilters` para ambas pestañas.
 
-**2. MUI 9 ignora las props de sistema (`fontWeight` en `Typography`, `alignItems` en `Grid`).**
-- **Qué pasa:** desde MUI 9, `Typography`, `Box`, `Stack` y `Grid` ya no convierten las props de sistema en estilos. `fontWeight={700}` termina como atributo HTML (`<p font-weight="700">`), que el navegador no usa, y el texto queda con el peso de su variante.
-- **Alcance:** 99 props en 24 archivos `.jsx`:
-  - 96 `fontWeight` en `Typography`;
-  - 3 `alignItems` en `Grid`: dos son `stretch`, que ya es el valor por defecto, y uno es `center` en `HealthSummaryCard`.
+**2. MUI 9 ya no lee varias props.**
+- **Qué pasa:** desde MUI 9 estas props dejaron de existir. React las pasa al HTML como atributos desconocidos, el navegador no las usa y no tienen efecto. Se comprobó renderizando cada caso con `react-dom/server`.
+
+  | Prop | Dónde | Cuántas | Efecto hoy |
+  |---|---|---|---|
+  | `fontWeight` (y las demás props de sistema) | `Typography` | 96 en 23 archivos | El texto queda con el peso de su variante: `<p font-weight="700">` no pone negrita |
+  | `inputProps` | `TextField` | 9 | **No se aplican** `maxLength: 60` en 5 nombres (metas, cuentas, deudas, inversiones, suscripciones) ni `min: 0` en 4 montos |
+  | `primaryTypographyProps`, `secondaryTypographyProps` | `ListItemText` | 11 | El texto principal y el secundario quedan sin su estilo propio |
+  | `alignItems` | `Grid` | 3 | Dos son `stretch`, que ya es el valor por defecto; uno es `center`, en `HealthSummaryCard` |
+
+- **Lo que sí funciona:**
+  - **`Select`** sigue leyendo `inputProps` (el `aria-label` de `ManageBudgetsDialog`);
+  - **`slotProps={{ htmlInput }}`**, la forma de MUI 9, ya se usa en ese mismo diálogo.
 - **Consecuencia:**
-  - el aspecto actual (y la referencia de las capturas) es **sin** esos pesos;
-  - esos componentes no pasan a TS sin tocar la prop: los tipos de MUI 9 la rechazan.
-- **Para decidir:** pasarlas a `sx` (`sx={{ fontWeight: 700 }}`) devuelve el aspecto que se quiso dar, pero cambia el actual. Encaja con la T16 (estilos), que sigue pendiente.
+  - el aspecto actual (y la referencia de las capturas) es **sin** esos estilos;
+  - esos componentes no pasan a TS sin tocar la prop: los tipos de MUI 9 la rechazan. Por eso `EmptyState` y `TransactionList` siguen en `.jsx`.
+- **Decisión:** el PR aparte las pasa a `slotProps` y `sx`, agrega una regla de lint contra ellas y después pasa a TS esos dos componentes.
 
 ## Base de datos
 
