@@ -9,7 +9,7 @@ import { useData } from "@/contexts/DataContext";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { CURRENCIES, currencyOf } from "@/domain/money";
-import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../../data/import";
+import { buildImport, detectAppFormat, guessColumns, MAX_IMPORT_ROWS } from "../domain/csvImport";
 
 const PREVIEW_ROWS = 50;
 const REQUIRED = ["fecha", "concepto", "monto"];

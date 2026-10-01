@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest"
-import { parseCsv, parseAmount, parseDate, detectAppFormat, guessColumns, buildImport, unguardCell } from "./import"
+import { parseCsv, parseAmount, parseDate, detectAppFormat, guessColumns, buildImport, unguardCell } from "./csvImport"
 import { transactionsToCsv } from "./export"
 import { setLiveRates } from "@/domain/money"
 
