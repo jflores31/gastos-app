@@ -224,9 +224,10 @@ Columnas:
 
 `allowJs` se queda en `true`: quedan componentes `.jsx` a propósito. Se reconsidera cuando no quede ninguno.
 
-**Estado (fase 5):**
-- **Ya en TS:** `useEntityDialog`, `EntityDialog`, `IconPicker`, `EmptySection`, `Charts` y `CalendarFilter`.
-- **Pasan en la fase 6:** `useBudgetAlertToasts`, `useMoveToTrash`, `useTxExtras` y `AddTransactionModal` usan `useData()`, que desde TypeScript se ve como `never` mientras `DataContext` sea JS. Pasan justo después de `DataContext.tsx`.
+**Estado (fases 5 y 6):**
+- **Fase 5:** `useEntityDialog`, `EntityDialog`, `IconPicker`, `EmptySection`, `Charts` y `CalendarFilter`.
+- **Fase 6:** `DataContext` y, justo después, `useBudgetAlertToasts`, `useMoveToTrash`, `useTxExtras` y `AddTransactionModal`. Esos cuatro usan `useData()`, que desde TypeScript se veía como `never` mientras `DataContext` era JS.
+- **Siguen en `.jsx`:** `GradientIcon`, `EmptyState` y `TransactionList` (motivos en la tabla), y las pantallas y tarjetas.
 
 **Cómo se comprueba que tipar no cambia nada:** se compara el JS que emite TypeScript (`transpileModule`, sin comentarios) para el `.jsx` viejo y para el `.tsx` nuevo. Tienen que ser idénticos. Si TypeScript obliga a cambiar código, y no solo a anotarlo, el archivo se queda en `.jsx` con el motivo.
 
