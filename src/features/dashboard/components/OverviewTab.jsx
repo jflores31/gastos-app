@@ -29,6 +29,12 @@ import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "@/components/cha
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
+import { liftCardSx } from "@/theme/tokens";
+import { donutCenterSx, donutRingSx } from "@/components/charts/Charts.styles";
+import {
+  cashflowLegendSx, categoryBarSx, categoryDotSx, compareCurrentSx, comparePreviousSx, compareTrackSx, headerRowSx, heatLegendSx,
+  heroAmountSx, heroContentSx, insightRowSx, miniContentSx, pillSx, sliceRowSx,
+} from "./OverviewTab.styles";
 
 function CategoryBars({ data, max = 5 }) {
   const { fmt } = useSettings();
@@ -40,12 +46,12 @@ function CategoryBars({ data, max = 5 }) {
       {items.map((d) => (
         <Box key={d.id}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.4 }}>
-            {d.Icon ? <d.Icon sx={{ fontSize: 14, color: d.color, flexShrink: 0 }} /> : <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color, flexShrink: 0 }} />}
+            {d.Icon ? <d.Icon sx={{ fontSize: 14, color: d.color, flexShrink: 0 }} /> : <Box sx={categoryDotSx(d.color)} />}
             <Typography variant="caption" noWrap sx={{ flex: 1, fontWeight: 600, color: "text.secondary" }}>{d.label}</Typography>
             <Typography variant="caption" sx={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{fmt(d.value, true)}</Typography>
           </Box>
           <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: "hidden" }}>
-            <Box sx={{ height: "100%", width: `${(d.value / peak) * 100}%`, bgcolor: d.color, borderRadius: 3, transition: "width 0.5s cubic-bezier(.4,0,.2,1)" }} />
+            <Box sx={categoryBarSx(d.color, (d.value / peak) * 100)} />
           </Box>
         </Box>
       ))}
@@ -105,7 +111,7 @@ export default function OverviewTab({ period, setPeriod }) {
 
   return (
     <Stack spacing={3}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+      <Box sx={headerRowSx}>
         <Box>
           <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2, fontWeight: 600 }}>
             {(() => {
@@ -130,21 +136,21 @@ export default function OverviewTab({ period, setPeriod }) {
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "2fr 1fr 1fr 1fr" }, gap: 2, alignItems: "stretch" }}>
-        <Card sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 2, transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-2px)" }, borderTop: "4px solid", borderTopColor: net >= 0 ? "success.main" : "error.main" }}>
-          <CardContent sx={{ p: 2.5, color: "text.primary", "&:last-child": { pb: 2.5 } }}>
+        <Card sx={liftCardSx(net >= 0 ? "success.main" : "error.main", { top: 4, lift: 2, paper: true })}>
+          <CardContent sx={heroContentSx}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <Box>
                 <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.balance.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, color: net >= 0 ? "success.main" : "error.main", fontSize: { xs: "1.6rem", sm: "3rem" } }}>{fmt(net)}</Typography>
+                <Typography variant="h3" sx={heroAmountSx(net >= 0)}>{fmt(net)}</Typography>
               </Box>
               <GradientIcon icon={WalletIcon} tone={net >= 0 ? "income" : "expense"} bubble bubbleSize={48} size={26} />
             </Box>
             <Box sx={{ display: "flex", gap: 2, mt: 1.5, flexWrap: "wrap" }}>
-              <Box sx={{ px: 2.5, py: 1.5, bgcolor: "success.light", borderRadius: 2, border: "1px solid", borderColor: "success.main" }}>
+              <Box sx={pillSx("success")}>
                 <Typography variant="caption" sx={{ color: "success.dark", display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.savings}</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "success.dark" }}>{savingsRate.toFixed(1)}%</Typography>
               </Box>
-              <Box sx={{ px: 2.5, py: 1.5, bgcolor: `${scoreTone}.light`, borderRadius: 2, border: "1px solid", borderColor: `${scoreTone}.main` }}>
+              <Box sx={pillSx(scoreTone)}>
                 <Typography variant="caption" sx={{ color: `${scoreTone}.dark`, display: "block", fontWeight: 600, letterSpacing: 0.5 }}>{t.healthScore}</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: `${scoreTone}.dark` }}>{score}/100</Typography>
               </Box>
@@ -153,8 +159,8 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
         {miniCards.map((card, idx) => (
-          <Card key={idx} sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: ["success.main", "error.main", "primary.main", "warning.main"][idx], bgcolor: "background.paper" }}>
-            <CardContent sx={{ p: 2, "&:last-child": { pb: 2 }, display: "flex", flexDirection: "column", height: "100%" }}>
+          <Card key={idx} sx={liftCardSx(["success.main", "error.main", "primary.main", "warning.main"][idx], { top: 4, paper: true })}>
+            <CardContent sx={miniContentSx}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
                 <GradientIcon tone={TONE_BY_PALETTE[card.color] || "neutral"} bubble bubbleSize={36} size={20}>{card.icon}</GradientIcon>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{card.label}</Typography>
@@ -181,7 +187,7 @@ export default function OverviewTab({ period, setPeriod }) {
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" }, gap: 2.5 }}>
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "info.main" }}>
+        <Card sx={liftCardSx("info.main")}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <GradientIcon icon={ChartIcon} tone="goals" bubble />
@@ -190,7 +196,7 @@ export default function OverviewTab({ period, setPeriod }) {
                 <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
               </Box>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "center", gap: 3, mb: 2, py: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+            <Box sx={cashflowLegendSx}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                 <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: "success.main" }} />
                 <Typography variant="body2" sx={{ color: "success.main", fontWeight: 600 }}>{t.income}</Typography>
@@ -208,7 +214,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+        <Card sx={liftCardSx("warning.main")}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <GradientIcon icon={PieIcon} tone="warning" bubble />
@@ -218,16 +224,16 @@ export default function OverviewTab({ period, setPeriod }) {
               </Box>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 3, mt: 1 }}>
-              <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
+              <Box sx={donutRingSx(160)}>
                 <Donut slices={donut} size={160} thickness={20} />
-                <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Box sx={donutCenterSx(90)}>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>{fmt(donutTotal, true)}</Typography>
                   <Typography variant="caption" color="text.secondary">{t.expense}</Typography>
                 </Box>
               </Box>
               <Box sx={{ flex: 1 }}>
                 {donut.map((s) => (
-                  <Box key={s.id} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
+                  <Box key={s.id} sx={sliceRowSx}>
                     <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                     <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: "error.main" }}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
@@ -238,7 +244,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "success.main" }}>
+        <Card sx={liftCardSx("success.main")}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -252,7 +258,7 @@ export default function OverviewTab({ period, setPeriod }) {
             </Box>
             <Stack spacing={1.5}>
               {insights.map((ins, idx) => (
-                <Box key={ins.title} sx={{ display: "flex", gap: 2, p: 2, bgcolor: idx % 2 === 0 ? "success.light" : "action.hover", borderRadius: 3, border: "1px solid", borderColor: idx % 2 === 0 ? "success.main" : "divider", transition: "transform 0.2s, background-color 0.2s", "&:hover": { transform: "translateX(4px)" } }}>
+                <Box key={ins.title} sx={insightRowSx(idx % 2 === 0)}>
                   <GradientIcon tone={TONE_BY_PALETTE[INSIGHT_COLORS[ins.tone]]} bubble bubbleSize={36} size={20}>
                     {INSIGHT_ICONS[ins.icon]}
                   </GradientIcon>
@@ -266,7 +272,7 @@ export default function OverviewTab({ period, setPeriod }) {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: "divider", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { transform: "translateY(-4px)" }, borderTop: "3px solid", borderTopColor: "error.main" }}>
+        <Card sx={liftCardSx("error.main")}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
               <GradientIcon icon={CalendarIcon} tone="expense" bubble />
@@ -277,7 +283,7 @@ export default function OverviewTab({ period, setPeriod }) {
             </Box>
             <Box sx={{ mt: 2, p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
               <HeatCalendar values={heatVals} days={84} color="currentColor" cellSize={10} gap={2} />
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, justifyContent: "center" }}>
+              <Box sx={heatLegendSx}>
                 <Typography variant="caption" color="text.secondary">{t.lower}</Typography>
                 <Box sx={{ width: 100, height: 10, borderRadius: 2, background: (theme) => `linear-gradient(to right, transparent, ${theme.palette.error.main})` }} />
                 <Typography variant="caption" color="text.secondary">{t.higher}</Typography>
@@ -311,9 +317,9 @@ export default function OverviewTab({ period, setPeriod }) {
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>{m.label}</Typography>
                           <Chip size="small" label={`${change >= 0 ? "+" : ""}${m.isPercent ? change.toFixed(1) + "pp" : change.toFixed(1) + "%"}`} color={isPositive ? "success" : "error"} variant="filled" sx={{ fontWeight: 600, fontSize: 10, height: 22 }} />
                         </Box>
-                        <Box sx={{ height: 10, borderRadius: 2, bgcolor: "action.hover", position: "relative", overflow: "hidden" }}>
-                          <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, opacity: 0.2, width: `${prevPct}%`, transition: "width 0.5s" }} />
-                          <Box sx={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: m.color, width: `${currentPct}%`, transition: "width 0.5s", boxShadow: `0 0 8px ${m.color}` }} />
+                        <Box sx={compareTrackSx}>
+                          <Box sx={comparePreviousSx(m.color, prevPct)} />
+                          <Box sx={compareCurrentSx(m.color, currentPct)} />
                         </Box>
                       </Box>
                     );

@@ -32,15 +32,6 @@ export const barFillSx = (color: string, pct: number): Sx => ({
 export const sideCardSx = (color: string) =>
   liftCardSx(color, { shadow: { rest: "0 4px 20px rgba(0,0,0,0.08)", hover: "0 8px 32px rgba(0,0,0,0.12)" } })
 
-/** The donut, on a tinted ring, with the total in a disc at its centre. */
-export const donutRingSx: Sx = {
-  position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center",
-  bgcolor: "action.hover", borderRadius: "50%",
-}
-export const donutCenterSx: Sx = {
-  position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%",
-  width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center",
-}
 export const legendRowSx: Sx = {
   display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2,
   transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "action.selected" },
