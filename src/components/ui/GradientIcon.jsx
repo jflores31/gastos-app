@@ -9,6 +9,19 @@ import { gradientBg, resolveTone, tint } from "@/theme/iconTones";
 // opcionalmente, lo monta en una burbuja squircle de tinte suave (light/dark aware).
 // El gradiente usa un id único por instancia con useId() (mismo patrón que charts/Charts.tsx)
 // para evitar colisiones de url(#id) cuando se montan varios iconos.
+// Los tipos van en JSDoc para que los .tsx que lo usan sepan qué props son opcionales; el
+// archivo sigue en JS (ver "Migración JS → TS" en docs/ARCHITECTURE-AUDIT.md).
+/**
+ * @param {{
+ *   icon?: import("react").ElementType,
+ *   children?: import("react").ReactNode,
+ *   tone?: string | import("@/theme/iconTones").Tone | null,
+ *   bubble?: boolean,
+ *   size?: number,
+ *   bubbleSize?: number,
+ *   sx?: Record<string, unknown>,
+ * }} props
+ */
 export function GradientIcon({
   icon: Icon,
   children,
@@ -71,6 +84,9 @@ export function GradientIcon({
 // Avatar de categoría: squircle con el gradiente del color de la categoría y su
 // icono en blanco. Reemplaza las iniciales/números que mostraban las listas.
 // `icon` y `color` vienen de resolveCategoryMeta() (theme/categoryIcons.ts).
+/**
+ * @param {{ icon: import("react").ElementType, color: string, size?: number, sx?: Record<string, unknown> }} props
+ */
 export function CategoryAvatar({ icon: Icon, color, size = 40, sx }) {
   return (
     <Box

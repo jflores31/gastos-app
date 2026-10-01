@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { Box, Typography } from "@mui/material";
 import { Inbox as InboxIcon } from "@/theme/icons";
 import { GradientIcon } from "./GradientIcon";
 
 // Empty list or section: an icon in a neutral bubble, a title and optional text and action.
-export function EmptyState({ icon, title, subtitle, action }) {
+export function EmptyState({ icon, title, subtitle, action }: { icon?: ReactNode; title: ReactNode; subtitle?: ReactNode; action?: ReactNode }) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 6, px: 3, textAlign: "center" }}>
       {/* Neutral bubble instead of a grey.100 Avatar, which stood out as a light disc in dark mode. */}
