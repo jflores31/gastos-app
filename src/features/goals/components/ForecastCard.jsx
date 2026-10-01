@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { Timeline as ForecastIcon } from "@/theme/icons";
-import { linearRegressionSlope } from "../../data/helpers";
-import { GradientIcon } from "../ui/GradientIcon";
+import { linearRegressionSlope } from "@/features/goals/domain/forecast";
+import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 
 // Next 3 months' net, from the average of the last 6 months plus their linear trend.

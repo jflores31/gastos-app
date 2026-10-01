@@ -5,13 +5,13 @@ import { Box, CircularProgress, Grid, Stack } from "@mui/material";
 import { txByMonth } from "@/features/transactions/domain/aggregations";
 import { netWorthOf } from "@/domain/netWorth";
 import { useData } from "@/contexts/DataContext";
-import { GoalsSection } from "./goals/GoalsSection.jsx";
+import { GoalsSection } from "@/features/goals/components/GoalsSection";
 import { AccountsCard } from "@/features/accounts/components/AccountsCard";
-import { ForecastCard } from "./goals/ForecastCard.jsx";
+import { ForecastCard } from "@/features/goals/components/ForecastCard";
 import { InvestmentsSection } from "./goals/InvestmentsSection.jsx";
 import { DebtsCard } from "./goals/DebtsCard.jsx";
 import { SubscriptionsCard } from "./goals/SubscriptionsCard.jsx";
-import { NetWorthEvolutionCard } from "./goals/NetWorthEvolutionCard.jsx";
+import { NetWorthEvolutionCard } from "@/features/goals/components/NetWorthEvolutionCard";
 
 // Goals tab: savings goals, net worth (accounts), forecast, investments, debts,
 // subscriptions and net worth evolution. Each section owns its dialog (src/components/goals/).

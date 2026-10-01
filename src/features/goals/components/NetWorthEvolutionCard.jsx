@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { History as HistoryIcon } from "@/theme/icons";
-import { GradientIcon } from "../ui/GradientIcon";
+import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 
 // Net worth over the last 6 months, rebuilt backwards from today's value: each month is
