@@ -7,7 +7,7 @@ import { CATEGORIES } from "@/domain/categories/catalog";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { createClient } from "@/lib/supabase/client";
 import { CustomCategoriesSection } from "@/features/categories/components/CustomCategoriesSection";
-import { DataExportSection } from "./DataExportSection.jsx";
+import { YourDataSection } from "./YourDataSection";
 import { TwoFactorSection } from "@/features/auth/components/TwoFactorSection";
 
 // "Perfil" tab of the settings panel. The name fields' state lives in SettingsPanel so an
@@ -63,7 +63,7 @@ export function ProfileTab({ user, name, notify }) {
         <Divider variant="middle" />
         <TwoFactorSection notify={notify} />
         <Divider variant="middle" />
-        <DataExportSection notify={notify} />
+        <YourDataSection notify={notify} />
       </List>
     </Box>
   );

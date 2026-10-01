@@ -11,7 +11,7 @@ import { TrashDialog } from "@/features/transactions/components/TrashDialog";
 
 // "Tus datos": download the transactions as CSV or everything as a JSON backup, import
 // transactions from a CSV (ImportDialog), and the trash of deleted transactions.
-export function DataExportSection({ notify }) {
+export function YourDataSection({ notify }) {
   const { t, lang } = useSettings();
   const data = useData();
   const fileInput = useRef(null);

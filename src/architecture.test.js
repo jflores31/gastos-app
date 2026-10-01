@@ -13,7 +13,7 @@ const KNOWN = new Set([
   "features/auth/components/ResetPasswordPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/DashboardStudio.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "features/auth/components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "components/settings/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/settings/components/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "features/auth/components/TwoFactorSection.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
 ])
 

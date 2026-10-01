@@ -32,7 +32,7 @@ import IncomeTab from "@/features/transactions/components/IncomeTab";
 import BudgetTab from "@/features/budgets/components/BudgetTab";
 import GoalsTab from "./GoalsTab.jsx";
 import AddTransactionModal from "@/features/transactions/components/AddTransactionModal";
-import SettingsPanel from "./SettingsPanel.jsx";
+import SettingsPanel from "@/features/settings/components/SettingsPanel";
 import LoginModal from "@/features/auth/components/LoginModal";
 
 const SESSION_ALIVE_KEY = "gastos_session_alive";

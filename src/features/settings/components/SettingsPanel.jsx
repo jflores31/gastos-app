@@ -5,8 +5,8 @@ import { Alert, Box, Drawer, IconButton, Snackbar, Tab, Tabs, Typography } from 
 import { Close as CloseIcon, Person as PersonIcon, Settings as SettingsIcon } from "@/theme/icons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
-import { ProfileTab } from "./settings/ProfileTab.jsx";
-import { PreferencesTab } from "./settings/PreferencesTab.jsx";
+import { ProfileTab } from "./ProfileTab";
+import { PreferencesTab } from "./PreferencesTab";
 
 // Side panel with two tabs: "Perfil" (name, favourite and custom categories) and
 // "Ajustes" (theme, density, accent, language, currency). See src/components/settings/.
