@@ -381,4 +381,9 @@ const server = http.createServer(async (req, res) => {
   }
 })
 
+// Node closes an idle keep-alive connection after 5 s by default. A client that reuses it at
+// that very moment (Playwright's request fixture does) gets "socket hang up": keep idle
+// connections open longer than any test waits between two requests.
+server.keepAliveTimeout = 65_000
+server.headersTimeout = 66_000
 server.listen(PORT, "127.0.0.1", () => console.log(`[mock-supabase] http://127.0.0.1:${PORT}`))
