@@ -6,6 +6,7 @@ import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { accentCardSx } from "@/theme/tokens";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -26,7 +27,7 @@ export function UpcomingPaymentsCard({ openModal }) {
   };
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "warning.main" }}>
+    <Card sx={accentCardSx("warning.main")}>
       <CardContent sx={{ p: 2.5 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={UpcomingIcon} tone="warning" bubble />

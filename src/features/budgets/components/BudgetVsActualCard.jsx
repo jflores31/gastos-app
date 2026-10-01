@@ -6,6 +6,7 @@ import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // One bar per budgeted category, plus totals restricted to budgeted categories.
 export function BudgetVsActualCard({ cats, period, totalBudget }) {
@@ -17,7 +18,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
   const used = totalBudget > 0 ? totalSpentBudgeted / totalBudget : 0;
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "primary.main" }}>
+    <Card sx={accentCardSx("primary.main")}>
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
           <GradientIcon icon={CompareIcon} tone="trend" bubble />

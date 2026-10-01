@@ -15,6 +15,7 @@ import { useData } from "@/contexts/DataContext";
 import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
+import { accentCardSx } from "@/theme/tokens";
 
 const DAYJS_LOCALES = { es, en };
 const EMPTY_GOAL = { es: "", en: "", target: "", current: "", deadline: null, color: "#7ab87a", icon: "Flag" };
@@ -33,7 +34,7 @@ export function GoalsSection({ showToast }) {
   const { form, update } = dialog;
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "success.main" }}>
+    <Card sx={accentCardSx("success.main", "section")}>
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

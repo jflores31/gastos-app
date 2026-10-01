@@ -7,6 +7,7 @@ import { useData } from "@/contexts/DataContext";
 import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
+import { accentCardSx } from "@/theme/tokens";
 
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 
@@ -25,7 +26,7 @@ export function DebtsCard({ showToast }) {
   const tooManyRemaining = form.remaining && form.original_months && parseInt(form.remaining) > parseInt(form.original_months);
 
   return (
-    <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: "error.main" }}>
+    <Card sx={{ width: "100%", minHeight: { xs: 280, sm: 320, md: 350 }, ...accentCardSx("error.main", "section") }}>
       <CardContent sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>

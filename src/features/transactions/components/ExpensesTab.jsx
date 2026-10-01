@@ -24,6 +24,7 @@ import { useTxExtras } from "../hooks/useTxExtras";
 import { useTxFilters } from "../hooks/useTxFilters";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
+import { shadows } from "@/theme/tokens";
 
 export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, fmt, fmtTx } = useSettings();
@@ -239,7 +240,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Grid>
       </Grid>
 
-      <Card sx={{ borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+      <Card sx={{ borderRadius: 3, boxShadow: shadows.card }}>
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
             <Box>

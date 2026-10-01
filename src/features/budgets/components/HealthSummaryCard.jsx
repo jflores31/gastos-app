@@ -4,6 +4,7 @@ import { healthLabel, healthTone } from "@/domain/health";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
+import { accentCardSx } from "@/theme/tokens";
 
 // Financial health gauge + budget, spent, usage and income for the period.
 export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budgetUsed }) {
@@ -18,7 +19,7 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
   ];
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: gaugeColor + ".main" }}>
+    <Card sx={accentCardSx(gaugeColor + ".main", "section")}>
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3} sx={{ alignItems: "center" }}>
           <Grid size={{ xs: 12, md: 4 }}>

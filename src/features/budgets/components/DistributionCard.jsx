@@ -6,6 +6,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { Donut } from "@/components/charts/Charts";
+import { accentCardSx } from "@/theme/tokens";
 
 // Donut of what was spent in each budgeted category this period.
 export function DistributionCard({ cats }) {
@@ -22,7 +23,7 @@ export function DistributionCard({ cats }) {
   const donutTotal = donutData.reduce((s, d) => s + d.value, 0);
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", borderTop: "3px solid", borderTopColor: "warning.main", height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
+    <Card sx={{ ...accentCardSx("warning.main"), height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={PieIcon} tone="warning" bubble />
