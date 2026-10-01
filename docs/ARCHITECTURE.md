@@ -18,6 +18,8 @@ Cómo está organizado el código, cómo fluyen los datos y las decisiones técn
 ├── docs/                           # Documentación (índice en el README); los .en.md son la versión en inglés
 │   ├── FEATURES.md                 # Características, por pantalla
 │   ├── ARCHITECTURE.md             # Este archivo: estructura, flujo de datos y notas técnicas
+│   ├── PROJECT-STRUCTURE.md        # Dónde va cada cosa en src/, capas y reglas que comprueba npm test
+│   ├── ARCHITECTURE-AUDIT.md       # Auditoría y plan del refactor por funcionalidades, con el resultado
 │   ├── DATABASE.md                 # Esquema, cómo instalarlo y cómo migrar a otro sistema
 │   ├── SECURITY.md                 # Medidas de seguridad
 │   ├── SECURITY-CSP.md             # CSP con nonce por request
@@ -26,7 +28,9 @@ Cómo está organizado el código, cómo fluyen los datos y las decisiones técn
 │   ├── ICONS.md                    # Sistema de iconos y mapa categoría → icono
 │   └── INVESTIGACION.md            # Proyectos similares, hoja de ruta y su estado
 ├── public/                         # favicon.svg e iconos de la app instalable
-├── scripts/generate-icons.mjs      # Genera los iconos de public/icons/
+├── scripts/
+│   ├── generate-icons.mjs          # Genera los iconos de public/icons/
+│   └── dependency-map.mjs          # Grafo de imports, reglas de capas y exports sin uso (lo usa architecture.test.js)
 ├── src/                            # (detalle abajo)
 └── supabase/
     ├── config.toml                 # Configuración del proyecto de Supabase (CLI local)
@@ -34,96 +38,41 @@ Cómo está organizado el código, cómo fluyen los datos y las decisiones técn
     └── seed/reset.sql              # Vacía las 9 tablas — destructivo
 ```
 
+`src/` se organiza por funcionalidad (`features/`) y por capas. El árbol completo, las reglas que comprueba `npm test` y cómo agregar una funcionalidad están en [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md). En resumen:
+
 ```
 src/
-├── app/
-│   ├── layout.tsx                  # Root layout: Providers, fuentes, favicon; render dinámico (nonce del CSP)
-│   ├── fonts/                      # IBM Plex Sans + JetBrains Mono (woff2, subset latin, OFL) vía next/font/local
-│   ├── page.tsx                    # Home → DashboardStudio
-│   ├── globals.css                 # Estilos globales (overflow-x: hidden, reduced motion, etc.)
-│   ├── error.tsx · global-error.tsx · not-found.tsx
-│   ├── login/ · register/ · forgot-password/ · reset-password/   # page.tsx de cada pantalla de auth
-│   ├── auth/callback/route.ts      # Canje del código PKCE de OAuth (OAuth desactivado por ahora)
-│   ├── api/client-error/route.ts   # Recibe errores del navegador y los escribe en los logs del servidor
-│   ├── api/csp-report/route.ts     # Recibe las violaciones del CSP y las escribe en los logs
-│   ├── api/rates/route.ts          # Tasas de cambio del día (detrás del login)
-│   └── components/
-│       ├── Providers.tsx           # UserContext → Settings → Data → Theme
-│       ├── DynamicThemeProvider.tsx
-│       ├── ErrorReporter.tsx       # Reporta errores no capturados (window.onerror, unhandledrejection)
-│       └── auth/                   # AuthCard, AuthErrorAlert, AuthThemeToggle, authStyles
-├── components/
-│   ├── DashboardStudio.jsx         # Shell: AppBar, tabs, BottomNav, período, toasts, seguridad de sesión
-│   ├── OverviewTab.jsx             # Vista general con gráficos y saludo
-│   ├── ExpensesTab.jsx             # Gastos con CRUD y filtros
-│   ├── IncomeTab.jsx               # Ingresos con CRUD y filtros
-│   ├── BudgetTab.jsx               # Presupuestos: métricas del período + layout
-│   ├── budget/                     # Una tarjeta por archivo (salud, presupuestos, distribución,
-│   │                               #   comparación, presupuesto vs real, recurrentes) + diálogo Gestionar
-│   ├── GoalsTab.jsx                # Metas: layout de las secciones
-│   ├── goals/                      # Una sección por archivo (metas, cuentas y transferencias, pronóstico,
-│   │                               #   inversiones, deudas, suscripciones, evolución) + useEntityDialog y EntityDialog
-│   ├── Charts.jsx                  # Donut, SparkArea, StudioCashflow, HeatCalendar
-│   ├── shared.jsx                  # StatsCard, EmptyState, NoTransactions, CalendarFilter
-│   ├── AddTransactionModal.jsx     # Modal nueva/editar transacción
-│   ├── SettingsPanel.jsx           # Drawer de perfil/ajustes (pestañas y snackbar)
-│   ├── settings/                   # ProfileTab, CustomCategoriesSection, TwoFactorSection, PreferencesTab
-│   └── LoginModal.jsx              # Modal de login in-app
-├── context/
-│   ├── DataContext.jsx             # Carga y CRUD: txs, budgets, goals, accounts (con su saldo de hoy),
-│   │                               #   transfers, investments, debts, subscriptions, customCats
-│   ├── SettingsContext.tsx         # theme, density, currency, lang, palette + PALETTES; fmt, fmtTx, tasas del día
-│   └── UserContext.tsx             # useSupabaseUser() → undefined | User | null
-├── data/
-│   ├── index.ts                    # CATEGORIES, CURRENCIES, fmtMoney, toBase/fromBase, setLiveRates
-│   ├── helpers.ts                  # filterByPeriod, healthScore, flagAnomalies, recurringList,
-│   │                               #   upcomingPayments, insightsList, linearRegressionSlope…
-│   ├── fetchAllRows.ts             # Paginación con .range() (Supabase corta en 1000 filas)
-│   ├── export.ts                   # CSV y copia JSON de "Tus datos"
-│   ├── suggest.ts                  # Categoría sugerida por el concepto (historial y catálogo)
-│   ├── import.ts                   # Importar CSV: lectura, columnas, fechas, montos, repetidas
-│   └── *.test.js                   # helpers, currency, fetchAllRows (componentes: *.test.jsx junto a cada uno)
-├── i18n/
-│   ├── base.ts                     # Textos cortos compartidos (t.income, t.save, t.months…)
-│   ├── ui.ts                       # Textos por área (t.goalsTab.newGoal, t.common.delete, t.iconNames…)
-│   ├── index.ts                    # MESSAGES y messagesFor(lang)
-│   └── messages.test.js            # Mismas claves en es/en; sin ternarios de idioma fuera de i18n/
-├── theme/
-│   ├── materialTheme.js            # Temas light/dark, acentos y animación de iconos
-│   ├── icons.js                    # Set central de iconos MUI Rounded
-│   ├── categoryIcons.js            # Categoría → icono, ICON_CHOICES, resolveCategoryMeta() (+ test)
-│   ├── iconTones.js                # Gradientes por tono (TONES, TONE_BY_PALETTE)
-│   ├── GradientIcon.jsx            # GradientIcon + CategoryAvatar
-│   └── IconPicker.jsx              # Selector de icono (metas y categorías personalizadas)
-├── types.ts                        # Tipos del dominio: Transaction, Goal, Account, Period…
-├── hooks/
-│   └── useLocalStorage.ts          # Valor por defecto en el primer render; el guardado, tras montar
-├── lib/
-│   ├── featureFlags.ts             # OAUTH_ENABLED (login, registro y LoginModal)
-│   ├── rates.ts                    # fetchRates(): tasas del día de open.er-api.com, o las fijas
-│   ├── mfa.ts                      # Verificación en dos pasos: nivel de la sesión (aal1/aal2) y factor TOTP
-│   ├── reportError.ts              # Envía errores del navegador a /api/client-error
-│   ├── supabase.ts                 # Cliente browser (createBrowserClient)
-│   └── supabase-server.ts          # Cliente server
-└── proxy.ts                        # Guard de auth + CSP con nonce por request (Next.js 16)
+├── app/            # Solo rutas: layout, page, error, api/*, auth/callback y las 4 páginas de auth (entradas finas)
+├── features/       # transactions, budgets, goals, accounts, investments, debts, subscriptions, categories,
+│                   #   import-export, auth, settings, dashboard — cada una con components/ hooks/ domain/ data/
+├── components/     # UI compartida: ui/, charts/, forms/, feedback/, providers/
+├── contexts/       # DataContext (+ useTableCrud), SettingsContext, UserContext
+├── domain/         # Reglas compartidas: money, period, health, netWorth, categories/
+├── hooks/ · i18n/ · lib/ (supabase/, rates, reportError, featureFlags) · theme/ · types/ (domain, database)
+└── proxy.ts        # Guard de auth + 2FA + CSP con nonce por request (Next.js 16)
 ```
 
 ## Flujo de datos: Supabase → pestañas
 
 ```
 Supabase DB (9 tablas, RLS auth.uid() = user_id)
-  └── DataProvider.load() — Promise.all de 10 queries (DataContext.jsx)
-        ├── fetchAllRows(transactions) → mapRow() → flagAnomalies() → txs[]
-        ├── mapGoal() / mapAccount() / mapTransfer() / mapInvestment() / mapDebt() / mapSubscription()
-        ├── accountBalance() → accounts[].current (saldo de hoy)
-        └── sin mapear → customCats[], editBudgets{}
+  └── DataProvider: load() — purga la papelera y hace 10 consultas en paralelo (contexts/DataContext.tsx)
+        ├── fetchAllRows(transactions) → transactionFromRow() → flagAnomalies() → txs[]   (features/transactions/data)
+        ├── goalFromRow / accountFromRow / transferFromRow / investmentFromRow / debtFromRow / subscriptionFromRow
+        │                                                                     (features/<feature>/data)
+        ├── budgetsFromRows() → editBudgets{} + budgetPeriods{}               (features/budgets/data)
+        ├── accountBalance() → accounts[].current (saldo de hoy)              (features/accounts/domain)
+        └── sin mapear → customCats[]
               │
-              └── useData()
+              └── useData()  (tipado: DataValue)
                     ├── OverviewTab · ExpensesTab · IncomeTab · BudgetTab  (txs + editBudgets + customCats)
                     └── GoalsTab  (goals + accounts + transfers + investments + debts + subscriptions)
 
-Cada pestaña: filterByPeriod(txs, period) → helpers.ts → Charts.jsx
-Nombre / color / icono de categoría: resolveCategoryMeta()  (theme/categoryIcons.js)
+Escrituras: useTransactionMutations · useBudgetMutations · useTableCrud(<tabla>Table)  → lanzan si falla,
+            y solo entonces no tocan el estado
+Auth (login, registro, 2FA, cerrar sesión): features/auth/data/authApi.ts
+Cada pestaña: filterByPeriod(txs, period) → reglas de features/*/domain y domain/ → components/charts
+Nombre / color / icono de categoría: resolveCategoryMeta()  (theme/categoryIcons.ts)
 Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) → fmtMoney(v, currency) al mostrar,
         con las tasas del día (/api/rates → setLiveRates); toBase()/fromBase() en formularios
 ```
@@ -132,16 +81,18 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 
 | Módulo | Rol |
 |---|---|
-| `DashboardStudio.jsx` | Shell de la app: único componente que consume los 3 contextos (Settings, User, Data), controla el `period` compartido, es el canal de `showToast` y aplica la seguridad de sesión |
-| `DataContext.jsx` | Única fuente de datos y de mutaciones contra Supabase |
-| `data/helpers.ts` | Cálculos puros que usan las pestañas (períodos, salud financiera, anomalías, recurrentes, tendencias, patrimonio); un bug aquí afecta a todas, por eso tiene tests |
-| `components/goals/useEntityDialog.js` | Estado y handlers de los diálogos crear/editar/borrar de Metas (metas, cuentas, inversiones, deudas, suscripciones) |
-| `theme/categoryIcons.js` | Nombre, color e icono de cualquier categoría |
+| `features/dashboard/components/DashboardStudio.jsx` | Shell de la app: compone `AppHeader`, `MainNav`, las 5 pestañas, el aviso y los diálogos; guarda la pestaña activa y el `period` compartido |
+| `features/auth/hooks/useSessionGuard.ts` | Seguridad de sesión: inactividad con aviso, máximo de 8 h, navegador reabierto (`BroadcastChannel`) |
+| `contexts/DataContext.tsx` | Estado de las 9 tablas, carga una vez por usuario y expone las escrituras; única puerta a los datos |
+| `features/*/data/` | Fila ↔ objeto de cada tabla y sus escrituras; `authApi.ts` para Supabase Auth |
+| `features/*/domain/` · `domain/` | Cálculos puros (períodos, salud financiera, anomalías, recurrentes, presupuestos, patrimonio, CSV); un bug aquí afecta a todas las pestañas, por eso tienen tests |
+| `components/forms/useEntityDialog.ts` | Estado y handlers de los diálogos crear/editar/borrar (metas, cuentas, inversiones, deudas, suscripciones) |
+| `theme/categoryIcons.ts` | Nombre, color e icono de cualquier categoría |
 | `proxy.ts` | Guard de rutas + CSP con nonce por request |
 
-**`createClient()`** se llama dentro de cada función CRUD, pero `createBrowserClient` es un singleton: no abre conexiones nuevas.
+**`createClient()`** se llama en cada operación (`authApi`, `DataContext`), pero `createBrowserClient` es un singleton: no abre conexiones nuevas.
 
-> El README incluía métricas de un grafo generado con [graphify](https://github.com/ananddtyagi/cc-marketplace) sobre una versión anterior. Se quitaron porque ya no correspondían al código; el grafo se puede regenerar localmente (`graphify-out/`, ignorado por git).
+> El README incluía métricas de un grafo generado con [graphify](https://github.com/ananddtyagi/cc-marketplace) sobre una versión anterior. Se quitaron porque ya no correspondían al código. El mapa de dependencias actual sale de `node scripts/dependency-map.mjs`.
 
 ## Notas técnicas
 
@@ -149,7 +100,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 
 **Carga de datos:** `DataContext.load()` corre con el primer evento de `onAuthStateChange` que traiga `session.user` (`INITIAL_SESSION`, `SIGNED_IN`, `TOKEN_REFRESHED` o `USER_UPDATED`) y se deduplica por `session.user.id`, así los refrescos periódicos del token no repiten las consultas de carga. No se llama al montar (eso duplicaba las queries). Si falla, se resetea el flag para reintentar con el siguiente evento. Esto elimina el bug de "hay que refrescar 2 veces", cuando un `INITIAL_SESSION` sin sesión utilizable no tenía reintento. Las queries dependen de RLS (`select("*")` sin `.eq("user_id")`).
 
-**Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/data/fetchAllRows.ts`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
+**Más de 1000 transacciones:** PostgREST corta cada respuesta en `max_rows` (1000). `transactions` se pide con `fetchAllRows()` (`src/lib/supabase/fetchAllRows.ts`), que pagina con `.range()` ordenando por `fecha` + `id`. Es todo o nada: si una página falla, no se muestra un resultado parcial.
 
 **Moneda:** los montos se guardan siempre en PEN. `fmtMoney(v, currency)` multiplica por la tasa al mostrar, y los formularios convierten con `toBase()` al guardar y `fromBase()` al precargar una edición (presupuestos, metas, cuentas, inversiones, deudas y suscripciones; las tasas % y los meses no se convierten). El tope de 10,000,000 se valida en PEN. Límite conocido: redondear a 2 decimales en PEN puede mover un monto en COP hasta unas 5 unidades.
 
@@ -209,7 +160,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 ### Iconos y tema
 
 **Sistema de iconos:**
-- Los iconos de categoría salen de un solo mapa, `src/theme/categoryIcons.js`.
+- Los iconos de categoría salen de un solo mapa, `src/theme/categoryIcons.ts`.
 - `resolveCategoryMeta(categoria, customCats, lang, tipo)` devuelve nombre, color e icono para categorías de fábrica y personalizadas (`custom_<id>`). Lo usan el selector de transacciones, las listas, los chips de filtro y los presupuestos, y reemplaza los lookups de `customCats` que antes estaban repetidos en cada pestaña.
 - Las listas muestran `CategoryAvatar` (squircle con el gradiente del color de la categoría) y los encabezados, `GradientIcon` con un tono semántico (`TONE_BY_PALETTE`).
 - Metas y categorías personalizadas eligen icono con `IconPicker` y guardan la clave (p. ej. `"Flight"`). Las metas viejas con un glifo de texto se siguen mostrando.
@@ -253,10 +204,10 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 
 - **Todos los textos viven en `src/i18n/`**, en español e inglés. Los componentes los toman como `t` de `useSettings()`: `t.save`, `t.goalsTab.newGoal`, `t.common.delete`.
 - **Textos con datos:** son funciones, así el plural y el orden de las palabras quedan en el diccionario. Por ejemplo, `t.overviewTab.expenseRecords(n)` da "1 gasto" o "3 gastos", y `t.common.vsPreviousPeriod(period)` da "vs trimestre anterior".
-- **Fuera de React** (p. ej. `healthLabel` e `insightsList` en `helpers.ts`): `messagesFor(lang)`.
+- **Fuera de React** (p. ej. `healthLabel` en `domain/health.ts` e `insightsList` en `features/dashboard/domain/insights.ts`): `messagesFor(lang)`.
 - **Nombres accesibles:** también se traducen los `aria-label`, los nombres de los 43 iconos del selector (`t.iconNames`) y de las paletas (`t.palettes`).
 - **Regla:** no se escribe `lang === "es" ? … : …`. `messages.test.js` falla si aparece fuera de `src/i18n/`, o si falta una clave en un idioma.
-- **Nombres de categorías:** siguen en `CATEGORIES` (`src/data/index.ts`), con `es` y `en` en cada una.
+- **Nombres de categorías:** siguen en `CATEGORIES` (`src/domain/categories/catalog.ts`), con `es` y `en` en cada una.
 
 ### Formularios y UI
 
@@ -277,7 +228,7 @@ Montos: guardados en PEN (+ moneda, lo escrito y la tasa de cada transacción) �
 - `not-found.tsx` es Client Component (usa `<Button component={Link}>`).
 - El borrado de transacciones usa `try/catch/finally`.
 
-**CalendarFilter (`shared.jsx`):**
+**CalendarFilter (`features/transactions/components/CalendarFilter.tsx`):**
 - **Vistas:** día (grid de 7 columnas con `alpha(mainColor, intensidad)`) y mes (grid 4×3).
 - **Colores:** rojo para EGRESO y verde para INGRESO.
 - **Interacción:** el click filtra y un segundo click limpia. Los chips Día/Mes tienen `aria-label` bilingüe.

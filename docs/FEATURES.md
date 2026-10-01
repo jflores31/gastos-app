@@ -88,7 +88,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - **Modo privacidad:** el botón del ojo en la barra superior oculta todos los montos ("S/••••"). Se recuerda en el navegador. Los montos se formatean con `fmt()` de `useSettings()`, que ya conoce la moneda y este modo.
 - **Tus datos (Perfil):**
   - las transacciones se descargan en CSV (UTF-8 con BOM para Excel, montos en PEN junto con la moneda, lo escrito, la tasa y la cuenta de cada una, celdas protegidas contra fórmulas); al importarlo, la cuenta se reconoce por su nombre;
-  - todo se descarga como copia completa en JSON (`src/data/export.ts`).
+  - todo se descarga como copia completa en JSON (`src/features/import-export/domain/export.ts`).
 - **Papelera (Perfil → Tus datos):**
   - borrar una transacción no pide confirmación: va a la papelera (`deleted_at`) y un aviso ofrece "Deshacer" durante 6 segundos;
   - desde la papelera se restaura o se elimina definitivamente (con confirmación), una por una o todas;
@@ -97,7 +97,7 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
 - **App instalable:** `src/app/manifest.ts` y los iconos de `public/icons/`, generados con `node scripts/generate-icons.mjs`. Chrome, Edge y Android ofrecen "Instalar app"; iOS, "Agregar a pantalla de inicio". No hay Service Worker a propósito (ver [Solución de problemas](DEPLOYMENT.md#solución-de-problemas)).
 
 ## Registrar más rápido
-- **Categoría sugerida por el concepto:** al escribir el concepto de una transacción nueva, si todavía no elegiste categoría, se completa sola (`suggestCategory()` en `src/data/suggest.ts`):
+- **Categoría sugerida por el concepto:** al escribir el concepto de una transacción nueva, si todavía no elegiste categoría, se completa sola (`suggestCategory()` en `src/domain/categories/suggest.ts`):
   - primero con la categoría que más usaste con ese mismo concepto (sin importar mayúsculas ni tildes);
   - si no hay historial, con la categoría del catálogo cuyo nombre o conceptos aparecen en el texto ("pago netflix" → Streaming);
   - si dos categorías empatan, no sugiere nada;
@@ -107,9 +107,9 @@ Drawer con **dos pestañas** que separan Perfil de Ajustes:
   - **Qué entiende:** separador `,` o `;`, fechas `AAAA-MM-DD` o `DD/MM/AAAA`, y montos como `1,234.56`, `1.234,56` o `-S/ 45`.
   - **Tipo y categoría:** sin columna de tipo, el signo del monto decide si es ingreso o egreso. La categoría sale del archivo, de la sugerencia por concepto o de una categoría por defecto que se elige en la vista previa.
   - **Vista previa:** cuántas filas son nuevas, cuántas ya estaban registradas (mismo día, concepto, monto y tipo) y cuáles tienen errores, con su número de línea. Las ya registradas se omiten salvo que se pida lo contrario, así que reimportar un archivo no duplica nada.
-  - **Guardado:** `addTxs()` inserta en lotes de 500; si uno falla, avisa cuántas se guardaron. Límites: 5 MB y 10.000 filas. Código: `src/data/import.ts` y `ImportDialog.jsx`.
+  - **Guardado:** `addTxs()` inserta en lotes de 500; si uno falla, avisa cuántas se guardaron. Límites: 5 MB y 10.000 filas. Código: `src/features/import-export/domain/csvImport.ts` y `ImportDialog.jsx`.
 
-- **Próximos pagos (Presupuesto):** lo que vence desde hoy hasta el mismo día del mes que viene (`upcomingPayments()` en `helpers.ts`), así cada pago mensual aparece una sola vez:
+- **Próximos pagos (Presupuesto):** lo que vence desde hoy hasta el mismo día del mes que viene (`upcomingPayments()` en `features/budgets/domain/recurring.ts`), así cada pago mensual aparece una sola vez:
   - **Gastos que se repiten 3 meses o más:** vencen el día en que sueles pagarlos. Si ya lo registraste este mes, pasan al mes siguiente; si el día pasó y no está registrado, salen como "Vencido".
   - **Suscripciones:** una con el mismo nombre que un gasto repetido (Netflix) se une a él, con el precio de la suscripción. Las demás se fechan con su último pago (+1 mes o +1 año); una mensual nunca pagada aparece "Sin fecha".
   - **Registrar:** abre el formulario con la categoría, el concepto y el monto ya puestos.

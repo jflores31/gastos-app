@@ -12,7 +12,7 @@ Nine tables, all with `id` (uuid), `user_id` and `updated_at` (kept by a trigger
 |---|---|
 | `transactions` | Income and expenses: `tipo` (`INGRESO`/`EGRESO`), `categoria`, `concepto`, `valor` in PEN and `fecha`. Also the currency it was entered in (`moneda`, `monto_original`, `tasa`), the account (`cuenta_id`, optional) and `deleted_at` when it's in the trash |
 | `budgets` | One budget per category (`UNIQUE (user_id, categoria)`), with its `periodo`: `week`, `month` or `year` |
-| `goals` | Savings goals: target, progress, deadline, color and icon (an `ICON_CHOICES` key, the selectable icons in `src/theme/categoryIcons.js`; old goals store a text glyph) |
+| `goals` | Savings goals: target, progress, deadline, color and icon (an `ICON_CHOICES` key, the selectable icons in `src/theme/categoryIcons.ts`; old goals store a text glyph) |
 | `accounts` | Bank accounts, cash and cards (`type`: `bank`, `cash`, `card`), with their balance as of a date (`balance`, `balance_at`) |
 | `transfers` | Transfers between two of the user's accounts (`origen`, `destino`, `monto` in PEN, `fecha`, `nota`) |
 | `investments` | Investments, with their rate of return |
@@ -22,7 +22,7 @@ Nine tables, all with `id` (uuid), `user_id` and `updated_at` (kept by a trigger
 
 **Relationships:**
 - `transactions.cuenta_id`, `transfers.origen` and `transfers.destino` point to `accounts` through `(id, user_id)`, so nobody can link anything to another user's account. When an account is deleted, `ON DELETE SET NULL (col)` sets only that column to `NULL`: the transaction or transfer stays.
-- `categoria` is text, with no foreign key: a key from the catalog that lives in the code (`CATEGORIES` in `src/data/index.ts`, e.g. `COMIDA`) or `custom_<id>` for a custom category, where `<id>` is the `custom_categories` `id`.
+- `categoria` is text, with no foreign key: a key from the catalog that lives in the code (`CATEGORIES` in `src/domain/categories/catalog.ts`, e.g. `COMIDA`) or `custom_<id>` for a custom category, where `<id>` is the `custom_categories` `id`.
 
 **Constraints** (`CHECK`): valid `tipo`, `valor > 0`, `moneda` among the app's 8 currencies, positive `monto_original` and `tasa`, account `type`, budget `periodo` and custom category `tipo`.
 
@@ -69,17 +69,17 @@ The file has two parts, each in its own transaction: if something fails inside o
 
 ### In the code
 
-The app talks to Supabase from a few places; the rest (tabs, charts, `src/data/*`) receives data already converted by `DataContext`'s `map*` functions and doesn't know where it comes from.
+The app talks to Supabase from a few places; the rest (tabs, charts, `domain/` rules) receives data already converted by the mappers in `features/*/data` and doesn't know where it comes from. `npm test` enforces it: Supabase may only appear in `features/*/data`, `contexts/`, `lib/supabase/`, `proxy.ts` and `app/auth/callback` (see [PROJECT-STRUCTURE.en.md](PROJECT-STRUCTURE.en.md)).
 
 | Piece | Files | What it uses from Supabase |
 |---|---|---|
-| Clients | `src/lib/supabase.ts`, `src/lib/supabase-server.ts` | `@supabase/ssr` (`createBrowserClient`, `createServerClient`) with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| Route protection and CSP | `src/proxy.ts`, `src/lib/mfa.ts` | The session in cookies (`getUser`, `getSession`) and its `aal`; the CSP allows `*.supabase.co` and the `NEXT_PUBLIC_SUPABASE_URL` origin |
-| Login, sign-up and password | `src/app/login`, `register`, `forgot-password`, `reset-password`, `auth/callback`; `LoginModal.jsx` | `signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`, `exchangeCodeForSession` (OAuth, disabled) |
-| Session state | `UserContext.tsx`, `DataContext.jsx`, `DashboardStudio.jsx` | `onAuthStateChange`, `getUser`, `signOut` |
-| Profile | `settings/ProfileTab.jsx`, `SettingsPanel.jsx`, `DashboardStudio.jsx`, `OverviewTab.jsx`, `AddTransactionModal.jsx` | `user_metadata` (name, avatar, favorites) and `updateUser` to save it |
-| Two-step verification | `settings/TwoFactorSection.jsx`, `login/page.tsx` | `auth.mfa`: `enroll`, `challengeAndVerify`, `listFactors`, `unenroll` |
-| Data | `DataContext.jsx`, `src/data/fetchAllRows.ts` | PostgREST through supabase-js: `.from(table)` with `select`, `insert`, `update` and `delete`; pagination with `.range()` (PostgREST caps responses at 1000 rows); `PGRST204`, PostgREST's error for a column that doesn't exist, to save without it when the database isn't up to date |
+| Clients | `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts` | `@supabase/ssr` (`createBrowserClient`, `createServerClient`) with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Route protection and CSP | `src/proxy.ts`, `src/features/auth/domain/mfa.ts` | The session in cookies (`getUser`, `getSession`) and its `aal`; the CSP allows `*.supabase.co` and the `NEXT_PUBLIC_SUPABASE_URL` origin |
+| Login, sign-up and password | `src/features/auth/data/authApi.ts`, used by the `features/auth` screens (and `LoginModal`); `src/app/auth/callback` | `signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`, `exchangeCodeForSession` (OAuth, disabled) |
+| Session state | `contexts/UserContext.tsx`, `contexts/DataContext.tsx`, `features/auth/hooks/useSessionGuard.ts` (through `authApi`) | `onAuthStateChange`, `getUser`, `signOut` |
+| Profile | `features/settings/components/ProfileTab.jsx` (saves with `authApi.updateUser`); `user_metadata` is read by `SettingsPanel`, `AppHeader`, `OverviewTab` and `AddTransactionModal` | `user_metadata` (name, avatar, favorites) and `updateUser` to save it |
+| Two-step verification | `features/auth/components/TwoFactorSection.jsx` and `LoginPage.tsx`, through `authApi.mfa` | `auth.mfa`: `enroll`, `challengeAndVerify`, `listFactors`, `unenroll` |
+| Data | `contexts/DataContext.tsx` (load), `contexts/useTableCrud.ts`, `features/*/data/` (each table's mappers and writes), `lib/supabase/fetchAllRows.ts`; typed rows in `types/database.ts` | PostgREST through supabase-js: `.from(table)` with `select`, `insert`, `update` and `delete`; pagination with `.range()` (PostgREST caps responses at 1000 rows); `PGRST204`, PostgREST's error for a column that doesn't exist, to save without it when the database isn't up to date |
 | End-to-end tests | `e2e/mock-supabase/` | A mock Supabase: imitates Auth, PostgREST and MFA, and reads the tables from `schema.sql` |
 
 > ⚠ **The queries rely on RLS.** Data loading (`select("*")`) and the 30-day trash purge (`delete().lt("deleted_at", …)`) don't filter by `user_id`: the database limits each query to the session's user. Without RLS, or with a connection that bypasses it, loading would return everyone's rows and the purge would delete everyone's old trash. On another system, those queries need their per-user filter, or a layer that enforces it.
@@ -92,7 +92,7 @@ Three things move separately: the database, the data (users included) and the co
 |---|---|---|---|
 | **Another Supabase project**, hosted or self-hosted (Docker) | All of `schema.sql` | Copied with the `auth` schema (passwords and two-step verification included), following Supabase's guide for copying a project | Unchanged: only the environment variables |
 | **Another managed Postgres** (Neon, RDS, Railway…) + another login system | Part 1 of `schema.sql` plus a replacement for part 2 | Imported into the new system | The pieces in the table above change |
-| **Another database** (not Postgres) | The schema must be translated (types, `CHECK`, single-column `SET NULL` foreign keys) | Same as above | Same as above, plus all of `DataContext` |
+| **Another database** (not Postgres) | The schema must be translated (types, `CHECK`, single-column `SET NULL` foreign keys) | Same as above | Same as above, plus `DataContext` and every `features/*/data` |
 
 ### 1. Database
 
@@ -128,7 +128,7 @@ Three things move separately: the database, the data (users included) and the co
 
 ### 3. Code
 
-Change the pieces in the [In the code](#in-the-code) table. Almost all data access is in `DataContext.jsx`, and the session in `proxy.ts`, `UserContext.tsx` and the login pages. If the new system doesn't expose a PostgREST-like API, `DataContext` switches to calling the app's own routes (e.g. in `src/app/api/`) that query the database with the session's user. Also update:
+Change the pieces in the [In the code](#in-the-code) table. Data access is in `DataContext.tsx` and the `features/*/data/` modules, and authentication in `features/auth/data/authApi.ts`, `proxy.ts` and `UserContext.tsx`. If the new system doesn't expose a PostgREST-like API, those `data/` modules switch to calling the app's own routes (e.g. in `src/app/api/`) that query the database with the session's user. Also update:
 - the CSP in `src/proxy.ts` (`connect-src` and `img-src` allow `*.supabase.co`);
 - the environment variables (`.env.example`, Vercel);
 - the end-to-end tests' mock Supabase, or replace it with one for the new system.

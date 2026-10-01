@@ -69,6 +69,8 @@ Testing details in **[docs/TESTING.md](docs/TESTING.md)** (Spanish).
 |---|---|
 | [Features](docs/FEATURES.en.md) | Everything the app does, screen by screen |
 | [Architecture](docs/ARCHITECTURE.en.md) | Code structure, data flow, key modules and technical notes |
+| [Code structure](docs/PROJECT-STRUCTURE.en.md) | Where everything goes in `src/`, the layers, the rules `npm test` checks and how to add a feature |
+| [Architecture audit](docs/ARCHITECTURE-AUDIT.md) (Spanish) | The refactor by feature and layer: starting point, plan, findings and result |
 | [Database](docs/DATABASE.en.md) | Tables, how to install or upgrade the schema, what depends on Supabase and how to move to another system |
 | [Security](docs/SECURITY.en.md) · [CSP](docs/SECURITY-CSP.md) (Spanish) | Security measures and the per-request nonce Content-Security-Policy |
 | [Tests](docs/TESTING.md) (Spanish) | Unit, component and end-to-end tests, and the mock Supabase |

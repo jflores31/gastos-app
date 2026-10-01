@@ -10,14 +10,14 @@ Cuatro piezas:
 
 | Pieza | Archivo | Qué hace |
 |---|---|---|
-| Módulo central | `src/theme/icons.js` | Re-exporta cada icono en variante Rounded (import directo, mejor tree-shaking). Los componentes importan desde aquí, nunca desde `@mui/icons-material`: cambiar de estilo (p. ej. a Outlined) es editar solo este archivo. Excepciones: `GitHub` y `Google` no tienen variante Rounded (quedan Filled) y `ErrorOutlined` apunta a `ErrorRounded` |
-| Categoría → icono | `src/theme/categoryIcons.js` | `EXPENSE_ICONS` e `INCOME_ICONS` (mapa de abajo), `ICON_CHOICES` (los elegibles) y `resolveCategoryMeta()`, que da nombre, color e icono de cualquier categoría, de fábrica o propia |
-| Pintado | `src/theme/GradientIcon.jsx` | `GradientIcon` (burbuja con el gradiente de un tono, en los encabezados) y `CategoryAvatar` (squircle con el color de la categoría, en las listas) |
-| Animación | `src/theme/materialTheme.js` | El tema de MUI anima todos los iconos (ver [Animación](#animación)) |
+| Módulo central | `src/theme/icons.ts` | Re-exporta cada icono en variante Rounded (import directo, mejor tree-shaking). Los componentes importan desde aquí, nunca desde `@mui/icons-material`: cambiar de estilo (p. ej. a Outlined) es editar solo este archivo. Excepciones: `GitHub` y `Google` no tienen variante Rounded (quedan Filled) y `ErrorOutlined` apunta a `ErrorRounded` |
+| Categoría → icono | `src/theme/categoryIcons.ts` | `EXPENSE_ICONS` e `INCOME_ICONS` (mapa de abajo), `ICON_CHOICES` (los elegibles) y `resolveCategoryMeta()`, que da nombre, color e icono de cualquier categoría, de fábrica o propia |
+| Pintado | `src/components/ui/GradientIcon.jsx` | `GradientIcon` (burbuja con el gradiente de un tono, en los encabezados) y `CategoryAvatar` (squircle con el color de la categoría, en las listas) |
+| Animación | `src/theme/materialTheme.ts` | El tema de MUI anima todos los iconos (ver [Animación](#animación)) |
 
 ## Mapa categoría → icono
 
-Las categorías (`CATEGORIES` en `src/data/index.ts`) no llevan icono, solo nombre, color y conceptos. El icono se asigna en `categoryIcons.js`, y lo usan el selector de transacciones, las listas, los chips de filtro, los presupuestos y las suscripciones. `categoryIcons.test.js` falla si una categoría queda sin icono; una desconocida muestra `Category`.
+Las categorías (`CATEGORIES` en `src/domain/categories/catalog.ts`) no llevan icono, solo nombre, color y conceptos. El icono se asigna en `categoryIcons.ts`, y lo usan el selector de transacciones, las listas, los chips de filtro, los presupuestos y las suscripciones. `categoryIcons.test.js` falla si una categoría queda sin icono; una desconocida muestra `Category`.
 
 | Gasto (`EXPENSE_ICONS`) | Icono | Ingreso (`INCOME_ICONS`) | Icono |
 |---|---|---|---|
@@ -57,54 +57,58 @@ Las categorías (`CATEGORIES` en `src/data/index.ts`) no llevan icono, solo nomb
 
 ## Iconos elegibles
 
-Metas y categorías propias eligen su icono en `IconPicker.jsx`, entre los 43 de `ICON_CHOICES`. En la base se guarda la clave (p. ej. `"Flight"`), no el componente; las metas viejas con un glifo de texto (`"◉"`) se siguen mostrando tal cual. Cada icono tiene nombre accesible en los dos idiomas (`t.iconNames`).
+Metas y categorías propias eligen su icono en `IconPicker.tsx` (`src/components/ui/`), entre los 43 de `ICON_CHOICES`. En la base se guarda la clave (p. ej. `"Flight"`), no el componente; las metas viejas con un glifo de texto (`"◉"`) se siguen mostrando tal cual. Cada icono tiene nombre accesible en los dos idiomas (`t.iconNames`).
 
 `Flag`, `Savings`, `Home`, `Apartment`, `Flight`, `BeachAccess`, `DirectionsCar`, `TwoWheeler`, `DirectionsBike`, `School`, `Laptop`, `PhoneAndroid`, `Pets`, `ChildCare`, `FitnessCenter`, `SportsSoccer`, `SportsEsports`, `MusicNote`, `PhotoCamera`, `Movie`, `Restaurant`, `Coffee`, `LocalGroceryStore`, `ShoppingBag`, `Checkroom`, `Spa`, `HealthAndSafety`, `Medication`, `CardGiftcard`, `Celebration`, `Diamond`, `Work`, `Handshake`, `Storefront`, `Payments`, `CreditCard`, `AccountBalance`, `TrendingUp`, `ElectricBolt`, `Wifi`, `Build`, `Receipt`, `Category`
 
 ## Iconos de la interfaz, por archivo
 
-Los que no son de categoría. Se obtiene buscando los `import { … } from ".../theme/icons"` de `src/` (sin tests ni `categoryIcons.js`).
+Los que no son de categoría. Se obtiene buscando los `import { … } from ".../theme/icons"` de `src/` (sin tests ni `categoryIcons.ts`).
 
 | Archivo (en `src/`) | Iconos |
 |---|---|
-| `app/components/auth/AuthThemeToggle.tsx` | DarkMode, LightMode |
-| `app/forgot-password/page.tsx` | ArrowBack, LockReset, MarkEmailRead |
-| `app/login/page.tsx` | AccountBalanceWallet, GitHub, Google, Visibility, VisibilityOff |
-| `app/register/page.tsx` | AccountBalanceWallet, CheckCircle, GitHub, Google, Visibility, VisibilityOff |
-| `app/reset-password/page.tsx` | ArrowBack, CheckCircle, ErrorOutlined, LockReset, Visibility, VisibilityOff |
-| `components/AddTransactionModal.jsx` | Label, Star |
-| `components/DashboardStudio.jsx` | AccountBalanceWallet, Add, AttachMoney, Dashboard, Flag, Login, Logout, Receipt, Settings, Visibility, VisibilityOff |
-| `components/ExpensesTab.jsx` | Add, CalendarMonth, Delete, Edit, ExpandLess, ExpandMore, Receipt, TrendingDown, Warning |
-| `components/IncomeTab.jsx` | AccountBalanceWallet, Add, Delete, Edit, PieChart, ShowChart |
-| `components/LoginModal.jsx` | Close, GitHub, Google |
-| `components/OverviewTab.jsx` | AccountBalanceWallet, CalendarMonth, Insights, PieChart, Savings, ShowChart, Timeline, TrendingDown, TrendingUp, Warning |
-| `components/SettingsPanel.jsx` | Close, Person, Settings |
-| `components/budget/BudgetCardsGrid.jsx` | Add, Check, Edit |
-| `components/budget/BudgetVsActualCard.jsx` | CompareArrows |
-| `components/budget/DistributionCard.jsx` | PieChart |
-| `components/budget/HealthSummaryCard.jsx` | AccountBalanceWallet, CheckCircle, TrendingDown, TrendingUp, Warning |
-| `components/budget/ManageBudgetsDialog.jsx` | Add, Check, Close, Delete, Edit |
-| `components/budget/PeriodComparisonCard.jsx` | CompareArrows |
-| `components/budget/RecurringCard.jsx` | Event |
-| `components/budget/UpcomingPaymentsCard.jsx` | CalendarMonth |
-| `components/goals/AccountsCard.jsx` | AccountBalance, Add, AttachMoney, CreditCard, Delete, Edit, SwapHoriz |
-| `components/goals/DebtsCard.jsx` | Add, CreditScore |
-| `components/goals/EmptySection.jsx` | Add |
-| `components/goals/ForecastCard.jsx` | Timeline |
-| `components/goals/GoalsSection.jsx` | Add, Savings |
-| `components/goals/InvestmentsSection.jsx` | Add, ShowChart |
-| `components/goals/NetWorthEvolutionCard.jsx` | History |
-| `components/goals/SubscriptionsCard.jsx` | Add, Subscriptions |
-| `components/settings/CustomCategoriesSection.jsx` | Add, Delete, Edit |
-| `components/settings/DataExportSection.jsx` | DataObject, RestoreFromTrash, TableChart, UploadFile |
-| `components/settings/PreferencesTab.jsx` | DarkMode, LightMode |
-| `components/settings/ProfileTab.jsx` | Person |
-| `components/settings/TrashDialog.jsx` | DeleteForever, DeleteSweep, RestoreFromTrash |
-| `components/shared.jsx` | AttachMoney, CalendarMonth, ChevronLeft, ChevronRight, Inbox, Receipt |
+| `components/ui/EmptySection.tsx` | Add |
+| `components/ui/EmptyState.jsx` | Inbox |
+| `features/accounts/components/AccountsCard.jsx` | AccountBalance, Add, AttachMoney, CreditCard, Delete, Edit, SwapHoriz |
+| `features/auth/components/AuthThemeToggle.tsx` | DarkMode, LightMode |
+| `features/auth/components/ForgotPasswordPage.tsx` | ArrowBack, LockReset, MarkEmailRead |
+| `features/auth/components/LoginModal.jsx` | Close, GitHub, Google |
+| `features/auth/components/LoginPage.tsx` | AccountBalanceWallet, GitHub, Google, Visibility, VisibilityOff |
+| `features/auth/components/RegisterPage.tsx` | AccountBalanceWallet, CheckCircle, GitHub, Google, Visibility, VisibilityOff |
+| `features/auth/components/ResetPasswordPage.tsx` | ArrowBack, CheckCircle, ErrorOutlined, LockReset, Visibility, VisibilityOff |
+| `features/budgets/components/BudgetCardsGrid.jsx` | Add, Check, Edit |
+| `features/budgets/components/BudgetVsActualCard.jsx` | CompareArrows |
+| `features/budgets/components/DistributionCard.jsx` | PieChart |
+| `features/budgets/components/HealthSummaryCard.jsx` | AccountBalanceWallet, CheckCircle, TrendingDown, TrendingUp, Warning |
+| `features/budgets/components/ManageBudgetsDialog.jsx` | Add, Check, Close, Delete, Edit |
+| `features/budgets/components/PeriodComparisonCard.jsx` | CompareArrows |
+| `features/budgets/components/RecurringCard.jsx` | Event |
+| `features/budgets/components/UpcomingPaymentsCard.jsx` | CalendarMonth |
+| `features/categories/components/CustomCategoriesSection.jsx` | Add, Delete, Edit |
+| `features/dashboard/components/AppHeader.tsx` | Add, Login, Logout, Settings, Visibility, VisibilityOff |
+| `features/dashboard/components/MainNav.tsx` | AccountBalanceWallet, AttachMoney, Dashboard, Flag, Receipt |
+| `features/dashboard/components/OverviewTab.jsx` | AccountBalanceWallet, CalendarMonth, Insights, PieChart, Savings, ShowChart, Timeline, TrendingDown, TrendingUp, Warning |
+| `features/debts/components/DebtsCard.jsx` | Add, CreditScore |
+| `features/goals/components/ForecastCard.jsx` | Timeline |
+| `features/goals/components/GoalsSection.jsx` | Add, Savings |
+| `features/goals/components/NetWorthEvolutionCard.jsx` | History |
+| `features/investments/components/InvestmentsSection.jsx` | Add, ShowChart |
+| `features/settings/components/PreferencesTab.jsx` | DarkMode, LightMode |
+| `features/settings/components/ProfileTab.jsx` | Person |
+| `features/settings/components/SettingsPanel.jsx` | Close, Person, Settings |
+| `features/settings/components/YourDataSection.jsx` | DataObject, RestoreFromTrash, TableChart, UploadFile |
+| `features/subscriptions/components/SubscriptionsCard.jsx` | Add, Subscriptions |
+| `features/transactions/components/AddTransactionModal.tsx` | Label, Star |
+| `features/transactions/components/CalendarFilter.tsx` | CalendarMonth, ChevronLeft, ChevronRight |
+| `features/transactions/components/ExpensesTab.jsx` | Add, CalendarMonth, ExpandLess, ExpandMore, Receipt, TrendingDown, Warning |
+| `features/transactions/components/IncomeTab.jsx` | AccountBalanceWallet, Add, PieChart, ShowChart |
+| `features/transactions/components/NoTransactions.jsx` | AttachMoney, Receipt |
+| `features/transactions/components/TransactionList.jsx` | Delete, Edit |
+| `features/transactions/components/TrashDialog.jsx` | DeleteForever, DeleteSweep, RestoreFromTrash |
 
 ## Animación
 
-El tema de MUI (`src/theme/materialTheme.js`) centraliza el comportamiento, no la lista de iconos:
+El tema de MUI (`src/theme/materialTheme.ts`) centraliza el comportamiento, no la lista de iconos:
 
 | Componente | Efecto |
 |---|---|
