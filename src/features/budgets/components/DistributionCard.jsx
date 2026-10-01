@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { Box, Card, CardContent, Tooltip, Typography } from "@mui/material";
 import { PieChart as PieIcon } from "@/theme/icons";
-import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { Donut } from "../charts/Charts";
+import { Donut } from "@/components/charts/Charts";
 
 // Donut of what was spent in each budgeted category this period.
 export function DistributionCard({ cats }) {

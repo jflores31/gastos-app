@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { upcomingPayments } from "./helpers"
+import { upcomingPayments } from "./recurring"
 
 const tx = (categoria, concepto, valor, y, m, d, tipo = "EGRESO") => {
   const date = new Date(y, m, d, 10)

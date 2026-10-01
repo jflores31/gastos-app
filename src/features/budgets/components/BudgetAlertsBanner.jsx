@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Alert, AlertTitle, Box } from "@mui/material";
-import { budgetAlerts } from "../../data/helpers";
+import { budgetAlerts } from "../domain/budgets";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";

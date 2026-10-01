@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { CalendarMonth as UpcomingIcon } from "@/theme/icons";
-import { upcomingPayments } from "../../data/helpers";
-import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
+import { upcomingPayments } from "../domain/recurring";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";

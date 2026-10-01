@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Box, Button, Card, CardContent, Stack, Typography } from "@mui/material";
 import { Event as EventIcon } from "@/theme/icons";
-import { recurringList } from "../../data/helpers";
-import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
+import { recurringList } from "../domain/recurring";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";

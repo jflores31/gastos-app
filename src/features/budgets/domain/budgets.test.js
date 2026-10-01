@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest"
-import { budgetFor, budgetAlerts } from "./helpers"
+import { budgetFor, budgetAlerts } from "./budgets"
 
 const tx = (categoria, valor, date, tipo = "EGRESO") => ({
   id: `${categoria}-${date.toISOString()}-${valor}`, tipo, categoria, concepto: "X", valor, date,

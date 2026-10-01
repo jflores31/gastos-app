@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { budgetAlerts } from "../data/helpers";
+import { budgetAlerts } from "../domain/budgets";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";

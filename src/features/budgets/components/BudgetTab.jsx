@@ -5,17 +5,17 @@ import { Grid, Stack } from "@mui/material";
 import { txByCategory } from "@/features/transactions/domain/aggregations";
 import { filterByPeriod } from "@/domain/period";
 import { healthScore } from "@/domain/health";
-import { budgetFor } from "../data/helpers";
+import { budgetFor } from "../domain/budgets";
 import { useData } from "@/contexts/DataContext";
-import { HealthSummaryCard } from "./budget/HealthSummaryCard.jsx";
-import { BudgetCardsGrid } from "./budget/BudgetCardsGrid.jsx";
-import { DistributionCard } from "./budget/DistributionCard.jsx";
-import { PeriodComparisonCard } from "./budget/PeriodComparisonCard.jsx";
-import { BudgetVsActualCard } from "./budget/BudgetVsActualCard.jsx";
-import { RecurringCard } from "./budget/RecurringCard.jsx";
-import { UpcomingPaymentsCard } from "./budget/UpcomingPaymentsCard.jsx";
-import { ManageBudgetsDialog } from "./budget/ManageBudgetsDialog.jsx";
-import { BudgetAlertsBanner } from "./budget/BudgetAlertsBanner.jsx";
+import { HealthSummaryCard } from "./HealthSummaryCard";
+import { BudgetCardsGrid } from "./BudgetCardsGrid";
+import { DistributionCard } from "./DistributionCard";
+import { PeriodComparisonCard } from "./PeriodComparisonCard";
+import { BudgetVsActualCard } from "./BudgetVsActualCard";
+import { RecurringCard } from "./RecurringCard";
+import { UpcomingPaymentsCard } from "./UpcomingPaymentsCard";
+import { ManageBudgetsDialog } from "./ManageBudgetsDialog";
+import { BudgetAlertsBanner } from "./BudgetAlertsBanner";
 
 // Budget tab: health summary, one card per budget, distribution, comparison with the
 // previous period, budget vs actual, upcoming and recurring payments (src/components/budget/).

@@ -16,7 +16,7 @@ import { txByCategory, getTodayExpenses } from "../domain/aggregations";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
-import { budgetFor } from "@/data/helpers";
+import { budgetFor } from "@/features/budgets/domain/budgets";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";

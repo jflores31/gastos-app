@@ -1,8 +1,8 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { CompareArrows as CompareIcon } from "@/theme/icons";
 import { periodLabel } from "@/domain/period";
-import { budgetFor } from "../../data/helpers";
-import { GradientIcon, CategoryAvatar } from "../ui/GradientIcon";
+import { budgetFor } from "../domain/budgets";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
