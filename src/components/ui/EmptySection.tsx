@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { Add as AddIcon } from "@/theme/icons";
 import { useSettings } from "@/contexts/SettingsContext";
 
-export function EmptySection({ label, onAdd }) {
+export function EmptySection({ label, onAdd }: { label: string; onAdd: () => void }) {
   const { t } = useSettings();
   return (
     <Box sx={{ textAlign: "center", py: 4, color: "text.secondary" }}>

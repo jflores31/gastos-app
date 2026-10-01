@@ -5,10 +5,12 @@ import { ICON_CHOICES } from "@/theme/categoryIcons";
 import { tint } from "@/theme/iconTones";
 import { useSettings } from "@/contexts/SettingsContext";
 
+type Props = { value?: string | null; onChange: (name: string) => void; color?: string; label?: string };
+
 // Rejilla de iconos elegibles (ICON_CHOICES) para metas y categorías personalizadas.
 // `value` es la clave que se guarda en DB (p. ej. "Flight"); un valor que no está en
 // la lista (glifo viejo como "◉") simplemente no aparece seleccionado.
-export function IconPicker({ value, onChange, color = "#7C8CA1", label }) {
+export function IconPicker({ value, onChange, color = "#7C8CA1", label }: Props) {
   const { t } = useSettings();
   return (
     <Box>
@@ -36,7 +38,7 @@ export function IconPicker({ value, onChange, color = "#7C8CA1", label }) {
               key={name}
               role="radio"
               aria-checked={selected}
-              aria-label={t.iconNames[name] ?? name}
+              aria-label={t.iconNames[name as keyof typeof t.iconNames] ?? name}
               onClick={() => onChange(name)}
               sx={{
                 width: 40,
