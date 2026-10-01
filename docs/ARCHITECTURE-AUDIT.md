@@ -2,7 +2,7 @@
 
 > Punto de partida del refactor arquitectónico: `main` en `be3d3ef` (29-09-2026).
 > Reúne lo que el plan pedía en tres documentos (auditoría, mapa de dependencias y plan de migración).
-> El resultado, con el mapa "después", se agrega al final cuando termina el refactor; la estructura resultante se documenta en `docs/PROJECT-STRUCTURE.md`.
+> El [resultado](#resultado), con el mapa "después", está al final; la estructura resultante se documenta en [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md).
 
 ## Cómo se hizo
 
@@ -333,3 +333,134 @@ Cosas que el código hace hoy y que la reorganización **no cambia**, porque cam
 **Lo único que cambia:** un índice de secciones al principio del archivo, para ubicar tablas, funciones, triggers y políticas, y encabezados uniformes. Ninguna sentencia se toca, y se comprueba con `pg_dump --schema-only` antes y después.
 - **`supabase/seed/reset.sql`:** se queda como está.
 - **`supabase/config.toml`:** es la configuración del CLI local, y también se queda.
+
+## Resultado
+
+Refactor terminado el 01-10-2026 en el PR #11. Ninguna fase cambió el comportamiento ni el aspecto de la app, ni el esquema (las reglas, el esquema, la autenticación, la 2FA, el CSP y RLS quedan igual).
+
+### Chequeos
+
+| Chequeo | Baseline `be3d3ef` | Final |
+|---|---|---|
+| `npm run lint` | PASS | PASS |
+| `npm run typecheck` | PASS | PASS |
+| `npm test` (unitarios y componentes) | 211 | **230** PASS (+3 de arquitectura, +9 de esquema, +3 del callback, +3 de `useToast`, +2 de `matchesCalendar`; −1 de `fmtDate`, código muerto) |
+| `npm run build` | PASS | PASS |
+| e2e (Playwright, Supabase simulado) | 36/36 | **36/36**, y 72/72 con `--repeat-each 2` |
+| Capturas contra `be3d3ef` | — | **138 capturas, 0 píxeles distintos** al cerrar las fases 2/3, 4, 5 y 6 (5 pestañas, diálogos, auth, Perfil y Ajustes; claro/oscuro, es/en, escritorio/390 px). Corrida final, después de la fase 8: en curso |
+| Mapa de dependencias | 10 violaciones, 0 ciclos | **0 violaciones, 0 ciclos, 0 exports sin uso, 0 archivos huérfanos** |
+| `supabase/schema.sql` | — | solo comentarios: sin ellos es idéntico, y `pg_dump --schema-only` en Postgres 16 también |
+
+Las capturas, los e2e (una vez y repetidos) y el build se corrieron al cerrar cada fase (2/3, 4, 5 y 6) y otra vez al final. En la corrida final, build, 36/36 y 72/72 ya pasaron. Lint, typecheck y `npm test` corrieron en cada commit.
+
+### Mapa de dependencias (después)
+
+Cada fila es una carpeta y lo que importa de las demás (sin tests). Supabase (`@supabase/*`, `lib/supabase`) solo aparece en `features/*/data`, `contexts`, `app/auth` y `proxy`:
+
+<details>
+<summary>Ver el mapa (46 áreas)</summary>
+
+| Área | Importa |
+|---|---|
+| `app` | `components`, `features/auth/components`, `features/dashboard/components`, `lib` |
+| `app/auth` | `lib/supabase` |
+| `components` | `contexts`, `i18n`, `lib`, `theme` |
+| `contexts` | `@supabase/supabase-js`, `domain`, `features/accounts/data`, `features/accounts/domain`, `features/auth/domain`, `features/budgets/data`, `features/categories/data`, `features/debts/data`, `features/goals/data`, `features/investments/data`, `features/subscriptions/data`, `features/transactions/data`, `features/transactions/domain`, `hooks`, `i18n`, `lib`, `lib/supabase`, `theme`, `types` |
+| `domain` | `i18n`, `types` |
+| `features/accounts/components` | `components`, `contexts`, `domain`, `theme` |
+| `features/accounts/data` | `types` |
+| `features/accounts/domain` | `types` |
+| `features/auth/components` | `contexts`, `features/auth/data`, `features/auth/domain`, `lib`, `theme` |
+| `features/auth/data` | `@supabase/supabase-js`, `lib/supabase` |
+| `features/auth/domain` | — |
+| `features/auth/hooks` | `components`, `contexts`, `features/auth/data` |
+| `features/budgets/components` | `components`, `contexts`, `domain`, `features/budgets/domain`, `features/transactions/domain`, `theme` |
+| `features/budgets/data` | `@supabase/supabase-js`, `types` |
+| `features/budgets/domain` | `domain`, `types` |
+| `features/budgets/hooks` | `components`, `contexts`, `features/budgets/domain`, `theme` |
+| `features/categories/components` | `components`, `contexts`, `theme` |
+| `features/categories/data` | `types` |
+| `features/dashboard/components` | `components`, `contexts`, `domain`, `features/accounts/components`, `features/auth/components`, `features/auth/hooks`, `features/budgets/components`, `features/budgets/hooks`, `features/dashboard/domain`, `features/dashboard/hooks`, `features/debts/components`, `features/goals/components`, `features/investments/components`, `features/settings/components`, `features/subscriptions/components`, `features/transactions/components`, `features/transactions/domain`, `theme` |
+| `features/dashboard/domain` | `domain`, `i18n`, `types` |
+| `features/dashboard/hooks` | — |
+| `features/debts/components` | `components`, `contexts`, `domain`, `theme` |
+| `features/debts/data` | `types` |
+| `features/goals/components` | `components`, `contexts`, `domain`, `features/goals/domain`, `theme` |
+| `features/goals/data` | `types` |
+| `features/goals/domain` | — |
+| `features/import-export/components` | `contexts`, `domain`, `features/import-export/domain`, `theme` |
+| `features/import-export/domain` | `domain`, `types` |
+| `features/investments/components` | `components`, `contexts`, `domain`, `theme` |
+| `features/investments/data` | `types` |
+| `features/settings/components` | `contexts`, `domain`, `features/auth/components`, `features/auth/data`, `features/categories/components`, `features/import-export/components`, `features/import-export/domain`, `features/transactions/components`, `theme` |
+| `features/subscriptions/components` | `components`, `contexts`, `domain`, `theme` |
+| `features/subscriptions/data` | `types` |
+| `features/transactions/components` | `components`, `contexts`, `domain`, `features/budgets/domain`, `features/transactions/data`, `features/transactions/domain`, `features/transactions/hooks`, `theme`, `types` |
+| `features/transactions/data` | `@supabase/supabase-js`, `types` |
+| `features/transactions/domain` | `domain`, `types` |
+| `features/transactions/hooks` | `components`, `contexts`, `types` |
+| `hooks` | — |
+| `i18n` | — |
+| `lib` | `domain` |
+| `lib/supabase` | `@supabase/ssr` |
+| `proxy` | `@supabase/ssr`, `features/auth/domain` |
+| `theme` | `domain`, `types` |
+| `types` | — |
+
+</details>
+
+### Qué se movió y qué no
+
+- **Funcionalidades:** las 12 viven en `src/features/<f>/{components,hooks,domain,data}`.
+- **Carpetas por tecnología eliminadas:**
+  - `src/data/` (repartida en `domain/` y en el `domain/` de cada funcionalidad);
+  - `src/app/components/`, `src/context/` y `src/types.ts`.
+- **Shell:** `DashboardStudio` pasó de 366 a ~90 líneas.
+- **`DataContext`:** pasó de 589 líneas en JS a ~260 en TS. Su mapeo y sus escrituras están en `features/*/data`.
+- **Supabase en la UI:** ninguno; la UI usa `authApi` y `useData()`.
+- **TypeScript:** la lógica, los tipos, los contextos, los hooks, la capa de datos y la UI compartida.
+- **Siguen en `.jsx`, con su motivo:**
+  - las pantallas y tarjetas;
+  - `GradientIcon`, `EmptyState` y `TransactionList` (ver [Migración JS → TS](#migración-js--ts)).
+- **Pendientes (fuera del refactor):**
+  - los dos [hallazgos](#hallazgos-durante-la-migración), en un PR aparte;
+  - la T16 (estilos);
+  - `allowJs`.
+
+### Diferencias con el árbol de referencia del brief (y por qué)
+
+El brief proponía un árbol "de referencia, no una orden rígida". Donde el resultado es distinto, el motivo sale de las dependencias reales:
+
+| Propuesta | Resultado | Por qué |
+|---|---|---|
+| `features/<f>/{services,repositories,calculations,validations,types,tests}` | `features/<f>/{components,hooks,domain,data}` | **`domain/`** reúne cálculos, validaciones y reglas (todo función pura con test). **`data/`** reúne consultas, mappers y escrituras. Sin una capa `services/` ni `repositories/` por entidad: 7 tablas se guardan igual, y una descripción de tabla (`TableSpec`) con `useTableCrud` lo resuelve sin una clase por tabla. El único "servicio" es `authApi`, porque es la frontera con Supabase Auth |
+| `features/<f>/tests/` | tests junto al módulo (`budgets.test.js` al lado de `budgets.ts`) | Una sola estrategia, la que el repo ya usaba; Vitest los encuentra por patrón |
+| `types/{domain,database,common}/` con un archivo por entidad | `types/domain.ts` y `types/database.ts` | `domain.ts` tiene ~100 líneas y lo usan todas las funcionalidades: un archivo responde "¿dónde están los tipos?". Las filas de la base van aparte. Los tipos propios de un módulo (p. ej. `CalendarSelection`, `TxInput`) viven con él |
+| `supabase/{migrations,functions,triggers,policies}/` | un solo `schema.sql`, con índice de secciones | Decisión del usuario: cada parte es una transacción atómica, el SQL Editor lo ejecuta de una vez y el simulado lee ese mismo archivo ([Base de datos](#base-de-datos)) |
+| `src/styles/` | `app/globals.css` (sin mover), tema en `theme/`, `sx` junto a cada componente | `globals.css` es del layout raíz de Next. Separar los estilos del código es la T16, que sigue pendiente, y se cruza con el [hallazgo 2](#hallazgos-durante-la-migración) |
+| `features/reports/` | no existe | La app no tiene una pantalla de reportes: las estadísticas son el Resumen (`dashboard`) y las exportaciones (`import-export`) |
+| `components/layout/` (Header, Navigation) | `AppHeader` y `MainNav` en `features/dashboard/components` | Solo los usa el shell de la app; las pantallas de auth tienen su propio marco (`AuthCard`). Si otra página los necesita, pasan a `components/` (no importan funcionalidades) |
+| `lib/{security,rates,utilities}/` | `lib/supabase/` y archivos sueltos (`rates.ts`, `reportError.ts`, `featureFlags.ts`) | Un archivo por tema; la seguridad de sesión es de `auth` (`useSessionGuard`, `proxy.ts`) |
+
+### Criterio de aceptación (punto 41)
+
+- [x] **La estructura representa los dominios de la app:** una carpeta por funcionalidad, con el nombre de la pantalla o la tabla que maneja.
+- [x] **Las responsabilidades están separadas:** cuatro capas (UI, estado, dominio, datos) que `architecture.test.js` comprueba.
+- [x] **Las dependencias son comprensibles:** el mapa de arriba, sin ciclos, y la convención de imports aplicada por test.
+- [x] **No hay imports rotos:** `dependency-map.mjs` falla con un import sin resolver, y el typecheck y el build pasan.
+- [x] **No hay archivos huérfanos:** 0 archivos sin importar (aparte de las entradas de Next) y 0 exports sin uso.
+- [ ] **No hay duplicaciones importantes:** parcial. La lista de Gastos e Ingresos ya es una sola (`TransactionList`). Los filtros siguen duplicados porque no hacen lo mismo ([hallazgo 1](#hallazgos-durante-la-migración)); se unifican en el PR aparte.
+- [x] **El JavaScript restante está justificado:** tabla de [Migración JS → TS](#migración-js--ts).
+- [x] **TypeScript es el lenguaje principal de forma progresiva:** todo lo nuevo nace en TS, y cada migración se comprobó con el JS emitido.
+- [x] **Los componentes no acceden a Supabase sin necesidad:** 0 violaciones; la regla está en `npm test`.
+- [x] **La lógica de negocio se prueba por separado:** todo `domain/` es puro y tiene tests.
+- [x] **Supabase sigue funcionando:** mismas consultas, en el mismo orden y con los mismos filtros (`DataContext.test.jsx` sin tocar), y los e2e contra el Supabase simulado. Falta la prueba manual en el preview de Vercel, contra el proyecto real.
+- [x] **PostgreSQL sigue funcionando:** el esquema solo cambió en comentarios; `pg_dump` idéntico.
+- [x] **RLS sigue funcionando:** las políticas son las mismas (`pg_dump`), y el simulado aplica RLS en los e2e.
+- [x] **La 2FA sigue funcionando:** e2e de activar, pedir el código al entrar y desactivar; `authApi` solo pasa las llamadas.
+- [x] **El CSP sigue funcionando:** e2e del nonce en scripts y estilos, del bloqueo y del reporte.
+- [x] **La app conserva su comportamiento:** 138 capturas idénticas, 36 e2e y 230 unitarios.
+- [x] **Los tests siguen funcionando:** ninguno se borró salvo el de `fmtDate`, que era código muerto. Los divididos se movieron sin cambiar.
+- [x] **El build sigue funcionando.**
+- [x] **La documentación coincide con el código:** PROJECT-STRUCTURE, ARCHITECTURE, DATABASE, TESTING, ICONS, README, CHANGELOG e INVESTIGACION están actualizados, y no hay enlaces rotos.
+- [x] **Un desarrollador nuevo encuentra cada funcionalidad:** [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md) dice dónde va cada cosa y cómo agregar una funcionalidad.
