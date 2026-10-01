@@ -224,6 +224,10 @@ Columnas:
 
 `allowJs` se queda en `true`: quedan componentes `.jsx` a propósito. Se reconsidera cuando no quede ninguno.
 
+**Estado (fase 5):**
+- **Ya en TS:** `useEntityDialog`, `EntityDialog`, `IconPicker`, `EmptySection`, `Charts` y `CalendarFilter`.
+- **Pasan en la fase 6:** `useBudgetAlertToasts`, `useMoveToTrash`, `useTxExtras` y `AddTransactionModal` usan `useData()`, que desde TypeScript se ve como `never` mientras `DataContext` sea JS. Pasan justo después de `DataContext.tsx`.
+
 **Cómo se comprueba que tipar no cambia nada:** se compara el JS que emite TypeScript (`transpileModule`, sin comentarios) para el `.jsx` viejo y para el `.tsx` nuevo. Tienen que ser idénticos. Si TypeScript obliga a cambiar código, y no solo a anotarlo, el archivo se queda en `.jsx` con el motivo.
 
 | Estado | Archivos | Por qué |
@@ -236,6 +240,7 @@ Columnas:
 | **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
 | **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
 | **Pendiente** | `TransactionList.jsx` (extraído en la fase 4) | Usa `fontWeight` en `Typography`, que MUI 9 ignora y sus tipos rechazan. Tiparlo obliga a quitar la prop o a pasarla a `sx`, y lo segundo cambia el aspecto (ver [Hallazgos](#hallazgos-durante-la-migración)) |
+| **Pendiente** | `GradientIcon.jsx` | Dibuja `<Icon>` solo cuando no recibe `children`. TypeScript no acepta un componente que puede no existir sin cambiar código (una comprobación antes de `<Icon>`), y la regla de la fase 5 es solo anotar |
 | **No migrar** | `e2e/mock-supabase/*.mjs`, `scripts/*.mjs`, `eslint.config.js`, `vitest.config.mjs`, `next.config.mjs` | Scripts de Node y configuración: corren fuera del bundle, y en ESM funcionan tal cual |
 | **No migrar** | Tests `.test.js`/`.test.jsx` existentes, también los que se dividen | Cambiarles la extensión no agrega nada, y pasarlos a TS obligaría a cambiar sus datos de prueba con casts: se mueven tal cual. Los tests nuevos van en `.test.ts` (Vitest ya los incluye) |
 
