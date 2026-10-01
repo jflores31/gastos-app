@@ -10,7 +10,7 @@ import { AccountsCard } from "@/features/accounts/components/AccountsCard";
 import { ForecastCard } from "@/features/goals/components/ForecastCard";
 import { InvestmentsSection } from "@/features/investments/components/InvestmentsSection";
 import { DebtsCard } from "@/features/debts/components/DebtsCard";
-import { SubscriptionsCard } from "./goals/SubscriptionsCard.jsx";
+import { SubscriptionsCard } from "@/features/subscriptions/components/SubscriptionsCard";
 import { NetWorthEvolutionCard } from "@/features/goals/components/NetWorthEvolutionCard";
 
 // Goals tab: savings goals, net worth (accounts), forecast, investments, debts,

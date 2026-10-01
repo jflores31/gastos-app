@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, cleanup, within } from "@testing-library/react"
-import { MESSAGES } from "../../i18n/index"
-import { SubscriptionsCard } from "./SubscriptionsCard.jsx"
+import { MESSAGES } from "@/i18n"
+import { SubscriptionsCard } from "./SubscriptionsCard"
 
 const settings = { t: MESSAGES.es, lang: "es", currency: "PEN", fmt: (v) => `S/${v}` }
 const data = {}
