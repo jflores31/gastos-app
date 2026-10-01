@@ -7,7 +7,7 @@ import {
 } from "@mui/material"
 import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { getSession, onAuthStateChange, updateUser } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
 import { darkFieldSx } from "./authStyles"
@@ -66,11 +66,10 @@ function ResetPasswordForm() {
       return
     }
 
-    const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true)
     })
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
     return () => subscription.unsubscribe()
@@ -83,8 +82,7 @@ function ResetPasswordForm() {
     if (password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); setLoading(false); return }
     if (password !== confirmPassword) { setError("Las contraseñas no coinciden"); setLoading(false); return }
     try {
-      const supabase = createClient()
-      const { error: authError } = await supabase.auth.updateUser({ password })
+      const { error: authError } = await updateUser({ password })
       if (authError) setError(authError.message || "Error al restablecer")
       else setSuccess(true)
     } catch {

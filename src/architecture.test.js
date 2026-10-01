@@ -3,19 +3,10 @@ import { buildGraph, cycles, violations } from "../scripts/dependency-map.mjs"
 
 // The layer rules of docs/PROJECT-STRUCTURE.md, checked on every `npm test`:
 // no import cycles, Supabase only in the data layer, shared code never importing features…
-// KNOWN lists what the code breaks today; the refactor removes entries, never adds them
-// (docs/ARCHITECTURE-AUDIT.md). A stale entry fails too, so the list can only shrink.
-const KNOWN = new Set([
-  "features/auth/components/ForgotPasswordPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/LoginPage.tsx: imports @supabase/supabase-js (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/LoginPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/RegisterPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/ResetPasswordPage.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/hooks/useSessionGuard.ts: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/settings/components/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "features/auth/components/TwoFactorSection.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-])
+// KNOWN lists what the code breaks today; the refactor removed every entry (the last ones,
+// UI calling Supabase, with features/auth/data/authApi.ts). Keep it empty: fix the code instead.
+// A stale entry fails too.
+const KNOWN = new Set([])
 
 describe("arquitectura", () => {
   const nodes = buildGraph()

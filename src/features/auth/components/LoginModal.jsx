@@ -7,7 +7,7 @@ import {
 import { Close, Google, GitHub } from "@/theme/icons"
 import { OAUTH_ENABLED } from "@/lib/featureFlags"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { signInWithOAuth, signInWithPassword } from "../data/authApi"
 import { useSettings } from "@/contexts/SettingsContext"
 
 export default function LoginModal({ open, onClose }) {
@@ -22,8 +22,7 @@ export default function LoginModal({ open, onClose }) {
     setLoading(true)
     setError("")
     try {
-      const supabase = createClient()
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { error: authError } = await signInWithPassword({ email, password })
       if (authError) {
         setError(t.loginModal.invalidCredentials)
       } else {
@@ -38,9 +37,8 @@ export default function LoginModal({ open, onClose }) {
   }
 
   const handleSocialLogin = (provider) => {
-    const supabase = createClient()
     const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
-    supabase.auth.signInWithOAuth({
+    signInWithOAuth({
       provider,
       options: { redirectTo: `${origin}/auth/callback?next=/` },
     })

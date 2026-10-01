@@ -8,14 +8,14 @@ import {
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { getSession, signInWithOAuth, signInWithPassword, signOut, mfa } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
 import { AuthThemeToggle } from "./AuthThemeToggle"
 import { darkFieldSx } from "./authStyles"
 import { OAUTH_ENABLED } from "@/lib/featureFlags"
 import { needsSecondStep, verifiedTotp } from "../domain/mfa"
-import type { Session } from "@supabase/supabase-js"
+import type { Session } from "../data/authApi"
 
 // The TOTP factor still to verify when the session owes the second step, else null.
 const pendingFactor = (session: Session | null) =>
@@ -44,14 +44,13 @@ export default function LoginPage() {
     if (code === "otp_expired") setError("El enlace de recuperación expiró. Solicita uno nuevo.")
     // Sent back by the proxy: signed in with the password, the code is still owed.
     if (params.get("mfa") === "1") {
-      createClient().auth.getSession().then(({ data }) => setMfaFactor(pendingFactor(data.session)))
+      getSession().then(({ data }) => setMfaFactor(pendingFactor(data.session)))
     }
   }, [])
 
   const handleOAuth = (provider: "google" | "github") => {
-    const supabase = createClient()
     const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
-    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
+    signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,8 +58,7 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
     try {
-      const supabase = createClient()
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: authError } = await signInWithPassword({ email, password })
       if (authError) {
         const msg = authError.message?.toLowerCase() ?? ""
         setError(msg.includes("email not confirmed") ? "Confirma tu email antes de iniciar sesión" : "Credenciales inválidas")
@@ -82,7 +80,7 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
     try {
-      const { error: mfaError } = await createClient().auth.mfa.challengeAndVerify({ factorId: mfaFactor, code: mfaCode.trim() })
+      const { error: mfaError } = await mfa.challengeAndVerify({ factorId: mfaFactor, code: mfaCode.trim() })
       if (mfaError) setError("Código incorrecto. Intenta de nuevo.")
       else router.push("/")
     } catch {
@@ -94,7 +92,7 @@ export default function LoginPage() {
 
   // Leaves the half-open session and goes back to the email and password.
   const cancelMfa = async () => {
-    await createClient().auth.signOut()
+    await signOut()
     setMfaFactor(null)
     setMfaCode("")
     setError("")

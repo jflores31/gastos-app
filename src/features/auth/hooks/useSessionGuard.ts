@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
-import { createClient } from "@/lib/supabase/client";
+import { signOut } from "../data/authApi";
 import type { ShowToast } from "@/components/feedback/useToast";
 
 const SESSION_ALIVE_KEY = "gastos_session_alive";
@@ -19,8 +19,7 @@ export function useSessionGuard(showToast: ShowToast) {
 
   const handleSignOut = useCallback(async () => {
     localStorage.removeItem(LAST_ACTIVE_KEY);
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.replace("/login");
   }, [router]);
 
@@ -29,8 +28,7 @@ export function useSessionGuard(showToast: ShowToast) {
   // user's sessions on every other device.
   const autoSignOut = useCallback(async () => {
     localStorage.removeItem(LAST_ACTIVE_KEY);
-    const supabase = createClient();
-    await supabase.auth.signOut({ scope: "local" });
+    await signOut({ scope: "local" });
     router.replace("/login");
   }, [router]);
 

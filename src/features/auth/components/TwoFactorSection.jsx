@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, ListItem, ListItemText, TextField, Typography } from "@mui/material";
 import { useSettings } from "@/contexts/SettingsContext";
-import { createClient } from "@/lib/supabase/client";
+import { mfa } from "../data/authApi";
 
 // Two-step verification with TOTP (Supabase MFA). Turning it on shows a QR code (and the
 // key, to type it in by hand) and asks for one code to confirm it. Once on, signing in asks
@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/client";
 // database only lets it through at aal2 (see src/lib/mfa.ts).
 export function TwoFactorSection({ notify }) {
   const { t } = useSettings();
-  const supabase = useMemo(() => createClient(), []);
   const [factorId, setFactorId] = useState(undefined); // undefined: loading; null: off
   const [enrolling, setEnrolling] = useState(null); // { id, qr, secret } while being set up
   const [code, setCode] = useState("");
@@ -19,21 +18,21 @@ export function TwoFactorSection({ notify }) {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.mfa.listFactors().then(({ data }) => {
+    mfa.listFactors().then(({ data }) => {
       if (!cancelled) setFactorId(data?.totp?.[0]?.id ?? null);
     });
     return () => { cancelled = true; };
-  }, [supabase]);
+  }, []);
 
   const start = async () => {
     setBusy(true);
     try {
       // A setup left half-way leaves an unverified factor with the same name: remove it.
-      const { data: list } = await supabase.auth.mfa.listFactors();
+      const { data: list } = await mfa.listFactors();
       for (const f of list?.all ?? []) {
-        if (f.factor_type === "totp" && f.status !== "verified") await supabase.auth.mfa.unenroll({ factorId: f.id });
+        if (f.factor_type === "totp" && f.status !== "verified") await mfa.unenroll({ factorId: f.id });
       }
-      const { data, error: enrollError } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "gastos-app", issuer: "Finanzas" });
+      const { data, error: enrollError } = await mfa.enroll({ factorType: "totp", friendlyName: "gastos-app", issuer: "Finanzas" });
       if (enrollError) throw enrollError;
       setEnrolling({ id: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
     } catch {
@@ -46,7 +45,7 @@ export function TwoFactorSection({ notify }) {
   const verify = async () => {
     setBusy(true);
     setError("");
-    const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrolling.id, code: code.trim() });
+    const { error: verifyError } = await mfa.challengeAndVerify({ factorId: enrolling.id, code: code.trim() });
     setBusy(false);
     if (verifyError) return setError(t.settingsPanel.wrongCode);
     setFactorId(enrolling.id);
@@ -57,7 +56,7 @@ export function TwoFactorSection({ notify }) {
 
   const turnOff = async () => {
     setBusy(true);
-    const { error: offError } = await supabase.auth.mfa.unenroll({ factorId });
+    const { error: offError } = await mfa.unenroll({ factorId });
     setBusy(false);
     setConfirmOff(false);
     if (offError) return notify(t.settingsPanel.twoFactorError, "error");

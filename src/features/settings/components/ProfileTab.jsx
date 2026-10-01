@@ -5,7 +5,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { createClient } from "@/lib/supabase/client";
+import { updateUser } from "@/features/auth/data/authApi";
 import { CustomCategoriesSection } from "@/features/categories/components/CustomCategoriesSection";
 import { YourDataSection } from "./YourDataSection";
 import { TwoFactorSection } from "@/features/auth/components/TwoFactorSection";
@@ -77,9 +77,8 @@ function PersonalInfoSection({ name, notify }) {
 
   const handleSave = async () => {
     setSaving(true);
-    const supabase = createClient();
     const full_name = `${name.first.trim()} ${name.last.trim()}`.trim();
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await updateUser({
       data: { first_name: name.first.trim(), last_name: name.last.trim(), full_name },
     });
     setSaving(false);
@@ -152,8 +151,7 @@ function FavoriteCategoriesSection({ user, notify }) {
   ].filter((o) => !favCats.find((f) => f.categoria === o.value)), [lang, t, favCats]);
 
   const saveFavCats = async (newList) => {
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ data: { fav_categories: newList } });
+    const { error } = await updateUser({ data: { fav_categories: newList } });
     if (error) notify(t.settingsPanel.errorSavingFavorites, "error");
     return !error;
   };

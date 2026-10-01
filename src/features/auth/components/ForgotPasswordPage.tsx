@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles"
 import { Box, Typography, TextField, Button, CircularProgress } from "@mui/material"
 import { ArrowBack, MarkEmailRead, LockReset } from "@/theme/icons"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { resetPasswordForEmail } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
 import { darkFieldSx } from "./authStyles"
@@ -26,8 +26,7 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     setError("")
     try {
-      const supabase = createClient()
-      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: authError } = await resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin.replace(/^https:\/\/www\./, "https://")}/reset-password`,
       })
       if (authError) setError(authError.message || "Error al enviar email")

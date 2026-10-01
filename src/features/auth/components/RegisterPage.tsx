@@ -7,7 +7,7 @@ import {
 } from "@mui/material"
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff, CheckCircle } from "@/theme/icons"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { signInWithOAuth, signUp } from "../data/authApi"
 import { AuthCard } from "./AuthCard"
 import { AuthErrorAlert } from "./AuthErrorAlert"
 import { darkFieldSx } from "./authStyles"
@@ -57,9 +57,8 @@ export default function RegisterPage() {
   const darkField = darkFieldSx(isDark, { accent: "#22c55e", labelAccent: "#86efac", helperText: true })
 
   const handleOAuth = (provider: "google" | "github") => {
-    const supabase = createClient()
     const origin = window.location.origin.replace(/^https:\/\/www\./, "https://")
-    supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
+    signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=/` } })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,9 +67,8 @@ export default function RegisterPage() {
     setError("")
     if (password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); setLoading(false); return }
     if (password !== confirmPassword) { setError("Las contraseñas no coinciden"); setLoading(false); return }
-    const supabase = createClient()
     try {
-      const { error: authError } = await supabase.auth.signUp({
+      const { error: authError } = await signUp({
         email, password,
         options: {
           data: { full_name: `${name} ${lastName}`.trim() },
