@@ -3,7 +3,8 @@
 
 export type TxType = "INGRESO" | "EGRESO"
 
-// A transaction as the app uses it (DataContext's mapRow turns a DB row into this).
+// A transaction as the app uses it (transactionFromRow, in features/transactions/data, turns a
+// DB row into this).
 export type Transaction = {
   id: string
   tipo: TxType
@@ -23,6 +24,8 @@ export type Transaction = {
   tasa?: number | null
   // The account it was paid from or received into (optional; see accountBalance).
   cuentaId?: string | null
+  // Set while the transaction is in the trash (soft delete).
+  deletedAt?: Date | null
 }
 
 export type Period = "week" | "month" | "quarter" | "year" | "all"
@@ -38,7 +41,7 @@ export type Goal = {
   target: number
   current: number
   deadline?: string | null
-  color?: string
+  color?: string | null
   icon?: string | null
 }
 
@@ -49,7 +52,7 @@ export type Account = {
   balance: number // as typed, as of balanceAt: what moved later is added on top
   balanceAt?: Date
   current?: number // today's balance (accountBalance), filled in by DataContext
-  color?: string
+  color?: string | null
   limit?: number
 }
 
