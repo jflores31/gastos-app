@@ -3,7 +3,8 @@
 import { useId } from "react";
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { gradientBg, resolveTone, tint } from "@/theme/iconTones";
+import { resolveTone } from "@/theme/iconTones";
+import { bubbleSx, categoryAvatarSx, glyphSx } from "./GradientIcon.styles";
 
 // Pinta cualquier icono de theme/icons.ts con un gradiente alegre (relleno SVG) y,
 // opcionalmente, lo monta en una burbuja squircle de tinte suave (light/dark aware).
@@ -49,7 +50,7 @@ export function GradientIcon({
 
   // Dos modos: `icon` (componente) o `children` (icono ya renderizado, coloreado por CSS).
   const glyph = children ? (
-    <Box component="span" sx={{ display: "inline-flex", lineHeight: 0, "& .MuiSvgIcon-root": { fill: `url(#${id})`, fontSize: size } }}>
+    <Box component="span" sx={glyphSx(id, size)}>
       {defs}
       {children}
     </Box>
@@ -63,19 +64,7 @@ export function GradientIcon({
   if (!bubble) return glyph;
 
   return (
-    <Box
-      sx={{
-        width: bubbleSize,
-        height: bubbleSize,
-        borderRadius: "30%",
-        flexShrink: 0,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: `linear-gradient(135deg, ${tint(from, dark ? 0.26 : 0.16)} 0%, ${tint(to, dark ? 0.26 : 0.16)} 100%)`,
-        border: `1px solid ${tint(base, dark ? 0.32 : 0.22)}`,
-      }}
-    >
+    <Box sx={bubbleSx(bubbleSize, { from, to, base }, dark)}>
       {glyph}
     </Box>
   );
@@ -89,21 +78,7 @@ export function GradientIcon({
  */
 export function CategoryAvatar({ icon: Icon, color, size = 40, sx }) {
   return (
-    <Box
-      aria-hidden
-      sx={{
-        width: size,
-        height: size,
-        borderRadius: "30%",
-        flexShrink: 0,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: gradientBg(color),
-        color: "common.white",
-        ...sx,
-      }}
-    >
+    <Box aria-hidden sx={{ ...categoryAvatarSx(size, color), ...sx }}>
       <Icon sx={{ fontSize: Math.round(size * 0.55) }} />
     </Box>
   );

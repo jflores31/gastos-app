@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { chromeColors } from "@/theme/tokens"
 
 // Web app manifest (/manifest.webmanifest): makes the app installable ("Install app" /
 // "Add to Home Screen"). No service worker on purpose — see docs/DEPLOYMENT.md → "Solución
@@ -13,8 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#6366F1",
+    background_color: chromeColors.light,
+    theme_color: chromeColors.brand,
     icons: [
       { src: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

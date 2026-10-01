@@ -7,6 +7,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
 import { ProfileTab } from "./ProfileTab";
 import { PreferencesTab } from "./PreferencesTab";
+import { drawerSx, panelHeaderSx, panelTabsSx } from "./settings.styles";
 
 // Side panel with two tabs: "Perfil" (name, favourite and custom categories) and
 // "Ajustes" (theme, density, accent, language, currency): ProfileTab and PreferencesTab.
@@ -43,9 +44,9 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
   const name = { first: firstName, last: lastName, setFirst: setFirstName, setLast: setLastName, metaFirst, metaLast };
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} sx={{ "& .MuiDrawer-paper": { width: { xs: "100%", sm: 380 }, p: 0, overflowY: "auto" } }}>
+    <Drawer anchor="right" open={open} onClose={onClose} sx={drawerSx}>
       {/* Header */}
-      <Box sx={{ p: 2, pb: 1.25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Box sx={panelHeaderSx}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {tab === "perfil" ? (t.settingsPanel.profile) : (t.settingsPanel.settings)}
         </Typography>
@@ -57,7 +58,7 @@ export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) 
         value={tab}
         onChange={(_, v) => setTab(v)}
         variant="fullWidth"
-        sx={{ position: "sticky", top: 0, zIndex: 2, bgcolor: "background.paper", borderBottom: 1, borderColor: "divider", minHeight: 48 }}
+        sx={panelTabsSx}
       >
         <Tab value="perfil" icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start"
           label={t.settingsPanel.profile} sx={{ minHeight: 48, textTransform: "none", fontWeight: 600 }} />

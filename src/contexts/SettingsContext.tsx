@@ -7,7 +7,7 @@ import { messagesFor, type Lang, type Messages } from "@/i18n";
 import { currencyOf, fmtAmount, fmtMoney, setLiveRates } from "@/domain/money";
 import type { Transaction } from "@/types/domain";
 import { useSupabaseUser } from "./UserContext";
-import { ACCENT_ALIASES } from "@/theme/materialTheme";
+import { ACCENT_ALIASES, ACCENTS } from "@/theme/materialTheme";
 
 type Setter<T> = (value: T | ((prev: T) => T)) => void;
 type TxMoney = Pick<Transaction, "valor" | "moneda" | "montoOriginal">;
@@ -38,14 +38,11 @@ export type Settings = {
 
 const SettingsContext = createContext<Settings | null>(null);
 
-// Acentos alegres con gradiente (los swatches del selector usan `grad`). Nombres: t.palettes.
-const PALETTES: Record<string, { color: string; grad: [string, string] }> = {
-  coral: { color: "#FF4D8D", grad: ["#FF7A59", "#FF4D8D"] },
-  mint:  { color: "#14B8A6", grad: ["#34D399", "#14B8A6"] },
-  ocean: { color: "#6366F1", grad: ["#38BDF8", "#6366F1"] },
-  grape: { color: "#7C3AED", grad: ["#A78BFA", "#7C3AED"] },
-  mono:  { color: "#71717A", grad: ["#71717A", "#3F3F46"] },
-};
+// Accents the user can pick, with the gradient their swatch shows: the theme's ACCENTS, in its
+// order. Names: t.palettes.
+const PALETTES: Record<string, { grad: [string, string] }> = Object.fromEntries(
+  Object.entries(ACCENTS).map(([key, { grad }]) => [key, { grad }]),
+);
 
 export { PALETTES };
 

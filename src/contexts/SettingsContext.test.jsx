@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from "vitest"
 import { renderHook, act, cleanup, waitFor } from "@testing-library/react"
-import { SettingsProvider, useSettings } from "./SettingsContext"
+import { PALETTES, SettingsProvider, useSettings } from "./SettingsContext"
 import { setLiveRates } from "@/domain/money"
+import { ACCENTS } from "@/theme/materialTheme"
 
 // Today's rates are fetched only once signed in: the tests choose whether there is a user.
 const session = vi.hoisted(() => ({ user: null }))
@@ -38,6 +39,13 @@ describe("SettingsContext — fmt y modo privacidad", () => {
     act(() => result.current.setLang("en"))
     expect(result.current.t.common.locale).toBe("en-US")
     expect(result.current.fmt(1234.5)).toBe("S/1,235")
+  })
+})
+
+describe("SettingsContext — acentos", () => {
+  it("el selector ofrece los acentos del tema, en su orden y con su gradiente", () => {
+    expect(Object.keys(PALETTES)).toEqual(Object.keys(ACCENTS))
+    expect(PALETTES.ocean.grad).toEqual(ACCENTS.ocean.grad)
   })
 })
 

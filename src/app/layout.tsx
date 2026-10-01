@@ -4,6 +4,7 @@ import localFont from "next/font/local"
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
 import "./globals.css"
 import Providers from "@/components/providers/Providers"
+import { chromeColors } from "@/theme/tokens"
 
 // Fonts are served from the repo (latin subset, SIL OFL 1.1 — see src/app/fonts/) instead of
 // next/font/google, so `next build` no longer downloads them from Google Fonts: a failed
@@ -29,8 +30,8 @@ const jetBrainsMono = localFont({
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#07080f" },
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: chromeColors.dark },
+    { media: "(prefers-color-scheme: light)", color: chromeColors.light },
   ],
 }
 

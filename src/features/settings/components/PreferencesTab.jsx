@@ -2,6 +2,7 @@ import { Box, Chip, Divider, FormControl, FormHelperText, InputLabel, Link, List
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from "@/theme/icons";
 import { useSettings, PALETTES as PALETTES_MAP, IDLE_OPTIONS } from "@/contexts/SettingsContext";
 import { CURRENCIES, rateLabel } from "@/domain/money";
+import { accentSwatchSx } from "./settings.styles";
 
 const PALETTES = Object.entries(PALETTES_MAP).map(([key, val]) => ({ key, ...val }));
 
@@ -48,15 +49,7 @@ export function PreferencesTab() {
           {PALETTES.map((p) => (
             <Box key={p.key} onClick={() => setPalette(p.key)} role="radio" aria-checked={palette === p.key} aria-label={t.palettes[p.key]} tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && setPalette(p.key)}
-              sx={{
-                width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
-                background: `linear-gradient(135deg, ${p.grad[0]} 0%, ${p.grad[1]} 100%)`,
-                boxShadow: palette === p.key ? "0 2px 8px rgba(0,0,0,0.25)" : "none",
-                border: palette === p.key ? "3px solid" : "2px solid transparent",
-                borderColor: palette === p.key ? "text.primary" : "transparent",
-                transition: "transform 0.15s, border-color 0.15s",
-                "&:hover": { transform: "scale(1.15)" },
-              }} title={t.palettes[p.key]} />
+              sx={accentSwatchSx(p.grad, palette === p.key)} title={t.palettes[p.key]} />
           ))}
         </Box>
       </ListItem>
