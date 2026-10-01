@@ -97,6 +97,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - `npm audit`: 0 vulnerabilidades.
 
 ### Corregido
+- **Brillo de la comparación con el período anterior (Resumen):** la barra del período actual pedía un halo con el nombre del color del tema (`0 0 8px success.main`), que no es CSS válido, así que el navegador lo descartaba. Ahora usa el color real del tema y el halo se ve al final de la barra. Cambia el aspecto a propósito: en las capturas, solo el Resumen.
 - **Props que MUI 9 ya no lee** (estaban sin efecto desde la actualización a MUI 9; cambia el aspecto a propósito, con capturas antes y después):
   - **Negritas:** 96 `fontWeight` de `Typography` pasaron a `sx`. Títulos, montos y etiquetas vuelven a salir en negrita en casi todas las pantallas.
   - **Límites de los campos:** los nombres de metas, cuentas, deudas, inversiones y suscripciones vuelven a tener `maxLength: 60`, y 4 montos `min: 0` (`inputProps` → `slotProps.htmlInput`).
