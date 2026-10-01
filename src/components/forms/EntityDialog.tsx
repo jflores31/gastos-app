@@ -1,9 +1,21 @@
+import type { ReactNode } from "react";
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import type { DialogProps } from "@mui/material";
 import { useSettings } from "@/contexts/SettingsContext";
+import type { EntityDialogControls } from "./useEntityDialog";
+
+type Props = {
+  dialog: EntityDialogControls;
+  title: ReactNode;
+  canSave: boolean;
+  onSave: () => void;
+  maxWidth?: DialogProps["maxWidth"];
+  children: ReactNode;
+};
 
 // Frame shared by the dialogs of the Goals tab: title, fields, and Delete (when editing) /
 // Cancel / Save. `dialog` is the object returned by useEntityDialog().
-export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", children }) {
+export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", children }: Props) {
   const { t } = useSettings();
   return (
     <Dialog open={dialog.open} onClose={dialog.close} maxWidth={maxWidth} fullWidth>
@@ -17,7 +29,7 @@ export function EntityDialog({ dialog, title, canSave, onSave, maxWidth = "sm", 
       </DialogContent>
       <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
         {dialog.editing && (
-          <Button color="error" disabled={dialog.saving} onClick={() => dialog.destroy(dialog.editing.id)}>
+          <Button color="error" disabled={dialog.saving} onClick={() => dialog.destroy(dialog.editing!.id)}>
             {t.common.delete}
           </Button>
         )}
