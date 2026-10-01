@@ -1,12 +1,12 @@
 import { Box, Card, CardContent, Chip, Grid, IconButton, LinearProgress, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, CreditScore as DebtIcon } from "@/theme/icons";
 import { toBase, fromBase } from "@/domain/money";
-import { GradientIcon } from "../ui/GradientIcon";
+import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
-import { useEntityDialog } from "../forms/useEntityDialog";
-import { EntityDialog } from "../forms/EntityDialog";
-import { EmptySection } from "../ui/EmptySection";
+import { useEntityDialog } from "@/components/forms/useEntityDialog";
+import { EntityDialog } from "@/components/forms/EntityDialog";
+import { EmptySection } from "@/components/ui/EmptySection";
 
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 
