@@ -147,6 +147,28 @@ test("papelera: restaurar, eliminar definitivamente y vaciar", async ({ page, re
   expect(all.filter((t) => t.concepto === "NETFLIX")).toHaveLength(3)
 })
 
+test("Gastos: con un mes del calendario y una categoría, la lista muestra solo esa categoría de ese mes", async ({ page }, info) => {
+  await login(page, uniqueEmail(info))
+  await page.getByRole("tab", { name: "Gastos" }).click()
+
+  // The seed has 4 expenses last month: ALQUILER, NETFLIX, MERCADO (160) and BUS.
+  const now = new Date()
+  const last = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+  await page.getByRole("button", { name: "Filtrar por fecha" }).click()
+  await page.getByRole("button", { name: "Ver por mes" }).click()
+  if (last.getFullYear() !== now.getFullYear()) await page.getByRole("button", { name: "Anterior" }).click()
+  await page.getByRole("button", { name: `${months[last.getMonth()]} ${last.getFullYear()}` }).click()
+  const rows = page.getByRole("listitem").filter({ has: page.getByRole("button", { name: "Editar" }) })
+  await expect(rows).toHaveCount(4)
+
+  // The category chip applies on top of the calendar (it used to be ignored in Gastos).
+  await page.getByRole("button", { name: "Comida", exact: true }).click()
+  await expect(rows).toHaveCount(1)
+  await expect(rows.first()).toContainText("MERCADO")
+  await expect(page.getByText("TOTAL GASTOS (filtrado)").locator("..")).toContainText("160")
+})
+
 test("el concepto sugiere la categoría (historial y catálogo) sin pisar una elegida a mano", async ({ page, request }, info) => {
   const email = uniqueEmail(info)
   await login(page, email)

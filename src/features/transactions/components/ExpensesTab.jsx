@@ -13,15 +13,15 @@ import {
 import AddTransactionModal from "./AddTransactionModal";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { txByCategory, getTodayExpenses } from "../domain/aggregations";
-import { matchesCalendar } from "../domain/calendarFilter";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
+import { periodLabel, daysCount } from "@/domain/period";
 import { budgetFor } from "@/features/budgets/domain/budgets";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";
 import { useTxExtras } from "../hooks/useTxExtras";
+import { useTxFilters } from "../hooks/useTxFilters";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
 
@@ -29,33 +29,15 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, fmt, fmtTx } = useSettings();
   const { txs, editBudgets, budgetPeriods, customCats } = useData();
   const txExtras = useTxExtras();
-  const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
-  const [calFilter, setCalFilter] = useState(null);
+  const { periodTxs, calFilter, setCalFilter, activeCat, setActiveCat, list: expenseTxs, total: filteredTotal } = useTxFilters(txs, period, "EGRESO");
 
-  const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
   const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
 
-  const filtered = useMemo(() => {
-    let list = periodTxs;
-    if (activeCat) list = list.filter((x) => x.categoria === activeCat);
-    return list.slice().reverse();
-  }, [periodTxs, activeCat]);
-
-  const allExpenseTxs = useMemo(() => txs.filter((x) => x.tipo === "EGRESO").slice().reverse(), [txs]);
-
-  const expenseTxs = useMemo(() => {
-    if (calFilter) {
-      return allExpenseTxs.filter((x) => matchesCalendar(x, calFilter));
-    }
-    return filtered.filter((x) => x.tipo === "EGRESO");
-  }, [filtered, allExpenseTxs, calFilter]);
-
-  const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
-  // cats derived from expenseTxs so Top Categorías respects both period and calFilter
+  // cats derived from expenseTxs so Top Categorías respects the period, calFilter and the category chip
   const cats = useMemo(() => txByCategory(expenseTxs), [expenseTxs]);
   // periodCats always uses full period (no calFilter) — used for budget comparison so it's not distorted by a single-day filter
   const periodCats = useMemo(() => txByCategory(periodTxs.filter((x) => x.tipo === "EGRESO")), [periodTxs]);

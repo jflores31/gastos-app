@@ -7,13 +7,13 @@ import {
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon } from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal";
 import { txByCategory, txByMonth } from "../domain/aggregations";
-import { matchesCalendar } from "../domain/calendarFilter";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";
+import { useTxFilters } from "../hooks/useTxFilters";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
@@ -24,29 +24,14 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const { txs, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
-  const [calFilter, setCalFilter] = useState(null);
-  const [activeCat, setActiveCat] = useState(null);
+  const { periodTxs, calFilter, setCalFilter, activeCat, setActiveCat, list: incomeTxs, total: filteredTotal } = useTxFilters(txs, period, "INGRESO");
 
-  const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
   const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO"), [periodTxs]);
   const totalIn = useMemo(() => periodTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
   const prevIn = useMemo(() => prevTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [prevTxs]);
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null;
-  const allIncomeTxs = useMemo(() => txs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [txs]);
-
-  const incomeTxs = useMemo(() => {
-    let base;
-    if (calFilter) {
-      base = allIncomeTxs.filter((x) => matchesCalendar(x, calFilter));
-    } else {
-      base = periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse();
-    }
-    if (activeCat) base = base.filter((x) => x.categoria === activeCat);
-    return base;
-  }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
-  const filteredTotal = useMemo(() => incomeTxs.reduce((s, x) => s + x.valor, 0), [incomeTxs]);
   const catMeta = (categoria) => resolveCategoryMeta(categoria, customCats, lang, "INGRESO");
   const incomeDonut = useMemo(() => incomeCats.map((c) => {
     const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "INGRESO");
