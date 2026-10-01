@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
 import { filterByPeriod, periodLabel, monthCount, daysCount } from "./period"
 
-// Minimal tx factory matching mapRow()'s shape (DataContext.jsx).
+// Minimal tx factory matching transactionFromRow()'s shape (features/transactions/data).
 function tx({ tipo = "EGRESO", categoria = "comida", concepto = "x", valor = 10, date = new Date() } = {}) {
   const d = date instanceof Date ? date : new Date(date)
   return { tipo, categoria, concepto, valor, date: d, dia: d.getDate(), mes: d.getMonth(), año: d.getFullYear() }

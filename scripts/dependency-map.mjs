@@ -89,7 +89,9 @@ const feature = (a) => (a.startsWith("features/") ? a.split("/")[1] : null)
 const kind = (a) => (a.startsWith("features/") ? a.split("/")[2] ?? "" : null)
 const isDomain = (a) => a === "domain" || kind(a) === "domain" || a === "types"
 const COMPOSERS = new Set(["dashboard", "settings"]) // screens that put several features together
-const SUPABASE_OK = (a) => a === "lib/supabase" || kind(a) === "data" || a === "contexts" || a === "context" || a === "proxy" || a === "app/auth"
+const SUPABASE_OK = (a) => a === "lib/supabase" || kind(a) === "data" || a === "contexts" || a === "proxy" || a === "app/auth"
+// Import paths: relative inside one zone (a feature, or a top-level folder of src/), "@/…" across zones.
+const zone = (file) => { const p = rel(file).split("/"); return p[0] === "features" ? p.slice(0, 2).join("/") : p.length > 1 ? p[0] : "src" }
 
 // Each rule: (fromArea, toArea | package) → message when broken.
 export function violations(nodes) {
@@ -105,12 +107,14 @@ export function violations(nodes) {
     for (const imp of node.imports) {
       if (imp.unresolved) { add(`unresolved import ${imp.spec}`); continue }
       const to = area(imp.file)
+      if (imp.spec.startsWith(".") && zone(file) !== zone(imp.file)) add(`relative import leaves ${zone(file)} (use @/: ${imp.spec})`)
+      if (imp.spec.startsWith("@/") && zone(file) === zone(imp.file)) add(`@/ import inside ${zone(file)} (use a relative path: ${imp.spec})`)
       if (to === "lib/supabase" && !SUPABASE_OK(from)) add(`imports ${rel(imp.file)} (Supabase belongs in features/*/data or lib/supabase)`)
       if (from === "components" && to.startsWith("features/")) add(`shared components import a feature (${rel(imp.file)})`)
-      if (["lib", "lib/supabase", "domain", "types", "theme", "i18n"].includes(from) && /^(features|components|contexts|context|hooks)/.test(to)) {
+      if (["lib", "lib/supabase", "domain", "types", "theme", "i18n"].includes(from) && /^(features|components|contexts|hooks)/.test(to)) {
         add(`${from} imports ${to} (${rel(imp.file)})`)
       }
-      if (isDomain(from) && /^(contexts|context|components|lib\/supabase)$|^features\/[^/]+\/(components|hooks|data)$/.test(to)) {
+      if (isDomain(from) && /^(contexts|components|lib\/supabase)$|^features\/[^/]+\/(components|hooks|data)$/.test(to)) {
         add(`domain code imports ${to} (${rel(imp.file)})`)
       }
       const fa = feature(from), fb = feature(to)

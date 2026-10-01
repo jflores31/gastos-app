@@ -14,7 +14,7 @@ import { SubscriptionsCard } from "@/features/subscriptions/components/Subscript
 import { NetWorthEvolutionCard } from "@/features/goals/components/NetWorthEvolutionCard";
 
 // Goals tab: savings goals, net worth (accounts), forecast, investments, debts,
-// subscriptions and net worth evolution. Each section owns its dialog (src/components/goals/).
+// subscriptions and net worth evolution. Each section, from its own feature, owns its dialog.
 export default function GoalsTab({ showToast }) {
   const { txs, loading, accounts, debts, investments } = useData();
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);

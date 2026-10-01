@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ShowToast } from "@/components/feedback/useToast";
+import type { ShowToast } from "../feedback/useToast";
 
 export type EntityMessages = { saved: string; saveError: string; deleted: string; deleteError: string };
 

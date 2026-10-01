@@ -3,7 +3,7 @@ import { CURRENCIES, currencyOf, toBase } from "@/domain/money"
 import { normalizeConcept, suggestCategory } from "@/domain/categories/suggest"
 import type { Transaction, TxType } from "@/types/domain"
 
-// CSV import: the app's own export (src/data/export.ts) or a bank/spreadsheet file whose
+// CSV import: the app's own export (export.ts) or a bank/spreadsheet file whose
 // columns the user maps. Pure functions; the dialog (ImportDialog) reads the file and
 // DataContext.addTxs() saves the result.
 

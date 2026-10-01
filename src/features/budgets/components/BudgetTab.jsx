@@ -18,7 +18,7 @@ import { ManageBudgetsDialog } from "./ManageBudgetsDialog";
 import { BudgetAlertsBanner } from "./BudgetAlertsBanner";
 
 // Budget tab: health summary, one card per budget, distribution, comparison with the
-// previous period, budget vs actual, upcoming and recurring payments (src/components/budget/).
+// previous period, budget vs actual, upcoming and recurring payments (one component each, in this folder).
 export default function BudgetTab({ period, openModal, showToast }) {
   const { txs, editBudgets, budgetPeriods } = useData();
   const [manageOpen, setManageOpen] = useState(false);

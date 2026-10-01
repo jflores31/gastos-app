@@ -5,9 +5,9 @@ import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { gradientBg, resolveTone, tint } from "@/theme/iconTones";
 
-// Pinta cualquier icono de icons.js con un gradiente alegre (relleno SVG) y,
+// Pinta cualquier icono de theme/icons.ts con un gradiente alegre (relleno SVG) y,
 // opcionalmente, lo monta en una burbuja squircle de tinte suave (light/dark aware).
-// El gradiente usa un id único por instancia con useId() (mismo patrón que Charts.jsx)
+// El gradiente usa un id único por instancia con useId() (mismo patrón que charts/Charts.tsx)
 // para evitar colisiones de url(#id) cuando se montan varios iconos.
 export function GradientIcon({
   icon: Icon,
@@ -70,7 +70,7 @@ export function GradientIcon({
 
 // Avatar de categoría: squircle con el gradiente del color de la categoría y su
 // icono en blanco. Reemplaza las iniciales/números que mostraban las listas.
-// `icon` y `color` vienen de resolveCategoryMeta() (categoryIcons.js).
+// `icon` y `color` vienen de resolveCategoryMeta() (theme/categoryIcons.ts).
 export function CategoryAvatar({ icon: Icon, color, size = 40, sx }) {
   return (
     <Box

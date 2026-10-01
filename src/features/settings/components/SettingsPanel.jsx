@@ -9,7 +9,7 @@ import { ProfileTab } from "./ProfileTab";
 import { PreferencesTab } from "./PreferencesTab";
 
 // Side panel with two tabs: "Perfil" (name, favourite and custom categories) and
-// "Ajustes" (theme, density, accent, language, currency). See src/components/settings/.
+// "Ajustes" (theme, density, accent, language, currency): ProfileTab and PreferencesTab.
 export default function SettingsPanel({ open, onClose, initialTab = "perfil" }) {
   const { t } = useSettings();
   const user = useSupabaseUser();

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { Box, Typography, Button } from "@mui/material"
-import { reportError } from "../lib/reportError"
+import { reportError } from "@/lib/reportError"
 
 export default function Error({
   error,

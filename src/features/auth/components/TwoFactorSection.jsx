@@ -6,7 +6,7 @@ import { mfa } from "../data/authApi";
 // Two-step verification with TOTP (Supabase MFA). Turning it on shows a QR code (and the
 // key, to type it in by hand) and asks for one code to confirm it. Once on, signing in asks
 // for a code (login page), the proxy keeps the session on /login until then and the
-// database only lets it through at aal2 (see src/lib/mfa.ts).
+// database only lets it through at aal2 (see features/auth/domain/mfa.ts).
 export function TwoFactorSection({ notify }) {
   const { t } = useSettings();
   const [factorId, setFactorId] = useState(undefined); // undefined: loading; null: off
