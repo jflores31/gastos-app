@@ -5,6 +5,16 @@ import type { SystemStyleObject } from "@mui/system"
 
 type Sx = SystemStyleObject<Theme>
 
+/**
+ * A palette path ("success.main") as its CSS colour. sx only resolves palette paths in colour
+ * properties (color, bgcolor, borderColor…), not inside a string such as a boxShadow.
+ */
+export function paletteColor(theme: Theme, path: string): string {
+  const [name, shade] = path.split(".")
+  const value = (theme.palette as unknown as Record<string, Record<string, unknown> | undefined>)[name]?.[shade]
+  return typeof value === "string" ? value : path
+}
+
 /** Greeting and period chips. */
 export const headerRowSx: Sx = { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }
 
@@ -50,5 +60,5 @@ export const comparePreviousSx = (color: string, pct: number): Sx => ({
 })
 export const compareCurrentSx = (color: string, pct: number): Sx => ({
   position: "absolute", top: 0, left: 0, height: "100%", borderRadius: 2, bgcolor: color, width: `${pct}%`, transition: "width 0.5s",
-  boxShadow: `0 0 8px ${color}`,
+  boxShadow: (theme) => `0 0 8px ${paletteColor(theme, color)}`,
 })

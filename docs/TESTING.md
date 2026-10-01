@@ -33,7 +33,7 @@ npm run typecheck    # tsc --noEmit
 
 ## Qué está cubierto
 
-### Unitarios y componentes: 251 tests en 38 archivos
+### Unitarios y componentes: 253 tests en 39 archivos
 
 Cada test va junto al código que prueba. Ordenados por carpeta:
 
@@ -60,6 +60,7 @@ Cada test va junto al código que prueba. Ordenados por carpeta:
 | [`src/features/budgets/domain/budgets.test.js`](../src/features/budgets/domain/budgets.test.js) | 5 | **Presupuestos por período:** `budgetFor` deja igual un presupuesto mensual y escala semanal/anual; `budgetAlerts` avisa al 80 % y al 100 % en el período del propio presupuesto, la semana empieza el lunes y un año nuevo empieza de cero |
 | [`src/features/budgets/domain/recurring.test.js`](../src/features/budgets/domain/recurring.test.js) | 3 | **Recurrentes** (`recurringList`): conceptos presentes en 3 meses distintos o más, con el día y el monto promedio; los de menos meses no; ignora los ingresos y la lista vacía |
 | [`src/features/budgets/domain/upcoming.test.js`](../src/features/budgets/domain/upcoming.test.js) | 6 | **Próximos pagos** con fechas fijas: pagado este mes → mes siguiente, pendiente → este mes, día pasado sin registrar → vencido, día 31 en febrero, el 1 del mes siguiente entra, suscripción unida a su recurrente, suscripciones fechadas por su último pago (mensual y anual) o sin fecha, ingresos nunca |
+| [`src/features/dashboard/components/OverviewTab.styles.test.ts`](../src/features/dashboard/components/OverviewTab.styles.test.ts) | 2 | **Brillo de la comparación del Resumen:** `paletteColor` convierte un nombre del tema (`success.main`) en su color, y el halo de la barra actual usa ese color en tema claro y oscuro (antes el navegador descartaba la sombra) |
 | [`src/features/dashboard/domain/insights.test.js`](../src/features/dashboard/domain/insights.test.js) | 2 | **Avisos del Resumen** (`insightsList`): textos en es y en con los datos del período; sin anomalías no agrega ese aviso |
 | [`src/features/goals/domain/forecast.test.js`](../src/features/goals/domain/forecast.test.js) | 2 | **Proyección** (`linearRegressionSlope`): recupera una pendiente conocida; 0 con una serie plana o con menos de 2 puntos |
 | [`src/features/import-export/domain/csvImport.test.js`](../src/features/import-export/domain/csvImport.test.js) | 27 | **Importar CSV:** RFC 4180 (comillas, saltos de línea, BOM, `;`), montos en varios formatos, fechas ISO y `DD/MM/AAAA` (e imposibles), columnas del export propio (con o sin las de moneda y cuenta) y de un banco, tipo por signo, categoría del archivo / sugerida / por defecto, líneas inválidas, **ida y vuelta con `transactionsToCsv`** (también la moneda, lo escrito, la tasa y la cuenta, que se reconoce por su nombre) y repetidas (una ya guardada absorbe una fila). Un archivo en otra moneda guarda lo escrito y la tasa del día, y reimportarlo con otra tasa sigue detectando las repetidas |
