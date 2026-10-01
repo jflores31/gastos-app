@@ -9,12 +9,12 @@ import {
 import { AccountBalanceWallet, Google, GitHub, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { AuthCard } from "../components/auth/AuthCard"
-import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
-import { AuthThemeToggle } from "../components/auth/AuthThemeToggle"
-import { darkFieldSx } from "../components/auth/authStyles"
+import { AuthCard } from "@/features/auth/components/AuthCard"
+import { AuthErrorAlert } from "@/features/auth/components/AuthErrorAlert"
+import { AuthThemeToggle } from "@/features/auth/components/AuthThemeToggle"
+import { darkFieldSx } from "@/features/auth/components/authStyles"
 import { OAUTH_ENABLED } from "../../lib/featureFlags"
-import { needsSecondStep, verifiedTotp } from "../../lib/mfa"
+import { needsSecondStep, verifiedTotp } from "@/features/auth/domain/mfa"
 import type { Session } from "@supabase/supabase-js"
 
 // The TOTP factor still to verify when the session owes the second step, else null.

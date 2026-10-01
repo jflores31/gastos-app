@@ -12,9 +12,9 @@ const KNOWN = new Set([
   "app/register/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "app/reset-password/page.tsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/DashboardStudio.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/LoginModal.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
   "components/settings/ProfileTab.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
-  "components/settings/TwoFactorSection.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
+  "features/auth/components/TwoFactorSection.jsx: imports lib/supabase/client.ts (Supabase belongs in features/*/data or lib/supabase)",
 ])
 
 describe("arquitectura", () => {

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import { needsSecondStep } from "./lib/mfa"
+import { needsSecondStep } from "@/features/auth/domain/mfa"
 
 // Per-request CSP. The nonce must be unique per response, so the policy lives here
 // (middleware) instead of the static next.config.mjs headers. Next.js reads the nonce

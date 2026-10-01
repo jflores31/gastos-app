@@ -8,7 +8,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { createClient } from "@/lib/supabase/client";
 import { CustomCategoriesSection } from "@/features/categories/components/CustomCategoriesSection";
 import { DataExportSection } from "./DataExportSection.jsx";
-import { TwoFactorSection } from "./TwoFactorSection.jsx";
+import { TwoFactorSection } from "@/features/auth/components/TwoFactorSection";
 
 // "Perfil" tab of the settings panel. The name fields' state lives in SettingsPanel so an
 // unsaved edit survives switching tabs, and resets each time the panel opens.

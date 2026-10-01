@@ -7,7 +7,7 @@ import { flagAnomalies } from "@/features/transactions/domain/anomalies"
 import { accountBalance } from "@/features/accounts/domain/balance"
 import { fetchAllRows } from "@/lib/supabase/fetchAllRows"
 import { reportError } from "@/lib/reportError"
-import { needsSecondStep } from "@/lib/mfa"
+import { needsSecondStep } from "@/features/auth/domain/mfa"
 
 const DataContext = createContext(null)
 

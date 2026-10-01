@@ -8,9 +8,9 @@ import {
 import { ArrowBack, LockReset, CheckCircle, ErrorOutlined, Visibility, VisibilityOff } from "@/theme/icons"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { AuthCard } from "../components/auth/AuthCard"
-import { AuthErrorAlert } from "../components/auth/AuthErrorAlert"
-import { darkFieldSx } from "../components/auth/authStyles"
+import { AuthCard } from "@/features/auth/components/AuthCard"
+import { AuthErrorAlert } from "@/features/auth/components/AuthErrorAlert"
+import { darkFieldSx } from "@/features/auth/components/authStyles"
 
 const Blobs = ({ isDark }: { isDark: boolean }) => (
   <>
