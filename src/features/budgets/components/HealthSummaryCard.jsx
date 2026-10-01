@@ -20,7 +20,7 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
   return (
     <Card sx={{ borderRadius: 2, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", borderTop: "4px solid", borderTopColor: gaugeColor + ".main" }}>
       <CardContent sx={{ p: 3 }}>
-        <Grid container spacing={3} alignItems="center">
+        <Grid container spacing={3} sx={{ alignItems: "center" }}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
               <Box sx={{ mb: 1 }}>
