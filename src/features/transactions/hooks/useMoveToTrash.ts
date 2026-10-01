@@ -1,14 +1,16 @@
 import { useCallback } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import type { ShowToast } from "@/components/feedback/useToast";
+import type { Transaction } from "@/types/domain";
 
 // Deleting a transaction moves it to the trash at once (no confirmation: it can be
 // recovered) and shows a toast with "Deshacer" for a few seconds.
-export function useMoveToTrash(showToast) {
+export function useMoveToTrash(showToast?: ShowToast) {
   const { t } = useSettings();
   const { deleteTx, restoreTx } = useData();
 
-  return useCallback(async (tx) => {
+  return useCallback(async (tx: Transaction) => {
     try {
       await deleteTx(tx.id);
     } catch {
