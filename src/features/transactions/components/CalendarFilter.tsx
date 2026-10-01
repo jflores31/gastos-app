@@ -3,14 +3,22 @@ import { Box, Typography, Chip, IconButton, Collapse, Paper } from "@mui/materia
 import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, CalendarMonth as CalendarIcon } from "@/theme/icons";
 import { useTheme, alpha } from "@mui/material/styles";
 import { useSettings } from "@/contexts/SettingsContext";
+import type { Transaction, TxType } from "@/types/domain";
+import type { CalendarSelection } from "../domain/calendarFilter";
 
-export function CalendarFilter({ txs, tipo, onFilter }) {
+type Props = {
+  txs: Pick<Transaction, "tipo" | "date" | "valor">[];
+  tipo: TxType;
+  onFilter: (selection: CalendarSelection | null) => void;
+};
+
+export function CalendarFilter({ txs, tipo, onFilter }: Props) {
   const { t, fmt } = useSettings();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
-  const [viewMode, setViewMode] = useState("day");
+  const [viewMode, setViewMode] = useState<CalendarSelection["type"]>("day");
   const [navDate, setNavDate] = useState(new Date());
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<CalendarSelection | null>(null);
 
   const mainColor = tipo === "EGRESO" ? theme.palette.error.main : theme.palette.success.main;
   const sign = tipo === "EGRESO" ? "−" : "+";
@@ -18,7 +26,7 @@ export function CalendarFilter({ txs, tipo, onFilter }) {
   const dayNames = t.days;
 
   const dayMap = useMemo(() => {
-    const m = new Map();
+    const m = new Map<number, number>();
     for (const tx of txs) {
       if (tx.tipo !== tipo) continue;
       const d = tx.date;
@@ -31,7 +39,7 @@ export function CalendarFilter({ txs, tipo, onFilter }) {
   }, [txs, tipo, navDate]);
 
   const monthMap = useMemo(() => {
-    const m = new Map();
+    const m = new Map<number, number>();
     for (const tx of txs) {
       if (tx.tipo !== tipo) continue;
       const d = tx.date;
@@ -59,26 +67,26 @@ export function CalendarFilter({ txs, tipo, onFilter }) {
     ? setNavDate(new Date(navDate.getFullYear(), navDate.getMonth() + 1, 1))
     : setNavDate(new Date(navDate.getFullYear() + 1, 0, 1));
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (day: number) => {
     const date = new Date(navDate.getFullYear(), navDate.getMonth(), day);
     const isSame = selected?.type === "day" && selected.date.toDateString() === date.toDateString();
     if (isSame) { clearFilter(); return; }
-    const f = { type: "day", date };
+    const f: CalendarSelection = { type: "day", date };
     setSelected(f); onFilter(f); setOpen(false);
   };
 
-  const handleMonthClick = (month) => {
+  const handleMonthClick = (month: number) => {
     const date = new Date(navDate.getFullYear(), month, 1);
     const isSame = selected?.type === "month" && selected.date.getFullYear() === navDate.getFullYear() && selected.date.getMonth() === month;
     if (isSame) { clearFilter(); return; }
-    const f = { type: "month", date };
+    const f: CalendarSelection = { type: "month", date };
     setSelected(f); onFilter(f); setOpen(false);
   };
 
-  const isSelDay = (day) => selected?.type === "day" && selected.date.getFullYear() === navDate.getFullYear() && selected.date.getMonth() === navDate.getMonth() && selected.date.getDate() === day;
-  const isSelMonth = (m) => selected?.type === "month" && selected.date.getFullYear() === navDate.getFullYear() && selected.date.getMonth() === m;
-  const isToday = (day) => today.getDate() === day && today.getMonth() === navDate.getMonth() && today.getFullYear() === navDate.getFullYear();
-  const isCurMonth = (m) => today.getMonth() === m && today.getFullYear() === navDate.getFullYear();
+  const isSelDay = (day: number) => selected?.type === "day" && selected.date.getFullYear() === navDate.getFullYear() && selected.date.getMonth() === navDate.getMonth() && selected.date.getDate() === day;
+  const isSelMonth = (m: number) => selected?.type === "month" && selected.date.getFullYear() === navDate.getFullYear() && selected.date.getMonth() === m;
+  const isToday = (day: number) => today.getDate() === day && today.getMonth() === navDate.getMonth() && today.getFullYear() === navDate.getFullYear();
+  const isCurMonth = (m: number) => today.getMonth() === m && today.getFullYear() === navDate.getFullYear();
 
   const selectedLabel = selected
     ? selected.type === "day"
@@ -122,7 +130,7 @@ export function CalendarFilter({ txs, tipo, onFilter }) {
                 size="small"
                 label={mode === "day" ? (t.sharedUi.day) : (t.sharedUi.month)}
                 aria-label={mode === "day" ? (t.sharedUi.viewByDay) : (t.sharedUi.viewByMonth)}
-                onClick={() => { setViewMode(mode); clearFilter(); setOpen(true); }}
+                onClick={() => { setViewMode(mode as CalendarSelection["type"]); clearFilter(); setOpen(true); }}
                 variant={viewMode === mode ? "filled" : "outlined"}
                 sx={{ fontWeight: 600, fontSize: 10, height: 20, bgcolor: viewMode === mode ? mainColor : undefined, color: viewMode === mode ? "#fff" : "text.secondary", borderColor: viewMode === mode ? mainColor : "divider", "&:hover": { opacity: 0.85 } }}
               />
