@@ -2,13 +2,11 @@
 
 import Link from "next/link"
 import { Box, Typography, Button } from "@mui/material"
+import { notFoundPageSx } from "./not-found.styles"
 
 export default function NotFound() {
   return (
-    <Box sx={{
-      minHeight: "100vh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", gap: 2, p: 3,
-    }}>
+    <Box sx={notFoundPageSx}>
       <Typography variant="h1" sx={{ fontWeight: 800, fontSize: { xs: "4rem", sm: "6rem" }, lineHeight: 1 }}>
         404
       </Typography>

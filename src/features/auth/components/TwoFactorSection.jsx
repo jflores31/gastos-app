@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, ListItem, ListItemText, TextField, Typography } from "@mui/material";
 import { useSettings } from "@/contexts/SettingsContext";
 import { mfa } from "../data/authApi";
+import { qrImageSx, secretSx } from "./TwoFactorSection.styles";
 
 // Two-step verification with TOTP (Supabase MFA). Turning it on shows a QR code (and the
 // key, to type it in by hand) and asks for one code to confirm it. Once on, signing in asks
@@ -79,8 +80,8 @@ export function TwoFactorSection({ notify }) {
         ) : enrolling ? (
           <Box component="form" onSubmit={(e) => { e.preventDefault(); verify(); }} sx={{ display: "flex", flexDirection: "column", gap: 1.5, width: "100%" }}>
             <Typography variant="body2" color="text.secondary">{t.settingsPanel.scanQr}</Typography>
-            <Box component="img" src={enrolling.qr} alt={t.settingsPanel.qrAlt} sx={{ width: 180, height: 180, alignSelf: "center", bgcolor: "#fff", p: 1, borderRadius: 2 }} />
-            <Typography data-testid="totp-secret" variant="body2" sx={{ fontFamily: "monospace", wordBreak: "break-all", textAlign: "center", bgcolor: "action.hover", p: 1, borderRadius: 1 }}>
+            <Box component="img" src={enrolling.qr} alt={t.settingsPanel.qrAlt} sx={qrImageSx} />
+            <Typography data-testid="totp-secret" variant="body2" sx={secretSx}>
               {enrolling.secret}
             </Typography>
             <TextField size="small" label={t.settingsPanel.code6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); setError(""); }}
