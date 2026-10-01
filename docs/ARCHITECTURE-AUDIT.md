@@ -94,7 +94,7 @@ Cada fila es una carpeta y lo que importa de las demás (sin tests):
 
 `node scripts/dependency-map.mjs --unused` en `be3d3ef`:
 
-- **Sin uso en ningún lado** (se borran en la limpieza):
+- **Sin uso en ningún lado** (borrados al empezar la fase 4, en su propio commit):
   - `StatsCard` y `SummaryCard` (`shared.jsx`), y `Delta`, que solo usaba `SummaryCard`;
   - `txByCategoryToday` (`data/index.ts`);
   - el icono `Download` (`theme/icons.js`);
@@ -182,7 +182,7 @@ Columnas:
 | `components/goals/TransferDialog.jsx` | jsx | Diálogo de transferencia | accounts | 3 | 1 | client (hereda) | MOVE | features/accounts/components/TransferDialog.jsx | Bajo | Es de la feature |
 | `components/goals/useEntityDialog.js` | js | Estado de los diálogos CRUD | compartido | 0 | 5 | client (hereda) | MOVE + JS→TS | components/forms/useEntityDialog.ts | Bajo | Lo usan 5 features |
 | `components/settings/CustomCategoriesSection.jsx` | jsx | Categorías propias (CRUD) | categories | 6 | 1 | client (hereda) | MOVE | features/categories/components/CustomCategoriesSection.jsx | Bajo | Es de la feature |
-| `components/settings/DataExportSection.jsx` | jsx | Tus datos: exportar, importar, papelera | import-export | 8 | 1 | client (hereda) | MOVE | features/import-export/components/DataExportSection.jsx | Bajo | Es de la feature |
+| `components/settings/DataExportSection.jsx` | jsx | Tus datos: exportar, importar, papelera | settings | 8 | 1 | client (hereda) | MOVE | features/settings/components/YourDataSection.jsx | Bajo | Sección de Perfil que reúne exportar, importar (import-export) y la papelera (transactions): es composición, como el resto de Perfil |
 | `components/settings/ImportDialog.jsx` | jsx | Importar CSV | import-export | 5 | 1 | client (hereda) | MOVE | features/import-export/components/ImportDialog.jsx | Bajo | Es de la feature |
 | `components/settings/PreferencesTab.jsx` | jsx | Ajustes: tema, idioma, moneda… | settings | 3 | 1 | client (hereda) | MOVE | features/settings/components/PreferencesTab.jsx | Bajo | Es de la feature |
 | `components/settings/ProfileTab.jsx` | jsx | Perfil: datos, favoritas y secciones | settings | 9 | 1 | client (hereda) | MOVE | features/settings/components/ProfileTab.jsx | Medio | Supabase a authApi |
@@ -234,29 +234,30 @@ Columnas:
 | **Migrar** | `DashboardStudio.jsx` | Al dividirlo: el shell y los hooks nuevos nacen en TS |
 | **Pendiente** | Pestañas y tarjetas de las features: `BudgetTab`, las 9 de `budget/`, `ExpensesTab`, `IncomeTab`, `OverviewTab`, `GoalsTab`, las de `goals/`, las de `settings/`, `LoginModal`, `SettingsPanel`, `NoTransactions` | Son sobre todo maquetación con `sx`: los datos ya llegan tipados de los contextos y del dominio. Pasan a TS cuando se toquen por otra razón |
 | **No migrar** | `e2e/mock-supabase/*.mjs`, `scripts/*.mjs`, `eslint.config.js`, `vitest.config.mjs`, `next.config.mjs` | Scripts de Node y configuración: corren fuera del bundle, y en ESM funcionan tal cual |
-| **No migrar** | Tests `.test.js`/`.test.jsx` existentes | Cambiarles la extensión no agrega nada. Los que se dividen se escriben en `.test.ts`, y Vitest pasa a incluir `.ts`/`.tsx` |
+| **No migrar** | Tests `.test.js`/`.test.jsx` existentes, también los que se dividen | Cambiarles la extensión no agrega nada, y pasarlos a TS obligaría a cambiar sus datos de prueba con casts: se mueven tal cual. Los tests nuevos van en `.test.ts` (Vitest ya los incluye) |
 
 ## Plan de migración
 
-Orden de las fases:
+Fases con la numeración del brief:
 
 | Fase | Contenido | Por qué en este orden |
 |---|---|---|
 | 0 | Baseline (arriba) | Referencia para detectar regresiones |
 | 1 | Esta auditoría, `dependency-map.mjs`, `architecture.test.js` | Las reglas existen antes de mover nada |
-| 2 | Estructura y módulos compartidos: `types/`, `domain/`, `lib/supabase/`, `theme` en TS, `components/{ui,charts,forms,feedback,providers}`, `contexts/` | Son las hojas del grafo: todo lo demás depende de ellas |
-| 3 | Features, una por commit: `categories` → `transactions` → `accounts` → `budgets` → `goals` → `investments`, `debts`, `subscriptions` → `import-export` → `auth` → `settings` → `dashboard` | Cada feature se mueve cuando ya se movió lo que usa; `dashboard` compone todo y va al final |
-| 4 | Capa de datos: `features/*/data`, `useTableCrud`, `DataContext.tsx`, `authApi` | Con las features en su lugar, cada una recibe sus mappers y consultas |
-| 5 | Resto de la migración a TS | Sobre código ya ubicado, para no mover y tipar a la vez |
-| 6 | Índice de secciones en `schema.sql` | Solo comentarios; se comprueba con `pg_dump` |
-| 7 | Limpieza: código muerto, re-exports temporales, nombres | Al final, cuando nadie usa los caminos viejos |
-| 8 | Validación y documentación | Checklist de aceptación |
+| 2 y 3 | Estructura y módulos compartidos: `types/`, `domain/`, `lib/supabase/`, `theme` en TS, `components/{ui,charts,forms,providers}`, `contexts/` | Son las hojas del grafo: todo lo demás depende de ellas |
+| 4 | Features, una por commit: `categories` → `transactions` → `accounts` → `budgets` → `goals` → `investments`, `debts`, `subscriptions` → `import-export` → `auth` → `settings` → `dashboard`. Después, del shell salen `useToast`, `useSessionGuard`, `useTransactionModal`, `AppHeader` y `MainNav`, y por último lo duplicado entre Gastos e Ingresos (`TransactionList`, `useTxFilters`) | Cada feature se mueve cuando ya se movió lo que usa; `dashboard` compone todo y va al final |
+| 5 | Migración a TS de la UI compartida, los hooks, `AddTransactionModal` y `CalendarFilter` | Sobre código ya ubicado, para no mover y tipar a la vez |
+| 6 | Capa de datos: tabla de piezas de `DataContext`, `features/*/data`, `useTableCrud`, `DataContext.tsx` (pasa a TS aquí), `types/database.ts`, `authApi` | Con las features en su lugar, cada una recibe sus mappers y consultas |
+| 7 | Índice de secciones en `schema.sql` | Solo comentarios: se comprueba con el archivo sin comentarios y con `pg_dump` |
+| 8 | Limpieza: imports entre áreas con `@/`, código muerto, nombres | Al final, cuando nadie usa los caminos viejos |
+| 9 | Validación y documentación | Checklist de aceptación |
 
 **Reglas de trabajo:**
 - **Commits que mueven:** solo mueven (`git mv` + imports). Los que extraen lógica van aparte.
 - **Cada commit deja verdes** lint, typecheck y `npm test`.
 - **Cada fase cierra con** build, e2e dos veces y las capturas.
-- **`data/index.ts` y `data/helpers.ts`** quedan como re-exports mientras haya importadores viejos.
+- **Al partir `data/index.ts` y `data/helpers.ts`,** cada import se reescribe hacia el módulo que define la función: no quedan re-exports intermedios.
+- **Push después de cada feature**, y los tests unitarios nunca en paralelo con los e2e (comparten CPU y los de componentes pasan de los 5 s).
 
 ## Base de datos
 
