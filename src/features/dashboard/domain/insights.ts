@@ -1,4 +1,4 @@
-import { messagesFor } from "../i18n/index";
+import { messagesFor } from "@/i18n";
 import { daysCount } from "@/domain/period";
 import type { Period } from "@/types/domain";
 

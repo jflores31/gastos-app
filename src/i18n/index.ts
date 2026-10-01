@@ -3,7 +3,7 @@ import { UI } from "./ui";
 
 // All texts of the app by language: the short shared ones (t.income, t.save…) plus the
 // ones grouped by area (t.goalsTab.newGoal, t.common.delete…). Components get them as
-// `t` from useSettings(); plain functions (e.g. helpers.ts) take them with messagesFor().
+// `t` from useSettings(); plain functions (e.g. insights.ts) take them with messagesFor().
 export const MESSAGES = {
   es: { ...BASE.es, ...UI.es },
   en: { ...BASE.en, ...UI.en },

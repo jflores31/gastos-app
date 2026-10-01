@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { insightsList } from "./helpers"
+import { insightsList } from "./insights"
 
 describe("insightsList", () => {
   const fmt = (v) => `S/${Math.round(v)}`

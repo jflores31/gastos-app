@@ -21,12 +21,12 @@ const INSIGHT_COLORS = { good: "success", warn: "warning", info: "info" };
 import { txByMonth, txByCategory } from "@/features/transactions/domain/aggregations";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { healthScore, healthTone } from "@/domain/health";
-import { insightsList } from "../data/helpers";
+import { insightsList } from "../domain/insights";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useSupabaseUser } from "@/contexts/UserContext";
-import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "./charts/Charts";
-import { GradientIcon, CategoryAvatar } from "./ui/GradientIcon";
+import { Donut, SparkArea, StudioCashflow, HeatCalendar } from "@/components/charts/Charts";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 
