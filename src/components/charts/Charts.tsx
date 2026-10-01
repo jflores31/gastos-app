@@ -1,20 +1,27 @@
 import { useId } from "react";
+import type { Messages } from "@/i18n";
+
+// What the charts read from each data point (structural: any list with these fields works).
+type Slice = { value: number; color: string };
+type MonthPoint = { mes: number; ingreso: number; egreso: number };
+type DayValue = { date: Date; value: number };
+type HeatCell = { empty: true } | { empty?: undefined; date: Date; value: number; intensity: number };
 
 // --- Helpers SVG compartidos ---
 
 // Min/max/rango de un dataset con pisos (el rango nunca es 0).
-function extent(data, { minFloor = 0, maxFloor = 1 } = {}) {
+function extent(data: number[], { minFloor = 0, maxFloor = 1 } = {}) {
   const min = Math.min(...data, minFloor);
   const max = Math.max(...data, maxFloor);
   return { min, max, range: (max - min) || 1 };
 }
 
 // Path de polilínea SVG ("M x,y L x,y ...") a partir de pares [x, y].
-function linePath(points) {
+function linePath(points: number[][]) {
   return points.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
 }
 
-export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
+export function Donut({ slices, size = 180, thickness = 22, gap = 2 }: { slices: Slice[]; size?: number; thickness?: number; gap?: number }) {
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   const r = size / 2 - thickness / 2;
   const c = 2 * Math.PI * r;
@@ -38,7 +45,7 @@ export function Donut({ slices, size = 180, thickness = 22, gap = 2 }) {
   );
 }
 
-export function SparkArea({ data }) {
+export function SparkArea({ data }: { data?: number[] | null }) {
   const gid = `sg-${useId().replace(/:/g, "")}`;
   if (!data || !data.length) return null;
   const W = 600, H = 64;
@@ -60,7 +67,7 @@ export function SparkArea({ data }) {
   );
 }
 
-export function StudioCashflow({ months, t }) {
+export function StudioCashflow({ months, t }: { months: MonthPoint[]; t: Pick<Messages, "months"> }) {
   const uid = useId().replace(/:/g, "");
   if (!months.length) return null;
   const incId = `ginc-${uid}`;
@@ -68,13 +75,13 @@ export function StudioCashflow({ months, t }) {
   const W = 720, H = 240, P = 36;
   const max = Math.max(...months.map((m) => Math.max(m.ingreso, m.egreso)), 1);
   const stepX = (W - P * 2) / Math.max(1, months.length - 1);
-  const yFor = (v) => H - P - (Math.max(0, v) / max) * (H - P * 2);
+  const yFor = (v: number) => H - P - (Math.max(0, v) / max) * (H - P * 2);
   const ins = months.map((m) => m.ingreso);
   const outs = months.map((m) => m.egreso);
   const nets = months.map((m) => m.ingreso - m.egreso);
   const { min: netMin, range: netRange } = extent(nets, { maxFloor: 0 });
-  const yForNet = (v) => H - P - ((v - netMin) / netRange) * (H - P * 2);
-  const line = (arr) => linePath(arr.map((v, i) => [P + i * stepX, yFor(v)]));
+  const yForNet = (v: number) => H - P - ((v - netMin) / netRange) * (H - P * 2);
+  const line = (arr: number[]) => linePath(arr.map((v, i) => [P + i * stepX, yFor(v)]));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg" style={{ width: '100%', height: 'auto' }}>
       <defs>
@@ -114,14 +121,14 @@ export function StudioCashflow({ months, t }) {
   );
 }
 
-export function HeatCalendar({ values, days = 84, color = "currentColor", cellSize = 10, gap = 2 }) {
+export function HeatCalendar({ values, days = 84, color = "currentColor", cellSize = 10, gap = 2 }: { values: DayValue[]; days?: number; color?: string; cellSize?: number; gap?: number }) {
   const today = new Date();
   const start = new Date(today); start.setDate(today.getDate() - days + 1);
   const startDow = (start.getDay() + 6) % 7;
   const map = new Map(values.map((v) => [v.date.toDateString(), v.value]));
   let maxV = 1;
   for (const v of values) if (v.value > maxV) maxV = v.value;
-  const cells = [];
+  const cells: HeatCell[] = [];
   for (let i = 0; i < days + startDow; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i - startDow);
     if (i < startDow) { cells.push({ empty: true }); continue; }
