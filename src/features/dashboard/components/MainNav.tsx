@@ -7,6 +7,7 @@ import {
   Flag as GoalsIcon,
 } from "@/theme/icons";
 import { useSettings } from "@/contexts/SettingsContext";
+import { bottomNavSx } from "./MainNav.styles";
 
 type Props = {
   variant: "tabs" | "bottom"; // tabs in the top bar (desktop) or the fixed bottom bar (mobile)
@@ -40,7 +41,7 @@ export function MainNav({ variant, value, onChange }: Props) {
       value={value}
       onChange={(_, v) => onChange(v)}
       showLabels
-      sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 1100, borderTop: 1, borderColor: "divider" }}
+      sx={bottomNavSx}
     >
       {TAB_LABELS.map(({ id, label, icon }) => (
         <BottomNavigationAction key={id} label={label} icon={icon} />

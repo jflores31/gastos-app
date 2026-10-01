@@ -17,9 +17,10 @@ import { useTxFilters } from "../hooks/useTxFilters";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
+import { donutCenterSx, donutRingSx } from "@/components/charts/Charts.styles";
 import { listHeaderActionsSx, listHeaderSx, totalFooterSx } from "./transactions.styles";
 import {
-  barFillSx, donutCenterSx, donutRingSx, heroAddButtonSx, heroCardSx, legendRowSx, percentChipSx, sideCardSx, sourceAddButtonSx,
+  barFillSx, heroAddButtonSx, heroCardSx, legendRowSx, percentChipSx, sideCardSx, sourceAddButtonSx,
   sourceRowSx, trendLegendSx,
 } from "./IncomeTab.styles";
 import { shadows } from "@/theme/tokens";
@@ -136,9 +137,9 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 </Box>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 3, mt: 1 }}>
-                <Box sx={donutRingSx}>
+                <Box sx={donutRingSx(160)}>
                   <Donut slices={incomeDonut} size={160} thickness={20} />
-                  <Box sx={donutCenterSx}>
+                  <Box sx={donutCenterSx(90)}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }} color="success.main">{fmt(totalIn, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.income}</Typography>
                   </Box>

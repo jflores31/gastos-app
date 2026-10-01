@@ -8,8 +8,8 @@ import {
   Visibility as ShowAmountsIcon,
   VisibilityOff as HideAmountsIcon,
 } from "@/theme/icons";
-import { accentGradient } from "@/theme/materialTheme";
 import { useSettings } from "@/contexts/SettingsContext";
+import { addFabSx, avatarSx, logoMarkSx, settingsFabSx } from "./AppHeader.styles";
 import { useSupabaseUser } from "@/contexts/UserContext";
 
 type Props = {
@@ -34,12 +34,12 @@ export function AppHeader({ isMobile, nav, onAdd, onOpenSettings, onSignOut, onS
     <AppBar position="sticky" elevation={1} sx={{ bgcolor: "background.paper", color: "text.primary" }}>
       <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}>
-          <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: "primary.main", color: "primary.contrastText", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>◈</Box>
+          <Box sx={logoMarkSx}>◈</Box>
           <Typography variant="h6" sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}>{t.dashboard.finances}</Typography>
         </Box>
         {nav}
         <Box sx={{ flex: 1, display: { xs: "block", sm: "none" } }} />
-        <Fab size="small" color="primary" aria-label={t.addTx} onClick={onAdd} sx={{ boxShadow: 2, minWidth: 44, minHeight: 44, background: (th) => accentGradient(th), color: "#fff", "&:hover": { background: (th) => accentGradient(th, 145), filter: "brightness(1.05)" }, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
+        <Fab size="small" color="primary" aria-label={t.addTx} onClick={onAdd} sx={addFabSx}>
           <AddIcon />
         </Fab>
         <Tooltip title={privacy ? t.dashboard.showAmounts : t.dashboard.hideAmounts}>
@@ -47,7 +47,7 @@ export function AppHeader({ isMobile, nav, onAdd, onOpenSettings, onSignOut, onS
             {privacy ? <HideAmountsIcon fontSize="small" /> : <ShowAmountsIcon fontSize="small" />}
           </Fab>
         </Tooltip>
-        <Fab size="small" color="default" aria-label={t.settingsPanel.settings} onClick={() => onOpenSettings("ajustes")} sx={{ boxShadow: 1, minWidth: 44, minHeight: 44, "&:hover .MuiSvgIcon-root": { transform: "rotate(90deg)" } }}>
+        <Fab size="small" color="default" aria-label={t.settingsPanel.settings} onClick={() => onOpenSettings("ajustes")} sx={settingsFabSx}>
           <SettingsIcon fontSize="small" />
         </Fab>
         {user === undefined ? null : user ? (
@@ -60,7 +60,7 @@ export function AppHeader({ isMobile, nav, onAdd, onOpenSettings, onSignOut, onS
                 tabIndex={0}
                 aria-label={t.dashboard.viewProfile}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenSettings("perfil"); } }}
-                sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: 14, fontWeight: 700, cursor: "pointer", "&:hover": { boxShadow: "0 0 0 2px var(--accent)" }, transition: "box-shadow 0.15s" }}
+                sx={avatarSx}
               >
                 {displayName?.[0]?.toUpperCase() || "?"}
               </Avatar>
