@@ -89,10 +89,6 @@ const feature = (a) => (a.startsWith("features/") ? a.split("/")[1] : null)
 const kind = (a) => (a.startsWith("features/") ? a.split("/")[2] ?? "" : null)
 const isDomain = (a) => a === "domain" || kind(a) === "domain" || a === "types"
 const COMPOSERS = new Set(["dashboard", "settings"]) // screens that put several features together
-// Feature screens still waiting to move out of components/ during the refactor (phase 3).
-// They are not shared components yet, so the "components never import features" rule
-// skips them. Remove this list when phase 3 ends: nothing should match it by then.
-const LEGACY = /^components\/([^/]+\.jsx|budget\/|goals\/|settings\/)/
 const SUPABASE_OK = (a) => a === "lib/supabase" || kind(a) === "data" || a === "contexts" || a === "context" || a === "proxy" || a === "app/auth"
 
 // Each rule: (fromArea, toArea | package) → message when broken.
@@ -110,7 +106,7 @@ export function violations(nodes) {
       if (imp.unresolved) { add(`unresolved import ${imp.spec}`); continue }
       const to = area(imp.file)
       if (to === "lib/supabase" && !SUPABASE_OK(from)) add(`imports ${rel(imp.file)} (Supabase belongs in features/*/data or lib/supabase)`)
-      if (from === "components" && !LEGACY.test(rel(file)) && to.startsWith("features/")) add(`shared components import a feature (${rel(imp.file)})`)
+      if (from === "components" && to.startsWith("features/")) add(`shared components import a feature (${rel(imp.file)})`)
       if (["lib", "lib/supabase", "domain", "types", "theme", "i18n"].includes(from) && /^(features|components|contexts|context|hooks)/.test(to)) {
         add(`${from} imports ${to} (${rel(imp.file)})`)
       }
