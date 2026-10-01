@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
 import { NextResponse, type NextRequest } from "next/server"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
 
 // OAuth / PKCE callback: Supabase redirects here with a `code` that we exchange
 // for a session (sets the auth cookies). Required by @supabase/ssr — without it
@@ -15,22 +14,7 @@ export async function GET(request: NextRequest) {
   const next = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/"
 
   if (code) {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          },
-        },
-      }
-    )
-
+    const supabase = await createServerSupabaseClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       // Honour the proxy host in production so we don't redirect off-domain.

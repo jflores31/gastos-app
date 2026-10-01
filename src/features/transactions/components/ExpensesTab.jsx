@@ -1,0 +1,319 @@
+"use client"
+
+import { useState, useMemo } from "react";
+import {
+  Box, Card, CardContent, Typography, Grid, Stack, Chip, LinearProgress,
+  IconButton, Collapse,
+} from "@mui/material";
+import {
+  ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon,
+  Add as AddIcon,
+  TrendingDown as SpentIcon, Receipt as TxCountIcon, CalendarMonth as DailyIcon, Warning as TopExpenseIcon,
+} from "@/theme/icons";
+import AddTransactionModal from "./AddTransactionModal";
+import { CATEGORIES } from "@/domain/categories/catalog";
+import { txByCategory, getTodayExpenses } from "../domain/aggregations";
+import { matchesCalendar } from "../domain/calendarFilter";
+import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
+import { resolveCategoryMeta } from "@/theme/categoryIcons";
+import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
+import { budgetFor } from "@/features/budgets/domain/budgets";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useData } from "@/contexts/DataContext";
+import { useMoveToTrash } from "../hooks/useMoveToTrash";
+import { useTxExtras } from "../hooks/useTxExtras";
+import { TransactionList } from "./TransactionList";
+import { CalendarFilter } from "./CalendarFilter";
+
+export default function ExpensesTab({ period, openModal, showToast }) {
+  const { t, lang, fmt, fmtTx } = useSettings();
+  const { txs, editBudgets, budgetPeriods, customCats } = useData();
+  const txExtras = useTxExtras();
+  const [activeCat, setActiveCat] = useState(null);
+  const [expandedSection, setExpandedSection] = useState("today");
+  const [editingTx, setEditingTx] = useState(null);
+  const moveToTrash = useMoveToTrash(showToast);
+  const [calFilter, setCalFilter] = useState(null);
+
+  const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
+  const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
+  const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
+
+  const filtered = useMemo(() => {
+    let list = periodTxs;
+    if (activeCat) list = list.filter((x) => x.categoria === activeCat);
+    return list.slice().reverse();
+  }, [periodTxs, activeCat]);
+
+  const allExpenseTxs = useMemo(() => txs.filter((x) => x.tipo === "EGRESO").slice().reverse(), [txs]);
+
+  const expenseTxs = useMemo(() => {
+    if (calFilter) {
+      return allExpenseTxs.filter((x) => matchesCalendar(x, calFilter));
+    }
+    return filtered.filter((x) => x.tipo === "EGRESO");
+  }, [filtered, allExpenseTxs, calFilter]);
+
+  const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
+  // cats derived from expenseTxs so Top Categorías respects both period and calFilter
+  const cats = useMemo(() => txByCategory(expenseTxs), [expenseTxs]);
+  // periodCats always uses full period (no calFilter) — used for budget comparison so it's not distorted by a single-day filter
+  const periodCats = useMemo(() => txByCategory(periodTxs.filter((x) => x.tipo === "EGRESO")), [periodTxs]);
+
+  const catMeta = (categoria) => resolveCategoryMeta(categoria, customCats, lang, "EGRESO");
+
+  const toggleSection = (section) => setExpandedSection(expandedSection === section ? null : section);
+
+  const cardStyles = {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+    border: "1px solid",
+    borderColor: "divider",
+    borderRadius: 3,
+  };
+
+  const cardContentStyles = {
+    py: 2.5,
+    px: { xs: 2, sm: 3 },
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  };
+
+
+  return (
+    <>
+    <Stack spacing={2.5}>
+      <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
+        <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
+          <Box>
+            <Typography variant="h6" fontWeight={700}>{t.dailyTitle}</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
+          </Box>
+          <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
+            <AddIcon />
+          </IconButton>
+        </Box>
+        <CardContent sx={{ pb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => toggleSection("today")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleSection("today")}>
+            <Typography variant="body2" fontWeight={600}>{t.todaysExpenses}</Typography>
+            {expandedSection === "today" ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          </Box>
+          <Collapse in={expandedSection === "today"}>
+            {todayExpenses.length > 0 ? (
+              <>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, p: 1.5, bgcolor: "primary.light", borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight={600}>{t.expensesTab.totalToday}</Typography>
+                  <Typography variant="h6" fontWeight={700} color="error.main">−{fmt(totalToday)}</Typography>
+                </Box>
+                <Stack spacing={0.5}>
+                  {todayExpenses.map((tx) => {
+                    const { label: catName, color, Icon } = catMeta(tx.categoria);
+                    const hour = tx.date.toLocaleTimeString(t.common.locale, { hour: "numeric", minute: "2-digit", hour12: true });
+                    return (
+                      <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                        <CategoryAvatar icon={Icon} color={color} size={32} />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={700} noWrap sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
+                          <Typography variant="caption" color="text.secondary">{catName} · {hour}{txExtras(tx)}</Typography>
+                        </Box>
+                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmtTx(tx)}</Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </>
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: "center", fontStyle: "italic" }}>
+                {t.expensesTab.noExpensesRecordedToday}
+              </Typography>
+            )}
+          </Collapse>
+        </CardContent>
+      </Card>
+
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "primary.main" }}>
+            <CardContent sx={cardContentStyles}>
+              <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
+                <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmt(filteredTotal, true)}</Typography>
+              </Box>
+              <Box sx={{ flex: 1, overflowY: "auto" }}>
+                <Stack spacing={1.5}>
+                  {(cats.length === 0 ? Object.entries(CATEGORIES.expense).slice(0, 4).map(([k]) => ({ categoria: k, total: 0, count: 0, _empty: true })) : cats.slice(0, 4)).map((c, idx) => {
+                    const pct = filteredTotal > 0 ? (c.total / filteredTotal) * 100 : 0;
+                    const { label: catName, color, Icon } = catMeta(c.categoria);
+                    return (
+                      <Box key={c.categoria} sx={{ borderRadius: 2, p: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", opacity: c._empty ? 0.5 : 1, "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                          <CategoryAvatar icon={Icon} color={color} />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" fontWeight={600}>
+                              <Typography component="span" variant="body2" fontWeight={700} color="text.secondary" sx={{ mr: 0.75 }}>#{idx + 1}</Typography>
+                              {catName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">{c._empty ? (t.expensesTab.noExpensesYet) : `${c.count} ${t.common.transactions} · ${pct.toFixed(1)}%`}</Typography>
+                          </Box>
+                          <Typography variant="h6" fontWeight={700} color="primary.main">{fmt(c.total, true)}</Typography>
+                        </Box>
+                        <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} color="primary" sx={{ height: 8, borderRadius: 4 }} />
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "warning.main" }}>
+            <CardContent sx={cardContentStyles}>
+              <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
+                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {t.common.categories}</Typography>
+              </Box>
+              <Box sx={{ flex: 1, overflowY: "auto" }}>
+                {Object.keys(editBudgets).length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3, fontStyle: "italic" }}>
+                    {t.expensesTab.noBudgetsConfigured}
+                  </Typography>
+                ) : (
+                  <Stack spacing={1.5}>
+                    {Object.keys(editBudgets).slice(0, 4).map((cat) => {
+                      const spent = periodCats.find((c) => c.categoria === cat)?.total || 0;
+                      const limit = budgetFor(editBudgets[cat], budgetPeriods[cat], period);
+                      const pct = limit ? spent / limit : 0;
+                      const isOver = pct > 1;
+                      const { label: catName, color, Icon } = catMeta(cat);
+                      return (
+                        <Box key={cat} sx={{ borderRadius: 2, p: 2, bgcolor: isOver ? "error.light" : "warning.light", border: "1px solid", borderColor: isOver ? "error.main" : "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                            <CategoryAvatar icon={Icon} color={color} />
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" fontWeight={600}>{catName}</Typography>
+                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmt(limit, true)}`}</Typography>
+                            </Box>
+                            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmt(spent, true)}</Typography>
+                          </Box>
+                          <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }} sx={{ display: "flex" }}>
+          <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "success.main" }}>
+            <CardContent sx={cardContentStyles}>
+              <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark", mb: 0.5 }}>{t.expensesTab.periodSummary}</Typography>
+                <Typography variant="caption" color="text.secondary">{periodLabel(period, t)}</Typography>
+              </Box>
+              <Box sx={{ flex: 1, overflowY: "auto" }}>
+                <Stack spacing={1.5}>
+                  {[
+                    { label: t.spent, value: filteredTotal, color: "error.main", bg: "error.light", icon: SpentIcon, tone: "expense" },
+                    { label: t.expensesTab.transactions, value: expenseTxs.length, color: "info.main", bg: "info.light", isCount: true, icon: TxCountIcon, tone: "goals" },
+                    { label: t.expensesTab.dailyAvg, value: filteredTotal / daysCount(period), color: "warning.main", bg: "warning.light", icon: DailyIcon, tone: "warning" },
+                    { label: t.expensesTab.topExpense, value: expenseTxs.reduce((max, x) => Math.max(max, x.valor), 0), color: "error.dark", bg: "error.light", icon: TopExpenseIcon, tone: "expense" },
+                  ].map((item, idx) => {
+                    const totalBudget = Object.entries(editBudgets).reduce((s, [cat, v]) => s + budgetFor(v, budgetPeriods[cat], period), 0);
+                    const maxExpense = expenseTxs.reduce((m, x) => Math.max(m, x.valor), 0);
+                    const barVal = idx === 0
+                      ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : 0)
+                      : idx === 1 ? Math.min(100, (expenseTxs.length / Math.max(expenseTxs.length, 1)) * 100)
+                      : idx === 2 ? (totalBudget > 0 ? Math.min(100, (filteredTotal / totalBudget) * 100) : filteredTotal > 0 ? 50 : 0)
+                      : (filteredTotal > 0 ? Math.min(100, (maxExpense / filteredTotal) * 100) : 0);
+                    return (
+                    <Box key={idx} sx={{ borderRadius: 2, p: 2, bgcolor: item.bg, border: "1px solid", borderColor: "divider", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { transform: "scale(1.01)", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" } }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
+                        <GradientIcon icon={item.icon} tone={item.tone} bubble bubbleSize={40} size={22} />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
+                        </Box>
+                        <Typography variant="h6" fontWeight={700} color={item.color}>
+                          {item.isCount ? item.value : fmt(item.value, true)}
+                        </Typography>
+                      </Box>
+                      {!item.isCount && <LinearProgress variant="determinate" value={barVal} color={idx === 0 ? "error" : idx === 2 ? "warning" : "error"} sx={{ height: 8, borderRadius: 4 }} />}
+                    </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Card sx={{ borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, pb: 2, borderBottom: "2px solid", borderColor: "primary.main" }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">{t.transactions}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {expenseTxs.length} {t.expensesTab.recordedExpenses}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <CalendarFilter txs={txs} tipo="EGRESO" onFilter={setCalFilter} />
+            </Box>
+          </Box>
+          {periodCats.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+              <Chip
+                size="small"
+                label={t.common.all}
+                variant={!activeCat ? "filled" : "outlined"}
+                color={!activeCat ? "primary" : "default"}
+                onClick={() => setActiveCat(null)}
+                sx={{ fontWeight: 600 }}
+              />
+              {periodCats.map((c) => {
+                const { label, Icon } = catMeta(c.categoria);
+                return (
+                  <Chip
+                    key={c.categoria}
+                    size="small"
+                    icon={<Icon />}
+                    label={label}
+                    variant={activeCat === c.categoria ? "filled" : "outlined"}
+                    color={activeCat === c.categoria ? "primary" : "default"}
+                    onClick={() => setActiveCat(activeCat === c.categoria ? null : c.categoria)}
+                    sx={{ fontWeight: 500 }}
+                  />
+                );
+              })}
+            </Box>
+          )}
+          <TransactionList type="expense" txs={expenseTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
+          <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
+            <Typography variant="body1" fontWeight={600}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
+            <Typography variant="h5" fontWeight={700}>−{fmt(filteredTotal, true)}</Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    </Stack>
+    {editingTx && (
+      <AddTransactionModal
+        editTx={editingTx}
+        mode="expense"
+        onAdd={() => showToast?.(t.common.transactionUpdated, "success")}
+        onClose={() => setEditingTx(null)}
+        showToast={showToast}
+      />
+    )}
+    </>
+  );
+}

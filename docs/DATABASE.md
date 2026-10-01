@@ -12,7 +12,7 @@ Nueve tablas, todas con `id` (uuid), `user_id` y `updated_at` (lo mantiene un tr
 |---|---|
 | `transactions` | Ingresos y gastos: `tipo` (`INGRESO`/`EGRESO`), `categoria`, `concepto`, `valor` en PEN y `fecha`. También la moneda en que se escribió (`moneda`, `monto_original`, `tasa`), la cuenta (`cuenta_id`, opcional) y `deleted_at` si está en la papelera |
 | `budgets` | Un presupuesto por categoría (`UNIQUE (user_id, categoria)`), con su `periodo`: `week`, `month` o `year` |
-| `goals` | Metas de ahorro: objetivo, progreso, fecha límite, color e icono (clave de `ICON_CHOICES`, los iconos elegibles de `src/theme/categoryIcons.js`; las metas viejas guardan un glifo de texto) |
+| `goals` | Metas de ahorro: objetivo, progreso, fecha límite, color e icono (clave de `ICON_CHOICES`, los iconos elegibles de `src/theme/categoryIcons.ts`; las metas viejas guardan un glifo de texto) |
 | `accounts` | Cuentas bancarias, efectivo y tarjetas (`type`: `bank`, `cash`, `card`), con su saldo a una fecha (`balance`, `balance_at`) |
 | `transfers` | Transferencias entre dos cuentas del usuario (`origen`, `destino`, `monto` en PEN, `fecha`, `nota`) |
 | `investments` | Inversiones, con su tasa de retorno |
@@ -22,7 +22,7 @@ Nueve tablas, todas con `id` (uuid), `user_id` y `updated_at` (lo mantiene un tr
 
 **Relaciones:**
 - `transactions.cuenta_id`, `transfers.origen` y `transfers.destino` apuntan a `accounts` con `(id, user_id)`, así nadie puede asociar algo a la cuenta de otro usuario. Al borrar una cuenta, `ON DELETE SET NULL (col)` deja en `NULL` solo esa columna: la transacción o la transferencia sigue existiendo.
-- `categoria` es texto, sin clave foránea: una clave del catálogo que vive en el código (`CATEGORIES` en `src/data/index.ts`, p. ej. `COMIDA`) o `custom_<id>` para una categoría propia, donde `<id>` es el `id` de `custom_categories`.
+- `categoria` es texto, sin clave foránea: una clave del catálogo que vive en el código (`CATEGORIES` en `src/domain/categories/catalog.ts`, p. ej. `COMIDA`) o `custom_<id>` para una categoría propia, donde `<id>` es el `id` de `custom_categories`.
 
 **Restricciones** (`CHECK`): `tipo` válido, `valor > 0`, `moneda` entre las 8 de la app, `monto_original` y `tasa` positivos, `type` de cuenta, `periodo` de presupuesto y `tipo` de categoría propia.
 
@@ -69,17 +69,17 @@ El archivo tiene dos partes, cada una en su propia transacción: si algo falla d
 
 ### En el código
 
-La app habla con Supabase desde pocos lugares; el resto (pestañas, gráficos, `src/data/*`) recibe los datos ya convertidos por los `map*` de `DataContext` y no sabe de dónde vienen.
+La app habla con Supabase desde pocos lugares; el resto (pestañas, gráficos, reglas de `domain/`) recibe los datos ya convertidos por los mappers de `features/*/data` y no sabe de dónde vienen. `npm test` lo impone: Supabase solo puede aparecer en `features/*/data`, `contexts/`, `lib/supabase/`, `proxy.ts` y `app/auth/callback` (ver [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md)).
 
 | Pieza | Archivos | Qué usa de Supabase |
 |---|---|---|
-| Clientes | `src/lib/supabase.ts`, `src/lib/supabase-server.ts` | `@supabase/ssr` (`createBrowserClient`, `createServerClient`) con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| Protección de rutas y CSP | `src/proxy.ts`, `src/lib/mfa.ts` | La sesión en cookies (`getUser`, `getSession`) y su `aal`; el CSP permite `*.supabase.co` y el origen de `NEXT_PUBLIC_SUPABASE_URL` |
-| Login, registro y contraseña | `src/app/login`, `register`, `forgot-password`, `reset-password`, `auth/callback`; `LoginModal.jsx` | `signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`, `exchangeCodeForSession` (OAuth, desactivado) |
-| Estado de la sesión | `UserContext.tsx`, `DataContext.jsx`, `DashboardStudio.jsx` | `onAuthStateChange`, `getUser`, `signOut` |
-| Perfil | `settings/ProfileTab.jsx`, `SettingsPanel.jsx`, `DashboardStudio.jsx`, `OverviewTab.jsx`, `AddTransactionModal.jsx` | `user_metadata` (nombre, avatar, favoritas) y `updateUser` para guardarlo |
-| Verificación en dos pasos | `settings/TwoFactorSection.jsx`, `login/page.tsx` | `auth.mfa`: `enroll`, `challengeAndVerify`, `listFactors`, `unenroll` |
-| Datos | `DataContext.jsx`, `src/data/fetchAllRows.ts` | PostgREST con supabase-js: `.from(tabla)` con `select`, `insert`, `update` y `delete`; paginación con `.range()` (PostgREST corta en 1000 filas); `PGRST204`, el error de PostgREST por una columna que no existe, para guardar sin ella si la base no está al día |
+| Clientes | `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts` | `@supabase/ssr` (`createBrowserClient`, `createServerClient`) con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Protección de rutas y CSP | `src/proxy.ts`, `src/features/auth/domain/mfa.ts` | La sesión en cookies (`getUser`, `getSession`) y su `aal`; el CSP permite `*.supabase.co` y el origen de `NEXT_PUBLIC_SUPABASE_URL` |
+| Login, registro y contraseña | `src/features/auth/data/authApi.ts`, que usan las pantallas de `features/auth` (y `LoginModal`); `src/app/auth/callback` | `signInWithPassword`, `signUp`, `resetPasswordForEmail`, `updateUser`, `exchangeCodeForSession` (OAuth, desactivado) |
+| Estado de la sesión | `contexts/UserContext.tsx`, `contexts/DataContext.tsx`, `features/auth/hooks/useSessionGuard.ts` (vía `authApi`) | `onAuthStateChange`, `getUser`, `signOut` |
+| Perfil | `features/settings/components/ProfileTab.jsx` (guarda con `authApi.updateUser`); leen `user_metadata`: `SettingsPanel`, `AppHeader`, `OverviewTab` y `AddTransactionModal` | `user_metadata` (nombre, avatar, favoritas) y `updateUser` para guardarlo |
+| Verificación en dos pasos | `features/auth/components/TwoFactorSection.jsx` y `LoginPage.tsx`, vía `authApi.mfa` | `auth.mfa`: `enroll`, `challengeAndVerify`, `listFactors`, `unenroll` |
+| Datos | `contexts/DataContext.tsx` (carga), `contexts/useTableCrud.ts`, `features/*/data/` (mappers y escrituras de cada tabla), `lib/supabase/fetchAllRows.ts`; filas tipadas en `types/database.ts` | PostgREST con supabase-js: `.from(tabla)` con `select`, `insert`, `update` y `delete`; paginación con `.range()` (PostgREST corta en 1000 filas); `PGRST204`, el error de PostgREST por una columna que no existe, para guardar sin ella si la base no está al día |
 | Tests end-to-end | `e2e/mock-supabase/` | Un Supabase simulado: imita Auth, PostgREST y MFA, y lee las tablas de `schema.sql` |
 
 > ⚠ **Las consultas confían en RLS.** La carga de datos (`select("*")`) y el vaciado de la papelera a los 30 días (`delete().lt("deleted_at", …)`) no filtran por `user_id`: es la base la que limita cada consulta al usuario de la sesión. Sin RLS, o con una conexión que se lo salte, la carga devolvería las filas de todos y el vaciado borraría la papelera vieja de todos. En otro sistema, esas consultas necesitan su filtro por usuario, o una capa que lo imponga.
@@ -92,7 +92,7 @@ Tres cosas se mueven por separado: la base, los datos (incluidos los usuarios) y
 |---|---|---|---|
 | **Otro proyecto de Supabase**, alojado o autoalojado (Docker) | `schema.sql` completo | Se copian con el esquema `auth` (contraseñas y verificación en dos pasos incluidas), con la guía de Supabase para copiar un proyecto | No cambia: solo las variables de entorno |
 | **Otro Postgres gestionado** (Neon, RDS, Railway…) + otro sistema de login | Parte 1 de `schema.sql` y un reemplazo de la parte 2 | Se importan en el nuevo sistema | Cambian las piezas de la tabla anterior |
-| **Otra base de datos** (no Postgres) | Hay que traducir el esquema (tipos, `CHECK`, claves foráneas con `SET NULL` de una columna) | Igual que arriba | Igual que arriba, y `DataContext` entero |
+| **Otra base de datos** (no Postgres) | Hay que traducir el esquema (tipos, `CHECK`, claves foráneas con `SET NULL` de una columna) | Igual que arriba | Igual que arriba, y `DataContext` con todos los `features/*/data` |
 
 ### 1. Base
 
@@ -128,7 +128,7 @@ Tres cosas se mueven por separado: la base, los datos (incluidos los usuarios) y
 
 ### 3. Código
 
-Cambiar las piezas de la tabla [En el código](#en-el-código). Casi todo el acceso a datos está en `DataContext.jsx`, y la sesión, en `proxy.ts`, `UserContext.tsx` y las páginas de login. Si el nuevo sistema no expone una API tipo PostgREST, `DataContext` pasa a llamar a rutas propias (p. ej. en `src/app/api/`) que consulten la base con el usuario de la sesión. Actualizar también:
+Cambiar las piezas de la tabla [En el código](#en-el-código). El acceso a datos está en `DataContext.tsx` y los módulos `features/*/data/`, y la autenticación, en `features/auth/data/authApi.ts`, `proxy.ts` y `UserContext.tsx`. Si el nuevo sistema no expone una API tipo PostgREST, esos módulos `data/` pasan a llamar a rutas propias (p. ej. en `src/app/api/`) que consulten la base con el usuario de la sesión. Actualizar también:
 - el CSP de `src/proxy.ts` (`connect-src` e `img-src` permiten `*.supabase.co`);
 - las variables de entorno (`.env.example`, Vercel);
 - el Supabase simulado de los tests end-to-end, o reemplazarlo por uno del nuevo sistema.

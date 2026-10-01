@@ -1,0 +1,153 @@
+import { useId } from "react";
+import type { Messages } from "@/i18n";
+
+// What the charts read from each data point (structural: any list with these fields works).
+type Slice = { value: number; color: string };
+type MonthPoint = { mes: number; ingreso: number; egreso: number };
+type DayValue = { date: Date; value: number };
+type HeatCell = { empty: true } | { empty?: undefined; date: Date; value: number; intensity: number };
+
+// --- Helpers SVG compartidos ---
+
+// Min/max/rango de un dataset con pisos (el rango nunca es 0).
+function extent(data: number[], { minFloor = 0, maxFloor = 1 } = {}) {
+  const min = Math.min(...data, minFloor);
+  const max = Math.max(...data, maxFloor);
+  return { min, max, range: (max - min) || 1 };
+}
+
+// Path de polilínea SVG ("M x,y L x,y ...") a partir de pares [x, y].
+function linePath(points: number[][]) {
+  return points.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+}
+
+export function Donut({ slices, size = 180, thickness = 22, gap = 2 }: { slices: Slice[]; size?: number; thickness?: number; gap?: number }) {
+  const total = slices.reduce((s, x) => s + x.value, 0) || 1;
+  const r = size / 2 - thickness / 2;
+  const c = 2 * Math.PI * r;
+  const items = slices.map((s, i) => {
+    const offset = slices.slice(0, i).reduce((acc, prev) => acc + c * (prev.value / total), 0);
+    const frac = s.value / total;
+    const len = c * frac - gap;
+    const dash = `${Math.max(0, len)} ${c}`;
+    return { key: i, color: s.color, dash, dashOffset: -offset };
+  });
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ width: '100%', height: 'auto', maxWidth: size }}>
+      <g transform={`translate(${size / 2} ${size / 2}) rotate(-90)`}>
+        {items.map(({ key, color, dash, dashOffset }) => (
+          <circle key={key} r={r} fill="none" stroke={color}
+            strokeWidth={thickness} strokeDasharray={dash}
+            strokeDashoffset={dashOffset} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+export function SparkArea({ data }: { data?: number[] | null }) {
+  const gid = `sg-${useId().replace(/:/g, "")}`;
+  if (!data || !data.length) return null;
+  const W = 600, H = 64;
+  const { min, range } = extent(data);
+  const stepX = W / Math.max(1, data.length - 1);
+  const points = data.map((v, i) => [i * stepX, H - ((v - min) / range) * H * 0.85 - H * 0.1]);
+  const path = linePath(points);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="st-spark" style={{ width: '100%', height: 'auto' }}>
+      <defs>
+        <linearGradient id={gid} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={path + ` L ${W},${H} L 0,${H} Z`} fill={`url(#${gid})`} />
+      <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2" />
+    </svg>
+  );
+}
+
+export function StudioCashflow({ months, t }: { months: MonthPoint[]; t: Pick<Messages, "months"> }) {
+  const uid = useId().replace(/:/g, "");
+  if (!months.length) return null;
+  const incId = `ginc-${uid}`;
+  const expId = `gexp-${uid}`;
+  const W = 720, H = 240, P = 36;
+  const max = Math.max(...months.map((m) => Math.max(m.ingreso, m.egreso)), 1);
+  const stepX = (W - P * 2) / Math.max(1, months.length - 1);
+  const yFor = (v: number) => H - P - (Math.max(0, v) / max) * (H - P * 2);
+  const ins = months.map((m) => m.ingreso);
+  const outs = months.map((m) => m.egreso);
+  const nets = months.map((m) => m.ingreso - m.egreso);
+  const { min: netMin, range: netRange } = extent(nets, { maxFloor: 0 });
+  const yForNet = (v: number) => H - P - ((v - netMin) / netRange) * (H - P * 2);
+  const line = (arr: number[]) => linePath(arr.map((v, i) => [P + i * stepX, yFor(v)]));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="st-flow-svg" style={{ width: '100%', height: 'auto' }}>
+      <defs>
+        <linearGradient id={incId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--income)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--income)" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={expId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--expense)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--expense)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[0, 0.25, 0.5, 0.75, 1].map((g) => (
+        <line key={g} x1={P} x2={W - P} y1={H - P - g * (H - P * 2)} y2={H - P - g * (H - P * 2)}
+          stroke="currentColor" opacity="0.06" />
+      ))}
+      <path d={line(ins) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill={`url(#${incId})`} />
+      <path d={line(outs) + ` L ${W - P} ${H - P} L ${P} ${H - P} Z`} fill={`url(#${expId})`} />
+      <path d={line(ins)} fill="none" stroke="var(--income)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={line(outs)} fill="none" stroke="var(--expense)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={linePath(nets.map((v, i) => [P + i * stepX, yForNet(v)]))} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round" />
+      {months.map((m, i) => (
+        <g key={i}>
+          {i === months.length - 1 && (
+            <>
+              <circle cx={P + i * stepX} cy={yFor(m.ingreso)} r="5" fill="var(--bg)" stroke="var(--income)" strokeWidth="2" />
+              <circle cx={P + i * stepX} cy={yFor(m.egreso)} r="5" fill="var(--bg)" stroke="var(--expense)" strokeWidth="2" />
+            </>
+          )}
+          <text x={P + i * stepX} y={H - 12} textAnchor="middle" fontSize="11"
+            fill="currentColor" opacity="0.5" style={{ fontFamily: "var(--font-ibm-plex-sans), Roboto, sans-serif" }}>
+            {t.months[m.mes] || ""}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+export function HeatCalendar({ values, days = 84, color = "currentColor", cellSize = 10, gap = 2 }: { values: DayValue[]; days?: number; color?: string; cellSize?: number; gap?: number }) {
+  const today = new Date();
+  const start = new Date(today); start.setDate(today.getDate() - days + 1);
+  const startDow = (start.getDay() + 6) % 7;
+  const map = new Map(values.map((v) => [v.date.toDateString(), v.value]));
+  let maxV = 1;
+  for (const v of values) if (v.value > maxV) maxV = v.value;
+  const cells: HeatCell[] = [];
+  for (let i = 0; i < days + startDow; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i - startDow);
+    if (i < startDow) { cells.push({ empty: true }); continue; }
+    const v = map.get(d.toDateString()) || 0;
+    cells.push({ date: d, value: v, intensity: v / maxV });
+  }
+  const cols = Math.ceil(cells.length / 7);
+  return (
+    <svg width={cols * (cellSize + gap)} height={7 * (cellSize + gap)}>
+      {cells.map((c, i) => {
+        const col = Math.floor(i / 7);
+        const row = i % 7;
+        if (c.empty) return null;
+        const op = c.value === 0 ? 0.06 : 0.15 + c.intensity * 0.85;
+        return (
+          <rect key={i} x={col * (cellSize + gap)} y={row * (cellSize + gap)}
+            width={cellSize} height={cellSize} fill={color} opacity={op} rx={1} />
+        );
+      })}
+    </svg>
+  );
+}

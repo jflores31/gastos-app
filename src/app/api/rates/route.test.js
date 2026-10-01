@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
 import { GET } from "./route.ts"
-import { fetchRates } from "../../../lib/rates"
-import { CURRENCIES } from "../../../data/index"
+import { fetchRates } from "@/lib/rates"
+import { CURRENCIES } from "@/domain/money"
 
 const provider = (body, init = {}) => vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status: 200, ...init }))
 const good = {

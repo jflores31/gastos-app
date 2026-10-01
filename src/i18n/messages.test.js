@@ -3,8 +3,8 @@ import { readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { MESSAGES, messagesFor } from "./index"
-import { ICON_CHOICES } from "../theme/categoryIcons.js"
-import { PALETTES } from "../context/SettingsContext"
+import { ICON_CHOICES } from "@/theme/categoryIcons"
+import { PALETTES } from "@/contexts/SettingsContext"
 
 // Every key path with the kind of value it holds, e.g. "goalsTab.newGoal: string",
 // "overviewTab.greeting: function/2", "months: array/12".

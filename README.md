@@ -69,6 +69,8 @@ Detalles de testing en **[docs/TESTING.md](docs/TESTING.md)**.
 |---|---|
 | [Características](docs/FEATURES.md) | Todo lo que hace la app, por pantalla |
 | [Arquitectura](docs/ARCHITECTURE.md) | Estructura del código, flujo de datos, módulos clave y notas técnicas |
+| [Estructura del código](docs/PROJECT-STRUCTURE.md) | Dónde va cada cosa en `src/`, las capas, las reglas que comprueba `npm test` y cómo agregar una funcionalidad |
+| [Auditoría de arquitectura](docs/ARCHITECTURE-AUDIT.md) | El refactor por funcionalidades y capas: punto de partida, plan, hallazgos y resultado |
 | [Base de datos](docs/DATABASE.md) | Tablas, cómo instalar o poner al día el esquema, qué depende de Supabase y cómo migrar a otro sistema |
 | [Seguridad](docs/SECURITY.md) · [CSP](docs/SECURITY-CSP.md) | Medidas de seguridad y el Content-Security-Policy con nonce por request |
 | [Tests](docs/TESTING.md) | Unitarios, de componentes y end-to-end, y el Supabase simulado |

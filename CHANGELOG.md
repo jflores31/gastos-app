@@ -6,6 +6,18 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 ## [Unreleased]
 
 ### Cambiado
+- **Código organizado por funcionalidades y capas** (sin cambios de comportamiento ni de aspecto). Plan, hallazgos y resultado en [docs/ARCHITECTURE-AUDIT.md](docs/ARCHITECTURE-AUDIT.md); dónde va cada cosa en [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md).
+  - **Funcionalidades:** `src/features/<funcionalidad>/{components,hooks,domain,data}` para transacciones, presupuestos, metas, cuentas, inversiones, deudas, suscripciones, categorías, importar/exportar, auth, ajustes y el shell (`dashboard`). `src/data/` y `src/app/components/` desaparecen.
+  - **Compartido:** `components/` (ui, charts, forms, feedback, providers), `domain/` (dinero, períodos, salud, patrimonio, categorías), `lib/supabase/`, `types/`.
+  - **Shell:** `DashboardStudio` pasó de 366 a ~90 líneas. La seguridad de sesión se movió a `useSessionGuard`, el aviso a `useToast`, y salieron también `useTransactionModal`, `AppHeader` y `MainNav`. Gastos e Ingresos comparten `TransactionList`.
+  - **Datos:** `DataContext` (TypeScript) guarda el estado y hace la carga. Cada tabla tiene su mapeo y sus escrituras en `features/*/data`, y `types/database.ts` tipa las filas. Las pantallas de auth usan `authApi` y ya no importan Supabase.
+  - **Reglas en `npm test`** (`architecture.test.js` + `scripts/dependency-map.mjs`): capas, Supabase solo en la capa de datos, imports relativos dentro de una funcionalidad y `@/` entre ellas, sin ciclos. `database.test.ts` compara los mappers con `supabase/schema.sql`.
+  - **TypeScript:** pasaron la UI compartida, los hooks, `CalendarFilter`, `AddTransactionModal`, `DataContext` y el shell (`DashboardStudio`). Cada archivo se comprobó comparando el JS emitido: solo se agregaron tipos.
+  - **`supabase/schema.sql`:** índice de secciones al principio (solo comentarios; `pg_dump` idéntico).
+  - **Verificación:** 138 capturas (claro/oscuro, es/en, escritorio/390 px) idénticas píxel a píxel antes y después de cada fase, y los 36 e2e en verde. Los unitarios pasaron de 211 a 230.
+  - **Hallazgos sin corregir** (van a un PR aparte):
+    - MUI 9 ya no lee `fontWeight` en `Typography`, `inputProps` en `TextField` (por eso no se aplican `maxLength: 60` ni `min: 0` en 9 campos) ni las props de tipografía de `ListItemText`;
+    - Gastos ignora el filtro de categoría cuando hay un filtro de calendario.
 - **Licencia GPL-3.0** (antes MIT): archivo `LICENSE` y `"license": "GPL-3.0-only"` en `package.json`. Lo ya publicado bajo MIT sigue bajo MIT para quien lo obtuvo así.
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
