@@ -19,6 +19,9 @@ import GoalsTab from "./GoalsTab";
 import AddTransactionModal from "@/features/transactions/components/AddTransactionModal";
 import SettingsPanel from "@/features/settings/components/SettingsPanel";
 import LoginModal from "@/features/auth/components/LoginModal";
+import type { Period } from "@/types/domain";
+
+type SettingsTab = "perfil" | "ajustes";
 
 // App shell: composes the header, the navigation and the five tabs. Session security,
 // the toast and the transaction modal live in their own hooks.
@@ -30,10 +33,10 @@ export default function DashboardStudio() {
 
   const [activeTab, setActiveTab] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsTab, setSettingsTab] = useState("perfil");
-  const openSettings = (tab) => { setSettingsTab(tab); setShowSettings(true); };
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("perfil");
+  const openSettings = (tab: SettingsTab) => { setSettingsTab(tab); setShowSettings(true); };
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [period, setPeriod] = useState("month");
+  const [period, setPeriod] = useState<Period>("month");
 
   const { modal, openModal, closeModal } = useTransactionModal();
   const { toast, showToast, hideToast } = useToast();
