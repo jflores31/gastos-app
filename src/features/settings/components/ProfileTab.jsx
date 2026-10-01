@@ -50,7 +50,7 @@ export function ProfileTab({ user, name, notify }) {
         >
           {initials || <PersonIcon />}
         </Avatar>
-        <Typography variant="h6" fontWeight={800} noWrap>{displayName}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 800 }} noWrap>{displayName}</Typography>
         {fullName && <Typography variant="body2" noWrap sx={{ opacity: 0.85, mt: 0.25 }}>{email}</Typography>}
       </Box>
 
@@ -92,8 +92,7 @@ function PersonalInfoSection({ name, notify }) {
         <ListItemText
           primary={t.settingsPanel.personalInfo}
           secondary={t.settingsPanel.yourNameShownAcrossThe}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>
@@ -172,8 +171,7 @@ function FavoriteCategoriesSection({ user, notify }) {
         <ListItemText
           primary={t.settingsPanel.favoriteCategories}
           secondary={t.settingsPanel.shownFirstInTheSelector}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, flexDirection: "column", alignItems: "stretch", gap: 1.5 }}>

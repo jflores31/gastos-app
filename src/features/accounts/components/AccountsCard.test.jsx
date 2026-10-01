@@ -43,6 +43,12 @@ describe("AccountsCard — saldo de hoy", () => {
     expect(data.saveAccount.mock.calls[0][0]).toMatchObject({ id: "bcp", name: "BCP soles", balance: 1000, balanceAt: at })
   })
 
+  it("el nombre de la cuenta admite hasta 60 caracteres", () => {
+    render(<AccountsCard worth={worth} />)
+    fireEvent.click(screen.getByRole("button", { name: "Editar" }))
+    expect(screen.getByLabelText("Nombre").getAttribute("maxlength")).toBe("60")
+  })
+
   it("un saldo escrito es el de hoy: reemplaza al guardado, con la fecha de ahora", async () => {
     render(<AccountsCard worth={worth} />)
     fireEvent.click(screen.getByRole("button", { name: "Editar" }))

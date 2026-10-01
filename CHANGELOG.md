@@ -15,9 +15,7 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
   - **TypeScript:** pasaron la UI compartida, los hooks, `CalendarFilter`, `AddTransactionModal`, `DataContext` y el shell (`DashboardStudio`). Cada archivo se comprobó comparando el JS emitido: solo se agregaron tipos.
   - **`supabase/schema.sql`:** índice de secciones al principio (solo comentarios; `pg_dump` idéntico).
   - **Verificación:** 138 capturas (claro/oscuro, es/en, escritorio/390 px) idénticas píxel a píxel antes y después de cada fase, y los 36 e2e en verde. Los unitarios pasaron de 211 a 230.
-  - **Hallazgos sin corregir** (van a un PR aparte):
-    - MUI 9 ya no lee `fontWeight` en `Typography`, `inputProps` en `TextField` (por eso no se aplican `maxLength: 60` ni `min: 0` en 9 campos) ni las props de tipografía de `ListItemText`;
-    - Gastos ignora el filtro de categoría cuando hay un filtro de calendario.
+  - **Hallazgos** (props que MUI 9 ya no lee; Gastos ignoraba la categoría con el calendario): corregidos después, en un PR aparte (ver *Corregido*).
 - **Licencia GPL-3.0** (antes MIT): archivo `LICENSE` y `"license": "GPL-3.0-only"` en `package.json`. Lo ya publicado bajo MIT sigue bajo MIT para quien lo obtuvo así.
 - **Guardar y borrar sin llamadas extra:** las 17 funciones de `DataContext` usaban `supabase.auth.getUser()` (una petición al servidor de Auth) antes de cada escritura. Ahora usan el usuario de la sesión, que ya llega con los eventos de auth; RLS sigue validando el JWT en el servidor.
 - **Sin sesión, error visible:** antes las mutaciones no hacían nada y la UI mostraba "guardado". Ahora lanzan un error ("No hay sesión activa") que se muestra como toast.
@@ -93,6 +91,13 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - `npm audit`: 0 vulnerabilidades.
 
 ### Corregido
+- **Props que MUI 9 ya no lee** (estaban sin efecto desde la actualización a MUI 9; cambia el aspecto a propósito, con capturas antes y después):
+  - **Negritas:** 96 `fontWeight` de `Typography` pasaron a `sx`. Títulos, montos y etiquetas vuelven a salir en negrita en casi todas las pantallas.
+  - **Límites de los campos:** los nombres de metas, cuentas, deudas, inversiones y suscripciones vuelven a tener `maxLength: 60`, y 4 montos `min: 0` (`inputProps` → `slotProps.htmlInput`).
+  - **Listas de Perfil, Ajustes, 2FA, Tus datos y Categorías:** los títulos vuelven a usar `overline` y `caption` (`primaryTypographyProps` → `slotProps.primary`).
+  - **`Grid`:** `alignItems` pasó a `sx`; la tarjeta de salud de Presupuesto vuelve a centrar sus columnas en vertical.
+  - **Que no vuelvan:** ESLint marca esas props (y `InputProps`, `InputLabelProps`, `FormHelperTextProps`, `SelectProps` de `TextField` y `PaperProps` de `Dialog`), con lo que hay que usar en su lugar.
+- **Gastos ignoraba la categoría con el calendario:** con un día o mes elegido, la lista y el total mostraban todas las categorías aunque hubiera un chip elegido. Ahora filtra como Ingresos: el calendario reemplaza al período y la categoría se aplica encima. Las dos pestañas usan el mismo hook, `useTxFilters`.
 - **Transacciones que no contaban en su período:** el mes, el trimestre y el año terminaban a las 00:00 del último día, así que lo registrado ese día después de medianoche no entraba en los totales (el 30 de septiembre por la tarde no contaba en septiembre). La semana empezaba el lunes a la hora actual, no a las 00:00. Ahora los límites son días completos.
 - **Montos con el formato del idioma:** `fmtMoney` usaba el locale del navegador; un navegador en alemán mostraba "S/3.500" con la app en español. Ahora usa el del idioma elegido (`es-PE` o `en-US`), igual en el servidor y en el navegador. Los negativos grandes (-1234,56) ya no salen con decimales.
 - **Notificaciones repetidas:** en el panel de ajustes, una segunda notificación se cerraba con el tiempo que le quedaba a la primera.

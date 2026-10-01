@@ -51,7 +51,7 @@ export function AccountsCard({ worth, showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={BankIcon} tone="networth" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>{t.networth}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t.networth}</Typography>
               <Typography variant="caption" color="text.secondary">{accounts.length} {t.goalsTab.accounts}</Typography>
             </Box>
           </Box>
@@ -67,15 +67,15 @@ export function AccountsCard({ worth, showToast }) {
         </Box>
         <Box sx={{ bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 3, p: 3, mb: 3 }}>
           <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{t.goalsTab.netWorth}</Typography>
-          <Typography variant="h4" fontWeight={800}>{fmt(worth.net)}</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>{fmt(worth.net)}</Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={{ xs: 6 }}>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.assets}</Typography>
-              <Typography variant="body1" fontWeight={700}>+{fmt(worth.assets, true)}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>+{fmt(worth.assets, true)}</Typography>
             </Grid>
             <Grid size={{ xs: 6 }}>
               <Typography variant="caption" sx={{ opacity: 0.8 }}>{t.goalsTab.debts}</Typography>
-              <Typography variant="body1" fontWeight={700}>−{fmt(worth.debt, true)}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>−{fmt(worth.debt, true)}</Typography>
             </Grid>
           </Grid>
         </Box>
@@ -101,7 +101,7 @@ export function AccountsCard({ worth, showToast }) {
         canSave={form.name && form.balance !== ""}
         onSave={handleSave}
       >
-        <TextField label={t.common.name} value={form.name} inputProps={{ maxLength: 60 }} onChange={(e) => update({ name: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.name} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ name: e.target.value })} fullWidth />
         <FormControl fullWidth>
           <InputLabel id="account-type-label">{t.common.type}</InputLabel>
           <Select labelId="account-type-label" value={form.type} onChange={(e) => update({ type: e.target.value })} label={t.common.type}>
@@ -128,7 +128,7 @@ function AccountRow({ account: a, onEdit, onDelete }) {
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
       <CategoryAvatar icon={a.type === "bank" ? BankIcon : a.type === "card" ? CardIcon : CashIcon} color={a.color} size={36} />
       <Box sx={{ flex: 1 }}>
-        <Typography variant="body2" fontWeight={600}>{a.name}</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>{a.name}</Typography>
         <Typography variant="caption" color="text.secondary">
           {a.type === "bank" ? (t.goalsTab.bank) : a.type === "card" ? (t.goalsTab.card) : (t.goalsTab.cash)}
           {isDebt && a.limit ? ` · ${Math.round(utilPct * 100)}%` : ""}
@@ -137,7 +137,7 @@ function AccountRow({ account: a, onEdit, onDelete }) {
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
         <IconButton size="small" aria-label={t.common.edit} onClick={onEdit}><EditIcon fontSize="small" /></IconButton>
         <IconButton size="small" color="error" aria-label={t.common.delete} onClick={onDelete}><DeleteIcon fontSize="small" /></IconButton>
-        <Typography variant="body2" fontWeight={700} color={isDebt ? "error.main" : "success.main"} sx={{ minWidth: 80, textAlign: "right" }}>
+        <Typography variant="body2" color={isDebt ? "error.main" : "success.main"} sx={{ fontWeight: 700, minWidth: 80, textAlign: "right" }}>
           {isDebt ? "−" : "+"}{fmt(Math.abs(balance), true)}
         </Typography>
       </Box>
@@ -169,12 +169,12 @@ function RecentTransfers({ showToast }) {
           <Box key={tr.id} sx={{ display: "flex", alignItems: "center", gap: 1, px: 1.5, py: 1, bgcolor: "action.hover", borderRadius: 2 }}>
             <SwapIcon fontSize="small" sx={{ color: "text.secondary" }} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" fontWeight={600} noWrap>{name(tr.origen)} → {name(tr.destino)}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>{name(tr.origen)} → {name(tr.destino)}</Typography>
               <Typography variant="caption" color="text.secondary" component="div" noWrap>
                 {tr.date.toLocaleDateString(t.common.locale, { day: "numeric", month: "short", year: "numeric" })}{tr.nota ? ` · ${tr.nota}` : ""}
               </Typography>
             </Box>
-            <Typography variant="body2" fontWeight={700} sx={{ whiteSpace: "nowrap" }}>{fmt(tr.monto, true)}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>{fmt(tr.monto, true)}</Typography>
             <IconButton size="small" color="error" aria-label={t.goalsTab.deleteTransfer(name(tr.origen), name(tr.destino))} onClick={() => remove(tr.id)}>
               <DeleteIcon fontSize="small" />
             </IconButton>

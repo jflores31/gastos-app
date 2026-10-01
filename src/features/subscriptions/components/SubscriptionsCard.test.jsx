@@ -37,6 +37,13 @@ describe("SubscriptionsCard — iconos y categoría sugerida", () => {
     expect(within(revista).getByText("—")).toBeTruthy()
   })
 
+  it("el nombre admite hasta 60 caracteres y el precio no es negativo", () => {
+    render(<SubscriptionsCard />)
+    fireEvent.click(screen.getByRole("button", { name: "Agregar suscripción" }))
+    expect(screen.getByLabelText("Nombre").getAttribute("maxlength")).toBe("60")
+    expect(screen.getByLabelText(/Precio/).getAttribute("min")).toBe("0")
+  })
+
   it("el nombre sugiere la categoría; una elegida a mano no cambia", async () => {
     render(<SubscriptionsCard />)
     fireEvent.click(screen.getByRole("button", { name: "Agregar suscripción" }))

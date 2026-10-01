@@ -170,7 +170,7 @@ Amounts: stored in PEN (+ each transaction's currency, what was typed and the ra
 
 ### Calculations and charts
 
-**Filters (Expenses/Income):** `filteredTotal` is derived with `useMemo` from the already-filtered list. The footer and summary cards read it, and the daily average uses `daysCount(period)` (7/30/90/365).
+**Filters (Expenses/Income):** both use `useTxFilters` (`features/transactions/hooks`). A day or month picked in the calendar replaces the period, and the category chip applies on top of either. It returns the list, newest first, and its total (`filteredTotal`). The footer and summary cards read that total, and the daily average uses `daysCount(period)` (7/30/90/365).
 - **Top categories:** follows `calFilter` and the active category.
 - **"Budget vs actual":** uses the full-period `periodCats`, so a one-day filter doesn't show 0 %.
 - **"Daily average" bar:** shows the % of budget spent, or a neutral 50 % when there's no budget.

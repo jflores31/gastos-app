@@ -44,7 +44,7 @@ Dark mode: background `#07080f`, 3 radial-gradient blobs, glass card (`backdropF
 - Daily average calculated with `daysCount(period)` (7/30/90/365 per period)
 - Largest expense = maximum of the filtered transactions
 - Full list with each category's icon, edit and delete (delete confirmation)
-- Filter by category with chips that show the icon
+- Filter by category with chips that show the icon; combines with the calendar (same as Income)
 - **CalendarFilter:** interactive heat map — day and month views with proportional intensity; click filters the list, footer shows filtered total with "(filtered)" label
 - Footer total updates in real time when any filter is applied
 - Full date and time per transaction

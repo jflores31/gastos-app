@@ -7,13 +7,13 @@ import {
 import { AccountBalanceWallet as WalletIcon, PieChart as PieIcon, ShowChart as ChartIcon, Add as AddIcon } from "@/theme/icons";
 import AddTransactionModal from "./AddTransactionModal";
 import { txByCategory, txByMonth } from "../domain/aggregations";
-import { matchesCalendar } from "../domain/calendarFilter";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { filterByPeriod, periodLabel } from "@/domain/period";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";
+import { useTxFilters } from "../hooks/useTxFilters";
 import { Donut, SparkArea, StudioCashflow } from "@/components/charts/Charts";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
@@ -24,29 +24,14 @@ export default function IncomeTab({ period, openModal, showToast }) {
   const { txs, customCats } = useData();
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
-  const [calFilter, setCalFilter] = useState(null);
-  const [activeCat, setActiveCat] = useState(null);
+  const { periodTxs, calFilter, setCalFilter, activeCat, setActiveCat, list: incomeTxs, total: filteredTotal } = useTxFilters(txs, period, "INGRESO");
 
-  const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const months = useMemo(() => txByMonth(txs).slice(-12), [txs]);
   const incomeCats = useMemo(() => txByCategory(periodTxs, "INGRESO"), [periodTxs]);
   const totalIn = useMemo(() => periodTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [periodTxs]);
   const prevTxs = useMemo(() => filterByPeriod(txs, period, -1), [txs, period]);
   const prevIn = useMemo(() => prevTxs.filter((x) => x.tipo === "INGRESO").reduce((s, x) => s + x.valor, 0), [prevTxs]);
   const dIn = prevIn ? ((totalIn - prevIn) / prevIn) * 100 : null;
-  const allIncomeTxs = useMemo(() => txs.filter((x) => x.tipo === "INGRESO").slice().reverse(), [txs]);
-
-  const incomeTxs = useMemo(() => {
-    let base;
-    if (calFilter) {
-      base = allIncomeTxs.filter((x) => matchesCalendar(x, calFilter));
-    } else {
-      base = periodTxs.filter((x) => x.tipo === "INGRESO").slice().reverse();
-    }
-    if (activeCat) base = base.filter((x) => x.categoria === activeCat);
-    return base;
-  }, [periodTxs, allIncomeTxs, calFilter, activeCat]);
-  const filteredTotal = useMemo(() => incomeTxs.reduce((s, x) => s + x.valor, 0), [incomeTxs]);
   const catMeta = (categoria) => resolveCategoryMeta(categoria, customCats, lang, "INGRESO");
   const incomeDonut = useMemo(() => incomeCats.map((c) => {
     const { label, color, Icon } = resolveCategoryMeta(c.categoria, customCats, lang, "INGRESO");
@@ -61,7 +46,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box>
               <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600, color: "text.secondary" }}>{t.income.toUpperCase()} · {periodLabel(period, t).toUpperCase()}</Typography>
-              <Typography variant="h3" fontWeight={800} sx={{ mt: 1, mb: 1, color: "success.main" }}>{fmt(totalIn)}</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 1, color: "success.main" }}>{fmt(totalIn)}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconButton size="medium" onClick={() => openModal("", "income")} sx={{ bgcolor: "success.light", color: "success.dark", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "success.main", color: "success.contrastText", transform: "scale(1.05)" } }}>
@@ -146,7 +131,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <GradientIcon icon={PieIcon} tone="warning" bubble />
                 <Box>
-                  <Typography variant="h6" fontWeight={700}>{t.breakdown}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.breakdown}</Typography>
                   <Typography variant="body2" color="text.secondary">{t.income} · {periodLabel(period, t)}</Typography>
                 </Box>
               </Box>
@@ -154,7 +139,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                 <Box sx={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", borderRadius: "50%" }}>
                   <Donut slices={incomeDonut} size={160} thickness={20} />
                   <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 90, height: 90, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <Typography variant="h6" fontWeight={700} color="success.main">{fmt(totalIn, true)}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }} color="success.main">{fmt(totalIn, true)}</Typography>
                     <Typography variant="caption" color="text.secondary">{t.income}</Typography>
                   </Box>
                 </Box>
@@ -163,7 +148,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
                     <Box key={s.label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, p: 1, bgcolor: "action.hover", borderRadius: 2, transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "action.selected" } }}>
                       <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
                       <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontWeight: 500 }}>{s.label}</Typography>
-                      <Typography variant="body2" fontWeight={700} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }} color="success.main">{totalIn > 0 ? Math.round((s.value / totalIn) * 100) : 0}%</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -177,7 +162,7 @@ export default function IncomeTab({ period, openModal, showToast }) {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <GradientIcon icon={ChartIcon} tone="goals" bubble />
                 <Box>
-                  <Typography variant="h6" fontWeight={700}>{t.trend}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.trend}</Typography>
                   <Typography variant="body2" color="text.secondary">{t.months_full}</Typography>
                 </Box>
               </Box>
@@ -239,8 +224,8 @@ export default function IncomeTab({ period, openModal, showToast }) {
           )}
           <TransactionList type="income" txs={incomeTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "success.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "success.main", color: "success.contrastText", borderRadius: 2, px: 3, py: 2 }}>
-            <Typography variant="body1" fontWeight={600}>{t.incomeTab.totalIncome}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
-            <Typography variant="h5" fontWeight={700}>+{fmt(filteredTotal, true)}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.incomeTab.totalIncome}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>+{fmt(filteredTotal, true)}</Typography>
           </Box>
         </CardContent>
       </Card>

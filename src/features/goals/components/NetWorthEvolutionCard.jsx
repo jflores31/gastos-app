@@ -19,7 +19,7 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={HistoryIcon} tone="income" bubble />
           <Box>
-            <Typography variant="subtitle1" fontWeight={700}>{t.goalsTab.netWorthEvolution}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t.goalsTab.netWorthEvolution}</Typography>
             <Typography variant="caption" color="text.secondary">{t.goalsTab.last6Months}</Typography>
           </Box>
         </Box>
@@ -30,7 +30,7 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
             <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 150 }} role="img" aria-label={t.goalsTab.netWorthEvolutionChart}>
               {history.map((h, i) => (
                 <Box key={i} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
-                  <Typography variant="caption" fontWeight={600}>{fmt(h.value, true)}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{fmt(h.value, true)}</Typography>
                   <Box sx={{ width: "100%", height: 100, bgcolor: "action.hover", borderRadius: 1, position: "relative", overflow: "hidden" }}>
                     <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(Math.abs(h.value) / maxVal) * 100}%`, bgcolor: h.value >= 0 ? (i === history.length - 1 ? "success.main" : "success.light") : "error.light", borderRadius: 1, transition: "transform 0.3s, box-shadow 0.3s" }} />
                   </Box>
@@ -43,11 +43,11 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
         <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", p: 2, bgcolor: "success.light", borderRadius: 2 }}>
           <Box>
             <Typography variant="caption" color="success.dark">{t.goalsTab.initialNetWorth}</Typography>
-            <Typography variant="body1" fontWeight={700} color="success.dark">{fmt(initial)}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 700 }} color="success.dark">{fmt(initial)}</Typography>
           </Box>
           <Box sx={{ textAlign: "right" }}>
             <Typography variant="caption" color="success.dark">{t.goalsTab.currentNetWorth}</Typography>
-            <Typography variant="body1" fontWeight={700} color="success.dark">{fmt(netWorth)}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 700 }} color="success.dark">{fmt(netWorth)}</Typography>
           </Box>
         </Box>
       </CardContent>

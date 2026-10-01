@@ -35,7 +35,7 @@ export function InvestmentsSection({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <GradientIcon icon={InvestIcon} tone="budget" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="h6" fontWeight={700}>{t.goalsTab.investments}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.goalsTab.investments}</Typography>
               <Typography variant="caption" color="text.secondary">{investments.length} {t.goalsTab.assetsCount}{investments.length > 0 ? ` · ${fmt(totalVal)}` : ""}</Typography>
             </Box>
           </Box>
@@ -50,10 +50,10 @@ export function InvestmentsSection({ showToast }) {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={inv.id}>
                   <Card variant="outlined" sx={{ borderRadius: 2, p: 2, cursor: "pointer", "&:hover": { boxShadow: 1 } }} onClick={() => dialog.openEdit(inv)}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-                      <Typography variant="body1" fontWeight={600}>{inv[lang]}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>{inv[lang]}</Typography>
                       <Chip size="small" label={typeChip(inv.type, t)} color={inv.type === "crypto" ? "error" : "default"} />
                     </Box>
-                    <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>{fmt(inv.value, true)}</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>{fmt(inv.value, true)}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip size="small" label={`${inv.return > 0 ? "+" : ""}${inv.return}%`} color={inv.return >= 0 ? "success" : "error"} variant="outlined" />
                       <Typography variant="caption" color="text.secondary">{t.goalsTab.returnLabel}</Typography>
@@ -65,11 +65,11 @@ export function InvestmentsSection({ showToast }) {
             <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", bgcolor: "warning.light", p: 2, borderRadius: 2 }}>
               <Box>
                 <Typography variant="caption" color="warning.dark">{t.goalsTab.totalInvested}</Typography>
-                <Typography variant="h6" fontWeight={700} color="warning.dark">{fmt(totalVal)}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }} color="warning.dark">{fmt(totalVal)}</Typography>
               </Box>
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="caption" color="warning.dark">{t.goalsTab.avgReturn}</Typography>
-                <Typography variant="h6" fontWeight={700} color={weightedReturn >= 0 ? "success.dark" : "error.dark"}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }} color={weightedReturn >= 0 ? "success.dark" : "error.dark"}>
                   {weightedReturn >= 0 ? "+" : ""}{weightedReturn.toFixed(1)}%
                 </Typography>
               </Box>
@@ -84,10 +84,10 @@ export function InvestmentsSection({ showToast }) {
         canSave={form.es && form.value && parseFloat(form.value) > 0}
         onSave={() => dialog.submit({ ...form, value: toBase(parseFloat(form.value), currency), return: parseFloat(form.return) || 0 })}
       >
-        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.value} type="number" inputProps={{ min: 0 }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.value} type="number" slotProps={{ htmlInput: { min: 0 } }} value={form.value} onChange={(e) => update({ value: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
             <TextField label={t.goalsTab.returnPct} type="number" value={form.return} onChange={(e) => update({ return: e.target.value })} fullWidth />

@@ -68,7 +68,7 @@ Los que no son de categoría. Se obtiene buscando los `import { … } from ".../
 | Archivo (en `src/`) | Iconos |
 |---|---|
 | `components/ui/EmptySection.tsx` | Add |
-| `components/ui/EmptyState.jsx` | Inbox |
+| `components/ui/EmptyState.tsx` | Inbox |
 | `features/accounts/components/AccountsCard.jsx` | AccountBalance, Add, AttachMoney, CreditCard, Delete, Edit, SwapHoriz |
 | `features/auth/components/AuthThemeToggle.tsx` | DarkMode, LightMode |
 | `features/auth/components/ForgotPasswordPage.tsx` | ArrowBack, LockReset, MarkEmailRead |
@@ -103,7 +103,7 @@ Los que no son de categoría. Se obtiene buscando los `import { … } from ".../
 | `features/transactions/components/ExpensesTab.jsx` | Add, CalendarMonth, ExpandLess, ExpandMore, Receipt, TrendingDown, Warning |
 | `features/transactions/components/IncomeTab.jsx` | AccountBalanceWallet, Add, PieChart, ShowChart |
 | `features/transactions/components/NoTransactions.jsx` | AttachMoney, Receipt |
-| `features/transactions/components/TransactionList.jsx` | Delete, Edit |
+| `features/transactions/components/TransactionList.tsx` | Delete, Edit |
 | `features/transactions/components/TrashDialog.jsx` | DeleteForever, DeleteSweep, RestoreFromTrash |
 
 ## Animación

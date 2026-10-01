@@ -58,7 +58,7 @@ export function TrashDialog({ onClose }) {
                   <ListItem key={tx.id} disableGutters sx={{ gap: 1.5, borderBottom: 1, borderColor: "divider" }}>
                     <CategoryAvatar icon={Icon} color={color} size={36} />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" fontWeight={600} noWrap>{tx.concepto}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>{tx.concepto}</Typography>
                       <Typography variant="caption" color="text.secondary" component="div" noWrap>
                         {label} · {tx.date.toLocaleDateString(t.common.locale)}{txOriginal(tx) && ` · ${txOriginal(tx)}`}
                       </Typography>
@@ -66,7 +66,7 @@ export function TrashDialog({ onClose }) {
                         {t.settingsPanel.deletedOn(tx.deletedAt.toLocaleDateString(t.common.locale, { day: "numeric", month: "short" }))} · {t.settingsPanel.purgeIn(daysLeft(tx))}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" fontWeight={700} sx={{ whiteSpace: "nowrap", color: tx.tipo === "INGRESO" ? "success.main" : "error.main" }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: "nowrap", color: tx.tipo === "INGRESO" ? "success.main" : "error.main" }}>
                       {tx.tipo === "INGRESO" ? "+" : "−"}{fmtTx(tx)}
                     </Typography>
                     <Tooltip title={t.settingsPanel.restore}>

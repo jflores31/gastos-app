@@ -39,7 +39,7 @@ export function GoalsSection({ showToast }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <GradientIcon icon={GoalIcon} tone="income" bubble bubbleSize={40} size={22} />
             <Box>
-              <Typography variant="h6" fontWeight={700}>{t.goals} · {t.goalsTab.savings}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.goals} · {t.goalsTab.savings}</Typography>
               <Typography variant="caption" color="text.secondary">{goals.length} {t.goalsTab.activeGoals}</Typography>
             </Box>
           </Box>
@@ -62,13 +62,13 @@ export function GoalsSection({ showToast }) {
         canSave={form.es && form.target}
         onSave={() => dialog.submit({ ...form, target: toBase(parseFloat(form.target), currency), current: toBase(parseFloat(form.current) || 0, currency) })}
       >
-        <TextField label={t.common.name} value={form.es} inputProps={{ maxLength: 60 }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
+        <TextField label={t.common.name} value={form.es} slotProps={{ htmlInput: { maxLength: 60 } }} onChange={(e) => update({ es: e.target.value, en: e.target.value })} fullWidth />
         <Grid container spacing={2}>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.target} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.target} type="number" inputMode="decimal" slotProps={{ htmlInput: { min: 0 } }} value={form.target} onChange={(e) => update({ target: e.target.value })} fullWidth />
           </Grid>
           <Grid size={{ xs: 6 }}>
-            <TextField label={t.goalsTab.current} type="number" inputMode="decimal" inputProps={{ min: 0 }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
+            <TextField label={t.goalsTab.current} type="number" inputMode="decimal" slotProps={{ htmlInput: { min: 0 } }} value={form.current} onChange={(e) => update({ current: e.target.value })} fullWidth />
           </Grid>
         </Grid>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={DAYJS_LOCALES[lang]}>
@@ -99,14 +99,14 @@ function GoalCard({ goal: g, onOpen }) {
               <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: `${g.color}20`, color: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>{g.icon}</Box>
             )}
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body1" fontWeight={600} noWrap>{g[lang]}</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600 }} noWrap>{g[lang]}</Typography>
               {days !== null && <Typography variant="caption" color="text.secondary">{days} {t.goalsTab.days}</Typography>}
             </Box>
           </Box>
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-              <Typography variant="h5" fontWeight={800} sx={{ color: g.color }}>{Math.round(pct * 100)}%</Typography>
-              <Typography variant="body2" fontWeight={600} color={pct >= 1 ? "success.main" : "text.secondary"}>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: g.color }}>{Math.round(pct * 100)}%</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} color={pct >= 1 ? "success.main" : "text.secondary"}>
                 {pct >= 1
                   ? (t.goalsTab.goalReached)
                   : `${fmt(left, true)} ${t.goalsTab.toGo}`}

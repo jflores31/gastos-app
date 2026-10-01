@@ -28,7 +28,7 @@ export default function GoalsTab({ showToast }) {
     <Stack spacing={3}>
       <GoalsSection showToast={showToast} />
 
-      <Grid container spacing={3} alignItems="stretch">
+      <Grid container spacing={3} sx={{ alignItems: "stretch" }}>
         <Grid size={{ xs: 12, md: 6 }} sx={{ display: "flex" }}>
           <AccountsCard worth={worth} showToast={showToast} />
         </Grid>
@@ -39,7 +39,7 @@ export default function GoalsTab({ showToast }) {
 
       <InvestmentsSection showToast={showToast} />
 
-      <Grid container spacing={3} alignItems="stretch">
+      <Grid container spacing={3} sx={{ alignItems: "stretch" }}>
         <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex" }}>
           <DebtsCard showToast={showToast} />
         </Grid>

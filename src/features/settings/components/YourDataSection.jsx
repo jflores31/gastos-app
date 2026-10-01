@@ -45,8 +45,7 @@ export function YourDataSection({ notify }) {
         <ListItemText
           primary={t.settingsPanel.yourData}
           secondary={t.settingsPanel.yourDataSubtitle}
-          primaryTypographyProps={{ variant: "overline" }}
-          secondaryTypographyProps={{ variant: "caption" }}
+          slotProps={{ primary: { variant: "overline" }, secondary: { variant: "caption" } }}
         />
       </ListItem>
       <ListItem sx={{ pt: 0, pb: 3 }}>

@@ -13,15 +13,15 @@ import {
 import AddTransactionModal from "./AddTransactionModal";
 import { CATEGORIES } from "@/domain/categories/catalog";
 import { txByCategory, getTodayExpenses } from "../domain/aggregations";
-import { matchesCalendar } from "../domain/calendarFilter";
 import { GradientIcon, CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
-import { filterByPeriod, periodLabel, daysCount } from "@/domain/period";
+import { periodLabel, daysCount } from "@/domain/period";
 import { budgetFor } from "@/features/budgets/domain/budgets";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { useMoveToTrash } from "../hooks/useMoveToTrash";
 import { useTxExtras } from "../hooks/useTxExtras";
+import { useTxFilters } from "../hooks/useTxFilters";
 import { TransactionList } from "./TransactionList";
 import { CalendarFilter } from "./CalendarFilter";
 
@@ -29,33 +29,15 @@ export default function ExpensesTab({ period, openModal, showToast }) {
   const { t, lang, fmt, fmtTx } = useSettings();
   const { txs, editBudgets, budgetPeriods, customCats } = useData();
   const txExtras = useTxExtras();
-  const [activeCat, setActiveCat] = useState(null);
   const [expandedSection, setExpandedSection] = useState("today");
   const [editingTx, setEditingTx] = useState(null);
   const moveToTrash = useMoveToTrash(showToast);
-  const [calFilter, setCalFilter] = useState(null);
+  const { periodTxs, calFilter, setCalFilter, activeCat, setActiveCat, list: expenseTxs, total: filteredTotal } = useTxFilters(txs, period, "EGRESO");
 
-  const periodTxs = useMemo(() => filterByPeriod(txs, period), [txs, period]);
   const todayExpenses = useMemo(() => getTodayExpenses(txs), [txs]);
   const totalToday = useMemo(() => todayExpenses.reduce((s, x) => s + x.valor, 0), [todayExpenses]);
 
-  const filtered = useMemo(() => {
-    let list = periodTxs;
-    if (activeCat) list = list.filter((x) => x.categoria === activeCat);
-    return list.slice().reverse();
-  }, [periodTxs, activeCat]);
-
-  const allExpenseTxs = useMemo(() => txs.filter((x) => x.tipo === "EGRESO").slice().reverse(), [txs]);
-
-  const expenseTxs = useMemo(() => {
-    if (calFilter) {
-      return allExpenseTxs.filter((x) => matchesCalendar(x, calFilter));
-    }
-    return filtered.filter((x) => x.tipo === "EGRESO");
-  }, [filtered, allExpenseTxs, calFilter]);
-
-  const filteredTotal = useMemo(() => expenseTxs.reduce((s, x) => s + x.valor, 0), [expenseTxs]);
-  // cats derived from expenseTxs so Top Categorías respects both period and calFilter
+  // cats derived from expenseTxs so Top Categorías respects the period, calFilter and the category chip
   const cats = useMemo(() => txByCategory(expenseTxs), [expenseTxs]);
   // periodCats always uses full period (no calFilter) — used for budget comparison so it's not distorted by a single-day filter
   const periodCats = useMemo(() => txByCategory(periodTxs.filter((x) => x.tipo === "EGRESO")), [periodTxs]);
@@ -91,7 +73,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
       <Card sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
         <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText" }}>
           <Box>
-            <Typography variant="h6" fontWeight={700}>{t.dailyTitle}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.dailyTitle}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>{t.dailySubtitle}</Typography>
           </Box>
           <IconButton size="medium" onClick={() => openModal("", "expense")} sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "inherit", transition: "transform 0.2s, background-color 0.2s, box-shadow 0.2s", "&:hover": { bgcolor: "rgba(255,255,255,0.25)", transform: "scale(1.05)" } }}>
@@ -100,15 +82,15 @@ export default function ExpensesTab({ period, openModal, showToast }) {
         </Box>
         <CardContent sx={{ pb: 2 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, cursor: "pointer" }} role="button" tabIndex={0} onClick={() => toggleSection("today")} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleSection("today")}>
-            <Typography variant="body2" fontWeight={600}>{t.todaysExpenses}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{t.todaysExpenses}</Typography>
             {expandedSection === "today" ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </Box>
           <Collapse in={expandedSection === "today"}>
             {todayExpenses.length > 0 ? (
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, p: 1.5, bgcolor: "primary.light", borderRadius: 2 }}>
-                  <Typography variant="body2" fontWeight={600}>{t.expensesTab.totalToday}</Typography>
-                  <Typography variant="h6" fontWeight={700} color="error.main">−{fmt(totalToday)}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{t.expensesTab.totalToday}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }} color="error.main">−{fmt(totalToday)}</Typography>
                 </Box>
                 <Stack spacing={0.5}>
                   {todayExpenses.map((tx) => {
@@ -118,10 +100,10 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       <Box key={tx.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
                         <CategoryAvatar icon={Icon} color={color} size={32} />
                         <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="body2" fontWeight={700} noWrap sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
+                          <Typography variant="body2" noWrap sx={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.concepto}</Typography>
                           <Typography variant="caption" color="text.secondary">{catName} · {hour}{txExtras(tx)}</Typography>
                         </Box>
-                        <Typography variant="body1" fontWeight={700} color="error.main" sx={{ flexShrink: 0 }}>−{fmtTx(tx)}</Typography>
+                        <Typography variant="body1" color="error.main" sx={{ fontWeight: 700, flexShrink: 0 }}>−{fmtTx(tx)}</Typography>
                       </Box>
                     );
                   })}
@@ -141,7 +123,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "primary.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main", mb: 0.5 }}>{t.topCategories}</Typography>
                 <Typography variant="caption" color="text.secondary">{cats.length} {t.category.toLowerCase()}s · {fmt(filteredTotal, true)}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
@@ -154,13 +136,13 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                           <CategoryAvatar icon={Icon} color={color} />
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600}>
-                              <Typography component="span" variant="body2" fontWeight={700} color="text.secondary" sx={{ mr: 0.75 }}>#{idx + 1}</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              <Typography component="span" variant="body2" color="text.secondary" sx={{ fontWeight: 700, mr: 0.75 }}>#{idx + 1}</Typography>
                               {catName}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">{c._empty ? (t.expensesTab.noExpensesYet) : `${c.count} ${t.common.transactions} · ${pct.toFixed(1)}%`}</Typography>
                           </Box>
-                          <Typography variant="h6" fontWeight={700} color="primary.main">{fmt(c.total, true)}</Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.main">{fmt(c.total, true)}</Typography>
                         </Box>
                         <LinearProgress variant="determinate" value={Math.min(100, (c.total / (cats[0]?.total || 1)) * 100)} color="primary" sx={{ height: 8, borderRadius: 4 }} />
                       </Box>
@@ -176,7 +158,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "warning.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "warning.dark", mb: 0.5 }}>{t.budgetVsActual}</Typography>
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)} · {Object.keys(editBudgets).length} {t.common.categories}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
@@ -197,10 +179,10 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                             <CategoryAvatar icon={Icon} color={color} />
                             <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" fontWeight={600}>{catName}</Typography>
-                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} fontWeight={isOver ? 600 : 400}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmt(limit, true)}`}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{catName}</Typography>
+                              <Typography variant="caption" color={isOver ? "error.main" : "text.secondary"} sx={{ fontWeight: isOver ? 600 : 400 }}>{Math.round(pct * 100)}% {isOver ? (t.expensesTab.overLimit) : `· ${t.expensesTab.of} ${fmt(limit, true)}`}</Typography>
                             </Box>
-                            <Typography variant="h6" fontWeight={700} color={isOver ? "error.main" : "warning.dark"}>{fmt(spent, true)}</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 700 }} color={isOver ? "error.main" : "warning.dark"}>{fmt(spent, true)}</Typography>
                           </Box>
                           <LinearProgress variant="determinate" value={Math.min(100, pct * 100)} color={isOver ? "error" : "warning"} sx={{ height: 8, borderRadius: 4 }} />
                         </Box>
@@ -217,7 +199,7 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           <Card sx={{ ...cardStyles, borderTop: "3px solid", borderTopColor: "success.main" }}>
             <CardContent sx={cardContentStyles}>
               <Box sx={{ mb: 2, pb: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="h6" fontWeight={700} sx={{ color: "success.dark", mb: 0.5 }}>{t.expensesTab.periodSummary}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "success.dark", mb: 0.5 }}>{t.expensesTab.periodSummary}</Typography>
                 <Typography variant="caption" color="text.secondary">{periodLabel(period, t)}</Typography>
               </Box>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
@@ -240,9 +222,9 @@ export default function ExpensesTab({ period, openModal, showToast }) {
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: item.isCount ? 0 : 1 }}>
                         <GradientIcon icon={item.icon} tone={item.tone} bubble bubbleSize={40} size={22} />
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" fontWeight={600}>{item.label}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.label}</Typography>
                         </Box>
-                        <Typography variant="h6" fontWeight={700} color={item.color}>
+                        <Typography variant="h6" sx={{ fontWeight: 700 }} color={item.color}>
                           {item.isCount ? item.value : fmt(item.value, true)}
                         </Typography>
                       </Box>
@@ -299,8 +281,8 @@ export default function ExpensesTab({ period, openModal, showToast }) {
           )}
           <TransactionList type="expense" txs={expenseTxs} catMeta={catMeta} onEdit={setEditingTx} onDelete={moveToTrash} />
           <Box sx={{ mt: 2, pt: 2, borderTop: "2px solid", borderColor: "primary.main", display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2, px: { xs: 2, sm: 3 }, py: 2 }}>
-            <Typography variant="body1" fontWeight={600}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
-            <Typography variant="h5" fontWeight={700}>−{fmt(filteredTotal, true)}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.expensesTab.totalExpenses}{(calFilter || activeCat) ? ` (${t.common.filtered})` : ""}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>−{fmt(filteredTotal, true)}</Typography>
           </Box>
         </CardContent>
       </Card>

@@ -17,7 +17,7 @@ export function PreferencesTab() {
   const ratesDate = rates.date && new Date(`${rates.date}T12:00:00`).toLocaleDateString(t.common.locale, { day: "numeric", month: "short", year: "numeric" });
   const ratesInfo = [rates.source === "live" ? t.settingsPanel.ratesLive(ratesDate) : t.settingsPanel.ratesFixed, rateLabel(currency, t.common.locale)].filter(Boolean).join(" · ");
   const sectionLabel = (text) => (
-    <ListItemText primary={text} primaryTypographyProps={{ variant: "overline" }} />
+    <ListItemText primary={text} slotProps={{ primary: { variant: "overline" } }} />
   );
 
   return (
