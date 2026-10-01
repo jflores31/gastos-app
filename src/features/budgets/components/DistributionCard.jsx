@@ -6,7 +6,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { Donut } from "@/components/charts/Charts";
-import { accentCardSx } from "@/theme/tokens";
+import { distributionBodySx, distributionCenterSx, distributionDonutSx, distributionLabelSx, distributionRowSx, tallAccentCardSx } from "./budgets.styles";
 
 // Donut of what was spent in each budgeted category this period.
 export function DistributionCard({ cats }) {
@@ -23,16 +23,16 @@ export function DistributionCard({ cats }) {
   const donutTotal = donutData.reduce((s, d) => s + d.value, 0);
 
   return (
-    <Card sx={{ ...accentCardSx("warning.main"), height: "100%", minHeight: 280, display: "flex", flexDirection: "column" }}>
+    <Card sx={tallAccentCardSx("warning.main")}>
       <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <GradientIcon icon={PieIcon} tone="warning" bubble />
           <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.budgetTab.distribution}</Typography>
         </Box>
-        <Box sx={{ display: "flex", flex: 1, gap: 3, alignItems: "center", flexDirection: { xs: "column", sm: "row" } }}>
-          <Box sx={{ position: "relative", width: 180, height: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Box sx={distributionBodySx}>
+          <Box sx={distributionDonutSx}>
             <Donut slices={donutData} size={160} thickness={16} />
-            <Box sx={{ position: "absolute", textAlign: "center", bgcolor: "background.paper", borderRadius: "50%", width: 80, height: 80, display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <Box sx={distributionCenterSx}>
               <Typography variant="body1" sx={{ fontWeight: 700 }}>{fmt(donutTotal, true)}</Typography>
               <Typography variant="caption" color="text.secondary">{t.spent}</Typography>
             </Box>
@@ -40,9 +40,9 @@ export function DistributionCard({ cats }) {
           <Box sx={{ flex: 1, maxHeight: 200, overflowY: "auto" }}>
             {donutData.slice(0, 5).map((s) => (
               <Tooltip key={s.label} title={s.label} arrow placement="top">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1, p: 1, borderRadius: 1.5, bgcolor: "action.hover", cursor: "default" }}>
+                <Box sx={distributionRowSx}>
                   <CategoryAvatar icon={s.Icon} color={s.color} size={22} />
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</Typography>
+                  <Typography variant="body2" sx={distributionLabelSx}>{s.label}</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>{donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%</Typography>
                 </Box>
               </Tooltip>

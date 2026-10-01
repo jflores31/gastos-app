@@ -8,6 +8,8 @@ import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
 import { accentCardSx } from "@/theme/tokens";
+import { tintedIconButtonSx } from "@/theme/tokens";
+import { debtProgressSx, debtRowSx } from "./DebtsCard.styles";
 
 const EMPTY_DEBT = { es: "", en: "", balance: "", rate: "", monthly: "", remaining: "", original_months: "" };
 
@@ -36,7 +38,7 @@ export function DebtsCard({ showToast }) {
               <Typography variant="caption" color="text.secondary">{debts.length} {t.goalsTab.loans}</Typography>
             </Box>
           </Box>
-          <IconButton size="small" aria-label={t.goalsTab.addDebt} onClick={dialog.openNew} sx={{ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label={t.goalsTab.addDebt} onClick={dialog.openNew} sx={tintedIconButtonSx("error")}><AddIcon fontSize="small" /></IconButton>
         </Box>
         {debts.length === 0 ? (
           <EmptySection label={t.goalsTab.noLoansYet} onAdd={dialog.openNew} />
@@ -91,7 +93,7 @@ function DebtRow({ debt: d, onOpen }) {
   const paid = Math.max(0, orig - d.remaining);
   const pct = orig > 0 ? paid / orig : 0;
   return (
-    <Box sx={{ mb: 2, p: 2, bgcolor: "action.hover", borderRadius: 2, cursor: "pointer" }} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen()}>
+    <Box sx={debtRowSx} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen()}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
         <Typography variant="body1" sx={{ fontWeight: 600 }}>{d[lang]}</Typography>
         <Chip size="small" label={`${d.rate}% TEA`} color="warning" variant="outlined" />
@@ -100,7 +102,7 @@ function DebtRow({ debt: d, onOpen }) {
         <Typography variant="body2" color="text.secondary">{fmt(d.balance, true)}</Typography>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>{fmt(d.monthly, true)} {t.common.perMonth}</Typography>
       </Box>
-      <LinearProgress variant="determinate" value={pct * 100} sx={{ height: 6, borderRadius: 3, mb: 0.5, bgcolor: "action.selected", "& .MuiLinearProgress-bar": { bgcolor: "error.main" } }} />
+      <LinearProgress variant="determinate" value={pct * 100} sx={debtProgressSx} />
       <Typography variant="caption" color="text.secondary">{d.remaining} {t.goalsTab.installmentsLeft}</Typography>
     </Box>
   );

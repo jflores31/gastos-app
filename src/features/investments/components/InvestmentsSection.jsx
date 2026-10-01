@@ -8,6 +8,8 @@ import { useEntityDialog } from "@/components/forms/useEntityDialog";
 import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
 import { accentCardSx } from "@/theme/tokens";
+import { summaryBarSx } from "@/theme/tokens";
+import { investmentCardSx } from "./InvestmentsSection.styles";
 
 const EMPTY_INVESTMENT = { es: "", en: "", value: "", return: "", type: "savings" };
 const typeChip = (type, t) =>
@@ -49,7 +51,7 @@ export function InvestmentsSection({ showToast }) {
             <Grid container spacing={3}>
               {investments.map((inv) => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={inv.id}>
-                  <Card variant="outlined" sx={{ borderRadius: 2, p: 2, cursor: "pointer", "&:hover": { boxShadow: 1 } }} onClick={() => dialog.openEdit(inv)}>
+                  <Card variant="outlined" sx={investmentCardSx} onClick={() => dialog.openEdit(inv)}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                       <Typography variant="body1" sx={{ fontWeight: 600 }}>{inv[lang]}</Typography>
                       <Chip size="small" label={typeChip(inv.type, t)} color={inv.type === "crypto" ? "error" : "default"} />
@@ -63,7 +65,7 @@ export function InvestmentsSection({ showToast }) {
                 </Grid>
               ))}
             </Grid>
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", bgcolor: "warning.light", p: 2, borderRadius: 2 }}>
+            <Box sx={summaryBarSx("warning")}>
               <Box>
                 <Typography variant="caption" color="warning.dark">{t.goalsTab.totalInvested}</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 700 }} color="warning.dark">{fmt(totalVal)}</Typography>

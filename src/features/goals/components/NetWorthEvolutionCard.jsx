@@ -3,6 +3,8 @@ import { History as HistoryIcon } from "@/theme/icons";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { accentCardSx } from "@/theme/tokens";
+import { summaryBarSx } from "@/theme/tokens";
+import { monthBarSx, monthColumnSx, monthTrackSx } from "./goals.styles";
 
 // Net worth over the last 6 months, rebuilt backwards from today's value: each month is
 // today's net worth minus the net of the months after it.
@@ -30,10 +32,10 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
           ) : (
             <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 150 }} role="img" aria-label={t.goalsTab.netWorthEvolutionChart}>
               {history.map((h, i) => (
-                <Box key={i} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                <Box key={i} sx={monthColumnSx}>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>{fmt(h.value, true)}</Typography>
-                  <Box sx={{ width: "100%", height: 100, bgcolor: "action.hover", borderRadius: 1, position: "relative", overflow: "hidden" }}>
-                    <Box sx={{ position: "absolute", bottom: 0, width: "100%", height: `${(Math.abs(h.value) / maxVal) * 100}%`, bgcolor: h.value >= 0 ? (i === history.length - 1 ? "success.main" : "success.light") : "error.light", borderRadius: 1, transition: "transform 0.3s, box-shadow 0.3s" }} />
+                  <Box sx={monthTrackSx}>
+                    <Box sx={monthBarSx({ value: h.value, max: maxVal, isLast: i === history.length - 1 })} />
                   </Box>
                   <Typography variant="caption" color="text.secondary">{h.month}</Typography>
                 </Box>
@@ -41,7 +43,7 @@ export function NetWorthEvolutionCard({ months, netWorth }) {
             </Box>
           )}
         </Box>
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", p: 2, bgcolor: "success.light", borderRadius: 2 }}>
+        <Box sx={summaryBarSx("success")}>
           <Box>
             <Typography variant="caption" color="success.dark">{t.goalsTab.initialNetWorth}</Typography>
             <Typography variant="body1" sx={{ fontWeight: 700 }} color="success.dark">{fmt(initial)}</Typography>

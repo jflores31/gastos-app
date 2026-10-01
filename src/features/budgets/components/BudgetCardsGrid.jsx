@@ -7,6 +7,7 @@ import { CategoryAvatar } from "@/components/ui/GradientIcon";
 import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
+import { addBudgetCardSx, budgetBarSx, budgetCardSx, limitInputSx } from "./budgets.styles";
 
 // "Presupuestos": one card per budgeted category (spent vs limit, limit editable inline)
 // plus the "add budget" card. `cats` is txByCategory() of the period.
@@ -28,7 +29,7 @@ export function BudgetCardsGrid({ cats, period, onManage, showToast }) {
           <BudgetCard key={cat} cat={cat} spent={cats.find((c) => c.categoria === cat)?.total || 0} period={period} showToast={showToast} />
         ))}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <Card onClick={onManage} sx={{ borderRadius: 2, border: "2px dashed", borderColor: "primary.main", bgcolor: "primary.light", height: "100%", minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background-color 0.2s, color 0.2s", "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" } }}>
+          <Card onClick={onManage} sx={addBudgetCardSx}>
             <Box sx={{ textAlign: "center", p: 2 }}>
               <AddIcon sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="body1" sx={{ fontWeight: 600 }}>{t.budgetTab.addBudget}</Typography>
@@ -68,7 +69,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
 
   return (
     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-      <Card sx={{ borderRadius: 2, border: "1px solid", borderColor: isOver ? "error.main" : isWarning ? "warning.main" : "divider", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", transition: "transform 0.3s, box-shadow 0.3s", "&:hover": { boxShadow: "0 8px 24px rgba(0,0,0,0.12)", transform: "translateY(-4px)" }, borderTop: "4px solid", borderTopColor: color, bgcolor: isOver ? "error.light" : isWarning ? "warning.light" : "background.paper", height: "100%", display: "flex", flexDirection: "column" }}>
+      <Card sx={budgetCardSx({ color, isOver, isWarning })}>
         <CardContent sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -90,21 +91,13 @@ function BudgetCard({ cat, spent, period, showToast }) {
             variant="determinate"
             value={Math.min(100, pct * 100)}
             color={isOver ? "error" : isWarning ? "warning" : "primary"}
-            sx={{
-              height: 10,
-              borderRadius: 5,
-              mb: 1.5,
-              bgcolor: "action.hover",
-              "& .MuiLinearProgress-bar": {
-                transition: "transform 0.8s ease-in-out",
-              }
-            }}
+            sx={budgetBarSx}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }} color={isOver ? "error.main" : "text.primary"}>{fmt(spent, true)}</Typography>
             {editing ? (
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
-                <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={{ width: 80, "& input": { fontSize: 12, py: 0.5 } }} autoFocus />
+                <TextField size="small" type="number" value={editVal} onChange={(e) => setEditVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveEdit()} onBlur={saveEdit} sx={limitInputSx} autoFocus />
                 <IconButton size="small" onClick={saveEdit} color="success" aria-label={t.common.save}><CheckIcon fontSize="small" /></IconButton>
               </Box>
             ) : (
@@ -112,7 +105,7 @@ function BudgetCard({ cat, spent, period, showToast }) {
             )}
           </Box>
           <Box sx={{ p: 1, bgcolor: isOver ? "error.main" : isWarning ? "warning.main" : "action.hover", borderRadius: 1 }}>
-            <Typography variant="caption" sx={{ color: isOver || isWarning ? "#fff" : "text.secondary", fontWeight: 500 }}>
+            <Typography variant="caption" sx={{ color: isOver || isWarning ? "common.white" : "text.secondary", fontWeight: 500 }}>
               {isOver ? `+${fmt(spent - limit, true)} ${t.overspent.toLowerCase()}` : `${fmt(limit - spent, true)} ${t.remaining.toLowerCase()}`}
             </Typography>
           </Box>

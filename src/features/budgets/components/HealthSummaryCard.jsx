@@ -5,6 +5,7 @@ import { TONE_BY_PALETTE } from "@/theme/iconTones";
 import { GradientIcon } from "@/components/ui/GradientIcon";
 import { useSettings } from "@/contexts/SettingsContext";
 import { accentCardSx } from "@/theme/tokens";
+import { gaugePanelSx, gaugeScoreSx, healthStatSx } from "./budgets.styles";
 
 // Financial health gauge + budget, spent, usage and income for the period.
 export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budgetUsed }) {
@@ -23,7 +24,7 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
       <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3} sx={{ alignItems: "center" }}>
           <Grid size={{ xs: 12, md: 4 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, bgcolor: "action.hover", borderRadius: 3 }}>
+            <Box sx={gaugePanelSx}>
               <Box sx={{ mb: 1 }}>
                 <GradientIcon icon={GaugeIcon} tone={TONE_BY_PALETTE[gaugeColor]} bubble bubbleSize={64} size={34} />
               </Box>
@@ -32,7 +33,7 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
                   <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" opacity={0.15} strokeWidth="10" strokeLinecap="round" />
                   <path d="M10,66 A55,55,0,0,1,110,66" fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(score / 100) * 172.8} 200`} style={{ color: gaugeColor === "success" ? "var(--income)" : gaugeColor === "warning" ? "#F9A825" : "var(--expense)" }} />
                 </svg>
-                <Typography variant="h4" sx={{ fontWeight: 800, position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 20%)", color: gaugeColor + ".main" }}>{score}</Typography>
+                <Typography variant="h4" sx={gaugeScoreSx(gaugeColor)}>{score}</Typography>
               </Box>
               <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1 }}>{t.healthScore}</Typography>
               <Chip label={healthLabel(score, lang)} color={gaugeColor} size="small" sx={{ fontWeight: 600, mt: 1 }} />
@@ -42,7 +43,7 @@ export function HealthSummaryCard({ score, totalBudget, totalOut, totalIn, budge
             <Grid container spacing={2}>
               {stats.map(({ lbl, val, c, icon }) => (
                 <Grid size={{ xs: 6, md: 3 }} key={lbl}>
-                  <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+                  <Box sx={healthStatSx}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
                       {icon}
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{lbl}</Typography>

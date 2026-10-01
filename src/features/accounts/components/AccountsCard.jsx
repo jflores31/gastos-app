@@ -10,8 +10,10 @@ import { EntityDialog } from "@/components/forms/EntityDialog";
 import { EmptySection } from "@/components/ui/EmptySection";
 import { TransferDialog } from "./TransferDialog";
 import { accentCardSx } from "@/theme/tokens";
+import { softRowSx, tintedIconButtonSx } from "@/theme/tokens";
+import { NEW_ACCOUNT_COLOR, balanceHeroSx, transferRowSx } from "./AccountsCard.styles";
 
-const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: "#0033A0", limit: "" };
+const EMPTY_ACCOUNT = { name: "", type: "bank", balance: "", color: NEW_ACCOUNT_COLOR, limit: "" };
 
 // What the balance field shows: today's balance, in the chosen currency.
 const balanceField = (a, currency) => String(fromBase(a.current ?? a.balance, currency));
@@ -60,13 +62,13 @@ export function AccountsCard({ worth, showToast }) {
             <Tooltip title={t.goalsTab.transfer}>
               {/* A disabled button fires no events: the span keeps the tooltip working. */}
               <span>
-                <IconButton size="small" onClick={() => setTransferring(true)} disabled={accounts.length < 2} aria-label={t.goalsTab.newTransfer} sx={{ bgcolor: "primary.light", "&:hover": { bgcolor: "primary.main", color: "common.white" } }}><SwapIcon fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={() => setTransferring(true)} disabled={accounts.length < 2} aria-label={t.goalsTab.newTransfer} sx={tintedIconButtonSx("primary")}><SwapIcon fontSize="small" /></IconButton>
               </span>
             </Tooltip>
-            <IconButton size="small" onClick={dialog.openNew} aria-label={t.goalsTab.newAccount} sx={{ bgcolor: "primary.light", "&:hover": { bgcolor: "primary.main", color: "common.white" } }}><AddIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={dialog.openNew} aria-label={t.goalsTab.newAccount} sx={tintedIconButtonSx("primary")}><AddIcon fontSize="small" /></IconButton>
           </Box>
         </Box>
-        <Box sx={{ bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 3, p: 3, mb: 3 }}>
+        <Box sx={balanceHeroSx}>
           <Typography variant="overline" sx={{ opacity: 0.8, display: "block", mb: 0.5 }}>{t.goalsTab.netWorth}</Typography>
           <Typography variant="h4" sx={{ fontWeight: 800 }}>{fmt(worth.net)}</Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -126,7 +128,7 @@ function AccountRow({ account: a, onEdit, onDelete }) {
   const isDebt = balance < 0;
   const utilPct = isDebt && a.limit ? Math.abs(balance) / a.limit : 0;
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+    <Box sx={softRowSx(1.5)}>
       <CategoryAvatar icon={a.type === "bank" ? BankIcon : a.type === "card" ? CardIcon : CashIcon} color={a.color} size={36} />
       <Box sx={{ flex: 1 }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>{a.name}</Typography>
@@ -167,7 +169,7 @@ function RecentTransfers({ showToast }) {
       <Typography variant="overline" color="text.secondary" component="h3">{t.goalsTab.transfers}</Typography>
       <Stack spacing={0.5}>
         {recent.map((tr) => (
-          <Box key={tr.id} sx={{ display: "flex", alignItems: "center", gap: 1, px: 1.5, py: 1, bgcolor: "action.hover", borderRadius: 2 }}>
+          <Box key={tr.id} sx={transferRowSx}>
             <SwapIcon fontSize="small" sx={{ color: "text.secondary" }} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>{name(tr.origen)} → {name(tr.destino)}</Typography>

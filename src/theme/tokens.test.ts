@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { accentCardSx, dialogColumnSx, dialogTopPaddingSx, liftCardSx, shadows } from "./tokens"
+import { accentCardSx, dialogColumnSx, dialogTopPaddingSx, liftCardSx, shadows, softRowSx, summaryBarSx, tintedIconButtonSx } from "./tokens"
 
 describe("accentCardSx", () => {
   it("card: 3 px border and the card shadow; section: 4 px and the section shadow", () => {
@@ -36,5 +36,13 @@ describe("dialog content", () => {
   it("puts the padding-top back with double specificity, alone or in a column of fields", () => {
     expect(dialogTopPaddingSx(0)).toEqual({ "&&": { pt: 0 } })
     expect(dialogColumnSx(2.5, 1)).toEqual({ display: "flex", flexDirection: "column", gap: 2.5, "&&": { pt: 1 } })
+  })
+})
+
+describe("section pieces", () => {
+  it("tinted button, soft row and summary bar use the given colour or gap", () => {
+    expect(tintedIconButtonSx("error")).toEqual({ bgcolor: "error.light", "&:hover": { bgcolor: "error.main", color: "common.white" } })
+    expect(softRowSx(2)).toEqual({ display: "flex", alignItems: "center", gap: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 })
+    expect(summaryBarSx("warning")).toMatchObject({ bgcolor: "warning.light", p: 2, mt: 2 })
   })
 })

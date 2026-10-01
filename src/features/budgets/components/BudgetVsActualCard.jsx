@@ -7,6 +7,7 @@ import { resolveCategoryMeta } from "@/theme/categoryIcons";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useData } from "@/contexts/DataContext";
 import { accentCardSx } from "@/theme/tokens";
+import { percentChipSx, totalsRowSx, usageBarSx, usageTrackSx } from "./budgets.styles";
 
 // One bar per budgeted category, plus totals restricted to budgeted categories.
 export function BudgetVsActualCard({ cats, period, totalBudget }) {
@@ -56,21 +57,12 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
                     label={`${rawPct.toFixed(0)}%`}
                     color={isOver ? "error" : isWarn ? "warning" : "success"}
                     variant="filled"
-                    sx={{ fontWeight: 700, height: 20, fontSize: 11, minWidth: 46, flexShrink: 0 }}
+                    sx={percentChipSx}
                   />
                 </Box>
-                <Box sx={{ position: "relative", height: 10, borderRadius: 6, bgcolor: "action.hover", overflow: "hidden" }}>
+                <Box sx={usageTrackSx}>
                   <Box
-                    sx={{
-                      position: "absolute", left: 0, top: 0, height: "100%",
-                      width: `${pct * 100}%`,
-                      bgcolor: barColor,
-                      borderRadius: 6,
-                      transition: "width 0.7s cubic-bezier(0.4,0,0.2,1)",
-                      backgroundImage: isOver
-                        ? "repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 4px, transparent 4px, transparent 8px)"
-                        : "none",
-                    }}
+                    sx={usageBarSx(pct, barColor, isOver)}
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: barColor, fontWeight: 600, mt: 0.5, display: "block" }}>
@@ -83,7 +75,7 @@ export function BudgetVsActualCard({ cats, period, totalBudget }) {
           })}
         </Stack>
         {/* Summary footer */}
-        <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+        <Box sx={totalsRowSx}>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             {t.budgetTab.totalSpent}: <strong>{fmt(totalSpentBudgeted, true)}</strong>
           </Typography>
