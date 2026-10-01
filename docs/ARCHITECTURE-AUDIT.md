@@ -267,6 +267,23 @@ Fases con la numeración del brief:
 - **Al partir `data/index.ts` y `data/helpers.ts`,** cada import se reescribe hacia el módulo que define la función: no quedan re-exports intermedios.
 - **Push después de cada feature**, y los tests unitarios nunca en paralelo con los e2e (comparten CPU y los de componentes pasan de los 5 s).
 
+## Piezas de `DataContext` (antes de la fase 6)
+
+`contexts/DataContext.jsx` (589 líneas) es la única puerta a la base de datos. Antes de dividirlo, cada pieza con su destino:
+
+| Pieza | Qué hace | Destino |
+|---|---|---|
+| `mapRow`, `currencyColumns` y el objeto de fila de una transacción (repetido en `addTx`, `addTxs` y `updateTx`) | Fila de `transactions` ↔ transacción de la app (fecha, moneda, cuenta, papelera) | `features/transactions/data/transactions.ts`: `transactionFromRow`, `transactionToRow`, `TRASH_DAYS`, `IMPORT_CHUNK` |
+| `addTx`, `addTxs` (lotes de 500), `updateTx`, `deleteTx` (a la papelera), `restoreTx`, `purgeTx`, `emptyTrash` | Mutaciones de transacciones; mantienen `txs` ordenado por fecha y `trash` al día | `features/transactions/data/useTransactionMutations.ts` |
+| Mapeo de `budgets` en `load()`, `setEditBudgets` (upsert por `user_id,categoria`), `deleteBudgetCat` | Presupuestos como `{ categoria: monto }` más `{ categoria: periodo }` | `features/budgets/data/budgets.ts` y `useBudgetMutations.ts` |
+| `map*` / `*ToRow` de `goals`, `accounts`, `transfers`, `investments`, `debts`, `subscriptions`, `custom_categories` (con `optionalColumns: ["icon"]`) | Fila ↔ objeto de la app | `features/<feature>/data/<tabla>.ts`, que exporta `{ table, fromRow, toRow, optionalColumns? }` |
+| `useTableCrud` | Guardar (insert o update) y borrar en una tabla 1:1 con una lista del estado; reintento sin columnas opcionales ante `PGRST204` | `contexts/useTableCrud.ts`, tipado con esa descripción de tabla |
+| `deleteAccount` | Borra la cuenta y refleja el `ON DELETE SET NULL` en transacciones, papelera y transferencias | Se queda en `DataContext` (toca tres listas del estado) |
+| Estado (13 `useState`), `requireUserId`, suscripción a auth, `load()` (purga de la papelera y 10 consultas), errores (`reportError`, `loadError`) | Carga una vez por usuario; espera el segundo paso de la 2FA; limpia todo al cerrar sesión | Se queda en `DataContext.tsx`, con las mismas consultas, el mismo orden y los mismos filtros |
+| `flagAnomalies(txs)`, `accountBalance` | Derivados: anomalías y saldo de hoy de cada cuenta | Se quedan (ya viven en `transactions/domain` y `accounts/domain`) |
+
+**Qué lo protege:** `DataContext.test.jsx` (15 tests) registra cada llamada encadenada al cliente y **no se toca**. Los e2e con sesión prueban lo mismo contra el Supabase simulado.
+
 ## Hallazgos durante la migración
 
 Cosas que el código hace hoy y que la reorganización **no cambia**, porque cambiarlas sería un cambio funcional o visual.
