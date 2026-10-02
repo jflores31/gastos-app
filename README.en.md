@@ -30,7 +30,7 @@ Screen-by-screen details in **[docs/FEATURES.en.md](docs/FEATURES.en.md)**. Amou
 | Language | TypeScript `strict` (routes, data, texts, settings and user contexts) + JSX (components) |
 | Tests | Vitest 5 (unit and jsdom component tests) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests, build and end-to-end |
-| Deploy | Vercel → `https://www.jeshu.cfd` |
+| Deploy | Vercel → `https://www.jeshu.cfd`, with Speed Insights (Core Web Vitals from real users) |
 
 ## Quick start
 

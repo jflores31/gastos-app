@@ -10,6 +10,10 @@ Cómo se publica un cambio, cómo se versiona y qué revisar cuando algo falla s
 - La CI (`.github/workflows/ci.yml`) corre lint, typecheck, tests, build y los tests end-to-end en cada PR; conviene mergear solo con la CI en verde.
 - Si el cambio toca el esquema, ejecutar antes `supabase/schema.sql` en el SQL Editor de Supabase (ver [DATABASE.md](DATABASE.md#instalar-o-poner-al-día)). Es idempotente: solo agrega lo que falta.
 - Despliegue manual: `vercel --prod`. Las variables de entorno se configuran en el Dashboard de Vercel.
+- **Speed Insights** (rendimiento real: LCP, INP, CLS…):
+  - **Dónde se monta:** `<SpeedInsights />` en `src/app/layout.tsx`, solo cuando `VERCEL` está definida, o sea, en los despliegues de Vercel. En local y en la CI no se monta.
+  - **Activarlo:** en el proyecto de Vercel, pestaña **Speed Insights** → **Enable**. Mientras esté desactivado, el script `/_vercel/speed-insights/script.js` responde 404 y no se mide nada.
+  - **CSP:** cómo encaja, en [SECURITY-CSP.md](SECURITY-CSP.md#scripts-de-terceros-vercel-speed-insights).
 
 ## Cómo mergear un PR
 
