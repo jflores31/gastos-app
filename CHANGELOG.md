@@ -5,6 +5,8 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 
 ## [Unreleased]
 
+## [0.0.2]
+
 ### Cambiado
 - **Estilos separados del código (T16)**, sin cambios de aspecto. Dónde va cada estilo: [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md#estilos).
   - **Tokens compartidos:** `src/theme/tokens.ts` reúne las sombras de tarjeta, la tarjeta con borde de color, la que se eleva al pasar el mouse, la columna de un diálogo, el interruptor Gasto / Ingreso y los colores de la barra del navegador.
