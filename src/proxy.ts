@@ -122,6 +122,8 @@ export default async function proxy(request: NextRequest) {
   return withCsp(supabaseResponse, csp)
 }
 
+// Not for static files, nor /_vercel/* (Speed Insights' script and its vitals endpoint, served by
+// Vercel): without a session the guard would redirect them to /login.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 }

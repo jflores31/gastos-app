@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
 import localFont from "next/font/local"
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
 import Providers from "@/components/providers/Providers"
 import { chromeColors } from "@/theme/tokens"
@@ -63,6 +64,10 @@ export default async function RootLayout({
         <AppRouterCacheProvider options={{ key: "mui", nonce }}>
           <Providers>{children}</Providers>
         </AppRouterCacheProvider>
+        {/* Vercel Speed Insights (Core Web Vitals, in the Vercel dashboard). Only on Vercel
+            (VERCEL=1): elsewhere /_vercel/speed-insights/script.js doesn't exist and its 404
+            would be a console error (the e2e tests fail on those). See docs/SECURITY-CSP.md. */}
+        {process.env.VERCEL ? <SpeedInsights /> : null}
       </body>
     </html>
   )

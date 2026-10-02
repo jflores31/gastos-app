@@ -128,6 +128,11 @@ El proyecto reinició su numeración en `0.0.1`; el historial previo se descart�
 - **Accesibilidad:** 6 selectores no tenían nombre accesible, porque su etiqueta no estaba enlazada: moneda, categoría de presupuesto, tipo de cuenta, tipo de inversión, ciclo y categoría de suscripción. Un lector de pantalla solo leía el valor elegido.
 
 ### Añadido
+- **Vercel Speed Insights:** mide el rendimiento de usuarios reales (Core Web Vitals) en los despliegues de Vercel. Reemplaza al PR #12, que abrió la integración de Vercel sobre una versión vieja del layout.
+  - **Dónde:** `<SpeedInsights />` en el layout, solo con `VERCEL` definida.
+  - **CSP:** entra sin cambios, por `'strict-dynamic'` y `'self'`.
+  - **Proxy:** el guard de sesión ya no intercepta `/_vercel/*`.
+  - **Activarlo:** en el panel de Vercel ([DEPLOYMENT.md](docs/DEPLOYMENT.md#despliegue)).
 - **Tests end-to-end con sesión:** 11 tests en `e2e/session.spec.ts` contra un Supabase simulado (`e2e/mock-supabase/`), que Playwright levanta junto a la app. Cubren:
   - login;
   - las 5 pestañas, los ajustes, el tema oscuro y el inglés, sin errores de consola;

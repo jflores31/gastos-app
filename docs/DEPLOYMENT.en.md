@@ -10,6 +10,10 @@ How a change is published, how versions work and what to check when something fa
 - CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, build and the end-to-end tests on every PR; only merge when it's green.
 - If a change touches the schema, first run `supabase/schema.sql` in the Supabase SQL Editor (see [DATABASE.en.md](DATABASE.en.md#install-or-upgrade)). It's idempotent: it only adds what's missing.
 - Manual deploy: `vercel --prod`. Environment variables are configured in the Vercel Dashboard.
+- **Speed Insights** (real-user performance: LCP, INP, CLS…):
+  - **Where it's mounted:** `<SpeedInsights />` in `src/app/layout.tsx`, only when `VERCEL` is set, that is, on Vercel deployments. It isn't mounted locally or in CI.
+  - **Turning it on:** in the Vercel project, **Speed Insights** tab → **Enable**. Until then, the `/_vercel/speed-insights/script.js` script returns 404 and nothing is measured.
+  - **CSP:** how it fits, in [SECURITY-CSP.md](SECURITY-CSP.md#scripts-de-terceros-vercel-speed-insights) (Spanish).
 
 ## How to merge a PR
 

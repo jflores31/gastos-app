@@ -65,6 +65,18 @@ Tras este cambio, todas las rutas pasaron de `○` (estático) a `ƒ` (dinámico
 Coste: se pierde el prerender estático de las páginas de auth — irrelevante aquí (formularios
 pequeños, app ya auth-gated).
 
+## Scripts de terceros: Vercel Speed Insights
+
+Speed Insights mide el rendimiento de usuarios reales y entra en el CSP sin tocarlo:
+
+- **El script:** `<SpeedInsights />`, en el layout, lo agrega con `document.createElement("script")` desde el bundle de Next, que tiene el nonce. `'strict-dynamic'` confía en los scripts que cargan los scripts confiables, así que no hace falta nonce ni listar hosts.
+- **Mismo origen:** el script (`/_vercel/speed-insights/script.js`) y el envío de las métricas (`/_vercel/speed-insights/vitals`) son del propio dominio. `connect-src 'self'` los cubre.
+- **Sin el guard de sesión:** el `matcher` de `src/proxy.ts` excluye `/_vercel`. Si no, sin sesión, el proxy redirigía el script a `/login` (307).
+- **Solo en Vercel:** se monta solo si `VERCEL` está definida. Fuera de Vercel, esa ruta da 404, y el error en la consola haría fallar los e2e.
+- **Verificado (01-10):** build local con `VERCEL=1` y Playwright en `/login`.
+  - El script se inserta y se pide, con 0 eventos `securitypolicyviolation`.
+  - La respuesta es 404, porque fuera de Vercel no existe; antes del cambio en el `matcher` era 307.
+
 ## Estilos: `<style>` con nonce, atributos `style` inline
 
 Los estilos tienen dos formas, y el CSP las trata por separado:

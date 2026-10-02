@@ -30,7 +30,7 @@ Detalle por pantalla en **[docs/FEATURES.md](docs/FEATURES.md)**. Los montos se 
 | Lenguaje | TypeScript `strict` (rutas, datos, textos, contextos de ajustes y usuario) + JSX (componentes) |
 | Tests | Vitest 5 (unitarios y componentes con jsdom) + Playwright (end-to-end) |
 | CI | GitHub Actions: lint, typecheck, tests, build y end-to-end |
-| Deploy | Vercel → `https://www.jeshu.cfd` |
+| Deploy | Vercel → `https://www.jeshu.cfd`, con Speed Insights (Core Web Vitals de usuarios reales) |
 
 ## Inicio rápido
 
